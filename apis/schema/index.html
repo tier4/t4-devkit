@@ -1,0 +1,4449 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../tier4/">
+      
+      
+        <link rel="next" href="../common/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Schema - T4 Perception Dataset devkit</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#schema" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="T4 Perception Dataset devkit" class="md-header__button md-logo" aria-label="T4 Perception Dataset devkit" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            T4 Perception Dataset devkit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Schema
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/initialize/" class="md-tabs__link">
+          
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tier4/" class="md-tabs__link">
+          
+  
+    
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="T4 Perception Dataset devkit" class="md-nav__button md-logo" aria-label="T4 Perception Dataset devkit" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    T4 Perception Dataset devkit
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/initialize/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Initialization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/render/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rendering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/customize/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Customization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tier4/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TIER IV
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Schema
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Schema
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#name-of-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Name of schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Name of schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name.SchemaName" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SchemaName
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SchemaName">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name.SchemaName.filename" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;filename
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name.SchemaName.is_optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;is_optional
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;tables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SchemaBase
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SchemaBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase.shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;shortcuts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase.from_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_json
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase.from_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_dict
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Attribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Attribute
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.CalibratedSensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CalibratedSensor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Category" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Category
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.EgoPose" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;EgoPose
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Instance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Keypoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Keypoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Log" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Log
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Map" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.ObjectAnn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ObjectAnn
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Sample
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Sample">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sample--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleAnnotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SampleAnnotation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SampleAnnotation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleAnnotation--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleData" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SampleData
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SampleData">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleData--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Sensor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Sensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sensor--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SurfaceAnn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SurfaceAnn
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Visibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Visibility
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-items-constructing-schema-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other items constructing schema table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;FileFormat
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" FileFormat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat.is_member" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;is_member
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat.values" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;values
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat.as_ext" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;as_ext
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SensorModality" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SensorModality
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.VisibilityLevel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;VisibilityLevel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" VisibilityLevel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.VisibilityLevel.from_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema registry
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;builder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.builder.build_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;build_schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.registry.SCHEMAS" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;SCHEMAS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.registry.SchemaRegistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SchemaRegistry
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SchemaRegistry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.registry.SchemaRegistry.build_from_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;build_from_json
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serialize-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serialize schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Serialize schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.serialize" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;serialize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.serialize.serialize_schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;serialize_schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.serialize.serialize_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;serialize_schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Common
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#name-of-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Name of schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Name of schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name.SchemaName" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SchemaName
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SchemaName">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name.SchemaName.filename" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;filename
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.name.SchemaName.is_optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;is_optional
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;tables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SchemaBase
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SchemaBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase.shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;shortcuts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase.from_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_json
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SchemaBase.from_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_dict
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Attribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Attribute
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.CalibratedSensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CalibratedSensor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Category" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Category
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.EgoPose" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;EgoPose
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Instance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Keypoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Keypoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Log" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Log
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Map" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.ObjectAnn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ObjectAnn
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Sample
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Sample">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sample--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleAnnotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SampleAnnotation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SampleAnnotation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleAnnotation--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleData" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SampleData
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SampleData">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SampleData--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Scene" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Scene
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Sensor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Sensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Sensor--shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shortcuts:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SurfaceAnn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SurfaceAnn
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.Visibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Visibility
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-items-constructing-schema-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other items constructing schema table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;FileFormat
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" FileFormat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat.is_member" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;is_member
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat.values" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;values
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.FileFormat.as_ext" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;as_ext
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.SensorModality" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SensorModality
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.VisibilityLevel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;VisibilityLevel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" VisibilityLevel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.VisibilityLevel.from_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema registry
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;builder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.builder.build_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;build_schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.registry.SCHEMAS" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;SCHEMAS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.registry.SchemaRegistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SchemaRegistry
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SchemaRegistry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.tables.registry.SchemaRegistry.build_from_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;build_from_json
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serialize-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serialize schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Serialize schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.serialize" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;serialize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.serialize.serialize_schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;serialize_schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t4_devkit.schema.serialize.serialize_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;serialize_schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="schema"><code>schema</code></h1>
+<!-- prettier-ignore-start -->
+<h2 id="name-of-schemas">Name of schemas</h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="t4_devkit.schema.name"></a>
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.name.SchemaName" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SchemaName</span>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="enum.StrEnum">StrEnum</span></code></p>
+
+
+      <p>An enum to represent schema filenames.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.ATTRIBUTE">ATTRIBUTE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Property of an instance that can change while the category remains the same.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.CALIBRATED_SENSOR">CALIBRATED_SENSOR</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Definition of a particular sensor as calibrated on a vehicle.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.CATEGORY">CATEGORY</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Object categories.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.EGO_POSE">EGO_POSE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Ego vehicle pose at at particular timestamp.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.INSTANCE">INSTANCE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>An object instance.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.LOG">LOG</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Information about the log from which the data aws extracted.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.MAP">MAP</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Map data that is stored as binary semantic masks from a top-down view.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.SAMPLE">SAMPLE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>A sample is an annotated keyframe at specific Hz.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.SAMPLE_ANNOTATION">SAMPLE_ANNOTATION</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>A bounding box defining the position of an object seen in a sample.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.SAMPLE_DATA">SAMPLE_DATA</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>A sensor data e.g. image, pointcloud or radar return.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.SCENE">SCENE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>A scene is a specific long sequence of consecutive frames extracted from a log.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.SENSOR">SENSOR</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>A specific sensor type.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.VISIBILITY">VISIBILITY</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>The visibility of instance is the fraction of annotation visible in all images.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.OBJECT_ANN">OBJECT_ANN</span></code></b>
+              (<code>optional</code>)
+          –
+          <div class="doc-md-description">
+            <p>The annotation of a foreground object in an image.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.SURFACE_ANN">SURFACE_ANN</span></code></b>
+              (<code>optional</code>)
+          –
+          <div class="doc-md-description">
+            <p>The annotation of a background object in an image.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.name.SchemaName.KEYPOINT">KEYPOINT</span></code></b>
+              (<code>optional</code>)
+          –
+          <div class="doc-md-description">
+            <p>The annotation of pose keypoints of an object in an image.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="t4_devkit.schema.name.SchemaName.filename" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">filename</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the annotation json filename.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>str</code>
+          –
+          <div class="doc-md-description">
+            <p>Annotation json filename.</p>
+          </div>
+        </li>
+    </ul>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.name.SchemaName.is_optional" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">is_optional</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_optional</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Indicates if this schema name is optional.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>bool</code>
+          –
+          <div class="doc-md-description">
+            <p>Return True if this schema is optional.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="table-of-schemas">Table of schemas</h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="t4_devkit.schema.tables"></a>
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.SchemaBase" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SchemaBase</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">SchemaBase</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+      <p>Abstract base dataclass of schema tables.</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.SchemaBase.shortcuts" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">shortcuts</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">shortcuts</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Return a sequence of shortcut field names.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>tuple[str, ...] | None</code>
+          –
+          <div class="doc-md-description">
+            <p>Returns None if there is no shortcut. Otherwise, returns sequence of shortcut field names.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.SchemaBase.from_json" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">from_json</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Self</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Construct dataclass from json file.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>filepath</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Filepath to json.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>list[<span title="typing_extensions.Self">Self</span>]</code>
+          –
+          <div class="doc-md-description">
+            <p>List of instantiated schema dataclasses.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.SchemaBase.from_dict" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">from_dict</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Construct dataclass from dict.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>data</code></b>
+              (<code>dict[str, <span title="typing.Any">Any</span>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Dict data.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="typing_extensions.Self">Self</span></code>
+          –
+          <div class="doc-md-description">
+            <p>Instantiated schema dataclass.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Attribute" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Attribute</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>attribute.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Attribute.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Attribute.name">name</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Attribute name.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Attribute.description">description</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Attribute description.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.CalibratedSensor" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">CalibratedSensor</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>calibrated_sensor.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.CalibratedSensor.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.CalibratedSensor.sensor_token">sensor_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the sensor type.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.CalibratedSensor.translation">translation</span></code></b>
+              (<code><span title="t4_devkit.typing.TranslationType">TranslationType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Coordinates system origin given as [x, y, z] in [m].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.CalibratedSensor.rotation">rotation</span></code></b>
+              (<code><span title="t4_devkit.typing.RotationType">RotationType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Coordinates system orientation given as quaternion [w, x, y, z].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.CalibratedSensor.camera_intrinsic">camera_intrinsic</span></code></b>
+              (<code><span title="t4_devkit.typing.CamIntrinsicType">CamIntrinsicType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>3x3 camera intrinsic matrix. Empty for sensors that are not cameras.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.CalibratedSensor.camera_distortion">camera_distortion</span></code></b>
+              (<code><span title="t4_devkit.typing.CamDistortionType">CamDistortionType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Camera distortion array. Empty for sensors that are not cameras.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Category" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Category</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>category.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Category.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Category.name">name</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Category name.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Category.description">description</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Category description.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.EgoPose" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">EgoPose</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>ego_pose.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.EgoPose.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.EgoPose.translation">translation</span></code></b>
+              (<code><span title="t4_devkit.typing.TranslationType">TranslationType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Coordinate system origin given as [x, y, z] in [m].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.EgoPose.rotation">rotation</span></code></b>
+              (<code><span title="t4_devkit.typing.RotationType">RotationType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Coordinate system orientation given as quaternion [w, x, y, z].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.EgoPose.timestamp">timestamp</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unix time stamp.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Instance" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Instance</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>instance.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Instance.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Instance.category_token">category_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the object category.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Instance.instance_name">instance_name</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Dataset name and instance ID defined in annotation tool.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Instance.nbr_annotations">nbr_annotations</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Number of annotations of this instance.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Instance.first_annotation_token">first_annotation_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the first annotation of this instance.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Instance.last_annotation_token">last_annotation_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the last annotation of this instance.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Keypoint" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Keypoint</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>keypoint.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Keypoint.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Keypoint.sample_data_token">sample_data_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the sample data, which must be a keyframe image.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Keypoint.instance_token">instance_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the instance.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Keypoint.category_tokens">category_tokens</span></code></b>
+              (<code>list[str]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to keypoints categories.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Keypoint.keypoints">keypoints</span></code></b>
+              (<code><span title="t4_devkit.typing.KeypointType">KeypointType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Annotated keypoints. Given as a list of [x, y].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Keypoint.num_keypoints">num_keypoints</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>The number of keypoints to be annotated.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Log" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Log</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>log.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Log.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Log.logfile">logfile</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Log file name.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Log.vehicle">vehicle</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Vehicle name.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Log.data_captured">data_captured</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Date of the data was captured (YYYY-MM-DD-HH-mm-ss).</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Log.location">location</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Area where log was captured.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Map" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Map</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>map.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Map.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Map.log_tokens">log_tokens</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign keys pointing the log tokens.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Map.category">category</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Map category.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Map.filename">filename</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Relative path to the file with the map mask.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.ObjectAnn" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ObjectAnn</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>object_ann.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.sample_data_token">sample_data_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the sample data, which must be a keyframe image.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.instance_token">instance_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the instance.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.category_token">category_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the object category.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.attribute_tokens">attribute_tokens</span></code></b>
+              (<code>list[str]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign keys. List of attributes for this annotation.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.bbox">bbox</span></code></b>
+              (<code><span title="t4_devkit.typing.RoiType">RoiType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Annotated bounding box. Given as [xmin, ymin, xmax, ymax].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.ObjectAnn.mask">mask</span></code></b>
+              (<code><span title="t4_devkit.typing.MaskType">MaskType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Instance mask using the COCO format.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Sample" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Sample</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>sample.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sample.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sample.timestamp">timestamp</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unix time stamp.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sample.scene_token">scene_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sample.next">next</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the sample that follows this in time. Empty if end of scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sample.prev">prev</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the sample that precedes this in time. Empty if start of scene.</p>
+          </div>
+        </li>
+    </ul>
+      <h5 id="t4_devkit.schema.tables.Sample--shortcuts">Shortcuts:</h5>
+<div class="language-text highlight"><pre><span></span><code>data (dict[str, str]): Sensor channel and its token.
+    This should be set after instantiated.
+ann_3ds (list[str]): List of foreign keys pointing the sample annotations.
+    This should be set after instantiated.
+ann_3ds (list[str]): List of foreign keys pointing the object annotations.
+    This should be set after instantiated.
+</code></pre></div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.SampleAnnotation" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SampleAnnotation</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>sample_annotation.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.sample_token">sample_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the sample.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.instance_token">instance_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the object instance.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.attribute_tokens">attribute_tokens</span></code></b>
+              (<code>list[str]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign keys. List of attributes for this annotation.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.visibility_token">visibility_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the object visibility.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.translation">translation</span></code></b>
+              (<code><span title="t4_devkit.typing.TranslationType">TranslationType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Bounding box location given as [x, y, z] in [m].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.size">size</span></code></b>
+              (<code><span title="t4_devkit.typing.SizeType">SizeType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Bounding box size given as [width, length, height] in [m].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.rotation">rotation</span></code></b>
+              (<code><span title="t4_devkit.typing.RotationType">RotationType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Bounding box orientation given as quaternion [w, x, y, z].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.num_lidar_pts">num_lidar_pts</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Number of lidar points in this box.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.num_radar_pts">num_radar_pts</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Number of radar points in this box.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.next">next</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the annotation that follows this in time.
+Empty if this is the last annotation for this object.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.prev">prev</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the annotation that precedes this in time.
+Empty if this the first annotation for this object.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.velocity">velocity</span></code></b>
+              (<code><span title="t4_devkit.typing.VelocityType">VelocityType</span> | None</code>)
+          –
+          <div class="doc-md-description">
+            <p>Bounding box velocity given as
+[vx, vy, vz] in [m/s].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleAnnotation.acceleration">acceleration</span></code></b>
+              (<code><span title="t4_devkit.typing.AccelerationType">AccelerationType</span> | None</code>)
+          –
+          <div class="doc-md-description">
+            <p>Bonding box acceleration
+given as [ax, ay, av] in [m/s^2].</p>
+          </div>
+        </li>
+    </ul>
+      <h5 id="t4_devkit.schema.tables.SampleAnnotation--shortcuts">Shortcuts:</h5>
+<div class="language-text highlight"><pre><span></span><code>category_name (str): Category name. This should be set after instantiated.
+</code></pre></div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.SampleData" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SampleData</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A class to represent schema table of <code>sample_data.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.sample_token">sample_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the sample.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.ego_pose_token">ego_pose_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the ego_pose.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.calibrated_sensor_token">calibrated_sensor_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the calibrated_sensor.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.filename">filename</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Relative path to data-blob on disk.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.fileformat">fileformat</span></code></b>
+              (<code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.sample_data.FileFormat" href="#t4_devkit.schema.tables.FileFormat">FileFormat</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>Data file format.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.width">width</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>If the sample data is an image, this is the image width in [px].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.height">height</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>If the sample data is an image, this is the image height in [px].</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.timestamp">timestamp</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unix time stamp.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.is_key_frame">is_key_frame</span></code></b>
+              (<code>bool</code>)
+          –
+          <div class="doc-md-description">
+            <p>True if sample_data is part of key frame else, False.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.next">next</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the sample_data that follows this in time.
+Empty if end of scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.prev">prev</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing the sample_data that precedes this in time.
+Empty if start of scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SampleData.is_valid">is_valid</span></code></b>
+              (<code>bool</code>)
+          –
+          <div class="doc-md-description">
+            <p>True if this data is valid, else False. Invalid data should be ignored.</p>
+          </div>
+        </li>
+    </ul>
+      <h5 id="t4_devkit.schema.tables.SampleData--shortcuts">Shortcuts:</h5>
+<div class="language-text highlight"><pre><span></span><code>modality (SensorModality): Sensor modality. This should be set after instantiated.
+channel (str): Sensor channel. This should be set after instantiated.
+</code></pre></div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Scene" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Scene</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>scene.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.name">name</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Short string identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.description">description</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Longer description for the scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.log_token">log_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to log from where the data was extracted.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.nbr_samples">nbr_samples</span></code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>Number of samples in the scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.first_sample_token">first_sample_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the first sample in scene.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Scene.last_sample_token">last_sample_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the last sample in scene.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Sensor" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Sensor</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>sensor.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sensor.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sensor.channel">channel</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Sensor channel name.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Sensor.modality">modality</span></code></b>
+              (<code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.sensor.SensorModality" href="#t4_devkit.schema.tables.SensorModality">SensorModality</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>Sensor modality.</p>
+          </div>
+        </li>
+    </ul>
+      <h5 id="t4_devkit.schema.tables.Sensor--shortcuts">Shortcuts:</h5>
+<div class="language-text highlight"><pre><span></span><code>first_sd_token (str): The first sample data token corresponding to its sensor channel.
+</code></pre></div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.SurfaceAnn" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SurfaceAnn</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>surface_ann.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SurfaceAnn.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SurfaceAnn.sample_data_token">sample_data_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the sample data, which must be a keyframe image.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SurfaceAnn.category_token">category_token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Foreign key pointing to the surface category.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SurfaceAnn.mask">mask</span></code></b>
+              (<code><span title="t4_devkit.typing.MaskType">MaskType</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Segmentation mask using the COCO format.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.Visibility" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Visibility</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.base.SchemaBase" href="#t4_devkit.schema.tables.SchemaBase">SchemaBase</a></code></p>
+
+
+      <p>A dataclass to represent schema table of <code>visibility.json</code>.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Visibility.token">token</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Unique record identifier.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Visibility.level">level</span></code></b>
+              (<code><a class="autorefs autorefs-internal" title="t4_devkit.schema.tables.visibility.VisibilityLevel" href="#t4_devkit.schema.tables.VisibilityLevel">VisibilityLevel</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>Visibility level.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.Visibility.description">description</span></code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Description of visibility level.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h3 id="other-items-constructing-schema-table">Other items constructing schema table</h3>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.FileFormat" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">FileFormat</span>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="enum.StrEnum">StrEnum</span></code></p>
+
+
+      <p>An enum to represent file formats.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.FileFormat.JPG">JPG</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>JPG format for image data.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.FileFormat.PNG">PNG</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>PNG format for image data.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.FileFormat.PCD">PCD</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>PCD format for pointcloud data.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.FileFormat.BIN">BIN</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>BIN format.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.FileFormat.PCDBIN">PCDBIN</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>PCD.BIN format for pointcloud data.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.FileFormat.is_member" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">is_member</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_member</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Indicate whether the input item is the one of members of FileFormat.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>item</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Any file format name.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>bool</code>
+          –
+          <div class="doc-md-description">
+            <p>Return True if the item is included.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.FileFormat.values" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">values</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">values</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Return a list of values of members.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>list[str]</code>
+          –
+          <div class="doc-md-description">
+            <p>List of values.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.FileFormat.as_ext" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">as_ext</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">as_ext</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the value as file extension.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>str</code>
+          –
+          <div class="doc-md-description">
+            <p>File extension.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.SensorModality" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SensorModality</span>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="enum.StrEnum">StrEnum</span></code></p>
+
+
+      <p>An enum to represent sensor modalities.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SensorModality.LIDAR">LIDAR</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Lidar sensor.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SensorModality.CAMERA">CAMERA</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Camera sensor.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.SensorModality.RADAR">RADAR</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Radar sensor.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.VisibilityLevel" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">VisibilityLevel</span>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="enum.StrEnum">StrEnum</span></code></p>
+
+
+      <p>An enum to represent visibility levels.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.VisibilityLevel.FULL">FULL</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>No occlusion for the object.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.VisibilityLevel.MOST">MOST</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Object is occluded, but by less than 50%.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.VisibilityLevel.PARTIAL">PARTIAL</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Object is occluded, but by more than 50%.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.VisibilityLevel.NONE">NONE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Object is 90-100% occluded and no points/pixels are visible in the label.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><span title="t4_devkit.schema.tables.VisibilityLevel.UNAVAILABLE">UNAVAILABLE</span></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Visibility level is not specified.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.VisibilityLevel.from_value" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">from_value</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_value</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Load member from its value.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="schema-registry">Schema registry</h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="t4_devkit.schema.builder"></a>
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="t4_devkit.schema.builder.build_schema" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">build_schema</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">build_schema</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">SchemaName</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SchemaTable</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Build schema dataclass from json file path.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>name</code></b>
+              (<code>str | <a class="autorefs autorefs-internal" title="t4_devkit.schema.name.SchemaName" href="#t4_devkit.schema.name.SchemaName">SchemaName</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>Name of schema table.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>filepath</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Path to json file.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>list[<span title="t4_devkit.schema.tables.SchemaTable">SchemaTable</span>]</code>
+          –
+          <div class="doc-md-description">
+            <p>List of schema dataclasses.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="t4_devkit.schema.tables.registry.SCHEMAS" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">SCHEMAS</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">SCHEMAS</span> <span class="o">=</span> <span class="n">SchemaRegistry</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="t4_devkit.schema.tables.registry.SchemaRegistry" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SchemaRegistry</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">SchemaRegistry</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+      <p>A manager class to register schema tables.</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="t4_devkit.schema.tables.registry.SchemaRegistry.build_from_json" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">build_from_json</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">build_from_json</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">SchemaName</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SchemaTable</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Build schema dataclass from json.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>key</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Name of schema field.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>filepath</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Path to schema json file.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>list[<span title="t4_devkit.schema.tables.base.SchemaTable">SchemaTable</span>]</code>
+          –
+          <div class="doc-md-description">
+            <p>Instantiated dataclass.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="serialize-schema">Serialize schema</h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="t4_devkit.schema.serialize"></a>
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="t4_devkit.schema.serialize.serialize_schemas" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">serialize_schemas</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">serialize_schemas</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SchemaTable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Serialize a list of schema dataclasses into list of dict.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>data</code></b>
+              (<code>list[<span title="t4_devkit.schema.tables.SchemaTable">SchemaTable</span>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>List of schema dataclasses.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>list[dict]</code>
+          –
+          <div class="doc-md-description">
+            <p>Serialized list of dict data.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="t4_devkit.schema.serialize.serialize_schema" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">serialize_schema</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">serialize_schema</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">SchemaTable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+      <p>Serialize a schema dataclass into dict.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>data</code></b>
+              (<code><span title="t4_devkit.schema.tables.SchemaTable">SchemaTable</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Schema dataclass.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>dict</code>
+          –
+          <div class="doc-md-description">
+            <p>Serialized dict data.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><!-- prettier-ignore-end -->
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>
