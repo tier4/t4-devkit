@@ -3,13 +3,13 @@ site_name: T4 Perception Dataset devkit
 nav:
   - Home: index.md
   - Tutorials:
-    - Initialization: tutorials/initialize.md
-    - Rendering: tutorials/render.md
-    - Customization: tutorials/customize.md
+      - Initialization: tutorials/initialize.md
+      - Rendering: tutorials/render.md
+      - Customization: tutorials/customize.md
   - API:
-    - TIER IV: apis/tier4.md
-    - Schema: apis/schema.md
-    - Common: apis/common.md
+      - TIER IV: apis/tier4.md
+      - Schema: apis/schema.md
+      - Common: apis/common.md
 
 theme:
   name: material

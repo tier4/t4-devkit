@@ -12,7 +12,12 @@ from .registry import SCHEMAS
 from ..name import SchemaName
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import CamDistortionType, CamIntrinsicType, RotationType, TranslationType
+    from t4_devkit.typing import (
+        CamDistortionType,
+        CamIntrinsicType,
+        RotationType,
+        TranslationType,
+    )
 
 __all__ = ("CalibratedSensor",)
 
