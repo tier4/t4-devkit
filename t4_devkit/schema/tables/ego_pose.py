@@ -41,4 +41,6 @@ class EgoPose(SchemaBase):
         rotation = Quaternion(data["rotation"])
         timestamp: int = data["timestamp"]
 
-        return cls(token=token, translation=translation, rotation=rotation, timestamp=timestamp)
+        return cls(
+            token=token, translation=translation, rotation=rotation, timestamp=timestamp
+        )

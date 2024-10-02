@@ -69,4 +69,8 @@ class SchemaName(StrEnum):
         Returns:
             Return True if this schema is optional.
         """
-        return self in (SchemaName.OBJECT_ANN, SchemaName.SURFACE_ANN, SchemaName.KEYPOINT)
+        return self in (
+            SchemaName.OBJECT_ANN,
+            SchemaName.SURFACE_ANN,
+            SchemaName.KEYPOINT,
+        )
