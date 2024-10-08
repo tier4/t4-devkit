@@ -13,6 +13,7 @@ from .trajectory import to_trajectories
 
 if TYPE_CHECKING:
     from t4_devkit.typing import (
+        NDArrayF64,
         RotationType,
         SizeType,
         TrajectoryType,
@@ -49,7 +50,7 @@ class Box3D(BaseBox):
     velocity: VelocityType | None = field(default=None)
 
     # additional attributes: set by `with_**`
-    future: list[Trajectory] = field(default=list, init=False)
+    future: list[Trajectory] | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         if not isinstance(self.position, np.ndarray):
@@ -105,6 +106,27 @@ class Box3D(BaseBox):
     @property
     def volume(self) -> float:
         return self.area * self.size[2]
+
+    def corners(self, box_scale: float = 1.0) -> NDArrayF64:
+        """Return the bounding box corners.
+
+        Args:
+            box_scale (float, optional): Multiply size by this factor to scale the box.
+
+        Returns:
+            First four corners are the ones facing forward. The last four are the ones facing backwards,
+                in the shape of (8, 3).
+        """
+        length, width, height = self.size * box_scale
+
+        # 3D box corners (Convention: x points forward, y to the left, z up.)
+        x_corners = 0.5 * length * np.array([1, 1, 1, 1, -1, -1, -1, -1])
+        y_corners = 0.5 * width * np.array([1, -1, -1, 1, 1, -1, -1, 1])
+        z_corners = 0.5 * height * np.array([1, 1, -1, -1, 1, 1, -1, -1])
+        corners = np.vstack((x_corners, y_corners, z_corners))  # (3, 8)
+
+        # Rotate and translate
+        return np.dot(self.rotation.rotation_matrix, corners).T + self.position
 
 
 @dataclass(eq=False)

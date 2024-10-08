@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+
 from t4_devkit.schema import VisibilityLevel
 
 if TYPE_CHECKING:
+    from t4_devkit.dataclass import Box3D
     from t4_devkit.typing import NDArrayF64
-
-    from .box import Box3D
 
 
 __all__ = ("view_points", "is_box_in_image")

@@ -1,26 +1,28 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import os
 import os.path as osp
 import time
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from PIL import Image
 import numpy as np
-from nuscenes.nuscenes import LidarPointCloud, RadarPointCloud
-from pyquaternion import Quaternion
 import rerun as rr
 import rerun.blueprint as rrb
-from t4_devkit.common.box import Box2D, Box3D
+from nuscenes.nuscenes import LidarPointCloud, RadarPointCloud
+from PIL import Image
+from pyquaternion import Quaternion
+
 from t4_devkit.common.color import distance_color
 from t4_devkit.common.geometry import is_box_in_image, view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
+from t4_devkit.dataclass import Box2D, Box3D, Shape, ShapeType, convert_label
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
 if TYPE_CHECKING:
     from rerun.blueprint.api import BlueprintLike, Container, SpaceView
     from rerun.recording_stream import RecordingStream
+
     from t4_devkit.typing import (
         CamIntrinsicType,
         NDArrayF64,
@@ -31,6 +33,7 @@ if TYPE_CHECKING:
         VelocityType,
     )
 
+    from .dataclass import BoxType, SemanticLabel
     from .schema import (
         Attribute,
         CalibratedSensor,
@@ -297,7 +300,7 @@ class Tier4:
         *,
         as_3d: bool = True,
         visibility: VisibilityLevel = VisibilityLevel.NONE,
-    ) -> tuple[str, list[Box3D | Box2D], CamIntrinsicType | None]:
+    ) -> tuple[str, list[BoxType], CamIntrinsicType | None]:
         """Return the data path as well as all annotations related to that `sample_data`.
 
         Args:
@@ -329,7 +332,7 @@ class Tier4:
             img_size = None
 
         # Retrieve all sample annotations and map to sensor coordinate system.
-        boxes: list[Box3D | Box2D]
+        boxes: list[BoxType]
         if selected_ann_tokens is not None:
             boxes = (
                 list(map(self.get_box3d, selected_ann_tokens))
@@ -368,27 +371,94 @@ class Tier4:
 
         return data_path, box_list, cam_intrinsic
 
-    def get_box3d(self, sample_annotation_token: str) -> Box3D:
+    def get_semantic_label(
+        self,
+        category_token: str,
+        attribute_tokens: list[str] | None = None,
+        name_mapping: dict[str, str] | None = None,
+        *,
+        update_default_mapping: bool = False,
+    ) -> SemanticLabel:
+        """Return a SemanticLabel instance from specified `category_token` and `attribute_tokens`.
+
+        Args:
+            category_token (str): Token of `Category` table.
+            attribute_tokens (list[str] | None, optional): List of attribute tokens.
+            name_mapping (dict[str, str] | None, optional): Category name mapping.
+            update_default_mapping (bool, optional): Whether to update default category name mapping.
+
+        Returns:
+            Instantiated SemanticLabel.
+        """
+        category: Category = self.get("category", category_token)
+        attributes: list[str] = (
+            [self.get("attribute", token).name for token in attribute_tokens]
+            if attribute_tokens is not None
+            else []
+        )
+
+        return convert_label(
+            original=category.name,
+            attributes=attributes,
+            name_mapping=name_mapping,
+            update_default_mapping=update_default_mapping,
+        )
+
+    def get_box3d(
+        self,
+        sample_annotation_token: str,
+        *,
+        category_mapping: dict[str, str] | None = None,
+        update_default_mapping: bool = False,
+    ) -> Box3D:
         """Return a Box3D class from a `sample_annotation` record.
 
         Args:
             sample_annotation_token (str): Token of `sample_annotation`.
+            label_prefix (str | LabelPrefix, optional): Label prefix name.
+            category_mapping (dict[str, str] | None, optional): Category name mapping.
+            update_default_mapping (bool, optional): Whether to update default category mapping.
 
         Returns:
             Instantiated Box3D.
         """
-        record: SampleAnnotation = self.get(
-            "sample_annotation", sample_annotation_token
-        )
-        return Box3D(
-            record.translation,
-            record.size,
-            record.rotation,
-            name=record.category_name,
-            token=record.token,
+        ann: SampleAnnotation = self.get("sample_annotation", sample_annotation_token)
+        instance: Instance = self.get("instance", ann.instance_token)
+        sample: Sample = self.get("sample", ann.sample_token)
+
+        # TODO(ktro2828): `category_mapping` and below parameters are not specified in `get_box3ds`.
+        # semantic label
+        semantic_label = self.get_semantic_label(
+            category_token=instance.category_token,
+            attribute_tokens=ann.attribute_tokens,
+            name_mapping=category_mapping,
+            update_default_mapping=update_default_mapping,
         )
 
-    def get_box2d(self, object_ann_token: str) -> Box2D:
+        shape = Shape(shape_type=ShapeType.BOUNDING_BOX, size=ann.size)
+
+        # velocity
+        velocity = self.box_velocity(sample_annotation_token=sample_annotation_token)
+
+        return Box3D(
+            unix_time=sample.timestamp,
+            frame_id="map",
+            semantic_label=semantic_label,
+            position=ann.translation,
+            rotation=ann.rotation,
+            shape=shape,
+            velocity=velocity,
+            confidence=1.0,
+            uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+        )
+
+    def get_box2d(
+        self,
+        object_ann_token: str,
+        *,
+        category_mapping: dict[str, str] | None = None,
+        update_default_mapping: bool = False,
+    ) -> Box2D:
         """Return a Box2D class from a `object_ann` record.
 
         Args:
@@ -397,8 +467,26 @@ class Tier4:
         Returns:
             Instantiated Box2D.
         """
-        record: ObjectAnn = self.get("object_ann", object_ann_token)
-        return Box2D(record.bbox, name=record.category_name, token=record.token)
+        ann: ObjectAnn = self.get("object_ann", object_ann_token)
+        instance: Instance = self.get("instance", ann.instance_token)
+        sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
+
+        # TODO(ktro2828): `category_mapping` and below parameters are not specified in `get_box2ds`.
+        semantic_label = self.get_semantic_label(
+            category_token=ann.category_token,
+            attribute_tokens=ann.attribute_tokens,
+            name_mapping=category_mapping,
+            update_default_mapping=update_default_mapping,
+        )
+
+        return Box2D(
+            unix_time=sample_data.timestamp,
+            frame_id=sample_data.channel,
+            semantic_label=semantic_label,
+            roi=ann.bbox,
+            confidence=1.0,
+            uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+        )
 
     def get_box3ds(self, sample_data_token: str) -> list[Box3D]:
         """Rerun a list of Box3D classes for all annotations of a particular `sample_data` record.
