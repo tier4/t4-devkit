@@ -187,7 +187,8 @@ def convert_label(
         name = name_mapping[original]
     else:
         warnings.warn(
-            f"{original} is not included in mapping, use UNKNOWN.", UserWarning
+            f"{original} is not included in mapping, use UNKNOWN.",
+            UserWarning,
         )
         name = "UNKNOWN"
 
