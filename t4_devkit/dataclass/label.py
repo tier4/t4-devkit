@@ -3,51 +3,20 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, field
 from enum import Enum, auto, unique
-from typing import TypeVar
 
 from typing_extensions import Self
 
-__all__ = [
-    "LabelPrefix",
-    "ObjectLabel",
-    "TrafficLightLabel",
-    "LabelType",
-    "SemanticLabel",
-    "convert_label",
-]
+__all__ = ["Label", "SemanticLabel", "convert_label"]
 
 
 @unique
-class LabelPrefix(Enum):  # TODO: LabelKind is better
-    OBJECT = auto()
-    TRAFFIC_LIGHT = auto()
-
-    @classmethod
-    def from_name(cls, name: str) -> Self:
-        name = name.upper()
-        assert name in cls.__members__, f"Unexpected label prefix: {name}"
-        return cls.__members__[name]
-
-
-@unique
-class BaseLabel(Enum):
+class Label(Enum):
     """Abstract base enum of label elements."""
 
-    @classmethod
-    def from_name(cls, name: str) -> Self:
-        name = name.upper()
-        assert name in cls.__members__, f"Unexpected label name: {name}"
-        return cls.__members__[name]
-
-    def __eq__(self, other: Self | str) -> bool:
-        return self.value == other.upper() if isinstance(other, str) else self == other
-
-
-@unique
-class ObjectLabel(BaseLabel):
-    """An enum to represent a label of an traffic participant object."""
-
+    # catch all labels
     UNKNOWN = auto()
+
+    # object labels
     CAR = auto()
     TRUCK = auto()
     BUS = auto()
@@ -56,12 +25,7 @@ class ObjectLabel(BaseLabel):
     PEDESTRIAN = auto()
     ANIMAL = auto()
 
-
-@unique
-class TrafficLightLabel(BaseLabel):
-    """An enum to represent a label of a traffic light."""
-
-    UNKNOWN = auto()
+    # traffic-light labels
     GREEN = auto()
     GREEN_STRAIGHT = auto()
     GREEN_LEFT = auto()
@@ -83,14 +47,19 @@ class TrafficLightLabel(BaseLabel):
     RED_LEFT_DIAGONAL = auto()
     RED_RIGHT_DIAGONAL = auto()
 
+    @classmethod
+    def from_name(cls, name: str) -> Self:
+        name = name.upper()
+        assert name in cls.__members__, f"Unexpected label name: {name}"
+        return cls.__members__[name]
 
-# type aliases
-LabelType = TypeVar("LabelType", bound=BaseLabel)
+    def __eq__(self, other: Self | str) -> bool:
+        return self.value == other.upper() if isinstance(other, str) else self == other
 
 
 @dataclass(frozen=True, eq=False)
 class SemanticLabel:
-    label: LabelType
+    label: Label
     original: str
     attributes: list[str] = field(default_factory=list)
 
@@ -181,17 +150,15 @@ DEFAULT_NAME_MAPPING: dict[str, str] = {
 
 
 def convert_label(
-    prefix: str | LabelPrefix,
     original: str,
     attributes: list[str] | None = None,
-    name_mapping: dict[str, str] | None = None,
     *,
+    name_mapping: dict[str, str] | None = None,
     update_default_mapping: bool = False,
 ) -> SemanticLabel:
     """Covert string original label name to `SemanticLabel` object.
 
     Args:
-        prefix (str | LabelPrefix): Prefix of label defined in `LabelPrefix`.
         original (str): Original label name. For example, `vehicle.car`.
         attributes (list[str] | None, optional): List of label attributes.
         name_mapping (dict[str, str] | None, optional): Name mapping for original and label.
@@ -204,9 +171,6 @@ def convert_label(
     Returns:
         Converted `SemanticLabel` object.
     """
-    if isinstance(prefix, str):
-        prefix = LabelPrefix.from_name(prefix)
-
     # set name mapping
     if name_mapping is None:
         name_mapping = DEFAULT_NAME_MAPPING
@@ -217,13 +181,12 @@ def convert_label(
     if original in name_mapping:
         name = name_mapping[original]
     else:
-        warnings.warn(f"{name} is not included in mapping, use UNKNOWN.", stacklevel=1)
+        warnings.warn(
+            f"{original} is not included in mapping, use UNKNOWN.", UserWarning
+        )
         name = "UNKNOWN"
 
-    if prefix == LabelPrefix.OBJECT:
-        label = ObjectLabel.from_name(name)
-    elif prefix == LabelPrefix.TRAFFIC_LIGHT:
-        label = TrafficLightLabel.from_name(name)
+    label = Label.from_name(name)
 
     return (
         SemanticLabel(label, original)
