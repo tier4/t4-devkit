@@ -1,6 +1,6 @@
 import pytest
 
-from t4_devkit.dataclass.label import Label, convert_label
+from t4_devkit.dataclass.label import LabelID, convert_label
 
 
 @pytest.mark.parametrize(
@@ -16,18 +16,18 @@ from t4_devkit.dataclass.label import Label, convert_label
                 "vehicle.emergency (ambulance & police)",
                 "vehicle.police",
             ),
-            Label.CAR,
+            LabelID.CAR,
         ),
         # truck
-        (("truck", "vehicle.truck", "trailer", "vehicle.trailer"), Label.TRUCK),
+        (("truck", "vehicle.truck", "trailer", "vehicle.trailer"), LabelID.TRUCK),
         # bus
-        (("bus", "vehicle.bus", "vehicle.bus (bendy & rigid)"), Label.BUS),
+        (("bus", "vehicle.bus", "vehicle.bus (bendy & rigid)"), LabelID.BUS),
         # bicycle
-        (("bicycle", "vehicle.bicycle"), Label.BICYCLE),
+        (("bicycle", "vehicle.bicycle"), LabelID.BICYCLE),
         # motorbike
         (
             ("motorbike", "vehicle.motorbike", "motorcycle", "vehicle.motorcycle"),
-            Label.MOTORBIKE,
+            LabelID.MOTORBIKE,
         ),
         # pedestrian
         (
@@ -40,10 +40,10 @@ from t4_devkit.dataclass.label import Label, convert_label
                 "pedestrian.wheelchair",
                 "construction_worker",
             ),
-            Label.PEDESTRIAN,
+            LabelID.PEDESTRIAN,
         ),
         # animal
-        ("animal", Label.ANIMAL),
+        ("animal", LabelID.ANIMAL),
         # unknown
         (
             (
@@ -56,43 +56,43 @@ from t4_devkit.dataclass.label import Label, convert_label
                 "static_object.bollard",
                 "forklift",
             ),
-            Label.UNKNOWN,
+            LabelID.UNKNOWN,
         ),
         # === traffic light ===
         # GREEN
-        (("green", "crosswalk_green"), Label.GREEN),
-        ("green_straight", Label.GREEN_STRAIGHT),
-        ("green_left", Label.GREEN_LEFT),
-        ("green_right", Label.GREEN_RIGHT),
+        (("green", "crosswalk_green"), LabelID.GREEN),
+        ("green_straight", LabelID.GREEN_STRAIGHT),
+        ("green_left", LabelID.GREEN_LEFT),
+        ("green_right", LabelID.GREEN_RIGHT),
         # YELLOW
-        ("yellow", Label.YELLOW),
-        ("yellow_straight", Label.YELLOW_STRAIGHT),
-        ("yellow_left", Label.YELLOW_LEFT),
-        ("yellow_right", Label.YELLOW_RIGHT),
-        ("yellow_straight_left", Label.YELLOW_STRAIGHT_LEFT),
-        ("yellow_straight_right", Label.YELLOW_STRAIGHT_RIGHT),
-        ("yellow_straight_left_right", Label.YELLOW_STRAIGHT_LEFT_RIGHT),
+        ("yellow", LabelID.YELLOW),
+        ("yellow_straight", LabelID.YELLOW_STRAIGHT),
+        ("yellow_left", LabelID.YELLOW_LEFT),
+        ("yellow_right", LabelID.YELLOW_RIGHT),
+        ("yellow_straight_left", LabelID.YELLOW_STRAIGHT_LEFT),
+        ("yellow_straight_right", LabelID.YELLOW_STRAIGHT_RIGHT),
+        ("yellow_straight_left_right", LabelID.YELLOW_STRAIGHT_LEFT_RIGHT),
         # RED
-        (("red", "crosswalk_red"), Label.RED),
-        ("red_straight", Label.RED_STRAIGHT),
-        ("red_left", Label.RED_LEFT),
-        ("red_right", Label.RED_RIGHT),
-        ("red_straight_left", Label.RED_STRAIGHT_LEFT),
-        ("red_straight_right", Label.RED_STRAIGHT_RIGHT),
-        ("red_straight_left_right", Label.RED_STRAIGHT_LEFT_RIGHT),
+        (("red", "crosswalk_red"), LabelID.RED),
+        ("red_straight", LabelID.RED_STRAIGHT),
+        ("red_left", LabelID.RED_LEFT),
+        ("red_right", LabelID.RED_RIGHT),
+        ("red_straight_left", LabelID.RED_STRAIGHT_LEFT),
+        ("red_straight_right", LabelID.RED_STRAIGHT_RIGHT),
+        ("red_straight_left_right", LabelID.RED_STRAIGHT_LEFT_RIGHT),
         (
             ("red_straight_left_diagonal", "red_straight_leftdiagonal"),
-            Label.RED_LEFT_DIAGONAL,
+            LabelID.RED_LEFT_DIAGONAL,
         ),
         (
             ("red_straight_right_diagonal", "red_straight_rightdiagonal"),
-            Label.RED_RIGHT_DIAGONAL,
+            LabelID.RED_RIGHT_DIAGONAL,
         ),
         # unknown traffic light
-        (("unknown", "crosswalk_unknown"), Label.UNKNOWN),
+        (("unknown", "crosswalk_unknown"), LabelID.UNKNOWN),
     ],
 )
-def test_convert_object_label(labels: str | tuple[str, ...], expect: Label) -> None:
+def test_convert_object_label(labels: str | tuple[str, ...], expect: LabelID) -> None:
     if isinstance(labels, str):
         labels = [labels]
 

@@ -6,11 +6,11 @@ from enum import Enum, auto, unique
 
 from typing_extensions import Self
 
-__all__ = ["Label", "SemanticLabel", "convert_label"]
+__all__ = ["LabelID", "SemanticLabel", "convert_label"]
 
 
 @unique
-class Label(Enum):
+class LabelID(Enum):
     """Abstract base enum of label elements."""
 
     # catch all labels
@@ -53,7 +53,7 @@ class Label(Enum):
         assert name in cls.__members__, f"Unexpected label name: {name}"
         return cls.__members__[name]
 
-    def __eq__(self, other: Label | str) -> bool:
+    def __eq__(self, other: LabelID | str) -> bool:
         return (
             self.name == other.upper()
             if isinstance(other, str)
@@ -63,7 +63,7 @@ class Label(Enum):
 
 @dataclass(frozen=True, eq=False)
 class SemanticLabel:
-    label: Label
+    label: LabelID
     original: str
     attributes: list[str] = field(default_factory=list)
 
@@ -191,7 +191,7 @@ def convert_label(
         )
         name = "UNKNOWN"
 
-    label = Label.from_name(name)
+    label = LabelID.from_name(name)
 
     return (
         SemanticLabel(label, original)
