@@ -14,7 +14,7 @@ class Label(Enum):
     """Abstract base enum of label elements."""
 
     # catch all labels
-    UNKNOWN = auto()
+    UNKNOWN = 0
 
     # object labels
     CAR = auto()
@@ -53,8 +53,12 @@ class Label(Enum):
         assert name in cls.__members__, f"Unexpected label name: {name}"
         return cls.__members__[name]
 
-    def __eq__(self, other: Self | str) -> bool:
-        return self.value == other.upper() if isinstance(other, str) else self == other
+    def __eq__(self, other: Label | str) -> bool:
+        return (
+            self.name == other.upper()
+            if isinstance(other, str)
+            else self.name == other.name
+        )
 
 
 @dataclass(frozen=True, eq=False)
@@ -63,7 +67,7 @@ class SemanticLabel:
     original: str
     attributes: list[str] = field(default_factory=list)
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: SemanticLabel) -> bool:
         return self.label == other.label
 
 
@@ -146,6 +150,7 @@ DEFAULT_NAME_MAPPING: dict[str, str] = {
     "crosswalk_red": "RED",
     "crosswalk_green": "GREEN",
     "crosswalk_unknown": "UNKNOWN",
+    "unknown": "UNKNOWN",
 }
 
 
