@@ -42,7 +42,27 @@ class BaseBox:
 
 @dataclass(eq=False)
 class Box3D(BaseBox):
-    """A class to represent 3D box."""
+    """A class to represent 3D box.
+
+    Examples:
+        >>> # without future
+        >>> box3d = Box3D(
+        ...     unix_time=100,
+        ...     frame_id="base_link",
+        ...     semantic_label=SemanticLabel(label=LabelID.CAR, original="car"),
+        ...     position=(1.0, 1.0, 1.0),
+        ...     rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
+        ...     shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
+        ...     velocity=(1.0, 1.0, 1.0),
+        ...     confidence=1.0,
+        ...     uuid="car3d_0",
+        ... )
+        >>> # with future
+        >>> box3d = box3d.with_future(
+        ...     waypoints=[[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]]],
+        ...     confidences=[1.0],
+        ... )
+    """
 
     position: TranslationType
     rotation: RotationType
@@ -131,7 +151,21 @@ class Box3D(BaseBox):
 
 @dataclass(eq=False)
 class Box2D(BaseBox):
-    """A class to represent 2D box."""
+    """A class to represent 2D box.
+
+    Examples:
+        >>> # without 3D position
+        >>> box2d = Box2D(
+        ...     unix_time=100,
+        ...     frame_id="camera",
+        ...     semantic_label=SemanticLabel(label=LabelID.CAR, original="car"),
+        ...     roi=(100, 100, 50, 50),
+        ...     confidence=1.0,
+        ...     uuid="car2d_0",
+        ... )
+        >>> # with 3D position
+        >>> box2d = box2d.with_position(position=(1.0, 1.0, 1.0))
+    """
 
     roi: Roi | None = field(default=None)
 
@@ -151,7 +185,7 @@ class Box2D(BaseBox):
         Returns:
             Self instance after setting `position`.
         """
-        self.position = position
+        self.position = np.array(position) if not isinstance(position, np.ndarray) else position
         return self
 
     def __eq__(self, other: Box2D | None) -> bool:
