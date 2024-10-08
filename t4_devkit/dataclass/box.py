@@ -165,8 +165,28 @@ class Box2D(BaseBox):
             return eq
 
     @property
-    def area(self) -> int:
-        return -1 if self.roi is None else self.roi.area
+    def offset(self) -> tuple[int, int] | None:
+        return None if self.roi is None else self.roi.offset
+
+    @property
+    def size(self) -> tuple[int, int] | None:
+        return None if self.roi is None else self.roi.size
+
+    @property
+    def width(self) -> int | None:
+        return None if self.roi is None else self.roi.width
+
+    @property
+    def height(self) -> int | None:
+        return None if self.roi is None else self.roi.height
+
+    @property
+    def center(self) -> tuple[int, int] | None:
+        return None if self.roi is None else self.roi.center
+
+    @property
+    def area(self) -> int | None:
+        return None if self.roi is None else self.roi.area
 
 
 # type aliases
