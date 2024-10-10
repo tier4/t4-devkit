@@ -14,6 +14,8 @@ __all__ = (
     "NDArrayU8",
     "NDArrayBool",
     "NDArrayStr",
+    "NDArrayInt",
+    "NDArrayFloat",
     "TranslationType",
     "VelocityType",
     "AccelerationType",
@@ -36,6 +38,9 @@ NDArrayI32 = NDArray[np.int32]
 NDArrayU8 = NDArray[np.uint8]
 NDArrayBool = NDArray[np.bool_]
 NDArrayStr = NDArray[np.str_]
+
+NDArrayInt = NDArrayI32 | NDArrayI64
+NDArrayFloat = NDArrayF32 | NDArrayF64
 
 # 3D
 TranslationType = NewType("TranslationType", NDArrayF64)
