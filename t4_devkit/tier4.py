@@ -188,6 +188,10 @@ class Tier4:
             category: Category = self.get("category", instance.category_token)
             record.category_name = category.name
 
+        for record in self.surface_ann:
+            category: Category = self.get("category", record.category_token)
+            record.category_name = category.name
+
         registered_channels: list[str] = []
         for record in self.sample_data:
             cs_record: CalibratedSensor = self.get(
@@ -215,6 +219,11 @@ class Tier4:
             sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
             sample_record: Sample = self.get("sample", sd_record.sample_token)
             sample_record.ann_2ds.append(ann_record.token)
+
+        for ann_record in self.surface_ann:
+            sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
+            sample_record: Sample = self.get("sample", sd_record.sample_token)
+            sample_record.surface_anns.append(ann_record.token)
 
         log_to_map: dict[str, str] = {}
         for map_record in self.map:
@@ -1127,18 +1136,48 @@ class Tier4:
             if max_timestamp_us < sample.timestamp:
                 break
 
-            if instance_token is not None:
-                boxes = []
-                for ann_token in sample.ann_2ds:
-                    ann: ObjectAnn = self.get("object_ann", ann_token)
-                    if ann.instance_token == instance_token:
-                        boxes.append(self.get_box2d(ann_token))
-                        break
-            else:
-                boxes = list(map(self.get_box2d, sample.ann_2ds))
+            boxes: list[Box2D] = []
+
+            # For segmentation masks
+            # TODO: declare specific class for segmentation mask in `dataclass`
+            camera_masks: dict[str, dict[str, list]] = {}
+
+            # Object Annotation
+            for ann_token in sample.ann_2ds:
+                ann: ObjectAnn = self.get("object_ann", ann_token)
+                box = self.get_box2d(ann_token)
+                boxes.append(box)
+
+                sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
+                camera_masks = _append_mask(
+                    camera_masks,
+                    camera=sample_data.channel,
+                    ann=ann,
+                    class_id=self._label2id[ann.category_name],
+                    uuid=box.uuid,
+                )
+
+            # Render 2D box
             viewer.render_box2ds(us2sec(sample.timestamp), boxes)
 
-            # TODO: add support of rendering object/surface mask and keypoints
+            # Surface Annotation
+            for ann_token in sample.surface_anns:
+                sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
+                ann: SurfaceAnn = self.get("surface_ann", ann_token)
+                camera_masks = _append_mask(
+                    camera_masks,
+                    camera=sample_data.channel,
+                    ann=ann,
+                    class_id=self._label2id[ann.category_name],
+                )
+
+            # Render 2D segmentation image
+            for camera, data in camera_masks.items():
+                viewer.render_segmentation2d(
+                    seconds=us2sec(sample.timestamp), camera=camera, **data
+                )
+
+            # TODO: add support of rendering keypoints
             current_sample_token = sample.next
 
     def _render_sensor_calibration(self, viewer: Tier4Viewer, sample_data_token: str) -> None:
@@ -1154,3 +1193,37 @@ class Tier4:
         )
         sensor: Sensor = self.get("sensor", calibrated_sensor.sensor_token)
         viewer.render_calibration(sensor, calibrated_sensor)
+
+
+def _append_mask(
+    camera_masks: dict[str, dict[str, list]],
+    camera: str,
+    ann: ObjectAnn | SurfaceAnn,
+    class_id: int,
+    uuid: str | None = None,
+) -> dict[str, dict[str, list]]:
+    """Append segmentation mask data from `ObjectAnn/SurfaceAnn`.
+
+    TODO:
+        This function should be removed after declaring specific dataclass for 2D segmentation.
+
+    Args:
+        camera_masks (dict[str, dict[str, list]]): Key-value data mapping camera name and mask data.
+        camera (str): Name of camera channel.
+        ann (ObjectAnn | SurfaceAnn): Annotation object.
+        class_id (int): Class ID.
+        uuid (str | None, optional): Unique instance identifier.
+
+    Returns:
+        dict[str, dict[str, list]]: Updated `camera_masks`.
+    """
+    if camera in camera_masks:
+        camera_masks[camera]["masks"].append(ann.mask.decode())
+        camera_masks[camera]["class_ids"].append(class_id)
+        camera_masks[camera]["uuids"].append(uuid)
+    else:
+        camera_masks[camera] = {}
+        camera_masks[camera]["masks"] = [ann.mask.decode()]
+        camera_masks[camera]["class_ids"] = [class_id]
+        camera_masks[camera]["uuids"] = [class_id]
+    return camera_masks

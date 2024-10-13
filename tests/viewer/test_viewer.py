@@ -5,43 +5,65 @@ from pyquaternion import Quaternion
 
 from t4_devkit.dataclass import LidarPointCloud
 from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
-from t4_devkit.viewer import Tier4Viewer, format_entity
+from t4_devkit.viewer import format_entity
 
 
 def test_format_entity() -> None:
-    """Test `format_entity` function."""
+    """Test `format_entity(...)` function."""
     assert "map" == format_entity("map")
     assert "map/base_link" == format_entity("map", "base_link")
     assert "map/base_link" == format_entity("map", "map/base_link")
     assert "map/base_link/camera" == format_entity("map", "map/base_link", "camera")
 
 
-def test_tier4_viewer(dummy_box3ds, dummy_box2ds) -> None:
-    """Test `Tier4Viewer` class.
+def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
+    """Test rendering 3D boxes with `Tier4Viewer`.
 
     Args:
-        dummy_box3ds (list[Box3D]): List of `Box3D`s.
-        dummy_box2ds (list[Box2D]): List of `Box2D`s.
+        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_box3ds (list[Box3D]): List of 3D boxes.
     """
-    viewer = Tier4Viewer("test_viewer", cameras=["camera"], spawn=False)
-
     seconds = 1.0  # [sec]
 
-    # test render_box3ds(...)
-    viewer.render_box3ds(seconds, dummy_box3ds)
+    dummy_viewer.render_box3ds(seconds, dummy_box3ds)
 
-    # test render_box2ds(...)
-    viewer.render_box2ds(seconds, dummy_box2ds)
 
-    # test render_pointcloud(...)
+def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
+    """Test rendering 2D boxes with `Tier4Viewer`.
+
+    Args:
+        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_box2ds (list[Box2D): List of 2D boxes.
+    """
+    seconds = 1.0  # [sec]
+
+    dummy_viewer.render_box2ds(seconds, dummy_box2ds)
+
+
+def test_render_pointcloud(dummy_viewer) -> None:
+    """Test rendering pointcloud with `Tier4Viewer`.
+
+    Args:
+        dummy_viewer (Tier4Viewer): Viewer object.
+    """
+    seconds = 1.0  # [sec]
+
     dummy_pointcloud = LidarPointCloud(np.random.rand(4, 100))
-    viewer.render_pointcloud(seconds, "lidar", dummy_pointcloud)
+    dummy_viewer.render_pointcloud(seconds, "lidar", dummy_pointcloud)
 
-    # test render_ego(...)
+
+def test_render_ego(dummy_viewer) -> None:
+    """Test rendering ego pose with `Tier4Viewer`.
+
+    Args:
+        dummy_viewer (Tier4Viewer): Viewer object.
+    """
+    seconds = 1.0  # [sec]
+
     # without `EgoPose`
     ego_translation = [1, 0, 0]
     ego_rotation = Quaternion([0, 0, 0, 1])
-    viewer.render_ego(seconds, ego_translation, ego_rotation)
+    dummy_viewer.render_ego(seconds, ego_translation, ego_rotation)
 
     # with `EgoPose`
     ego_pose = EgoPose(
@@ -50,9 +72,15 @@ def test_tier4_viewer(dummy_box3ds, dummy_box2ds) -> None:
         rotation=ego_rotation,
         timestamp=1e6,
     )
-    viewer.render_ego(ego_pose)
+    dummy_viewer.render_ego(ego_pose)
 
-    # test render_calibration(...)
+
+def test_render_calibration(dummy_viewer) -> None:
+    """Test rendering sensor calibration with `Tier4Viewer`.
+
+    Args:
+        dummy_viewer (Tier4Viewer): Viewer object.
+    """
     # without `Sensor` and `CalibratedSensor`
     channel = "camera"
     modality = "camera"
@@ -63,7 +91,7 @@ def test_tier4_viewer(dummy_box3ds, dummy_box2ds) -> None:
         [0.0, 1000.0, 100.0],
         [0.0, 0.0, 1.0],
     ]
-    viewer.render_calibration(
+    dummy_viewer.render_calibration(
         channel,
         modality,
         camera_translation,
@@ -81,4 +109,4 @@ def test_tier4_viewer(dummy_box3ds, dummy_box2ds) -> None:
         camera_intrinsic=camera_intrinsic,
         camera_distortion=[0, 0, 0, 0, 0],
     )
-    viewer.render_calibration(sensor, calibration)
+    dummy_viewer.render_calibration(sensor, calibration)
