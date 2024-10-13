@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import os.path as osp
 import time
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -229,6 +228,11 @@ class Tier4:
             sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
             sample_record: Sample = self.get("sample", sd_record.sample_token)
             sample_record.ann_2ds.append(ann_record.token)
+
+        for ann_record in self.surface_ann:
+            sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
+            sample_record: Sample = self.get("sample", sd_record.sample_token)
+            sample_record.surface_anns.append(ann_record.token)
 
         log_to_map: dict[str, str] = {}
         for map_record in self.map:
@@ -1233,33 +1237,52 @@ class Tier4:
                 sample_data: SampleData = self.get("sample_data", sd_token)
                 if sample_data.modality != SensorModality.CAMERA:
                     continue
-                camera_anns[sd_token] = _CameraAnn2D(channel, sample_data.timestamp)
+                camera_anns[sd_token] = _CameraAnn2D(
+                    channel=channel,
+                    timestamp=sample_data.timestamp,
+                    width=sample_data.width,
+                    height=sample_data.height,
+                )
 
+            # append `object_ann`.
             for ann_token in sample.ann_2ds:
                 ann: ObjectAnn = self.get("object_ann", ann_token)
 
                 if instance_token is not None and ann.instance_token != instance_token:
                     continue
 
-                camera_anns[ann.sample_data_token].boxes.append(ann.bbox)
-                camera_anns[ann.sample_data_token].uuids.append(ann.instance_token[:8])
-                camera_anns[ann.sample_data_token].class_ids.append(
-                    self._label2id[ann.category_name]
+                camera_anns[ann.sample_data_token].append(
+                    ann.bbox,
+                    ann.mask.decode(),
+                    ann.instance_token[:8],
+                    self._label2id[ann.category_name],
                 )
 
-            for sd_token, camera_ann in camera_anns.items():
+            # append `surface_ann`.
+            for ann_token in sample.surface_anns:
+                ann: SurfaceAnn = self.get("surface_ann", ann_token)
+                category: Category = self.get("category", ann.category_token)
+                camera_anns[ann.sample_data_token].append(
+                    ann.bbox,
+                    ann.mask.decode(),
+                    "No instance",
+                    self._label2id[category.name],
+                )
+
+            # render boxes and segmentation images.
+            for _, camera_ann in camera_anns.items():
                 rr.set_time_seconds("timestamp", us2sec(camera_ann.timestamp))
                 sensor_name: str = camera_ann.channel
-                rr.log(
-                    f"world/ego_vehicle/{sensor_name}/ann2d/box",
-                    rr.Boxes2D(
-                        array=camera_ann.boxes,
-                        array_format=rr.Box2DFormat.XYXY,
-                        labels=camera_ann.uuids,
-                        class_ids=camera_ann.class_ids,
-                    ),
-                )
-                # TODO: add support of rendering object/surface mask and keypoints
+                boxes = camera_ann.as_boxes2D()
+                if boxes is not None:
+                    rr.log(f"world/ego_vehicle/{sensor_name}/ann2d/box", boxes)
+
+                segmentation = camera_ann.as_segmentation_image()
+                if segmentation is not None:
+                    rr.log(f"world/ego_vehicle/{sensor_name}/ann2d/mask", segmentation)
+
+                # TODO: add support of rendering keypoints
+
             current_sample_token = sample.next
 
     def _render_sensor_calibration(self, sample_data_token: str) -> None:
@@ -1294,20 +1317,93 @@ class Tier4:
             )
 
 
-@dataclass
 class _CameraAnn2D:
-    """Container of 2D annotations for each camera at a specific frame.
+    """Container of 2D annotations for each camera at a specific frame."""
 
-    Attributes:
-        channel (str): Sensor channel.
-        timestamp (int): Unix time stamp [us].
-        boxes (list[RoiType]): List of box RoIs given as (xmin, ymin, xmax, ymax).
-        uuids (list[str]): List of unique identifiers.
-        class_ids (list[int]): List of annotation class ids.
-    """
+    def __init__(self, channel: str, timestamp: int, width: int, height: int) -> None:
+        """Construct a new object.
 
-    channel: str
-    timestamp: int
-    boxes: list[RoiType] = field(default_factory=list, init=False)
-    uuids: list[str] = field(default_factory=list, init=False)
-    class_ids: list[int] = field(default_factory=list, init=False)
+        Args:
+            channel (str): Name of camera sensor channel.
+            timestamp (int): Timestamp of the record.
+            width (int): Image width.
+            height (int): Image height.
+        """
+        self.channel = channel
+        self.timestamp = timestamp
+        self.width = width
+        self.height = height
+
+        # private attributes not to edit by users
+        self.__boxes: list[RoiType] = []
+        self.__masks: list[NDArrayU8] = []
+        self.__class_ids: list[int] = []
+        self.__uuids: list[str] = []
+
+    @property
+    def boxes(self) -> list[RoiType]:
+        return self.__boxes
+
+    @property
+    def masks(self) -> list[NDArrayU8]:
+        return self.__masks
+
+    @property
+    def class_ids(self) -> list[int]:
+        return self.__class_ids
+
+    @property
+    def uuids(self) -> list[str]:
+        return self.__uuids
+
+    def append(
+        self,
+        box: RoiType,
+        mask: NDArrayU8,
+        uuid: str,
+        class_id: int,
+    ) -> None:
+        """Append box and mask with its uuid and class ID,
+        used for `object_ann` which has mask annotation.
+
+        Args:
+            box (RoiType): Bounding box.
+            mask (NDArrayU8): Instance mask decoded from RLE format.
+            uuid (str): Object's UUID.
+            class_id (int): Object's class ID.
+        """
+        self.__boxes.append(box)
+        self.__masks.append(mask)
+        self.__uuids.append(uuid)
+        self.__class_ids.append(class_id)
+
+    def as_boxes2D(self) -> rr.Boxes2D | None:
+        """Return 2D boxes as `rr.Boxes2D` instance.
+
+        Returns:
+            Return None, if there is no boxes, otherwise returns `rr.Boxes2D`.
+        """
+        if len(self.boxes) == 0:
+            return None
+
+        return rr.Boxes2D(
+            array=self.boxes,
+            array_format=rr.Box2DFormat.XYXY,
+            labels=self.uuids,
+            class_ids=self.class_ids,
+        )
+
+    def as_segmentation_image(self) -> rr.SegmentationImage | None:
+        """Return segmentation image as `rr.SegmentationImage` instance.
+
+        Returns:
+            Return None, if there is no masks, otherwise return `rr.SegmentationImage`.
+        """
+        if len(self.masks) == 0:
+            return None
+
+        img = np.zeros((self.height, self.width), dtype=np.uint8)
+        for mask, class_id in zip(self.masks, self.class_ids, strict=True):
+            img[mask == 1] = class_id
+
+        return rr.SegmentationImage(img)

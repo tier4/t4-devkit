@@ -26,7 +26,6 @@ __all__ = (
     "CamIntrinsicType",
     "CamDistortionType",
     "RoiType",
-    "MaskType",
     "KeypointType",
 )
 
@@ -54,5 +53,4 @@ CamDistortionType = NewType("CamDistortionType", NDArrayF64)
 
 # 2D
 RoiType = NewType("RoiType", tuple[int, int, int, int])  # (xmin, ymin, xmax, ymax)
-MaskType = NewType("MaskType", list[int])
 KeypointType = NewType("KeypointType", NDArrayF64)

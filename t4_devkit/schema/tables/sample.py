@@ -5,9 +5,9 @@ from typing import Any
 
 from typing_extensions import Self
 
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
 __all__ = ("Sample",)
 
@@ -30,7 +30,9 @@ class Sample(SchemaBase):
             This should be set after instantiated.
         ann_3ds (list[str]): List of foreign keys pointing the sample annotations.
             This should be set after instantiated.
-        ann_3ds (list[str]): List of foreign keys pointing the object annotations.
+        ann_2ds (list[str]): List of foreign keys pointing the object annotations.
+            This should be set after instantiated.
+        surface_anns (list[str]): List of foreign keys pointing the surface annotations.
             This should be set after instantiated.
     """
 
@@ -44,10 +46,11 @@ class Sample(SchemaBase):
     data: dict[str, str] = field(default_factory=dict, init=False)
     ann_3ds: list[str] = field(default_factory=list, init=False)
     ann_2ds: list[str] = field(default_factory=list, init=False)
+    surface_anns: list[str] = field(default_factory=list, init=False)
 
     @staticmethod
-    def shortcuts() -> tuple[str, str, str]:
-        return ("data", "ann_3ds", "ann_2ds")
+    def shortcuts() -> tuple[str, str, str, str]:
+        return ("data", "ann_3ds", "ann_2ds", "surface_ann_2ds")
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
