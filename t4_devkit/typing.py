@@ -23,6 +23,7 @@ __all__ = (
     "VelocityType",
     "SizeType",
     "TrajectoryType",
+    "TwistType",
     "CamIntrinsicType",
     "CamDistortionType",
     "RoiType",
@@ -48,6 +49,7 @@ AccelerationType = NewType("AccelerationType", NDArrayF64)
 RotationType = NewType("RotationType", Quaternion)
 SizeType = NewType("SizeType", NDArrayF64)
 TrajectoryType = NewType("TrajectoryType", NDArrayF64)
+TwistType = NewType("TwistType", NDArrayF64)
 CamIntrinsicType = NewType("CamIntrinsicType", NDArrayF64)
 CamDistortionType = NewType("CamDistortionType", NDArrayF64)
 

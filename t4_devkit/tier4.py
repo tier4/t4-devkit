@@ -44,6 +44,7 @@ if TYPE_CHECKING:
         SchemaTable,
         Sensor,
         SurfaceAnn,
+        VehicleState,
         Visibility,
     )
 
@@ -121,6 +122,8 @@ class Tier4:
         self.sensor: list[Sensor] = self.__load_table__(SchemaName.SENSOR)
         self.surface_ann: list[SurfaceAnn] = self.__load_table__(SchemaName.SURFACE_ANN)
         self.visibility: list[Visibility] = self.__load_table__(SchemaName.VISIBILITY)
+
+        self.vehicle_state: list[VehicleState] = self.__load_table__(SchemaName.VEHICLE_STATE)
 
         # make reverse indexes for common lookups
         self.__make_reverse_index__(verbose)
