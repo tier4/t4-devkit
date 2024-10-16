@@ -162,6 +162,7 @@ class HomogeneousMatrix:
         pass
 
     def transform(self, *args, **kwargs):
+        # TODO(ktro2828): Refactoring this operations.
         s = len(args)
         if s == 0:
             if not kwargs:
