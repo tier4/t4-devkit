@@ -14,7 +14,7 @@ class HomogeneousMatrix:
     def __init__(
         self,
         position: ArrayLike,
-        rotation: RotationType,
+        rotation: ArrayLike | RotationType,
         src: str,
         dst: str,
     ) -> None:
@@ -22,13 +22,11 @@ class HomogeneousMatrix:
 
         Args:
             position (ArrayLike): 3D position.
-            rotation (RotationType): Rotation.
+            rotation (ArrayLike | RotationType): 3x3 rotation matrix or quaternion.
             src (str): Source frame ID.
             dst (str): Destination frame ID.
         """
-        self.position = (
-            position if isinstance(position, np.ndarray) else np.array(position)
-        )
+        self.position = position if isinstance(position, np.ndarray) else np.array(position)
 
         if isinstance(rotation, np.ndarray) and rotation.ndim == 2:
             rotation = Quaternion(matrix=rotation)
@@ -72,29 +70,66 @@ class HomogeneousMatrix:
 
     @property
     def yaw_pitch_roll(self) -> tuple[float, float, float]:
+        """Return yaw, pitch and roll.
+
+        NOTE:
+            yaw: Rotation angle around the z-axis in [rad], in the range `[-pi, pi]`.
+            pitch: Rotation angle around the y'-axis in [rad], in the range `[-pi/2, pi/2]`.
+            roll: Rotation angle around the x"-axis in [rad], in the range `[-pi, pi]`.
+
+        Returns:
+            Yaw, pitch and roll in [rad].
+        """
         return self.rotation.yaw_pitch_roll
 
     @property
     def rotation_matrix(self) -> NDArray:
+        """Return a 3x3 rotation matrix.
+
+        Returns:
+            3x3 rotation matrix.
+        """
         return self.rotation.rotation_matrix
 
     def dot(self, other: HomogeneousMatrix) -> HomogeneousMatrix:
+        """Return a dot product of myself and another.
+
+        Args:
+            other (HomogeneousMatrix): `HomogeneousMatrix` object.
+
+        Raises:
+            ValueError: `self.src` and `other.dst` must be the same frame ID.
+
+        Returns:
+            Result of a dot product.
+        """
         if self.src != other.dst:
-            raise ValueError(
-                f"self.src != other.dst: self.src={self.src}, other.dst={other.dst}"
-            )
+            raise ValueError(f"self.src != other.dst: self.src={self.src}, other.dst={other.dst}")
 
         ret_mat = self.matrix.dot(other.matrix)
         position, rotation = _extract_position_and_rotation_from_matrix(ret_mat)
         return HomogeneousMatrix(position, rotation, src=other.src, dst=self.dst)
 
     def inv(self) -> HomogeneousMatrix:
+        """Return a inverse matrix of myself.
+
+        Returns:
+            Inverse matrix.
+        """
         ret_mat = np.linalg.inv(self.matrix)
         position, rotation = _extract_position_and_rotation_from_matrix(ret_mat)
         return HomogeneousMatrix(position, rotation, src=self.src, dst=self.dst)
 
     @overload
     def transform(self, position: ArrayLike) -> NDArray:
+        """Transform a position by myself.
+
+        Args:
+            position (ArrayLike): 3D position.
+
+        Returns:
+            Transformed position.
+        """
         pass
 
     @overload
@@ -103,10 +138,27 @@ class HomogeneousMatrix:
         position: ArrayLike,
         rotation: RotationType,
     ) -> tuple[NDArray, Quaternion]:
+        """Transform position and rotation by myself.
+
+        Args:
+            position (ArrayLike): 3D position.
+            rotation (RotationType): 3x3 rotation matrix or quaternion.
+
+        Returns:
+            Transformed position and quaternion.
+        """
         pass
 
     @overload
     def transform(self, matrix: HomogeneousMatrix) -> HomogeneousMatrix:
+        """Transform a homogeneous matrix by myself.
+
+        Args:
+            matrix (HomogeneousMatrix): `HomogeneousMatrix` object.
+
+        Returns:
+            Transformed `HomogeneousMatrix` object.
+        """
         pass
 
     def transform(self, *args, **kwargs):
@@ -118,9 +170,7 @@ class HomogeneousMatrix:
             if "position" in kwargs:
                 position = kwargs["position"]
                 if "matrix" in kwargs:
-                    raise ValueError(
-                        "Cannot specify `position` and `matrix` at the same time."
-                    )
+                    raise ValueError("Cannot specify `position` and `matrix` at the same time.")
                 elif "rotation" in kwargs:
                     rotation = kwargs["rotation"]
                     return self.__transform_position_and_rotation(position, rotation)
@@ -151,7 +201,9 @@ class HomogeneousMatrix:
         return ret_pos
 
     def __transform_position_and_rotation(
-        self, position: ArrayLike, rotation: RotationType
+        self,
+        position: ArrayLike,
+        rotation: RotationType,
     ) -> tuple[NDArray, Quaternion]:
         matrix = _generate_homogeneous_matrix(position, rotation)
         ret_mat = self.matrix.dot(matrix)
@@ -164,6 +216,17 @@ class HomogeneousMatrix:
 def _extract_position_and_rotation_from_matrix(
     matrix: NDArray | HomogeneousMatrix,
 ) -> tuple[NDArray, Quaternion]:
+    """Extract position and rotation from a homogeneous matrix.
+
+    Args:
+        matrix (NDArray | HomogeneousMatrix): 4x4 matrix or `HomogeneousMatrix` object.
+
+    Raises:
+        ValueError: Matrix shape must be 4x4.
+
+    Returns:
+        3D position and quaternion.
+    """
     if isinstance(matrix, np.ndarray):
         if matrix.shape != (4, 4):
             raise ValueError(f"Homogeneous matrix must be 4x4, but got {matrix.shape}")
@@ -176,8 +239,18 @@ def _extract_position_and_rotation_from_matrix(
 
 
 def _generate_homogeneous_matrix(
-    position: ArrayLike, rotation: RotationType
+    position: ArrayLike,
+    rotation: ArrayLike | RotationType,
 ) -> NDArray:
+    """Generate a 4x4 homogeneous matrix from position and rotation.
+
+    Args:
+        position (ArrayLike): 3D position.
+        rotation (ArrayLike | RotationType): 3x3 rotation matrix or quaternion.
+
+    Returns:
+        A 4x4 homogeneous matrix.
+    """
     if not isinstance(position, np.ndarray):
         position = np.array(position)
 

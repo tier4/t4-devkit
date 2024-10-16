@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from t4_devkit.dataclass.transform import HomogeneousMatrix
+from t4_devkit.common.transform import HomogeneousMatrix
 
 
 def test_homogeneous_matrix_transform():
@@ -48,12 +48,8 @@ def test_homogenous_matrix_dot():
             ],
         ),
     )
-    assert np.allclose(
-        cam2map.position, np.array([3, 3, 3])
-    )  # cam position in map coords
-    assert np.allclose(
-        cam2map.rotation_matrix, np.eye(3)
-    )  # cam rotation matrix in map coords
+    assert np.allclose(cam2map.position, np.array([3, 3, 3]))  # cam position in map coords
+    assert np.allclose(cam2map.rotation_matrix, np.eye(3))  # cam rotation matrix in map coords
     assert cam2map.src == "camera"
     assert cam2map.dst == "map"
 
