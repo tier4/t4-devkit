@@ -12,7 +12,6 @@ import rerun.blueprint as rrb
 from PIL import Image
 from pyquaternion import Quaternion
 
-from t4_devkit.common.color import distance_color
 from t4_devkit.common.geometry import is_box_in_image, view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
 from t4_devkit.dataclass import (
@@ -25,6 +24,7 @@ from t4_devkit.dataclass import (
     convert_label,
 )
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
+from t4_devkit.viewer import distance_color
 
 if TYPE_CHECKING:
     from rerun.blueprint.api import BlueprintLike, Container, SpaceView
@@ -1287,8 +1287,8 @@ class Tier4:
                 f"world/ego_vehicle/{sensor_name}",
                 rr.Pinhole(
                     image_from_camera=calibrated_sensor.camera_intrinsic,
-                    width=sample_data.width,
-                    height=sample_data.height,
+                    # width=sample_data.width,
+                    # height=sample_data.height,
                 ),
                 static=True,
             )
