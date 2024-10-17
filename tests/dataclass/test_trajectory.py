@@ -21,6 +21,11 @@ def test_trajectory() -> None:
     assert np.allclose(trajectory[0], [1.0, 1.0, 1.0])
     assert np.allclose(trajectory[1], [2.0, 2.0, 2.0])
 
+    # test __iter__()
+    for point in trajectory:
+        assert isinstance(point, np.ndarray)
+        assert point.shape == (3,)
+
     # test shape property
     assert trajectory.shape == (2, 3)
 

@@ -44,6 +44,19 @@ class BaseBox:
 class Box3D(BaseBox):
     """A class to represent 3D box.
 
+    Attributes:
+        unix_time (int): Unix timestamp.
+        frame_id (str): Coordinates frame ID where the box is with respect to.
+        semantic_label (SemanticLabel): `SemanticLabel` object.
+        confidence (float, optional): Confidence score of the box.
+        uuid (str | None, optional): Unique box identifier.
+        position (TranslationType): Box center position (x, y, z).
+        rotation (RotationType): Box rotation quaternion.
+        shape (Shape): `Shape` object.
+        velocity (VelocityType | None, optional): Box velocity (vx, vy, vz).
+        num_points (int | None, optional): The number of points inside the box.
+        future (list[Trajectory] | None, optional): Box trajectory in the future of each mode.
+
     Examples:
         >>> # without future
         >>> box3d = Box3D(
@@ -68,6 +81,7 @@ class Box3D(BaseBox):
     rotation: RotationType
     shape: Shape
     velocity: VelocityType | None = field(default=None)
+    num_points: int | None = field(default=None)
 
     # additional attributes: set by `with_**`
     future: list[Trajectory] | None = field(default=None, init=False)
@@ -152,6 +166,15 @@ class Box3D(BaseBox):
 @dataclass(eq=False)
 class Box2D(BaseBox):
     """A class to represent 2D box.
+
+    Attributes:
+        unix_time (int): Unix timestamp.
+        frame_id (str): Coordinates frame ID where the box is with respect to.
+        semantic_label (SemanticLabel): `SemanticLabel` object.
+        confidence (float, optional): Confidence score of the box.
+        uuid (str | None, optional): Unique box identifier.
+        roi (Roi | None, optional): `Roi` object.
+        position (TranslationType | None, optional): 3D position (x, y, z).
 
     Examples:
         >>> # without 3D position

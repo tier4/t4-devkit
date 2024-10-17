@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from t4_devkit.typing import RoiType
 
+__all__ = ["Roi"]
+
 
 @dataclass
 class Roi:

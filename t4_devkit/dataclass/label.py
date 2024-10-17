@@ -11,7 +11,7 @@ __all__ = ["LabelID", "SemanticLabel", "convert_label"]
 
 @unique
 class LabelID(Enum):
-    """Abstract base enum of label elements."""
+    """Enum of label elements."""
 
     # catch all labels
     UNKNOWN = 0
@@ -26,6 +26,7 @@ class LabelID(Enum):
     ANIMAL = auto()
 
     # traffic-light labels
+    TRAFFIC_LIGHT = auto()
     GREEN = auto()
     GREEN_STRAIGHT = auto()
     GREEN_LEFT = auto()
@@ -54,15 +55,19 @@ class LabelID(Enum):
         return cls.__members__[name]
 
     def __eq__(self, other: LabelID | str) -> bool:
-        return (
-            self.name == other.upper()
-            if isinstance(other, str)
-            else self.name == other.name
-        )
+        return self.name == other.upper() if isinstance(other, str) else self.name == other.name
 
 
 @dataclass(frozen=True, eq=False)
 class SemanticLabel:
+    """A dataclass to represent semantic labels.
+
+    Attributes:
+        label (LabelID): Label ID.
+        original (str): Original name of the label.
+        attributes (list): List of attribute names.
+    """
+
     label: LabelID
     original: str
     attributes: list[str] = field(default_factory=list)
@@ -75,7 +80,7 @@ class SemanticLabel:
 # Label conversion
 # =====================
 
-# Name mapping (key: value) = (original: expected in Label enum)
+# Name mapping (key: value) = (original: Label enum)
 DEFAULT_NAME_MAPPING: dict[str, str] = {
     # === ObjectLabel ===
     # CAR
@@ -176,11 +181,13 @@ def convert_label(
     Returns:
         Converted `SemanticLabel` object.
     """
+    global DEFAULT_NAME_MAPPING
+
     # set name mapping
     if name_mapping is None:
         name_mapping = DEFAULT_NAME_MAPPING
     elif update_default_mapping:
-        name_mapping.update(DEFAULT_NAME_MAPPING)
+        DEFAULT_NAME_MAPPING.update(name_mapping)
 
     # convert original to name for Label object
     if original in name_mapping:

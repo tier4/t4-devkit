@@ -9,14 +9,21 @@ from typing import TYPE_CHECKING
 import numpy as np
 import rerun as rr
 import rerun.blueprint as rrb
-from nuscenes.nuscenes import LidarPointCloud, RadarPointCloud
 from PIL import Image
 from pyquaternion import Quaternion
 
 from t4_devkit.common.color import distance_color
 from t4_devkit.common.geometry import is_box_in_image, view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
-from t4_devkit.dataclass import Box2D, Box3D, Shape, ShapeType, convert_label
+from t4_devkit.dataclass import (
+    Box2D,
+    Box3D,
+    LidarPointCloud,
+    RadarPointCloud,
+    Shape,
+    ShapeType,
+    convert_label,
+)
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
 if TYPE_CHECKING:
@@ -101,9 +108,7 @@ class Tier4:
         self.verbose = verbose
 
         if not osp.exists(self.data_root):
-            raise FileNotFoundError(
-                f"Database directory is not found: {self.data_root}"
-            )
+            raise FileNotFoundError(f"Database directory is not found: {self.data_root}")
 
         start_time = time.time()
         if verbose:
@@ -221,9 +226,7 @@ class Tier4:
             sample_record.ann_3ds.append(ann_record.token)
 
         for ann_record in self.object_ann:
-            sd_record: SampleData = self.get(
-                "sample_data", ann_record.sample_data_token
-            )
+            sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
             sample_record: Sample = self.get("sample", sd_record.sample_token)
             sample_record.ann_2ds.append(ann_record.token)
 
@@ -341,9 +344,7 @@ class Tier4:
             )
         else:
             boxes = (
-                self.get_box3ds(sample_data_token)
-                if as_3d
-                else self.get_box2ds(sample_data_token)
+                self.get_box3ds(sample_data_token) if as_3d else self.get_box2ds(sample_data_token)
             )
 
         if not as_3d:
@@ -404,20 +405,11 @@ class Tier4:
             update_default_mapping=update_default_mapping,
         )
 
-    def get_box3d(
-        self,
-        sample_annotation_token: str,
-        *,
-        category_mapping: dict[str, str] | None = None,
-        update_default_mapping: bool = False,
-    ) -> Box3D:
+    def get_box3d(self, sample_annotation_token: str) -> Box3D:
         """Return a Box3D class from a `sample_annotation` record.
 
         Args:
             sample_annotation_token (str): Token of `sample_annotation`.
-            label_prefix (str | LabelPrefix, optional): Label prefix name.
-            category_mapping (dict[str, str] | None, optional): Category name mapping.
-            update_default_mapping (bool, optional): Whether to update default category mapping.
 
         Returns:
             Instantiated Box3D.
@@ -426,13 +418,10 @@ class Tier4:
         instance: Instance = self.get("instance", ann.instance_token)
         sample: Sample = self.get("sample", ann.sample_token)
 
-        # TODO(ktro2828): `category_mapping` and below parameters are not specified in `get_box3ds`.
         # semantic label
         semantic_label = self.get_semantic_label(
             category_token=instance.category_token,
             attribute_tokens=ann.attribute_tokens,
-            name_mapping=category_mapping,
-            update_default_mapping=update_default_mapping,
         )
 
         shape = Shape(shape_type=ShapeType.BOUNDING_BOX, size=ann.size)
@@ -452,13 +441,7 @@ class Tier4:
             uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
         )
 
-    def get_box2d(
-        self,
-        object_ann_token: str,
-        *,
-        category_mapping: dict[str, str] | None = None,
-        update_default_mapping: bool = False,
-    ) -> Box2D:
+    def get_box2d(self, object_ann_token: str) -> Box2D:
         """Return a Box2D class from a `object_ann` record.
 
         Args:
@@ -471,12 +454,9 @@ class Tier4:
         instance: Instance = self.get("instance", ann.instance_token)
         sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
 
-        # TODO(ktro2828): `category_mapping` and below parameters are not specified in `get_box2ds`.
         semantic_label = self.get_semantic_label(
             category_token=ann.category_token,
             attribute_tokens=ann.attribute_tokens,
-            name_mapping=category_mapping,
-            update_default_mapping=update_default_mapping,
         )
 
         return Box2D(
@@ -510,12 +490,10 @@ class Tier4:
             prev_sample_record: Sample = self.get("sample", curr_sample_record.prev)
 
             curr_ann_recs: list[SampleAnnotation] = [
-                self.get("sample_annotation", token)
-                for token in curr_sample_record.ann_3ds
+                self.get("sample_annotation", token) for token in curr_sample_record.ann_3ds
             ]
             prev_ann_recs: list[SampleAnnotation] = [
-                self.get("sample_annotation", token)
-                for token in prev_sample_record.ann_3ds
+                self.get("sample_annotation", token) for token in prev_sample_record.ann_3ds
             ]
 
             # Maps instance tokens to prev_ann records
@@ -596,9 +574,7 @@ class Tier4:
         Returns:
             VelocityType: Velocity in the order of (vx, vy, vz) in m/s.
         """
-        current: SampleAnnotation = self.get(
-            "sample_annotation", sample_annotation_token
-        )
+        current: SampleAnnotation = self.get("sample_annotation", sample_annotation_token)
 
         # If the real velocity is annotated, returns it
         if current.velocity is not None:
@@ -669,13 +645,9 @@ class Tier4:
         elif point_sample_data.modality == SensorModality.RADAR:
             pointcloud = RadarPointCloud.from_file(pc_filepath)
         else:
-            raise ValueError(
-                f"Expected sensor lidar/radar, but got {point_sample_data.modality}"
-            )
+            raise ValueError(f"Expected sensor lidar/radar, but got {point_sample_data.modality}")
 
-        camera_sample_data: SampleData = self.get(
-            "sample_data", camera_sample_data_token
-        )
+        camera_sample_data: SampleData = self.get("sample_data", camera_sample_data_token)
         if camera_sample_data.modality != SensorModality.CAMERA:
             f"Expected camera, but got {camera_sample_data.modality}"
 
@@ -694,9 +666,7 @@ class Tier4:
         pointcloud.translate(point_ego_pose.translation)
 
         # 3. transform from global into the ego vehicle frame for the timestamp of the image
-        camera_ego_pose: EgoPose = self.get(
-            "ego_pose", camera_sample_data.ego_pose_token
-        )
+        camera_ego_pose: EgoPose = self.get("ego_pose", camera_sample_data.ego_pose_token)
         pointcloud.translate(-camera_ego_pose.translation)
         pointcloud.rotate(camera_ego_pose.rotation.rotation_matrix.T)
 
@@ -786,9 +756,7 @@ class Tier4:
         self._render_annotation_2ds(scene.first_sample_token, max_timestamp_us)
 
         if save_dir is not None:
-            self._save_viewer(
-                save_dir, application_id + ".rrd", default_blueprint=blueprint
-            )
+            self._save_viewer(save_dir, application_id + ".rrd", default_blueprint=blueprint)
 
     def render_instance(
         self,
@@ -806,9 +774,7 @@ class Tier4:
         """
         # search first sample associated with the instance
         instance: Instance = self.get("instance", instance_token)
-        first_ann: SampleAnnotation = self.get(
-            "sample_annotation", instance.first_annotation_token
-        )
+        first_ann: SampleAnnotation = self.get("sample_annotation", instance.first_annotation_token)
         first_sample: Sample = self.get("sample", first_ann.sample_token)
 
         # search first sample data tokens
@@ -837,9 +803,7 @@ class Tier4:
             spawn=show,
         )
 
-        last_ann: SampleAnnotation = self.get(
-            "sample_annotation", instance.last_annotation_token
-        )
+        last_ann: SampleAnnotation = self.get("sample_annotation", instance.last_annotation_token)
         last_sample: Sample = self.get("sample", last_ann.sample_token)
         max_timestamp_us = last_sample.timestamp
 
@@ -862,9 +826,7 @@ class Tier4:
         )
 
         if save_dir is not None:
-            self._save_viewer(
-                save_dir, application_id + ".rrd", default_blueprint=blueprint
-            )
+            self._save_viewer(save_dir, application_id + ".rrd", default_blueprint=blueprint)
 
     def render_pointcloud(
         self,
@@ -900,9 +862,7 @@ class Tier4:
 
         # initialize viewer
         application_id = f"t4-devkit@{scene_token}"
-        blueprint = self._init_viewer(
-            application_id, render_annotation=False, spawn=show
-        )
+        blueprint = self._init_viewer(application_id, render_annotation=False, spawn=show)
         first_lidar_sd_record: SampleData = self.get("sample_data", first_lidar_token)
         max_timestamp_us = first_lidar_sd_record.timestamp + sec2us(max_time_seconds)
 
@@ -915,9 +875,7 @@ class Tier4:
         )
 
         if save_dir is not None:
-            self._save_viewer(
-                save_dir, application_id + ".rrd", default_blueprint=blueprint
-            )
+            self._save_viewer(save_dir, application_id + ".rrd", default_blueprint=blueprint)
 
     def _init_viewer(
         self,
@@ -956,9 +914,7 @@ class Tier4:
 
         if render_2d:
             camera_names = [
-                sensor.channel
-                for sensor in self.sensor
-                if sensor.modality == SensorModality.CAMERA
+                sensor.channel for sensor in self.sensor if sensor.modality == SensorModality.CAMERA
             ]
             camera_space_views = [
                 rrb.Spatial2DView(name=camera, origin=f"world/ego_vehicle/{camera}")
@@ -1063,9 +1019,7 @@ class Tier4:
             )
 
             sensor_name = sample_data.channel
-            pointcloud = LidarPointCloud.from_file(
-                osp.join(self.data_root, sample_data.filename)
-            )
+            pointcloud = LidarPointCloud.from_file(osp.join(self.data_root, sample_data.filename))
             points = pointcloud.points[:3].T  # (N, 3)
             point_colors = distance_color(np.linalg.norm(points, axis=1))
             rr.log(
@@ -1082,9 +1036,7 @@ class Tier4:
 
             current_lidar_token = sample_data.next
 
-    def _render_radars(
-        self, first_radar_tokens: list[str], max_timestamp_us: float
-    ) -> None:
+    def _render_radars(self, first_radar_tokens: list[str], max_timestamp_us: float) -> None:
         """Render radar pointcloud.
 
         Args:
@@ -1115,9 +1067,7 @@ class Tier4:
                 )
                 current_radar_token = sample_data.next
 
-    def _render_cameras(
-        self, first_camera_tokens: list[str], max_timestamp_us: float
-    ) -> None:
+    def _render_cameras(self, first_camera_tokens: list[str], max_timestamp_us: float) -> None:
         """Render camera images.
 
         Args:
@@ -1139,9 +1089,7 @@ class Tier4:
                 sensor_name = sample_data.channel
                 rr.log(
                     f"world/ego_vehicle/{sensor_name}",
-                    rr.ImageEncoded(
-                        path=osp.join(self.data_root, sample_data.filename)
-                    ),
+                    rr.ImageEncoded(path=osp.join(self.data_root, sample_data.filename)),
                 )
                 current_camera_token = sample_data.next
 

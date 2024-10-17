@@ -92,7 +92,7 @@ from t4_devkit.dataclass.label import LabelID, convert_label
         (("unknown", "crosswalk_unknown"), LabelID.UNKNOWN),
     ],
 )
-def test_convert_object_label(labels: str | tuple[str, ...], expect: LabelID) -> None:
+def test_convert_label(labels: str | tuple[str, ...], expect: LabelID) -> None:
     if isinstance(labels, str):
         labels = [labels]
 

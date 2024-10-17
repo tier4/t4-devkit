@@ -17,11 +17,19 @@ __all__ = ["ShapeType", "Shape"]
 
 @unique
 class ShapeType(Enum):
-    BOUNDING_BOX = auto()
+    BOUNDING_BOX = 0
     POLYGON = auto()
 
     @classmethod
     def from_name(cls, name: str) -> Self:
+        """Return an enum object from the name of the member.
+
+        Args:
+            name (str): Name of enum member.
+
+        Returns:
+            Enum object.
+        """
         name = name.upper()
         assert name in cls.__members__, f"Unexpected shape type: {name}."
         return cls.__members__[name]
@@ -29,6 +37,15 @@ class ShapeType(Enum):
 
 @dataclass
 class Shape:
+    """A dataclass to represent the 3D box shape.
+
+    Examples:
+        >>> shape = Shape(
+        ...     shape_type=ShapeType.BOUNDING_BOX,
+        ...     size=[1.0, 1.0, 1.0]
+        ... )
+    """
+
     shape_type: ShapeType
     size: SizeType
     footprint: Polygon = field(default=None)

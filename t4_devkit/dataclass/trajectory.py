@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Generator
 
 import numpy as np
 
@@ -13,12 +13,42 @@ __all__ = ["Trajectory", "to_trajectories"]
 
 @dataclass
 class Trajectory:
+    """A dataclass to represent trajectory.
+
+    Attributes:
+        waypoints (TrajectoryType): Waypoints matrix in the shape of (N, 3).
+        confidence (float, optional): Confidence score the trajectory.
+
+    Examples:
+        >>> trajectory = Trajectory(
+        ...     waypoints=[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]],
+        ...     confidence=1.0,
+        ... )
+        # Get the number of waypoints.
+        >>> len(trajectory)
+        2
+        # Access the shape of waypoints matrix: (N, 3).
+        >>> trajectory.shape
+        (2, 3)
+        # Access each point as subscriptable.
+        >>> trajectory[0]
+        array([1., 1., 1.])
+        # Access each point as iterable.
+        >>> for point in trajectory:
+        ...     print(point)
+        ...
+        [1. 1. 1.]
+        [2. 2. 2.]
+    """
+
     waypoints: TrajectoryType
-    confidence: float
+    confidence: float = field(default=1.0)
 
     def __post_init__(self) -> None:
         if not isinstance(self.waypoints, np.ndarray):
             self.waypoints = np.array(self.waypoints)
+
+        assert self.waypoints.shape[1] == 3
 
     def __len__(self) -> int:
         return len(self.waypoints)
@@ -26,8 +56,16 @@ class Trajectory:
     def __getitem__(self, index: int) -> TranslationType:
         return self.waypoints[index]
 
+    def __iter__(self) -> Generator[TrajectoryType]:
+        yield from self.waypoints
+
     @property
     def shape(self) -> tuple[int, ...]:
+        """Return the shape of the waypoints matrix.
+
+        Returns:
+            Shape of the matrix (N, 3).
+        """
         return self.waypoints.shape
 
 
