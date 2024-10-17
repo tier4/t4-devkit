@@ -28,8 +28,6 @@ def distance_color(
         Color map in the shape of (N,). If input type is any number, returns a color as
             `tuple[float, float, float]`. Otherwise, returns colors as `NDArrayF64`.
     """
-    color_map = (
-        matplotlib.colormaps["turbo_r"] if cmap is None else matplotlib.colormaps[cmap]
-    )
+    color_map = matplotlib.colormaps["turbo_r"] if cmap is None else matplotlib.colormaps[cmap]
     norm = matplotlib.colors.Normalize(v_min, v_max)
     return color_map(norm(distances))

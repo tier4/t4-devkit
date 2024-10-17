@@ -9,7 +9,9 @@ packages = [{ include = "t4_devkit" }]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 rerun-sdk = "0.17.0"
-nuscenes-devkit = "^1.1.11"
+pyquaternion = "^0.9.9"
+matplotlib = "^3.9.2"
+shapely = "<2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
@@ -24,3 +26,6 @@ ruff = "^0.6.8"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100

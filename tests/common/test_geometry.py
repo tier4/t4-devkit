@@ -1,4 +1,5 @@
 import numpy as np
+
 from t4_devkit.common.geometry import view_points
 
 
@@ -66,8 +67,6 @@ def test_view_points_with_distortion() -> None:
     distortion = np.array([0.1, 0.01, 0.01, 0.01, 0.001])
 
     project = view_points(points, intrinsic, distortion)
-
-    print(project)
 
     expect = np.array(
         [

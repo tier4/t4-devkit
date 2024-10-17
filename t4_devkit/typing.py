@@ -14,12 +14,15 @@ __all__ = (
     "NDArrayU8",
     "NDArrayBool",
     "NDArrayStr",
+    "NDArrayInt",
+    "NDArrayFloat",
     "TranslationType",
     "VelocityType",
     "AccelerationType",
     "RotationType",
     "VelocityType",
     "SizeType",
+    "TrajectoryType",
     "CamIntrinsicType",
     "CamDistortionType",
     "RoiType",
@@ -36,12 +39,16 @@ NDArrayU8 = NDArray[np.uint8]
 NDArrayBool = NDArray[np.bool_]
 NDArrayStr = NDArray[np.str_]
 
+NDArrayInt = NDArrayI32 | NDArrayI64
+NDArrayFloat = NDArrayF32 | NDArrayF64
+
 # 3D
 TranslationType = NewType("TranslationType", NDArrayF64)
 VelocityType = NewType("VelocityType", NDArrayF64)
 AccelerationType = NewType("AccelerationType", NDArrayF64)
 RotationType = NewType("RotationType", Quaternion)
 SizeType = NewType("SizeType", NDArrayF64)
+TrajectoryType = NewType("TrajectoryType", NDArrayF64)
 CamIntrinsicType = NewType("CamIntrinsicType", NDArrayF64)
 CamDistortionType = NewType("CamDistortionType", NDArrayF64)
 

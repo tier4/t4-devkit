@@ -84,9 +84,7 @@ class SampleAnnotation(SchemaBase):
         visibility_token: str = data["visibility_token"]
         translation = np.array(data["translation"])
         velocity = np.array(data["velocity"]) if data.get("velocity") else None
-        acceleration = (
-            np.array(data["acceleration"]) if data.get("acceleration") else None
-        )
+        acceleration = np.array(data["acceleration"]) if data.get("acceleration") else None
         size = np.array(data["size"])
         rotation = Quaternion(data["rotation"])
         num_lidar_pts: int = data["num_lidar_pts"]

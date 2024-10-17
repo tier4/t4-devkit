@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+
 from t4_devkit.schema import VisibilityLevel
 
 if TYPE_CHECKING:
+    from t4_devkit.dataclass import Box3D
     from t4_devkit.typing import NDArrayF64
-
-    from .box import Box3D
 
 
 __all__ = ("view_points", "is_box_in_image")
@@ -56,9 +56,7 @@ def view_points(
         x_ = points[0]
         y_ = points[1]
         r2 = x_**2 + y_**2
-        f1 = (1 + k1 * r2 + k2 * r2**2 + k3 * r2**3) / (
-            1 + k4 * r2 + k5 * r2**2 + k6 * r2**3
-        )
+        f1 = (1 + k1 * r2 + k2 * r2**2 + k3 * r2**3) / (1 + k4 * r2 + k5 * r2**2 + k6 * r2**3)
         f2 = x_ * y_
         x__ = x_ * f1 + 2 * p1 * f2 + p2 * (r2 + 2 * x_**2) + s1 * r2 + s2 * r2**2
         y__ = y_ * f1 + p1 * (r2 + 2 * y_**2) + 2 * p2 * f2 + s3 * r2 + s4 * r2**2
@@ -101,9 +99,7 @@ def is_box_in_image(
     is_visible = np.logical_and(is_visible, corners_on_img[1, :] > 0)
     is_visible = np.logical_and(is_visible, corners_on_img[2, :] > 1)
 
-    in_front = (
-        corners_3d[2, :] > 0.1
-    )  # True if a corner is at least 0.1 meter in front of camera.
+    in_front = corners_3d[2, :] > 0.1  # True if a corner is at least 0.1 meter in front of camera.
 
     if visibility == VisibilityLevel.FULL:
         return all(is_visible) and all(in_front)

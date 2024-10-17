@@ -51,9 +51,7 @@ class SchemaRegistry:
 
         return _register_decorator
 
-    def _add_module(
-        self, module: object, name: SchemaName, *, force: bool = False
-    ) -> None:
+    def _add_module(self, module: object, name: SchemaName, *, force: bool = False) -> None:
         if not inspect.isclass(module):
             raise TypeError(f"module must be a class, but got {type(module)}.")
 
@@ -62,9 +60,7 @@ class SchemaRegistry:
 
         self.__schemas[name.value] = module
 
-    def build_from_json(
-        self, key: str | SchemaName, filepath: str
-    ) -> list[SchemaTable]:
+    def build_from_json(self, key: str | SchemaName, filepath: str) -> list[SchemaTable]:
         """Build schema dataclass from json.
 
         Args:
