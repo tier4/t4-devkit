@@ -1,0 +1,85 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+change-template: "* $TITLE (#$NUMBER) @$AUTHOR"
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+categories:
+  - title: "🚀 Features"
+    labels: ["new-feature"]
+  - title: "🐛 Bug Fixes"
+    labels: ["bug"]
+  - title: "🔧 Refactoring"
+    labels: ["refactor"]
+  - title: "📖 Documentation"
+    labels: ["documentation"]
+  - title: "🔎 Test"
+    labels: ["ci"]
+  - title: "🗳️ Dependency"
+    labels: ["dependencies"]
+  - title: "🧰 Maintenance"
+    labels: ["chore"]
+  - title: "⏪ Revert"
+    labels: ["revert"]
+
+autolabeler:
+  - label: "new-feature"
+    branch:
+      - "/^feat(ure)?[/-].+/"
+    title:
+      - "/^feat(ure)?[/-].+/"
+  - label: "documentation"
+    branch:
+      - "/^docs[/-].+/"
+    files:
+      - docs/**/*
+      - "README.md"
+      - "mkdocs.yaml"
+    title:
+      - "/^docs[/-].+/"
+  - label: "bug"
+    branch:
+      - "/^fix[/-].+/"
+    title:
+      - "/^fix[/-].+/"
+  - label: refactor
+    branch:
+      - "/^refactor[/-].+/"
+      - "/^perf[/-].+/"
+      - "/^style[/-].+/"
+    title:
+      - "/^refactor[/-].+/"
+      - "/^perf[/-].+/"
+      - "/^style[/-].+/"
+  - label: ci
+    branch:
+      - "/^ci[/-].+/"
+      - "/^test[/-].+/"
+    files:
+      - ".github/workflows/*"
+      - "tests/**/*"
+    title:
+      - "/^ci[/-].+/"
+      - "/^test[/-].+/"
+  - label: dependencies
+    branch:
+      - "/^chore/(deps/)[/-].+/"
+    files:
+      - "pyproject.toml"
+      - "setup.py"
+      - "build.py"
+    title:
+      - "/^chore/(deps/)[/-].+/"
+  - label: "chore"
+    branch:
+      - "/^chore(?!/(deps/))[/-].+/"
+    title:
+      - "/^chore(?!/(deps/))[/-].+/"
+  - label: "revert"
+    branch:
+      - "/^revert[/-].+/"
+    title:
+      - "/^revert[/-].+/"
