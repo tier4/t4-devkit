@@ -10,6 +10,7 @@ nav:
       - TIER IV: apis/tier4.md
       - Schema: apis/schema.md
       - DataClass: apis/dataclass.md
+      - Viewer: apis/viewer.md
       - Common: apis/common.md
 
 theme:
