@@ -14,7 +14,7 @@ def dummy_box3d() -> Box3D:
     return Box3D(
         unix_time=100,
         frame_id="base_link",
-        semantic_label=SemanticLabel(label=LabelID.CAR, original="car"),
+        semantic_label=SemanticLabel(LabelID.CAR),
         position=(1.0, 1.0, 1.0),
         rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
         shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
@@ -35,7 +35,7 @@ def dummy_box3ds() -> list[Box3D]:
         Box3D(
             unix_time=100,
             frame_id="base_link",
-            semantic_label=SemanticLabel(label=LabelID.CAR, original="car"),
+            semantic_label=SemanticLabel(LabelID.CAR),
             position=(1.0, 1.0, 1.0),
             rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
             shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
@@ -46,7 +46,7 @@ def dummy_box3ds() -> list[Box3D]:
         Box3D(
             unix_time=100,
             frame_id="base_link",
-            semantic_label=SemanticLabel(label=LabelID.BICYCLE, original="bicycle"),
+            semantic_label=SemanticLabel(LabelID.BICYCLE),
             position=(-1.0, -1.0, 1.0),
             rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
             shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
@@ -57,7 +57,7 @@ def dummy_box3ds() -> list[Box3D]:
         Box3D(
             unix_time=100,
             frame_id="base_link",
-            semantic_label=SemanticLabel(label=LabelID.PEDESTRIAN, original="pedestrian"),
+            semantic_label=SemanticLabel(LabelID.PEDESTRIAN),
             position=(-1.0, 1.0, 1.0),
             rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
             shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
@@ -78,7 +78,7 @@ def dummy_box2d() -> Box2D:
     return Box2D(
         unix_time=100,
         frame_id="camera",
-        semantic_label=SemanticLabel(label=LabelID.CAR, original="car"),
+        semantic_label=SemanticLabel(LabelID.CAR),
         roi=(100, 100, 50, 50),
         confidence=1.0,
         uuid="car2d_0",
@@ -96,7 +96,7 @@ def dummy_box2ds() -> list[Box2D]:
         Box2D(
             unix_time=100,
             frame_id="camera",
-            semantic_label=SemanticLabel(label=LabelID.CAR, original="car"),
+            semantic_label=SemanticLabel(LabelID.CAR),
             roi=(100, 100, 50, 50),
             confidence=1.0,
             uuid="car2d_1",
@@ -104,7 +104,7 @@ def dummy_box2ds() -> list[Box2D]:
         Box2D(
             unix_time=100,
             frame_id="camera",
-            semantic_label=SemanticLabel(label=LabelID.BICYCLE, original="bicycle"),
+            semantic_label=SemanticLabel(LabelID.BICYCLE),
             roi=(50, 50, 10, 10),
             confidence=1.0,
             uuid="bicycle2d_1",
@@ -112,7 +112,7 @@ def dummy_box2ds() -> list[Box2D]:
         Box2D(
             unix_time=100,
             frame_id="camera",
-            semantic_label=SemanticLabel(label=LabelID.PEDESTRIAN, original="pedestrian"),
+            semantic_label=SemanticLabel(LabelID.PEDESTRIAN),
             roi=(150, 150, 20, 20),
             confidence=1.0,
             uuid="pedestrian2d_1",

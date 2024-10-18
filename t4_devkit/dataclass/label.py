@@ -64,12 +64,12 @@ class SemanticLabel:
 
     Attributes:
         label (LabelID): Label ID.
-        original (str): Original name of the label.
-        attributes (list): List of attribute names.
+        original (str | None, optional): Original name of the label.
+        attributes (list[str], optional): List of attribute names.
     """
 
     label: LabelID
-    original: str
+    original: str | None = field(default=None)
     attributes: list[str] = field(default_factory=list)
 
     def __eq__(self, other: SemanticLabel) -> bool:
