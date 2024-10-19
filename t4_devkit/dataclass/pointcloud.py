@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from t4_devkit.typing import NDArrayFloat, NDArrayU8
 
-__all__ = ["LidarPointCloud", "RadarPointCloud", "SegmentationPointCloud"]
+__all__ = ["PointCloud", "LidarPointCloud", "RadarPointCloud", "SegmentationPointCloud"]
 
 
 @dataclass
