@@ -34,6 +34,11 @@ jobs:
           cache: "poetry"
           python-version: ${{ matrix.python-version }}
 
+      # https://stackoverflow.com/questions/77364550/attributeerror-module-pkgutil-has-no-attribute-impimporter-did-you-mean
+      - name: Install the latest pip and setuptools
+        if: ${{ matrix.python-version }} == "3.12"
+        run: poetry run pip install -U pip setuptools
+
       - name: Install dependencies
         run: poetry install
 
