@@ -12,6 +12,7 @@ from .roi import Roi
 from .trajectory import to_trajectories
 
 if TYPE_CHECKING:
+    from t4_devkit.dataclass import HomogeneousMatrix
     from t4_devkit.typing import (
         NDArrayF64,
         RotationType,
@@ -26,7 +27,34 @@ if TYPE_CHECKING:
     from .trajectory import Trajectory
 
 
-__all__ = ["Box3D", "Box2D", "BoxType"]
+__all__ = ["Box3D", "Box2D", "BoxType", "distance_box"]
+
+
+def distance_box(box: BoxType, tf_matrix: HomogeneousMatrix) -> float | None:
+    """Return a box distance from `base_link`.
+
+    Args:
+        box (BoxType): A box.
+        tf_matrix (HomogeneousMatrix): Transformation matrix.
+
+    Raises:
+        TypeError: Expecting type of box is `Box2D` or `Box3D`.
+
+    Returns:
+        float | None: Return `None` if the type of box is `Box2D` and its `position` is `None`,
+            otherwise returns distance from `base_link`.
+    """
+    if isinstance(box, Box2D) and box.position is None:
+        return None
+
+    if isinstance(box, Box2D):
+        position = tf_matrix.transform(box.position)
+    elif isinstance(box, Box3D):
+        position, _ = tf_matrix.transform(box.position, box.rotation)
+    else:
+        raise TypeError(f"Unexpected box type: {type(box)}")
+
+    return np.linalg.norm(position)
 
 
 @dataclass(eq=False)
@@ -38,6 +66,10 @@ class BaseBox:
     semantic_label: SemanticLabel
     confidence: float = field(default=1.0, kw_only=True)
     uuid: str | None = field(default=None, kw_only=True)
+
+
+# TODO: add intermediate class to represent the box state.
+# >>> e.g.) box.as_state() -> BoxState
 
 
 @dataclass(eq=False)

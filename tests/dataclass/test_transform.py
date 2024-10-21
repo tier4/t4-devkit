@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from t4_devkit.common.transform import HomogeneousMatrix
+from t4_devkit.dataclass.transform import HomogeneousMatrix
 
 
 def test_homogeneous_matrix_transform():
