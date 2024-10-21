@@ -1,15 +1,49 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from pyquaternion import Quaternion
 from typing_extensions import Self
 
+from t4_devkit.typing import NDArray, RotationType
+
 if TYPE_CHECKING:
-    from t4_devkit.typing import ArrayLike, NDArray, RotationType
+    from t4_devkit.typing import ArrayLike
+
+__all__ = ["TransformBuffer", "HomogeneousMatrix", "TransformLike"]
 
 
+@dataclass
+class TransformBuffer:
+    buffer: dict[tuple[str, str], HomogeneousMatrix] = field(default_factory=dict, init=False)
+
+    def set_transform(self, matrix: HomogeneousMatrix) -> None:
+        """Set transform matrix to the buffer.
+        Also, if its inverse transformation has not been registered, registers it too.
+
+        Args:
+            matrix (HomogeneousMatrix): Transformation matrix.
+        """
+        src = matrix.src
+        dst = matrix.dst
+        if (src, dst) not in self.buffer:
+            self.buffer[(src, dst)] = matrix
+
+        if (dst, src) not in self.buffer:
+            self.buffer[(dst, src)] = matrix.inv()
+
+    def lookup_transform(self, src: str, dst: str) -> HomogeneousMatrix | None:
+        if src == dst:
+            return HomogeneousMatrix(np.zeros(3), Quaternion(), src=src, dst=dst)
+        return self.buffer[(src, dst)] if (src, dst) in self.buffer else None
+
+    def do_transform(self, src: str, dst: str, *args: TransformLike) -> TransformLike | None:
+        return self.buffer[(src, dst)].transform(args) if (src, dst) in self.buffer else None
+
+
+@dataclass
 class HomogeneousMatrix:
     def __init__(
         self,
@@ -214,6 +248,9 @@ class HomogeneousMatrix:
         return matrix.dot(self)
 
 
+TransformLike = NDArray | tuple[NDArray, RotationType] | HomogeneousMatrix
+
+
 def _extract_position_and_rotation_from_matrix(
     matrix: NDArray | HomogeneousMatrix,
 ) -> tuple[NDArray, Quaternion]:
@@ -264,4 +301,5 @@ def _generate_homogeneous_matrix(
     matrix = np.eye(4)
     matrix[:3, 3] = position
     matrix[:3, :3] = rotation.rotation_matrix
+    return matrix
     return matrix

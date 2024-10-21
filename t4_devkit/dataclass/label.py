@@ -54,7 +54,7 @@ class LabelID(Enum):
         assert name in cls.__members__, f"Unexpected label name: {name}"
         return cls.__members__[name]
 
-    def __eq__(self, other: LabelID | str) -> bool:
+    def __eq__(self, other: str | LabelID) -> bool:
         return self.name == other.upper() if isinstance(other, str) else self.name == other.name
 
 
@@ -72,8 +72,8 @@ class SemanticLabel:
     original: str | None = field(default=None)
     attributes: list[str] = field(default_factory=list)
 
-    def __eq__(self, other: SemanticLabel) -> bool:
-        return self.label == other.label
+    def __eq__(self, other: str | SemanticLabel) -> bool:
+        return self.label == other if isinstance(other, str) else self.label == other.label
 
 
 # =====================
