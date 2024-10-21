@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 from pyquaternion import Quaternion
@@ -12,7 +13,13 @@ from t4_devkit.typing import NDArray, RotationType
 if TYPE_CHECKING:
     from t4_devkit.typing import ArrayLike
 
-__all__ = ["TransformBuffer", "HomogeneousMatrix", "TransformLike"]
+__all__ = [
+    "TransformBuffer",
+    "HomogeneousMatrix",
+    "TranslateItemLike",
+    "RotateItemLike",
+    "TransformItemLike",
+]
 
 
 @dataclass
@@ -36,11 +43,20 @@ class TransformBuffer:
 
     def lookup_transform(self, src: str, dst: str) -> HomogeneousMatrix | None:
         if src == dst:
-            return HomogeneousMatrix(np.zeros(3), Quaternion(), src=src, dst=dst)
+            return HomogeneousMatrix.as_identity(src)
         return self.buffer[(src, dst)] if (src, dst) in self.buffer else None
 
-    def do_transform(self, src: str, dst: str, *args: TransformLike) -> TransformLike | None:
-        return self.buffer[(src, dst)].transform(args) if (src, dst) in self.buffer else None
+    def do_translate(self, src: str, dst: str, *args, **kwargs) -> TranslateItemLike | None:
+        tf_matrix = self.lookup_transform(src, dst)
+        return tf_matrix.translate(*args, **kwargs) if tf_matrix is not None else None
+
+    def do_rotate(self, src: str, dst: str, *args, **kwargs) -> RotateItemLike | None:
+        tf_matrix = self.lookup_transform(src, dst)
+        return tf_matrix.rotate(*args, **kwargs) if tf_matrix is not None else None
+
+    def do_transform(self, src: str, dst: str, *args, **kwargs) -> TransformItemLike | None:
+        tf_matrix = self.lookup_transform(src, dst)
+        return tf_matrix.transform(*args, **kwargs) if tf_matrix is not None else None
 
 
 @dataclass
@@ -74,24 +90,43 @@ class HomogeneousMatrix:
         self.matrix = _generate_homogeneous_matrix(position, rotation)
 
     @classmethod
+    def as_identity(cls, frame_id: str) -> Self:
+        """Construct a new object with identity.
+
+        Args:
+            frame_id (str): Frame ID.
+
+        Returns:
+            Constructed self instance.
+        """
+        return cls(np.zeros(3), Quaternion(), frame_id, frame_id)
+
+    @classmethod
     def from_matrix(
         cls,
         matrix: NDArray | HomogeneousMatrix,
-        src: str,
-        dst: str,
+        src: str | None = None,
+        dst: str | None = None,
     ) -> Self:
         """Construct a new object from a homogeneous matrix.
 
         Args:
             matrix (NDArray | HomogeneousMatrix): 4x4 homogeneous matrix.
-            src (str): Source frame ID.
-            dst (str): Destination frame ID.
+            src (str | None, optional): Source frame ID.
+                This must be specified only if the input matrix is `NDArray`.
+            dst (str | None, optional): Destination frame ID.
+                This must be specified only if the input matrix is `NDArray`.
 
         Returns:
-            Self: Constructed instance.
+            Constructed self instance.
         """
         position, rotation = _extract_position_and_rotation_from_matrix(matrix)
-        return cls(position, rotation, src, dst)
+        if isinstance(matrix, np.ndarray):
+            assert matrix.shape == (4, 4)
+            assert src is not None and dst is not None
+            return cls(position, rotation, src, dst)
+        else:
+            return cls(position, rotation, matrix.src, matrix.dst)
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -155,6 +190,93 @@ class HomogeneousMatrix:
         return HomogeneousMatrix(position, rotation, src=self.src, dst=self.dst)
 
     @overload
+    def translate(self, position: ArrayLike) -> NDArray:
+        """Translate a position by myself.
+
+        Args:
+            position (ArrayLike): 3D position.
+
+        Returns:
+            Translated position.
+        """
+        pass
+
+    @overload
+    def translate(self, matrix: HomogeneousMatrix) -> HomogeneousMatrix:
+        """Translate a homogeneous matrix by myself.
+
+        Args:
+            matrix (HomogeneousMatrix):
+
+        Returns:
+            Translated `HomogeneousMatrix` object.
+        """
+        pass
+
+    def translate(self, *args, **kwargs) -> TranslateItemLike:
+        inputs = _format_transform_args(*args, **kwargs)
+        if {"position"} == set(inputs.keys()):
+            return self.position + inputs["position"]
+        elif {"matrix"} == set(inputs.keys()):
+            matrix: HomogeneousMatrix = deepcopy(inputs["matrix"])
+            matrix.position = self.position + matrix.position
+            return matrix
+        else:
+            raise ValueError(f"Unexpected arguments: {list(inputs.keys())}")
+
+    @overload
+    def rotate(self, position: ArrayLike) -> NDArray:
+        """Rotate a position by myself.
+
+        Args:
+            position (ArrayLike): 3D position.
+
+        Returns:
+            Rotated position.
+        """
+        pass
+
+    @overload
+    def rotate(self, rotation: RotationType) -> RotationType:
+        """Rotate a 3x3 rotation matrix or quaternion by myself.
+
+        Args:
+            rotation (RotationType): 3x3 rotation matrix or quaternion.
+
+        Returns:
+            Rotated quaternion.
+        """
+        pass
+
+    @overload
+    def rotate(self, matrix: HomogeneousMatrix) -> HomogeneousMatrix:
+        """Rotate a homogeneous matrix by myself.
+
+        Args:
+            matrix (HomogeneousMatrix): `HomogeneousMatrix` object.
+
+        Returns:
+            Rotated `HomogeneousMatrix` object.
+        """
+        pass
+
+    def rotate(self, *args, **kwargs) -> RotateItemLike:
+        inputs = _format_transform_args(*args, **kwargs)
+        if {"position"} == set(inputs.keys()):
+            return np.matmul(self.rotation_matrix, inputs["position"])
+        elif {"rotation"} == set(inputs.keys()):
+            rotation_matrix: NDArray = inputs["rotation"].rotation_matrix
+            return np.matmul(self.rotation_matrix, rotation_matrix)
+        elif {"matrix"} == set(inputs.keys()):
+            matrix: HomogeneousMatrix = deepcopy(inputs["matrix"])
+            matrix.rotation = Quaternion(
+                matrix=np.matmul(self.rotation_matrix, matrix.rotation_matrix)
+            )
+            return matrix
+        else:
+            raise ValueError(f"Unexpected arguments: {list(inputs.keys())}")
+
+    @overload
     def transform(self, position: ArrayLike) -> NDArray:
         """Transform a position by myself.
 
@@ -163,6 +285,18 @@ class HomogeneousMatrix:
 
         Returns:
             Transformed position.
+        """
+        pass
+
+    @overload
+    def transform(self, rotation: RotationType) -> RotationType:
+        """Transform a rotation by myself.
+
+        Args:
+            rotation (RotationType): 3x3 rotation matrix or quaternion.
+
+        Returns:
+            Transformed quaternion.
         """
         pass
 
@@ -195,38 +329,18 @@ class HomogeneousMatrix:
         """
         pass
 
-    def transform(self, *args, **kwargs):
-        # TODO(ktro2828): Refactoring this operations.
-        s = len(args)
-        if s == 0:
-            if not kwargs:
-                raise ValueError("At least 1 argument specified")
-
-            if "position" in kwargs:
-                position = kwargs["position"]
-                if "matrix" in kwargs:
-                    raise ValueError("Cannot specify `position` and `matrix` at the same time.")
-                elif "rotation" in kwargs:
-                    rotation = kwargs["rotation"]
-                    return self.__transform_position_and_rotation(position, rotation)
-                else:
-                    return self.__transform_position(position)
-            elif "matrix" in kwargs:
-                matrix = kwargs["matrix"]
-                return self.__transform_matrix(matrix)
-            else:
-                raise KeyError(f"Unexpected keys are detected: {list(kwargs.keys())}")
-        elif s == 1:
-            arg = args[0]
-            if isinstance(arg, HomogeneousMatrix):
-                return self.__transform_matrix(matrix=arg)
-            else:
-                return self.__transform_position(position=arg)
-        elif s == 2:
-            position, rotation = args
-            return self.__transform_position_and_rotation(position, rotation)
+    def transform(self, *args, **kwargs) -> TransformItemLike:
+        inputs = _format_transform_args(*args, **kwargs)
+        if {"position", "rotation"} == set(inputs.keys()):
+            return self.__transform_position_and_rotation(**inputs)
+        elif {"position"} == set(inputs.keys()):
+            return self.__transform_position(**inputs)
+        elif {"rotation"} == set(inputs.keys()):
+            return self.__transform_rotation(**inputs)
+        elif {"matrix"} == set(inputs.keys()):
+            return self.__transform_matrix(**inputs)
         else:
-            raise ValueError(f"Unexpected number of arguments {s}")
+            raise ValueError(f"Unexpected inputs: {list(inputs.keys())}")
 
     def __transform_position(self, position: ArrayLike) -> NDArray:
         rotation = Quaternion()
@@ -234,6 +348,13 @@ class HomogeneousMatrix:
         ret_mat = self.matrix.dot(matrix)
         ret_pos, _ = _extract_position_and_rotation_from_matrix(ret_mat)
         return ret_pos
+
+    def __transform_rotation(self, rotation: RotationType) -> RotationType:
+        position = np.zeros(3)
+        matrix = _generate_homogeneous_matrix(position, rotation)
+        ret_mat = self.matrix.dot(matrix)
+        _, ret_rot = _extract_position_and_rotation_from_matrix(ret_mat)
+        return ret_rot
 
     def __transform_position_and_rotation(
         self,
@@ -248,7 +369,66 @@ class HomogeneousMatrix:
         return matrix.dot(self)
 
 
-TransformLike = NDArray | tuple[NDArray, RotationType] | HomogeneousMatrix
+TranslateItemLike = NDArray | HomogeneousMatrix
+RotateItemLike = NDArray | RotationType | HomogeneousMatrix
+TransformItemLike = NDArray | RotationType | tuple[NDArray, RotationType] | HomogeneousMatrix
+
+
+def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
+    num_args = len(args)
+    num_kwargs = len(kwargs)
+    if num_args == 0 and num_kwargs == 0:
+        raise ValueError("At least 1 argument specified.")
+
+    # >>> (position), (rotation), (position, rotation), (matrix)
+    if num_args == 0:
+        if "position" in kwargs:
+            if "matrix" in kwargs:
+                raise KeyError("Cannot specify `position` and `matrix` at the same time.")
+            elif "rotation" in kwargs:
+                return {"position": kwargs["position"], "rotation": kwargs["rotation"]}
+            else:
+                return {"position": kwargs["position"]}
+        elif "rotation" in kwargs:
+            if "matrix" in kwargs:
+                raise KeyError("Cannot specify `rotation` and `matrix` at the same time.")
+            return {"rotation": kwargs["rotation"]}
+        elif "matrix" in kwargs:
+            return {"matrix": kwargs["matrix"]}
+        else:
+            raise KeyError(f"Unexpected keys are detected: {list(kwargs.keys())}.")
+    # >>> (position), (rotation), (position, rotation), (matrix)
+    elif num_args == 1:
+        arg0 = args[0]
+        if num_kwargs == 0:
+            if isinstance(arg0, HomogeneousMatrix):
+                return {"matrix": arg0}
+            elif isinstance(arg0, Quaternion):
+                return {"rotation": arg0}
+            else:
+                arg0 = np.asarray(arg0)
+                if arg0.ndim == 1:
+                    if len(arg0) == 3:
+                        return {"position": arg0}
+                    elif len(arg0) == 4:
+                        return {"rotation": arg0}
+                    else:
+                        raise ValueError(f"Unexpected argument shape: {arg0.shape}.")
+                else:
+                    if not arg0.shape != (3, 3):
+                        raise ValueError(f"Unexpected argument shape: {arg0.shape}.")
+                    return {"rotation": arg0}
+        elif num_kwargs == 1:
+            if "rotation" not in kwargs:
+                raise KeyError("Expected two arguments: position and rotation.")
+            return {"position": arg0, "rotation": kwargs["rotation"]}
+        else:
+            raise ValueError(f"Too much arguments {num_args + num_kwargs}.")
+    # >>> (position, rotation)
+    elif num_args == 2:
+        return {"position": args[0], "rotation": args[1]}
+    else:
+        raise ValueError(f"Too much arguments {num_args + num_kwargs}.")
 
 
 def _extract_position_and_rotation_from_matrix(
@@ -301,5 +481,4 @@ def _generate_homogeneous_matrix(
     matrix = np.eye(4)
     matrix[:3, 3] = position
     matrix[:3, :3] = rotation.rotation_matrix
-    return matrix
     return matrix
