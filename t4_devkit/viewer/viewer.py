@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Sequence
 import numpy as np
 import rerun as rr
 import rerun.blueprint as rrb
+from typing_extensions import Self
 
 from t4_devkit.common.timestamp import us2sec
 from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor, SensorModality
@@ -17,13 +18,44 @@ from .color import distance_color
 from .rendering_data import BoxData2D, BoxData3D
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, PointCloud
+    from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike
 
 
-__all__ = ["Tier4Viewer"]
+__all__ = ["Tier4Viewer", "format_entity"]
+
+
+def format_entity(root: str, *entities) -> str:
+    """Format entity path.
+
+    Args:
+        root (str): Root entity path.
+        *entities: Entity path(s).
+
+    Returns:
+        Formatted entity path.
+
+    Examples:
+        >>> _format_entity("map")
+        >>> "map"
+        >>> _format_entity("map", "map/base_link")
+        "map/base_link"
+        >>> _format_entity("map", "map/base_link", "camera")
+        "map/base_link/camera"
+    """
+    if len(entities) == 0:
+        return root
+
+    flattened = [s for t in entities for s in t.split("/")]
+
+    if osp.basename(root) == flattened[0]:
+        return osp.join(root, "/".join(flattened[1:])) if len(flattened) > 1 else root
+    else:
+        return osp.join(root, "/".join(entities))
 
 
 class Tier4Viewer:
+    """A viewer class that renders some components powered by rerun."""
+
     # entity paths
     map_entity = "map"
     ego_entity = "map/base_link"
@@ -42,6 +74,7 @@ class Tier4Viewer:
         Args:
             app_id (str): Application ID.
             cameras (Sequence[str] | None, optional): Sequence of camera names.
+                If `None`, any 2D spaces will not be visualized.
             without_3d (bool, optional): Whether to render objects without the 3D space.
             spawn (bool, optional): Whether to spawn the viewer.
         """
@@ -60,7 +93,7 @@ class Tier4Viewer:
 
         if self.cameras is not None:
             camera_space_views = [
-                rrb.Spatial2DView(name=name, origin=osp.join(self.ego_entity, name))
+                rrb.Spatial2DView(name=name, origin=format_entity(self.ego_entity, name))
                 for name in self.cameras
             ]
             view_container.append(rrb.Grid(*camera_space_views))
@@ -75,6 +108,22 @@ class Tier4Viewer:
             strict=True,
             default_blueprint=self.blueprint,
         )
+
+        rr.log(self.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
+
+    def with_labels(self, label2id: dict[str, int]) -> Self:
+        """ """
+        rr.log(
+            self.map_entity,
+            rr.AnnotationContext(
+                [
+                    rr.AnnotationInfo(id=label_id, label=label)
+                    for label, label_id in label2id.items()
+                ]
+            ),
+            static=True,
+        )
+        return self
 
     def save(self, save_dir: str) -> None:
         """Save recording result as `{app_id}.rrd`.
@@ -104,12 +153,12 @@ class Tier4Viewer:
         for frame_id, data in box_data.items():
             # record boxes 3d
             rr.log(
-                osp.join(self.map_entity, frame_id, "box"),
+                format_entity(self.map_entity, frame_id, "box"),
                 data.as_boxes3d(),
             )
             # record velocities
             rr.log(
-                osp.join(self.map_entity, frame_id, "velocity"),
+                format_entity(self.map_entity, frame_id, "velocity"),
                 data.as_arrows3d(),
             )
 
@@ -135,23 +184,23 @@ class Tier4Viewer:
 
         for frame_id, data in box_data.items():
             rr.log(
-                osp.join(self.ego_entity, frame_id, "box"),
+                format_entity(self.ego_entity, frame_id, "box"),
                 data.as_boxes2d(),
             )
 
-    def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloud) -> None:
+    def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloudLike) -> None:
         """Render pointcloud.
 
         Args:
             seconds (float): Timestamp in [sec].
             channel (str): Name of the pointcloud sensor channel.
-            pointcloud (PointCloud): Inherence object of `PointCloud`.
+            pointcloud (PointCloudLike): Inherence object of `PointCloud`.
         """
         rr.set_time_seconds(self.timeline, seconds)
 
         colors = distance_color(np.linalg.norm(pointcloud.points[:3].T, axis=1))
         rr.log(
-            osp.join(self.ego_entity, channel),
+            format_entity(self.ego_entity, channel),
             rr.Points3D(
                 pointcloud.points[:3].T,
                 colors=colors,
@@ -173,9 +222,9 @@ class Tier4Viewer:
         rr.set_time_seconds(self.timeline, seconds)
 
         if isinstance(image, str):
-            rr.log(osp.join(self.ego_entity, camera), rr.ImageEncoded(image))
+            rr.log(format_entity(self.ego_entity, camera), rr.ImageEncoded(path=image))
         else:
-            rr.log(osp.join(self.ego_entity, camera), rr.Image(image))
+            rr.log(format_entity(self.ego_entity, camera), rr.Image(image))
 
     @singledispatchmethod
     def render_ego(self, *args, **kwargs) -> None:
@@ -238,7 +287,7 @@ class Tier4Viewer:
         rotation_xyzw = np.roll(calibration.rotation.q, shift=-1)
 
         rr.log(
-            osp.join(self.ego_entity, sensor.channel),
+            format_entity(self.ego_entity, sensor.channel),
             rr.Transform3D(
                 translation=calibration.translation,
                 rotation=rr.Quaternion(xyzw=rotation_xyzw),
@@ -248,7 +297,7 @@ class Tier4Viewer:
 
         if sensor.modality == SensorModality.CAMERA:
             rr.log(
-                osp.join(self.ego_entity, sensor.channel),
+                format_entity(self.ego_entity, sensor.channel),
                 rr.Pinhole(image_from_camera=calibration.camera_intrinsic),
                 static=True,
             )
@@ -275,14 +324,14 @@ class Tier4Viewer:
         rotation_xyzw = np.roll(rotation.q, shift=-1)
 
         rr.log(
-            osp.join(self.ego_entity, channel),
+            format_entity(self.ego_entity, channel),
             rr.Transform3D(translation=translation, rotation=rr.Quaternion(xyzw=rotation_xyzw)),
             static=True,
         )
 
         if modality == SensorModality.CAMERA:
             rr.log(
-                osp.join(self.ego_entity, channel),
+                format_entity(self.ego_entity, channel),
                 rr.Pinhole(image_from_camera=camera_intrinsic),
                 static=True,
             )
