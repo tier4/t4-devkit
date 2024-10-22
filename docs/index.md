@@ -5,3 +5,11 @@
 <div align="center">
     <img src="assets/render_scene.gif" width="800" alt="RENDER SAMPLE"/>
 </div>
+
+## Feature supports
+
+|      Feature       | Supported |
+| :----------------: | :-------: |
+| Loading T4 Dataset |    ✅     |
+|   Visualization    |    ✅     |
+|     Evaluation     |           |

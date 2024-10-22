@@ -28,3 +28,11 @@ git clone git@github.com:tier4/t4-devkit.git
 cd t4-devkit
 poetry install
 ```
+
+## Feature supports
+
+|      Feature       | Supported |
+| :----------------: | :-------: |
+| Loading T4 Dataset |    ✅     |
+|   Visualization    |    ✅     |
+|     Evaluation     |           |
