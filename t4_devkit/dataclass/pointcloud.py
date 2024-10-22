@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, TypeVar
 
 import numpy as np
 
@@ -12,7 +12,13 @@ if TYPE_CHECKING:
 
     from t4_devkit.typing import NDArrayFloat, NDArrayU8
 
-__all__ = ["PointCloud", "LidarPointCloud", "RadarPointCloud", "SegmentationPointCloud"]
+__all__ = [
+    "PointCloud",
+    "LidarPointCloud",
+    "RadarPointCloud",
+    "SegmentationPointCloud",
+    "PointCloudLike",
+]
 
 
 @dataclass
@@ -196,3 +202,6 @@ class SegmentationPointCloud(PointCloud):
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
         labels = np.fromfile(label_filepath, dtype=np.uint8)
         return cls(points.T, labels)
+
+
+PointCloudLike = TypeVar("PointCloudLike", bound=PointCloud)

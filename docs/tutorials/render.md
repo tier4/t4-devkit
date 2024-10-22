@@ -1,4 +1,8 @@
-## Rendering Scene
+## Rendering with `Tier4`
+
+If you want to visualize annotation results, `Tier4` supports some rendering methods as below.
+
+### Rendering Scene
 
 ```python
 >>> scene_token = t4.scene[0].token
@@ -7,7 +11,7 @@
 
 ![Render Scene GIF](../assets/render_scene.gif)
 
-## Rendering Instance
+### Rendering Instance
 
 ```python
 >>> instance_token = t4.instance[0].token
@@ -16,7 +20,7 @@
 
 ![Render Instance GIF](../assets/render_instance.gif)
 
-## Rendering PointCloud
+### Rendering PointCloud
 
 ```python
 >>> scene_token = t4.scene[0].token
@@ -35,7 +39,7 @@
     ```
 <!-- prettier-ignore-end -->
 
-## Save Recording
+### Save Recording
 
 You can save the rendering result as follows:
 
@@ -47,4 +51,19 @@ If you don't want to spawn the viewer, please specify `show=False` as below:
 
 ```python
 >>> t4.render_scene(scene_token, save_dir=<DIR_TO_SAVE>, show=False)
+```
+
+## Rendering with `Tier4Viewer`
+
+If you want to visualize your components, such as boxes that your ML-model estimated, `Tier4Viewer` allows you to visualize these components.  
+For details, please refer to the API references.
+
+```python
+>>> from t4_devkit.viewer import Tier4Viewer
+# You need to specify `cameras` if you want to 2D spaces
+>>> viewer = Tier4Viewer(app_id, cameras=<CAMERA_NAMES:[str;N]>)
+# Rendering 3D boxes
+>>> viewer.render_box3ds(seconds, box3ds)
+# Rendering 2D boxes
+>>> viewer.render_box2ds(seconds, box2ds)
 ```
