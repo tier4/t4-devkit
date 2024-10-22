@@ -2,3 +2,5 @@ from .dataset import *  # noqa
 from .matching import *  # noqa
 from .result import *  # noqa
 from .dataset import *  # noqa
+from .matching import *  # noqa
+from .result import *  # noqa
