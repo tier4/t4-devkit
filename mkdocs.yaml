@@ -1,10 +1,12 @@
 site_name: T4 Perception Dataset devkit
 
 nav:
-  - Home: index.md
+  - Home:
+      - T4Devkit: index.md
+      - Installation: install.md
   - Tutorials:
       - Initialization: tutorials/initialize.md
-      - Rendering: tutorials/render.md
+      - Visualization: tutorials/render.md
       - Customization: tutorials/customize.md
   - API:
       - TIER IV: apis/tier4.md
