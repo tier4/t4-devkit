@@ -14,14 +14,14 @@ A toolkit to load and operate T4 dataset.
 
 ### Installation
 
-#### For users
+#### Install via GitHub
 
 ```shell
 # e.g) with poetry
 poetry add git+https://github.com/tier4/t4-devkit.git
 ```
 
-#### For developers
+#### Install from source
 
 ```shell
 git clone git@github.com:tier4/t4-devkit.git
@@ -31,8 +31,30 @@ poetry install
 
 ## Feature supports
 
-|      Feature       | Supported |
-| :----------------: | :-------: |
-| Loading T4 Dataset |    ✅     |
-|   Visualization    |    ✅     |
-|     Evaluation     |           |
+### Visualization
+
+| Feature | Task                    | Support |
+| :------ | :---------------------- | :-----: |
+| 3D      | 3D Boxes                |   ✅    |
+|         | PointCloud Segmentation |         |
+|         | Raw PointCloud          |   ✅    |
+|         | 3D Trajectories         |         |
+|         | TF Links                |   ✅    |
+|         | Vector Map              |         |
+| 2D      | 2D Boxes                |   ✅    |
+|         | Image Segmentation      |   ✅    |
+|         | Raw Image               |   ✅    |
+|         | Raw PointCloud on Image |   ✅    |
+
+### Evaluation
+
+| Feature | Task                    | Support |
+| :------ | :---------------------- | :-----: |
+| 3D      | 3D Detection            |         |
+|         | 3D Tracking             |         |
+|         | 3D Motion Prediction    |         |
+|         | PointCloud Segmentation |         |
+| 2D      | 2D Detection            |         |
+|         | 2D Tracking             |         |
+|         | Image Segmentation      |         |
+|         | Classification          |         |
