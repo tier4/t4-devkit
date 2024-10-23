@@ -12,6 +12,7 @@ rerun-sdk = "0.17.0"
 pyquaternion = "^0.9.9"
 matplotlib = "^3.9.2"
 shapely = "<2.0.0"
+pycocotools = "^2.0.8"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"

@@ -15,7 +15,7 @@ from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor, SensorModality
 from t4_devkit.typing import CamIntrinsicType, NDArrayU8, RotationType, TranslationType
 
 from .color import distance_color
-from .rendering_data import BoxData2D, BoxData3D
+from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike
@@ -77,10 +77,21 @@ class Tier4Viewer:
                 If `None`, any 2D spaces will not be visualized.
             without_3d (bool, optional): Whether to render objects without the 3D space.
             spawn (bool, optional): Whether to spawn the viewer.
+
+        Examples:
+            >>> from t4_devkit.viewer import Tier4Viewer
+            # Rendering both 3D/2D spaces
+            >>> viewer = Tier4Viewer("myapp", cameras=["camera0", "camera1"])
+            # Rendering 3D space only
+            >>> viewer = Tier4Viewer("myapp")
+            # Rendering 2D space only
+            >>> viewer = Tier4Viewer("myapp", cameras=["camera0", "camera1"], without_3d=True)
         """
         self.app_id = app_id
         self.without_3d = without_3d
         self.cameras = cameras
+
+        assert self.cameras is not None or not without_3d
 
         view_container = []
         if not without_3d:
@@ -112,7 +123,19 @@ class Tier4Viewer:
         rr.log(self.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
 
     def with_labels(self, label2id: dict[str, int]) -> Self:
-        """ """
+        """Return myself after creating `rr.AnnotationContext` on the recording.
+
+        Args:
+            label2id (dict[str, int]): Key-value mapping which maps label name to its ID.
+
+        Returns:
+            Self instance.
+
+        Examples:
+            >>> label2id = {"car": 0, "pedestrian": 1}
+            >>> viewer = Tier4Viewer("myapp").with_labels(label2id)
+        """
+
         rr.log(
             self.map_entity,
             rr.AnnotationContext(
@@ -123,10 +146,11 @@ class Tier4Viewer:
             ),
             static=True,
         )
+
         return self
 
     def save(self, save_dir: str) -> None:
-        """Save recording result as `{app_id}.rrd`.
+        """Save recording result as `save_dir/{app_id}.rrd`.
 
         Args:
             save_dir (str): Directory path to save the result.
@@ -187,6 +211,41 @@ class Tier4Viewer:
                 format_entity(self.ego_entity, frame_id, "box"),
                 data.as_boxes2d(),
             )
+
+    def render_segmentation2d(
+        self,
+        seconds: float,
+        camera: str,
+        masks: Sequence[NDArrayU8],
+        class_ids: Sequence[int],
+        uuids: Sequence[str | None] | None = None,
+    ) -> None:
+        """Render 2D segmentation image.
+
+        Args:
+            seconds (float): Timestamp in [sec].
+            camera (str): Name of camera channel.
+            masks (Sequence[NDArrayU8]): Sequence of segmentation mask of each instance,
+                each mask is the shape of (W, H).
+            class_ids (Sequence[int]): Sequence of label ids.
+            uuids (Sequence[str | None] | None, optional): Sequence of each instance ID.
+        """
+        if self.cameras is None or camera not in self.cameras:
+            warnings.warn(f"There is no camera space: {camera}")
+            return
+
+        rr.set_time_seconds(self.timeline, seconds)
+
+        segmentation_data = SegmentationData2D()
+        if uuids is None:
+            uuids = [None] * len(masks)
+        for mask, class_id, uuid in zip(masks, class_ids, uuids, strict=True):
+            segmentation_data.append(mask, class_id, uuid)
+
+        rr.log(
+            format_entity(self.ego_entity, camera, "segmentation"),
+            segmentation_data.as_segmentation_image(),
+        )
 
     def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloudLike) -> None:
         """Render pointcloud.
