@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
-from pyquaternion import Quaternion
-from typing_extensions import Self
+from attrs import define, field
+from attrs.converters import optional
 
+from t4_devkit.common.converter import as_quaternion
+
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
 if TYPE_CHECKING:
     from t4_devkit.typing import (
@@ -20,10 +21,10 @@ if TYPE_CHECKING:
         VelocityType,
     )
 
-__all__ = ("SampleAnnotation",)
+__all__ = ["SampleAnnotation"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.SAMPLE_ANNOTATION)
 class SampleAnnotation(SchemaBase):
     """A dataclass to represent schema table of `sample_annotation.json`.
@@ -53,20 +54,19 @@ class SampleAnnotation(SchemaBase):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    token: str
     sample_token: str
     instance_token: str
     attribute_tokens: list[str]
     visibility_token: str
-    translation: TranslationType
-    size: SizeType
-    rotation: RotationType
+    translation: TranslationType = field(converter=np.asarray)
+    size: SizeType = field(converter=np.asarray)
+    rotation: RotationType = field(converter=as_quaternion)
     num_lidar_pts: int
     num_radar_pts: int
     next: str  # noqa: A003
     prev: str
-    velocity: VelocityType | None = field(default=None)
-    acceleration: AccelerationType | None = field(default=None)
+    velocity: VelocityType | None = field(default=None, converter=optional(np.asarray))
+    acceleration: AccelerationType | None = field(default=None, converter=optional(np.asarray))
 
     # shortcuts
     category_name: str = field(init=False)
@@ -74,37 +74,3 @@ class SampleAnnotation(SchemaBase):
     @staticmethod
     def shortcuts() -> tuple[str]:
         return ("category_name",)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        sample_token: str = data["sample_token"]
-        instance_token: str = data["instance_token"]
-        attribute_tokens: list[str] = data["attribute_tokens"]
-        visibility_token: str = data["visibility_token"]
-        translation = np.array(data["translation"])
-        velocity = np.array(data["velocity"]) if data.get("velocity") else None
-        acceleration = np.array(data["acceleration"]) if data.get("acceleration") else None
-        size = np.array(data["size"])
-        rotation = Quaternion(data["rotation"])
-        num_lidar_pts: int = data["num_lidar_pts"]
-        num_radar_pts: int = data["num_radar_pts"]
-        next_: str = data["next"]
-        prev: str = data["prev"]
-
-        return cls(
-            token=token,
-            sample_token=sample_token,
-            instance_token=instance_token,
-            attribute_tokens=attribute_tokens,
-            visibility_token=visibility_token,
-            translation=translation,
-            velocity=velocity,
-            acceleration=acceleration,
-            size=size,
-            rotation=rotation,
-            num_lidar_pts=num_lidar_pts,
-            num_radar_pts=num_radar_pts,
-            next=next_,
-            prev=prev,
-        )

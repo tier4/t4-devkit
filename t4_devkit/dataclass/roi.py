@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from attrs import define, field
 
 if TYPE_CHECKING:
     from t4_devkit.typing import RoiType
@@ -9,17 +10,14 @@ if TYPE_CHECKING:
 __all__ = ["Roi"]
 
 
-@dataclass
+@define
 class Roi:
-    roi: RoiType
+    roi: RoiType = field(converter=tuple)
 
     def __post_init__(self) -> None:
         assert len(self.roi) == 4, (
             "Expected roi is (x, y, width, height), " f"but got length with {len(self.roi)}."
         )
-
-        if not isinstance(self.roi, tuple):
-            self.roi = tuple(self.roi)
 
     @property
     def offset(self) -> tuple[int, int]:

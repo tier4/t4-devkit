@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from attrs import define, field
 
-from typing_extensions import Self
-
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
-__all__ = ("Log",)
+__all__ = ["Log"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.LOG)
 class Log(SchemaBase):
     """A dataclass to represent schema table of `log.json`.
@@ -23,9 +20,12 @@ class Log(SchemaBase):
         vehicle (str): Vehicle name.
         data_captured (str): Date of the data was captured (YYYY-MM-DD-HH-mm-ss).
         location (str): Area where log was captured.
+
+    Shortcuts:
+        map_token (str): Foreign key pointing to the map record.
+            This should be set after instantiated.
     """
 
-    token: str
     logfile: str
     vehicle: str
     data_captured: str
@@ -37,7 +37,3 @@ class Log(SchemaBase):
     @staticmethod
     def shortcuts() -> tuple[str]:
         return ("map_token",)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)

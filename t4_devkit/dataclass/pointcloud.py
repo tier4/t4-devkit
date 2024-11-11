@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import struct
 from abc import abstractmethod
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, TypeVar
 
 import numpy as np
+from attrs import define, field
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -21,14 +21,18 @@ __all__ = [
 ]
 
 
-@dataclass
+@define
 class PointCloud:
     """Abstract base dataclass for pointcloud data."""
 
-    points: NDArrayFloat
+    points: NDArrayFloat = field(converter=np.asarray)
 
-    def __post_init__(self) -> None:
-        assert self.points.shape[0] == self.num_dims()
+    @points.validator
+    def check_dims(self, attribute, value) -> None:
+        if value.shape[0] != self.num_dims():
+            raise ValueError(
+                f"Expected point dimension is {self.num_dims()}, but got {value.shape[0]}"
+            )
 
     @staticmethod
     @abstractmethod
@@ -74,7 +78,7 @@ class PointCloud:
         )[:3, :]
 
 
-@dataclass
+@define
 class LidarPointCloud(PointCloud):
     """A dataclass to represent lidar pointcloud."""
 
@@ -91,7 +95,7 @@ class LidarPointCloud(PointCloud):
         return cls(points.T)
 
 
-@dataclass
+@define
 class RadarPointCloud(PointCloud):
     # class variables
     invalid_states: ClassVar[list[int]] = [0]
@@ -188,9 +192,9 @@ class RadarPointCloud(PointCloud):
         return cls(points)
 
 
-@dataclass
+@define
 class SegmentationPointCloud(PointCloud):
-    labels: NDArrayU8
+    labels: NDArrayU8 = field(converter=lambda x: np.asarray(x, dtype=np.uint8))
 
     @staticmethod
     def num_dims() -> int:

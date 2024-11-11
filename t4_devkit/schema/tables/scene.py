@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from attrs import define
 
-from typing_extensions import Self
-
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
-__all__ = ("Scene",)
+__all__ = ["Scene"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.SCENE)
 class Scene(SchemaBase):
     """A dataclass to represent schema table of `scene.json`.
@@ -27,14 +24,9 @@ class Scene(SchemaBase):
         last_sample_token (str): Foreign key pointing to the last sample in scene.
     """
 
-    token: str
     name: str
     description: str
     log_token: str
     nbr_samples: int
     first_sample_token: str
     last_sample_token: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)

@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
-from pyquaternion import Quaternion
-from typing_extensions import Self
+from attrs import define, field
 
+from t4_devkit.common.converter import as_quaternion
+
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
 if TYPE_CHECKING:
     from t4_devkit.typing import RotationType, TranslationType
 
-__all__ = ("EgoPose",)
+__all__ = ["EgoPose"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.EGO_POSE)
 class EgoPose(SchemaBase):
     """A dataclass to represent schema table of `ego_pose.json`.
@@ -29,16 +29,6 @@ class EgoPose(SchemaBase):
         timestamp (int): Unix time stamp.
     """
 
-    token: str
-    translation: TranslationType
-    rotation: RotationType
+    translation: TranslationType = field(converter=np.asarray)
+    rotation: RotationType = field(converter=as_quaternion)
     timestamp: int
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        translation = np.array(data["translation"])
-        rotation = Quaternion(data["rotation"])
-        timestamp: int = data["timestamp"]
-
-        return cls(token=token, translation=translation, rotation=rotation, timestamp=timestamp)
