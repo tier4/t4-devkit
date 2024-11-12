@@ -1,4 +1,4 @@
-from t4_devkit.schema import SensorModality
+from t4_devkit.schema import Sensor, SensorModality
 
 
 def test_sensor_modality() -> None:
@@ -13,3 +13,13 @@ def test_sensor_modality() -> None:
     # check each member can construct
     for value in modalities:
         _ = SensorModality(value)
+
+
+def test_sensor_json(sensor_json) -> None:
+    """Test loading sensor from a json file."""
+    _ = Sensor.from_json(sensor_json)
+
+
+def test_sensor(sensor_dict) -> None:
+    """Test loading sensor from a dictionary."""
+    _ = Sensor.from_dict(sensor_dict)
