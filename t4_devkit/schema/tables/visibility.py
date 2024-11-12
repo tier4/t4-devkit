@@ -1,29 +1,20 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-import sys
-from typing import Any
 import warnings
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 from typing_extensions import Self
 
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
-
-if sys.version_info < (3, 11):
-    from enum import Enum
-
-    class StrEnum(str, Enum):
-        pass
-
-else:
-    from enum import StrEnum
 
 __all__ = ("Visibility", "VisibilityLevel")
 
 
-class VisibilityLevel(StrEnum):
+class VisibilityLevel(str, Enum):
     """An enum to represent visibility levels.
 
     Attributes:

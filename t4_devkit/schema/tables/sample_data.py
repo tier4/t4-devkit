@@ -1,23 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import sys
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
 
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
-
-if sys.version_info < (3, 11):
-    from enum import Enum
-
-    class StrEnum(str, Enum):
-        pass
-
-else:
-    from enum import StrEnum
 
 if TYPE_CHECKING:
     from .sensor import SensorModality
@@ -25,7 +16,7 @@ if TYPE_CHECKING:
 __all__ = ("SampleData", "FileFormat")
 
 
-class FileFormat(StrEnum):
+class FileFormat(str, Enum):
     """An enum to represent file formats.
 
     Attributes:

@@ -1,21 +1,11 @@
 from __future__ import annotations
 
 from enum import Enum
-import sys
-
-if sys.version_info < (3, 11):
-
-    class StrEnum(str, Enum):
-        pass
-
-else:
-    from enum import StrEnum
-
 
 __all__ = ("SchemaName",)
 
 
-class SchemaName(StrEnum):
+class SchemaName(str, Enum):
     """An enum to represent schema filenames.
 
     Attributes:
