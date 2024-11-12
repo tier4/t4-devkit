@@ -2,28 +2,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-import sys
 from typing import Any
 
 from typing_extensions import Self
 
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
-
-if sys.version_info < (3, 11):
-
-    class StrEnum(str, Enum):
-        pass
-
-else:
-    from enum import StrEnum
-
 
 __all__ = ("Sensor", "SensorModality")
 
 
-class SensorModality(StrEnum):
+class SensorModality(str, Enum):
     """An enum to represent sensor modalities.
 
     Attributes:
