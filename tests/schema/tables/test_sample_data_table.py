@@ -1,4 +1,4 @@
-from t4_devkit.schema import FileFormat
+from t4_devkit.schema import FileFormat, SampleData
 
 
 def test_fileformat() -> None:
@@ -22,3 +22,13 @@ def test_fileformat() -> None:
 
         # check as_ext() returns .value
         assert member.as_ext() == f".{value}"
+
+
+def test_sample_data_json(sample_data_json) -> None:
+    """Test loading sample data from a json file."""
+    _ = SampleData.from_json(sample_data_json)
+
+
+def test_sample_data(sample_data_dict) -> None:
+    """Test loading sample data from a dictionary."""
+    _ = SampleData.from_dict(sample_data_dict)
