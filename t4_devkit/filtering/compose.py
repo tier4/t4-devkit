@@ -15,7 +15,7 @@ from .parameter import FilterParams
 if TYPE_CHECKING:
     from t4_devkit.dataclass import BoxType, TransformBuffer
 
-    from .functional import FilterLike
+    from .functional import BoxFilterFunction
 
 
 class BoxFilter:
@@ -28,7 +28,7 @@ class BoxFilter:
             params (FilterParams): Filtering parameters.
             tf_buffer (TransformBuffer): Transformation buffer.
         """
-        self.filters: list[FilterLike] = [
+        self.filters: list[BoxFilterFunction] = [
             FilterByLabel.from_params(params),
             FilterByUUID.from_params(params),
             FilterByDistance.from_params(params),
