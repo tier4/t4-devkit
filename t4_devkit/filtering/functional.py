@@ -19,7 +19,7 @@ __all__ = [
     "FilterByUUID",
     "FilterByDistance",
     "FilterByPosition",
-    "BoxFilterLike",
+    "BoxFilterFunction",
 ]
 
 
@@ -236,4 +236,4 @@ class FilterByNumPoints(BaseBoxFilter):
             return self.min_num_points <= box.num_points
 
 
-BoxFilterLike = TypeVar("BoxFilterLike", bound=BaseBoxFilter)
+BoxFilterFunction = TypeVar("BoxFilterFunction", bound=BaseBoxFilter)
