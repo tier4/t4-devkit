@@ -25,6 +25,7 @@ class SchemaName(str, Enum):
         OBJECT_ANN (optional): The annotation of a foreground object in an image.
         SURFACE_ANN (optional): The annotation of a background object in an image.
         KEYPOINT (optional): The annotation of pose keypoints of an object in an image.
+        VEHICLE_STATE (optional): The annotation of ego vehicle states.
     """
 
     ATTRIBUTE = "attribute"
@@ -43,6 +44,7 @@ class SchemaName(str, Enum):
     OBJECT_ANN = "object_ann"  # optional
     SURFACE_ANN = "surface_ann"  # optional
     KEYPOINT = "keypoint"  # optional
+    VEHICLE_STATE = "vehicle_state"  # optional
 
     @property
     def filename(self) -> str:
@@ -63,4 +65,5 @@ class SchemaName(str, Enum):
             SchemaName.OBJECT_ANN,
             SchemaName.SURFACE_ANN,
             SchemaName.KEYPOINT,
+            SchemaName.VEHICLE_STATE,
         )
