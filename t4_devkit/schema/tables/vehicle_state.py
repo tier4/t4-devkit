@@ -56,7 +56,7 @@ class AdditionalInfo:
     speed: float | None = field(default=None)
 
 
-@define
+@define(slots=False)
 @SCHEMAS.register(SchemaName.VEHICLE_STATE)
 class VehicleState(SchemaBase):
     """A dataclass to represent schema table of `vehicle_state.json`.
