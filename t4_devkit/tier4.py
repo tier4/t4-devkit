@@ -491,41 +491,51 @@ class Tier4:
             # There are rare situations where the timestamps in the DB are off so ensure that t0 < t < t1.
             t = max(t0, min(t1, t))
 
-            boxes = []
-            for curr_ann_rec in curr_ann_recs:
-                if curr_ann_rec.instance_token in prev_inst_map:
+            boxes: list[Box3D] = []
+            for curr_ann in curr_ann_recs:
+                if curr_ann.instance_token in prev_inst_map:
                     # If the annotated instance existed in the previous frame, interpolate center & orientation.
-                    prev_ann_rec = prev_inst_map[curr_ann_rec.instance_token]
+                    prev_ann = prev_inst_map[curr_ann.instance_token]
 
                     # Interpolate center.
-                    center = [
+                    position = [
                         np.interp(t, [t0, t1], [c0, c1])
                         for c0, c1 in zip(
-                            prev_ann_rec.translation,
-                            curr_ann_rec.translation,
+                            prev_ann.translation,
+                            curr_ann.translation,
                             strict=True,
                         )
                     ]
 
                     # Interpolate orientation.
                     rotation = Quaternion.slerp(
-                        q0=prev_ann_rec.rotation,
-                        q1=curr_ann_rec.rotation,
+                        q0=prev_ann.rotation,
+                        q1=curr_ann.rotation,
                         amount=(t - t0) / (t1 - t0),
                     )
 
+                    instance: Instance = self.get("instance", curr_ann.instance_token)
+                    semantic_label = self.get_semantic_label(
+                        instance.category_token, curr_ann.attribute_tokens
+                    )
+                    velocity = self.box_velocity(curr_ann.token)
+
                     box = Box3D(
-                        center,
-                        curr_ann_rec.size,
-                        rotation,
-                        name=curr_ann_rec.category_name,
-                        token=curr_ann_rec.token,
+                        unix_time=t,
+                        frame_id="map",
+                        semantic_label=semantic_label,
+                        position=position,
+                        rotation=rotation,
+                        shape=Shape(ShapeType.BOUNDING_BOX, curr_ann.size),
+                        velocity=velocity,
+                        confidence=1.0,
+                        uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
                     )
                 else:
                     # If not, simply grab the current annotation.
-                    box = self.get_box3d(curr_ann_rec.token)
-
+                    box = self.get_box3d(curr_ann.token)
                 boxes.append(box)
+
         return boxes
 
     def get_box2ds(self, sample_data_token: str) -> list[Box2D]:
