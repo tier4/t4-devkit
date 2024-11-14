@@ -11,14 +11,22 @@ from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image, view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
-from t4_devkit.dataclass import Box2D, Box3D, LidarPointCloud, RadarPointCloud, Shape, ShapeType
+from t4_devkit.dataclass import (
+    Box2D,
+    Box3D,
+    LidarPointCloud,
+    RadarPointCloud,
+    SemanticLabel,
+    Shape,
+    ShapeType,
+)
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 from t4_devkit.viewer import Tier4Viewer, distance_color, format_entity
 
 if TYPE_CHECKING:
     from t4_devkit.typing import CamIntrinsicType, NDArrayF64, NDArrayU8, VelocityType
 
-    from .dataclass import BoxType, SemanticLabel
+    from .dataclass import BoxType
     from .schema import (
         Attribute,
         CalibratedSensor,
