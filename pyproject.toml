@@ -18,6 +18,7 @@ pycocotools = "^2.0.8"
 pytest = "^8.2.2"
 pytest-asyncio = "^0.23.7"
 pytest-mock = "^3.14.0"
+pytest-cov = "^6.0.0"
 lark = "^1.1.9"
 mkdocs = "^1.6.0"
 mkdocstrings = { extras = ["python"], version = "^0.25.1" }
