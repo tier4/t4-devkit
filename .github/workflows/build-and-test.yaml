@@ -38,4 +38,14 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        run: poetry run pytest
+        run: poetry run pytest --cov-report xml:coverage.xml --cov=t4_devkit
+
+      - name: Get test coverage
+        uses: orgoro/coverage@v3.1
+        continue-on-error: true
+        with:
+          coverageFile: ./coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          thresholdAll: 0.5
+          thresholdNew: 0.8
+          thresholdModified: 0.8
