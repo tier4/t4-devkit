@@ -94,7 +94,7 @@ class Box3D(BaseBox):
         >>> box3d = Box3D(
         ...     unix_time=100,
         ...     frame_id="base_link",
-        ...     semantic_label=SemanticLabel(LabelID.CAR),
+        ...     semantic_label=SemanticLabel("car"),
         ...     position=(1.0, 1.0, 1.0),
         ...     rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
         ...     shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
@@ -213,7 +213,7 @@ class Box2D(BaseBox):
         >>> box2d = Box2D(
         ...     unix_time=100,
         ...     frame_id="camera",
-        ...     semantic_label=SemanticLabel(LabelID.CAR),
+        ...     semantic_label=SemanticLabel("car"),
         ...     roi=(100, 100, 50, 50),
         ...     confidence=1.0,
         ...     uuid="car2d_0",

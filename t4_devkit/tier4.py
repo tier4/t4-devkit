@@ -11,15 +11,7 @@ from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image, view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
-from t4_devkit.dataclass import (
-    Box2D,
-    Box3D,
-    LidarPointCloud,
-    RadarPointCloud,
-    Shape,
-    ShapeType,
-    convert_label,
-)
+from t4_devkit.dataclass import Box2D, Box3D, LidarPointCloud, RadarPointCloud, Shape, ShapeType
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 from t4_devkit.viewer import Tier4Viewer, distance_color, format_entity
 
@@ -371,17 +363,12 @@ class Tier4:
         self,
         category_token: str,
         attribute_tokens: list[str] | None = None,
-        name_mapping: dict[str, str] | None = None,
-        *,
-        update_default_mapping: bool = False,
     ) -> SemanticLabel:
         """Return a SemanticLabel instance from specified `category_token` and `attribute_tokens`.
 
         Args:
             category_token (str): Token of `Category` table.
             attribute_tokens (list[str] | None, optional): List of attribute tokens.
-            name_mapping (dict[str, str] | None, optional): Category name mapping.
-            update_default_mapping (bool, optional): Whether to update default category name mapping.
 
         Returns:
             Instantiated SemanticLabel.
@@ -393,12 +380,7 @@ class Tier4:
             else []
         )
 
-        return convert_label(
-            original=category.name,
-            attributes=attributes,
-            name_mapping=name_mapping,
-            update_default_mapping=update_default_mapping,
-        )
+        return SemanticLabel(category.name, attributes)
 
     def get_box3d(self, sample_annotation_token: str) -> Box3D:
         """Return a Box3D class from a `sample_annotation` record.
