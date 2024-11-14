@@ -23,6 +23,8 @@ class BoxData3D:
         self._uuids: list[int] = []
         self._velocities: list[VelocityType] = []
 
+        self._label2id: dict[str, int] = {}
+
     def append(self, box: Box3D) -> None:
         """Append a 3D box data.
 
@@ -37,7 +39,10 @@ class BoxData3D:
         width, length, height = box.size
         self._sizes.append((length, width, height))
 
-        self._class_ids.append(box.semantic_label.label.value)
+        if box.semantic_label.name not in self._label2id:
+            self._label2id[box.semantic_label.name] = len(self._label2id)
+
+        self._class_ids.append(self._label2id[box.semantic_label.name])
 
         if box.uuid is not None:
             self._uuids.append(box.uuid[:6])
@@ -81,6 +86,8 @@ class BoxData2D:
         self._uuids: list[str] = []
         self._class_ids: list[int] = []
 
+        self._label2id: dict[str, int] = {}
+
     def append(self, box: Box2D) -> None:
         """Append a 2D box data.
 
@@ -89,7 +96,10 @@ class BoxData2D:
         """
         self._rois.append(box.roi.roi)
 
-        self._class_ids.append(box.semantic_label.label.value)
+        if box.semantic_label.name not in self._label2id:
+            self._label2id[box.semantic_label.name] = len(self._label2id)
+
+        self._class_ids.append(self._label2id[box.semantic_label.name])
 
         if box.uuid is not None:
             self._uuids.append(box.uuid)
