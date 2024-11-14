@@ -245,9 +245,7 @@ class Tier4:
         Returns:
             List of dataclasses.
         """
-        if isinstance(schema, SchemaName):
-            schema = schema.value
-        return getattr(self, schema)
+        return getattr(self, SchemaName(schema))
 
     def get(self, schema: str | SchemaName, token: str) -> SchemaTable:
         """Return a record identified by the associated token.
@@ -271,8 +269,7 @@ class Tier4:
         Returns:
             The index of the record in table.
         """
-        if isinstance(schema, SchemaName):
-            schema = schema.value
+        schema = SchemaName(schema)
         if self._token2idx.get(schema) is None:
             raise KeyError(f"{schema} is not registered.")
         if self._token2idx[schema].get(token) is None:
@@ -586,17 +583,13 @@ class Tier4:
         if not has_prev and not has_next:
             return np.array([np.nan, np.nan, np.nan])
 
-        first: SampleAnnotation
-        if has_prev:
-            first = self.get("sample_annotation", current.prev)
-        else:
-            first = current
+        first: SampleAnnotation = (
+            self.get("sample_annotation", current.prev) if has_prev else current
+        )
 
-        last: SampleAnnotation
-        if has_next:
-            last = self.get("sample_annotation", current.next)
-        else:
-            last = current
+        last: SampleAnnotation = (
+            self.get("sample_annotation", current.next) if has_next else current
+        )
 
         pos_last = last.translation
         pos_first = first.translation
