@@ -1,8 +1,7 @@
-# flake8: noqa
 import json
 from typing import Any
 
-__all__ = ("load_json",)
+__all__ = ("load_json", "save_json")
 
 
 def load_json(filename: str) -> Any:
