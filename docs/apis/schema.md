@@ -1,15 +1,16 @@
 # `schema`
 
 <!-- prettier-ignore-start -->
-## Name of schemas
+## Schema names
 
 ---
 
 ::: t4_devkit.schema.name
     options:
         show_docstring_attributes: true
+        show_bases: false
 
-## Table of schemas
+## Schema tables
 
 ---
 
@@ -51,7 +52,7 @@
         members: ["SCHEMAS", "SchemaRegistry"]
         show_root_toc_entry: false
 
-## Serialize schema
+## Schema serialization
 
 ---
 

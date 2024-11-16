@@ -27,7 +27,7 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 >>> t4.render_pointcloud(scene_token)
 ```
 
-![Render PointCloud GIG](../assets/render_pointcloud.gif)
+![Render PointCloud GIF](../assets/render_pointcloud.gif)
 
 <!-- prettier-ignore-start -->
 !!! NOTE
