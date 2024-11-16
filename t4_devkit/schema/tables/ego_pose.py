@@ -12,7 +12,13 @@ from .base import SchemaBase
 from .registry import SCHEMAS
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import RotationType, TranslationType
+    from t4_devkit.typing import (
+        AccelerationType,
+        GeoCoordinateType,
+        RotationType,
+        TranslationType,
+        TwistType,
+    )
 
 __all__ = ["EgoPose"]
 
@@ -27,8 +33,24 @@ class EgoPose(SchemaBase):
         translation (TranslationType): Coordinate system origin given as [x, y, z] in [m].
         rotation (RotationType): Coordinate system orientation given as quaternion [w, x, y, z].
         timestamp (int): Unix time stamp.
+        twist (TwistType | None): Linear and angular velocities in the local coordinate system of
+            the ego vehicle (in m/s for linear and rad/s for angular), in the order of
+            (vx, vy, vz, yaw_rate, pitch_rate, roll_rate).
+        acceleration (AccelerationType | None): Acceleration in the local coordinate system of
+            the ego vehicle (in m/s2), in the order of (ax, ay, az).
+        geocoordinate (GeoCoordinateType | None): Coordinates in the WGS 84 reference ellipsoid
+            (latitude, longitude, altitude) in degrees and meters.
     """
 
     translation: TranslationType = field(converter=np.asarray)
     rotation: RotationType = field(converter=as_quaternion)
     timestamp: int
+    twist: TwistType = field(
+        default=None, converter=lambda x: np.asarray(x) if x is not None else x
+    )
+    acceleration: AccelerationType = field(
+        default=None, converter=lambda x: np.asarray(x) if x is not None else x
+    )
+    geocoordinate: GeoCoordinateType = field(
+        default=None, converter=lambda x: np.asarray(x) if x is not None else x
+    )

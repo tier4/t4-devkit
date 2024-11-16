@@ -75,6 +75,9 @@ def ego_pose_dict() -> dict:
         "translation": [1.0, 1.0, 1.0],
         "rotation": [1.0, 0.0, 0.0, 0.0],
         "timestamp": 1603452042983183,
+        "twist": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        "acceleration": [1.0, 1.0, 1.0],
+        "geocoordinate": [35.0, 140.0, 5.0],
     }
 
 

@@ -18,9 +18,9 @@ __all__ = (
     "NDArrayFloat",
     "TranslationType",
     "VelocityType",
+    "TwistType",
     "AccelerationType",
     "RotationType",
-    "VelocityType",
     "SizeType",
     "TrajectoryType",
     "CamIntrinsicType",
@@ -44,10 +44,12 @@ NDArrayFloat = NDArrayF32 | NDArrayF64
 # 3D
 TranslationType = NewType("TranslationType", NDArrayF64)
 VelocityType = NewType("VelocityType", NDArrayF64)
+TwistType = NewType("TwistType", NDArrayF64)
 AccelerationType = NewType("AccelerationType", NDArrayF64)
 RotationType = NewType("RotationType", Quaternion)
 SizeType = NewType("SizeType", NDArrayF64)
 TrajectoryType = NewType("TrajectoryType", NDArrayF64)
+GeoCoordinateType = NewType("GeoCoordinateType", NDArrayF64)
 CamIntrinsicType = NewType("CamIntrinsicType", NDArrayF64)
 CamDistortionType = NewType("CamDistortionType", NDArrayF64)
 
