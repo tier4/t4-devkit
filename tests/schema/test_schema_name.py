@@ -22,6 +22,7 @@ def test_schema_name() -> None:
         "object_ann": True,
         "surface_ann": True,
         "keypoint": True,
+        "vehicle_state": True,
     }
 
     # check all enum members are covered by above names

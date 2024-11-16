@@ -66,6 +66,11 @@ def test_build_surface_ann(surface_ann_json) -> None:
     _ = build_schema(SchemaName.SURFACE_ANN, surface_ann_json)
 
 
+def test_build_vehicle_state(vehicle_state_json) -> None:
+    """Test building vehicle state."""
+    _ = build_schema(SchemaName.VEHICLE_STATE, vehicle_state_json)
+
+
 def test_build_visibility(visibility_json) -> None:
     """Test building visibility."""
     _ = build_schema(SchemaName.VISIBILITY, visibility_json)

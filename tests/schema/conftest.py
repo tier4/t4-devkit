@@ -328,3 +328,29 @@ def surface_ann_json(surface_ann_dict) -> Generator[str, Any, None]:
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
         save_json([surface_ann_dict], f.name)
         yield f.name
+
+
+# === VehicleState ===
+@pytest.fixture(scope="module")
+def vehicle_state_dict() -> dict:
+    """Return a dummy vehicle state as dictionary."""
+    return {
+        "token": "269572c280bd5cf9630ca542e6a60185",
+        "timestamp": 1724306784277396,
+        "accel_pedal": 0.0,
+        "brake_pedal": 1.0,
+        "steer_pedal": 0.6063521901837905,
+        "steering_tire_angle": 0.6063522100448608,
+        "steering_wheel_angle": 9.291000366210938,
+        "shift_state": "PARK",
+        "indicators": {"left": "off", "right": "on", "hazard": "off"},
+        "additional_info": {"speed": 0.0},
+    }
+
+
+@pytest.fixture(scope="module")
+def vehicle_state_json(vehicle_state_dict) -> Generator[str, Any, None]:
+    """Return a file path of dummy vehicle state record."""
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+        save_json([vehicle_state_dict], f.name)
+        yield f.name
