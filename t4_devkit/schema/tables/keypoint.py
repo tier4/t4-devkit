@@ -1,22 +1,21 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
+from attrs import define, field
 
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
 if TYPE_CHECKING:
     from t4_devkit.typing import KeypointType
 
-__all__ = ("Keypoint",)
+__all__ = ["Keypoint"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.KEYPOINT)
 class Keypoint(SchemaBase):
     """A dataclass to represent schema table of `keypoint.json`.
@@ -30,27 +29,8 @@ class Keypoint(SchemaBase):
         num_keypoints (int): The number of keypoints to be annotated.
     """
 
-    token: str
     sample_data_token: str
     instance_token: str
     category_tokens: list[str]
-    keypoints: KeypointType
+    keypoints: KeypointType = field(converter=np.asarray)
     num_keypoints: int
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        sample_data_token: str = data["sample_data_token"]
-        instance_token: str = data["instance_token"]
-        category_tokens: list[str] = data["category_tokens"]
-        keypoints = np.array(data["keypoints"])
-        num_keypoints: int = data["num_keypoints"]
-
-        return cls(
-            token=token,
-            sample_data_token=sample_data_token,
-            instance_token=instance_token,
-            category_tokens=category_tokens,
-            keypoints=keypoints,
-            num_keypoints=num_keypoints,
-        )

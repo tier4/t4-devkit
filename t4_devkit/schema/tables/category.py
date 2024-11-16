@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from attrs import define
 
-from typing_extensions import Self
-
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
 __all__ = ("Category",)
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.CATEGORY)
 class Category(SchemaBase):
     """A dataclass to represent schema table of `category.json`.
@@ -23,10 +20,5 @@ class Category(SchemaBase):
         description (str): Category description.
     """
 
-    token: str
     name: str
     description: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)

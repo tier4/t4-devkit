@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
+from attrs import define, field
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -14,10 +13,10 @@ from .registry import SCHEMAS
 if TYPE_CHECKING:
     from t4_devkit.typing import RoiType
 
-__all__ = ("SurfaceAnn",)
+__all__ = ["SurfaceAnn"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.SURFACE_ANN)
 class SurfaceAnn(SchemaBase):
     """A dataclass to represent schema table of `surface_ann.json`.
@@ -29,10 +28,9 @@ class SurfaceAnn(SchemaBase):
         mask (RLEMask): Segmentation mask using the COCO format compressed by RLE.
     """
 
-    token: str
     sample_data_token: str
     category_token: str
-    mask: RLEMask
+    mask: RLEMask = field(converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x)
 
     # shortcuts
     category_name: str = field(init=False)
@@ -40,12 +38,6 @@ class SurfaceAnn(SchemaBase):
     @staticmethod
     def shortcuts() -> tuple[str]:
         return ("category_name",)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        new_data = data.copy()
-        new_data["mask"] = RLEMask(**data["mask"])
-        return cls(**new_data)
 
     @property
     def bbox(self) -> RoiType:

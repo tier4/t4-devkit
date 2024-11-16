@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
-from pyquaternion import Quaternion
+from attrs import define, field
+from attrs.converters import optional
 from shapely.geometry import Polygon
 from typing_extensions import Self
+
+from t4_devkit.common.converter import as_quaternion
 
 from .roi import Roi
 from .trajectory import to_trajectories
@@ -57,7 +59,7 @@ def distance_box(box: BoxType, tf_matrix: HomogeneousMatrix) -> float | None:
     return np.linalg.norm(position)
 
 
-@dataclass(eq=False)
+@define(eq=False)
 class BaseBox:
     """Abstract base class for box objects."""
 
@@ -72,7 +74,7 @@ class BaseBox:
 # >>> e.g.) box.as_state() -> BoxState
 
 
-@dataclass(eq=False)
+@define(eq=False)
 class Box3D(BaseBox):
     """A class to represent 3D box.
 
@@ -109,24 +111,14 @@ class Box3D(BaseBox):
         ... )
     """
 
-    position: TranslationType
-    rotation: RotationType
+    position: TranslationType = field(converter=np.asarray)
+    rotation: RotationType = field(converter=as_quaternion)
     shape: Shape
-    velocity: VelocityType | None = field(default=None)
+    velocity: VelocityType | None = field(default=None, converter=optional(np.asarray))
     num_points: int | None = field(default=None)
 
     # additional attributes: set by `with_**`
     future: list[Trajectory] | None = field(default=None, init=False)
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.position, np.ndarray):
-            self.position = np.array(self.position)
-
-        if not isinstance(self.rotation, Quaternion):
-            self.rotation = Quaternion(self.rotation)
-
-        if self.velocity is not None and not isinstance(self.velocity, np.ndarray):
-            self.velocity = np.array(self.velocity)
 
     def with_future(
         self,
@@ -195,7 +187,7 @@ class Box3D(BaseBox):
         return np.dot(self.rotation.rotation_matrix, corners).T + self.position
 
 
-@dataclass(eq=False)
+@define(eq=False)
 class Box2D(BaseBox):
     """A class to represent 2D box.
 
@@ -222,14 +214,10 @@ class Box2D(BaseBox):
         >>> box2d = box2d.with_position(position=(1.0, 1.0, 1.0))
     """
 
-    roi: Roi | None = field(default=None)
+    roi: Roi | None = field(default=None, converter=lambda x: None if x is None else Roi(x))
 
     # additional attributes: set by `with_**`
     position: TranslationType | None = field(default=None, init=False)
-
-    def __post_init__(self) -> None:
-        if self.roi is not None and not isinstance(self.roi, Roi):
-            self.roi = Roi(self.roi)
 
     def with_position(self, position: TranslationType) -> Self:
         """Return a self instance setting `position` attribute.
@@ -240,7 +228,7 @@ class Box2D(BaseBox):
         Returns:
             Self instance after setting `position`.
         """
-        self.position = np.array(position) if not isinstance(position, np.ndarray) else position
+        self.position = np.asarray(position)
         return self
 
     def __eq__(self, other: Box2D | None) -> bool:

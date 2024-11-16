@@ -1,16 +1,13 @@
-from dataclasses import dataclass
-from typing import Any
+from attrs import define
 
-from typing_extensions import Self
-
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
-__all__ = ("Instance",)
+__all__ = ["Instance"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.INSTANCE)
 class Instance(SchemaBase):
     """A dataclass to represent schema table of `instance.json`.
@@ -24,13 +21,8 @@ class Instance(SchemaBase):
         last_annotation_token (str): Foreign key pointing to the last annotation of this instance.
     """
 
-    token: str
     category_token: str
     instance_name: str
     nbr_annotations: int
     first_annotation_token: str
     last_annotation_token: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)

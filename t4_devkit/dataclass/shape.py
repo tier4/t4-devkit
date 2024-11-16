@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from enum import Enum, auto, unique
 from typing import TYPE_CHECKING
 
 import numpy as np
+from attrs import define, field
 from shapely.geometry import Polygon
 from typing_extensions import Self
 
@@ -35,7 +35,7 @@ class ShapeType(Enum):
         return cls.__members__[name]
 
 
-@dataclass
+@define
 class Shape:
     """A dataclass to represent the 3D box shape.
 
@@ -47,13 +47,10 @@ class Shape:
     """
 
     shape_type: ShapeType
-    size: SizeType
+    size: SizeType = field(converter=np.asarray)
     footprint: Polygon = field(default=None)
 
-    def __post_init__(self) -> None:
-        if not isinstance(self.size, np.ndarray):
-            self.size = np.array(self.size)
-
+    def __attrs_post_init__(self) -> None:
         if self.shape_type == ShapeType.POLYGON and self.footprint is None:
             raise ValueError("`footprint` must be specified for `POLYGON`.")
 

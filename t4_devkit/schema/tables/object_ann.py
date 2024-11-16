@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import base64
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
+from attrs import define, field
 from pycocotools import mask as cocomask
-from typing_extensions import Self
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -14,10 +13,10 @@ from .registry import SCHEMAS
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayU8, RoiType
 
-__all__ = ("ObjectAnn", "RLEMask")
+__all__ = ["ObjectAnn", "RLEMask"]
 
 
-@dataclass
+@define
 class RLEMask:
     """A dataclass to represent segmentation mask compressed by RLE.
 
@@ -48,7 +47,7 @@ class RLEMask:
         return cocomask.decode(data)
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.OBJECT_ANN)
 class ObjectAnn(SchemaBase):
     """A dataclass to represent schema table of `object_ann.json`.
@@ -61,15 +60,17 @@ class ObjectAnn(SchemaBase):
         attribute_tokens (list[str]): Foreign keys. List of attributes for this annotation.
         bbox (RoiType): Annotated bounding box. Given as [xmin, ymin, xmax, ymax].
         mask (RLEMask): Instance mask using the COCO format compressed by RLE.
+
+    Shortcuts:
+        category_name (str): Category name. This should be set after instantiated.
     """
 
-    token: str
     sample_data_token: str
     instance_token: str
     category_token: str
     attribute_tokens: list[str]
-    bbox: RoiType
-    mask: RLEMask
+    bbox: RoiType = field(converter=tuple)
+    mask: RLEMask = field(converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x)
 
     # shortcuts
     category_name: str = field(init=False)
@@ -77,12 +78,6 @@ class ObjectAnn(SchemaBase):
     @staticmethod
     def shortcuts() -> tuple[str]:
         return ("category_name",)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        new_data = data.copy()
-        new_data["mask"] = RLEMask(**data["mask"])
-        return cls(**new_data)
 
     @property
     def width(self) -> int:

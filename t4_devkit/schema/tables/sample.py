@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
-
-from typing_extensions import Self
+from attrs import define, field
 
 from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
 
-__all__ = ("Sample",)
+__all__ = ["Sample"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.SAMPLE)
 class Sample(SchemaBase):
     """A dataclass to represent schema table of `sample.json`.
@@ -36,22 +33,17 @@ class Sample(SchemaBase):
             This should be set after instantiated.
     """
 
-    token: str
     timestamp: int
     scene_token: str
     next: str  # noqa: A003
     prev: str
 
     # shortcuts
-    data: dict[str, str] = field(default_factory=dict, init=False)
-    ann_3ds: list[str] = field(default_factory=list, init=False)
-    ann_2ds: list[str] = field(default_factory=list, init=False)
-    surface_anns: list[str] = field(default_factory=list, init=False)
+    data: dict[str, str] = field(factory=dict, init=False)
+    ann_3ds: list[str] = field(factory=list, init=False)
+    ann_2ds: list[str] = field(factory=list, init=False)
+    surface_anns: list[str] = field(factory=list, init=False)
 
     @staticmethod
     def shortcuts() -> tuple[str, str, str, str]:
         return ("data", "ann_3ds", "ann_2ds", "surface_ann_2ds")
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)

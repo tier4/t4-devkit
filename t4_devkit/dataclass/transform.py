@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
+from attrs import define, field
 from pyquaternion import Quaternion
 from typing_extensions import Self
 
+from t4_devkit.common.converter import as_quaternion
 from t4_devkit.typing import NDArray, RotationType
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import ArrayLike
+    from t4_devkit.typing import ArrayLike, TranslationType
 
 __all__ = [
     "TransformBuffer",
@@ -22,9 +23,9 @@ __all__ = [
 ]
 
 
-@dataclass
+@define
 class TransformBuffer:
-    buffer: dict[tuple[str, str], HomogeneousMatrix] = field(default_factory=dict, init=False)
+    buffer: dict[tuple[str, str], HomogeneousMatrix] = field(factory=dict, init=False)
 
     def set_transform(self, matrix: HomogeneousMatrix) -> None:
         """Set transform matrix to the buffer.
@@ -59,35 +60,16 @@ class TransformBuffer:
         return tf_matrix.transform(*args, **kwargs) if tf_matrix is not None else None
 
 
-@dataclass
+@define
 class HomogeneousMatrix:
-    def __init__(
-        self,
-        position: ArrayLike,
-        rotation: ArrayLike | RotationType,
-        src: str,
-        dst: str,
-    ) -> None:
-        """Construct a new object.
+    position: TranslationType = field(converter=np.asarray)
+    rotation: Quaternion = field(converter=as_quaternion)
+    src: str
+    dst: str
+    matrix: NDArray = field(init=False)
 
-        Args:
-            position (ArrayLike): 3D position.
-            rotation (ArrayLike | RotationType): 3x3 rotation matrix or quaternion.
-            src (str): Source frame ID.
-            dst (str): Destination frame ID.
-        """
-        self.position = position if isinstance(position, np.ndarray) else np.array(position)
-
-        if isinstance(rotation, np.ndarray) and rotation.ndim == 2:
-            rotation = Quaternion(matrix=rotation)
-        elif not isinstance(rotation, Quaternion):
-            rotation = Quaternion(rotation)
-        self.rotation = rotation
-
-        self.src = src
-        self.dst = dst
-
-        self.matrix = _generate_homogeneous_matrix(position, rotation)
+    def __attrs_post_init__(self) -> None:
+        self.matrix = _generate_homogeneous_matrix(self.position, self.rotation)
 
     @classmethod
     def as_identity(cls, frame_id: str) -> Self:
@@ -469,14 +451,8 @@ def _generate_homogeneous_matrix(
     Returns:
         A 4x4 homogeneous matrix.
     """
-    if not isinstance(position, np.ndarray):
-        position = np.array(position)
-
-    if not isinstance(rotation, Quaternion):
-        if isinstance(rotation, np.ndarray) and rotation.ndim == 2:
-            rotation = Quaternion(matrix=rotation)
-        else:
-            rotation = Quaternion(rotation)
+    position = np.asarray(position)
+    rotation = as_quaternion(rotation)
 
     matrix = np.eye(4)
     matrix[:3, 3] = position

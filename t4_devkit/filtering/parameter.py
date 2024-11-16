@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
+from attrs import define, field
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import SemanticLabel
 
 
-@dataclass
+@define
 class FilterParams:
     """A dataclass to represent filtering parameters.
 

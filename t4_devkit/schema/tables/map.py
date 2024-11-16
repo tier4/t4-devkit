@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from attrs import define
 
-from typing_extensions import Self
-
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
-__all__ = ("Map",)
+__all__ = ["Map"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.MAP)
 class Map(SchemaBase):
     """A dataclass to represent schema table of `map.json`.
@@ -24,11 +21,6 @@ class Map(SchemaBase):
         filename (str): Relative path to the file with the map mask.
     """
 
-    token: str
     log_tokens: list[str]
     category: str
     filename: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)

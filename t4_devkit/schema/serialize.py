@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from enum import Enum
 from functools import partial
 from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
+from attrs import asdict
 from pyquaternion import Quaternion
 
 if TYPE_CHECKING:

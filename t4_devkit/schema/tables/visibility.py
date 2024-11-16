@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import warnings
-from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
+from attrs import define, field
 from typing_extensions import Self
 
 from ..name import SchemaName
@@ -60,7 +59,7 @@ class VisibilityLevel(str, Enum):
             return VisibilityLevel.UNAVAILABLE
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.VISIBILITY)
 class Visibility(SchemaBase):
     """A dataclass to represent schema table of `visibility.json`.
@@ -71,14 +70,9 @@ class Visibility(SchemaBase):
         description (str): Description of visibility level.
     """
 
-    token: str
-    level: VisibilityLevel
+    level: VisibilityLevel = field(
+        converter=lambda x: VisibilityLevel.from_value(x)
+        if not isinstance(x, VisibilityLevel)
+        else VisibilityLevel(x)
+    )
     description: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        level = VisibilityLevel.from_value(data["level"])
-        description: str = data["description"]
-
-        return cls(token=token, level=level, description=description)

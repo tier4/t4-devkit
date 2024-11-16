@@ -1,14 +1,16 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from __future__ import annotations
+
+from abc import ABC
 from typing import Any, TypeVar
 
+from attrs import define
+
 from t4_devkit.common.io import load_json
-from typing_extensions import Self
 
-__all__ = ("SchemaBase", "SchemaTable")
+__all__ = ["SchemaBase", "SchemaTable"]
 
 
-@dataclass
+@define
 class SchemaBase(ABC):
     """Abstract base dataclass of schema tables."""
 
@@ -24,7 +26,7 @@ class SchemaBase(ABC):
         return None
 
     @classmethod
-    def from_json(cls, filepath: str) -> list[Self]:
+    def from_json(cls, filepath: str) -> list[SchemaTable]:
         """Construct dataclass from json file.
 
         Args:
@@ -37,8 +39,7 @@ class SchemaBase(ABC):
         return [cls.from_dict(data) for data in records]
 
     @classmethod
-    @abstractmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> SchemaTable:
         """Construct dataclass from dict.
 
         Args:
@@ -47,7 +48,7 @@ class SchemaBase(ABC):
         Returns:
             Instantiated schema dataclass.
         """
-        ...
+        return cls(**data)
 
 
 SchemaTable = TypeVar("SchemaTable", bound=SchemaBase)

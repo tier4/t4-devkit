@@ -1,28 +1,23 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
-from pyquaternion import Quaternion
-from typing_extensions import Self
+from attrs import define, field
 
+from t4_devkit.common.converter import as_quaternion
+
+from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-from ..name import SchemaName
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import (
-        CamDistortionType,
-        CamIntrinsicType,
-        RotationType,
-        TranslationType,
-    )
+    from t4_devkit.typing import CamDistortionType, CamIntrinsicType, RotationType, TranslationType
 
-__all__ = ("CalibratedSensor",)
+__all__ = ["CalibratedSensor"]
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.CALIBRATED_SENSOR)
 class CalibratedSensor(SchemaBase):
     """A dataclass to represent schema table of `calibrated_sensor.json`.
@@ -36,27 +31,8 @@ class CalibratedSensor(SchemaBase):
         camera_distortion (CamDistortionType): Camera distortion array. Empty for sensors that are not cameras.
     """
 
-    token: str
     sensor_token: str
-    translation: TranslationType
-    rotation: RotationType
-    camera_intrinsic: CamIntrinsicType
-    camera_distortion: CamDistortionType
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        sensor_token: str = data["sensor_token"]
-        translation = np.array(data["translation"])
-        rotation = Quaternion(data["rotation"])
-        camera_intrinsic = np.array(data["camera_intrinsic"])
-        camera_distortion = np.array(data["camera_distortion"])
-
-        return cls(
-            token=token,
-            sensor_token=sensor_token,
-            translation=translation,
-            rotation=rotation,
-            camera_intrinsic=camera_intrinsic,
-            camera_distortion=camera_distortion,
-        )
+    translation: TranslationType = field(converter=np.asarray)
+    rotation: RotationType = field(converter=as_quaternion)
+    camera_intrinsic: CamIntrinsicType = field(converter=np.asarray)
+    camera_distortion: CamDistortionType = field(converter=np.asarray)

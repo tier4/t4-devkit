@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
 
-from typing_extensions import Self
+from attrs import define, field
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -27,7 +25,7 @@ class SensorModality(str, Enum):
     RADAR = "radar"
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.SENSOR)
 class Sensor(SchemaBase):
     """A dataclass to represent schema table of `sensor.json`.
@@ -42,9 +40,8 @@ class Sensor(SchemaBase):
         first_sd_token (str): The first sample data token corresponding to its sensor channel.
     """
 
-    token: str
     channel: str
-    modality: SensorModality
+    modality: SensorModality = field(converter=SensorModality)
 
     # shortcuts
     first_sd_token: str = field(init=False)
@@ -52,11 +49,3 @@ class Sensor(SchemaBase):
     @staticmethod
     def shortcuts() -> tuple[str] | None:
         return ("first_sd_token",)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        channel = data["channel"]
-        modality = SensorModality(data["modality"])
-
-        return cls(token=token, channel=channel, modality=modality)

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from typing_extensions import Self
+from attrs import define, field
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -13,7 +12,7 @@ from .registry import SCHEMAS
 if TYPE_CHECKING:
     from .sensor import SensorModality
 
-__all__ = ("SampleData", "FileFormat")
+__all__ = ["SampleData", "FileFormat"]
 
 
 class FileFormat(str, Enum):
@@ -63,7 +62,7 @@ class FileFormat(str, Enum):
         return f".{self.value}"
 
 
-@dataclass
+@define(slots=False)
 @SCHEMAS.register(SchemaName.SAMPLE_DATA)
 class SampleData(SchemaBase):
     """A class to represent schema table of `sample_data.json`.
@@ -91,19 +90,18 @@ class SampleData(SchemaBase):
         channel (str): Sensor channel. This should be set after instantiated.
     """
 
-    token: str
     sample_token: str
     ego_pose_token: str
     calibrated_sensor_token: str
     filename: str
-    fileformat: FileFormat
+    fileformat: FileFormat = field(converter=FileFormat)
     width: int
     height: int
     timestamp: int
     is_key_frame: bool
     next: str  # noqa: A003
     prev: str
-    is_valid: bool
+    is_valid: bool = field(default=True)
 
     # shortcuts
     modality: SensorModality = field(init=False)
@@ -112,35 +110,3 @@ class SampleData(SchemaBase):
     @staticmethod
     def shortcuts() -> tuple[str, str]:
         return ("modality", "channel")
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        token: str = data["token"]
-        sample_token: str = data["sample_token"]
-        ego_pose_token: str = data["ego_pose_token"]
-        calibrated_sensor_token: str = data["calibrated_sensor_token"]
-        filename: str = data["filename"]
-        fileformat = FileFormat(data["fileformat"])
-        width: int = data["width"]
-        height: int = data["height"]
-        timestamp: int = data["timestamp"]
-        is_key_frame: bool = data["is_key_frame"]
-        next_: str = data["next"]
-        prev: str = data["prev"]
-        is_valid: bool = data.get("is_valid", True)
-
-        return cls(
-            token=token,
-            sample_token=sample_token,
-            ego_pose_token=ego_pose_token,
-            calibrated_sensor_token=calibrated_sensor_token,
-            filename=filename,
-            fileformat=fileformat,
-            width=width,
-            height=height,
-            timestamp=timestamp,
-            is_key_frame=is_key_frame,
-            next=next_,
-            prev=prev,
-            is_valid=is_valid,
-        )

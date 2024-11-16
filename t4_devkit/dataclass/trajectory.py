@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Generator
 
 import numpy as np
+from attrs import define, field
 
 if TYPE_CHECKING:
     from t4_devkit.typing import TrajectoryType, TranslationType
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 __all__ = ["Trajectory", "to_trajectories"]
 
 
-@dataclass
+@define
 class Trajectory:
     """A dataclass to represent trajectory.
 
@@ -41,14 +41,12 @@ class Trajectory:
         [2. 2. 2.]
     """
 
-    waypoints: TrajectoryType
+    waypoints: TrajectoryType = field(converter=np.asarray)
     confidence: float = field(default=1.0)
 
-    def __post_init__(self) -> None:
-        if not isinstance(self.waypoints, np.ndarray):
-            self.waypoints = np.array(self.waypoints)
-
-        assert self.waypoints.shape[1] == 3
+    def __attrs_post_init__(self) -> None:
+        if self.waypoints.shape[1] != 3:
+            raise ValueError("Trajectory dimension must be 3.")
 
     def __len__(self) -> int:
         return len(self.waypoints)

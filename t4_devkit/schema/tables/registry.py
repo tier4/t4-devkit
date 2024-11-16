@@ -8,7 +8,7 @@ from ..name import SchemaName
 if TYPE_CHECKING:
     from .base import SchemaTable
 
-__all__ = ("SCHEMAS",)
+__all__ = ["SCHEMAS"]
 
 
 class SchemaRegistry:
