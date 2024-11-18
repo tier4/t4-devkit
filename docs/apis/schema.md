@@ -16,14 +16,7 @@
 
 ::: t4_devkit.schema.tables
     options:
-        members: ["SchemaBase"]
-        show_bases: false
-
----
-
-::: t4_devkit.schema.tables
-    options:
-        filters: ["!SchemaBase", "!FileFormat", "!SensorModality", "!VisibilityLevel"]
+        filters: ["!SchemaBase", "!FileFormat", "!SensorModality", "!VisibilityLevel", "!RLEMask"]
         show_root_toc_entry: false
         merge_init_into_class: false
         show_signature_annotations: false
@@ -35,7 +28,7 @@
 
 ::: t4_devkit.schema.tables
     options:
-        members: ["FileFormat", "SensorModality", "VisibilityLevel"]
+        members: ["FileFormat", "SensorModality", "VisibilityLevel", "RLEMask"]
         show_root_toc_entry: false
         merge_init_into_class: false
         show_signature_annotations: false

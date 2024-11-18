@@ -50,7 +50,6 @@ class SampleAnnotation(SchemaBase):
             given as [ax, ay, av] in [m/s^2].
 
     Shortcuts:
-    ---------
         category_name (str): Category name. This should be set after instantiated.
     """
 

@@ -1,13 +1,14 @@
 # `dataclass`
 
 <!-- prettier-ignore-start -->
-::: t4_devkit.dataclass.box
-    options:
-        filters: ["!BaseBox"]
-        show_bases: false
 
 ::: t4_devkit.dataclass.label
     options:
+        show_bases: false
+
+::: t4_devkit.dataclass.box
+    options:
+        filters: ["!BaseBox"]
         show_bases: false
 
 ::: t4_devkit.dataclass.pointcloud

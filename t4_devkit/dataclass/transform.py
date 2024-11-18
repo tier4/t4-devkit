@@ -25,6 +25,12 @@ __all__ = [
 
 @define
 class TransformBuffer:
+    """A buffer class to store transformation matrices.
+
+    Args:
+        buffer (dict[tuple[str, str], HomogeneousMatrix]): Matrix buffer whose key is `(src, dst)`.
+    """
+
     buffer: dict[tuple[str, str], HomogeneousMatrix] = field(factory=dict, init=False)
 
     def set_transform(self, matrix: HomogeneousMatrix) -> None:
@@ -43,19 +49,59 @@ class TransformBuffer:
             self.buffer[(dst, src)] = matrix.inv()
 
     def lookup_transform(self, src: str, dst: str) -> HomogeneousMatrix | None:
+        """Look up the transform matrix corresponding to the `src` and `dst` frame ID.
+
+        Args:
+            src (str): Source frame ID.
+            dst (str): Destination frame ID.
+
+        Returns:
+            Returns `HomogeneousMatrix` if the corresponding matrix can be found,
+                otherwise it returns `None`.
+        """
         if src == dst:
             return HomogeneousMatrix.as_identity(src)
         return self.buffer[(src, dst)] if (src, dst) in self.buffer else None
 
     def do_translate(self, src: str, dst: str, *args, **kwargs) -> TranslateItemLike | None:
+        """Translate specified items with the matrix corresponding to `src` and `dst` frame ID.
+
+        Args:
+            src (str): Source frame ID.
+            dst (str): Destination frame ID.
+
+        Returns:
+            TranslateItemLike | None: Returns translated items if the corresponding matrix can be found,
+                otherwise it returns `None`.
+        """
         tf_matrix = self.lookup_transform(src, dst)
         return tf_matrix.translate(*args, **kwargs) if tf_matrix is not None else None
 
     def do_rotate(self, src: str, dst: str, *args, **kwargs) -> RotateItemLike | None:
+        """Rotate specified items with the matrix corresponding to `src` and `dst` frame ID.
+
+        Args:
+            src (str): Source frame ID.
+            dst (str): Destination frame ID.
+
+        Returns:
+            TranslateItemLike | None: Returns rotated items if the corresponding matrix can be found,
+                otherwise it returns `None`.
+        """
         tf_matrix = self.lookup_transform(src, dst)
         return tf_matrix.rotate(*args, **kwargs) if tf_matrix is not None else None
 
     def do_transform(self, src: str, dst: str, *args, **kwargs) -> TransformItemLike | None:
+        """Transform specified items with the matrix corresponding to `src` and `dst` frame ID.
+
+        Args:
+            src (str): Source frame ID.
+            dst (str): Destination frame ID.
+
+        Returns:
+            TranslateItemLike | None: Returns transformed items if the corresponding matrix can be found,
+                otherwise it returns `None`.
+        """
         tf_matrix = self.lookup_transform(src, dst)
         return tf_matrix.transform(*args, **kwargs) if tf_matrix is not None else None
 
