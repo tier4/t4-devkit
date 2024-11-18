@@ -80,7 +80,11 @@ class PointCloud:
 
 @define
 class LidarPointCloud(PointCloud):
-    """A dataclass to represent lidar pointcloud."""
+    """A dataclass to represent lidar pointcloud.
+
+    Attributes:
+        points (NDArrayFloat): Points matrix in the shape of (4, N).
+    """
 
     @staticmethod
     def num_dims() -> int:
@@ -97,6 +101,12 @@ class LidarPointCloud(PointCloud):
 
 @define
 class RadarPointCloud(PointCloud):
+    """A dataclass to represent radar pointcloud.
+
+    Attributes:
+        points (NDArrayFloat): Points matrix in the shape of (18, N).
+    """
+
     # class variables
     invalid_states: ClassVar[list[int]] = [0]
     dynprop_states: ClassVar[list[int]] = range(7)
@@ -194,6 +204,13 @@ class RadarPointCloud(PointCloud):
 
 @define
 class SegmentationPointCloud(PointCloud):
+    """A dataclass to represent segmentation pointcloud.
+
+    Attributes:
+        points (NDArrayFloat): Points matrix in the shape of (4, N).
+        labels (NDArrayU8): Label matrix.
+    """
+
     labels: NDArrayU8 = field(converter=lambda x: np.asarray(x, dtype=np.uint8))
 
     @staticmethod
