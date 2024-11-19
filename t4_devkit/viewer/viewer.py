@@ -304,7 +304,7 @@ class Tier4Viewer:
             rr.Transform3D(
                 translation=ego_pose.translation,
                 rotation=rr.Quaternion(xyzw=rotation_xyzw),
-                from_parent=False,
+                relation=rr.TransformRelation.ParentFromChild,
             ),
         )
 
@@ -323,7 +323,7 @@ class Tier4Viewer:
             rr.Transform3D(
                 translation=translation,
                 rotation=rr.Quaternion(xyzw=rotation_xyzw),
-                from_parent=False,
+                relation=rr.TransformRelation.ParentFromChild,
             ),
         )
 
