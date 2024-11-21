@@ -41,11 +41,11 @@ def format_entity(root: str, *entities) -> str:
         Formatted entity path.
 
     Examples:
-        >>> _format_entity("map")
+        >>> format_entity("map")
         >>> "map"
-        >>> _format_entity("map", "map/base_link")
+        >>> format_entity("map", "map/base_link")
         "map/base_link"
-        >>> _format_entity("map", "map/base_link", "camera")
+        >>> format_entity("map", "map/base_link", "camera")
         "map/base_link/camera"
     """
     if len(entities) == 0:
