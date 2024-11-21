@@ -12,7 +12,13 @@ from typing_extensions import Self
 
 from t4_devkit.common.timestamp import us2sec
 from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor, SensorModality
-from t4_devkit.typing import CamIntrinsicType, NDArrayU8, RotationType, TranslationType
+from t4_devkit.typing import (
+    CamIntrinsicType,
+    GeoCoordinateType,
+    NDArrayU8,
+    RotationType,
+    TranslationType,
+)
 
 from .color import distance_color
 from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
@@ -59,6 +65,7 @@ class Tier4Viewer:
     # entity paths
     map_entity = "map"
     ego_entity = "map/base_link"
+    geocoordinate_entity = "geocoordinate"
     timeline = "timestamp"
 
     def __init__(
@@ -95,11 +102,14 @@ class Tier4Viewer:
 
         view_container = []
         if not without_3d:
-            view_container.append(
-                rrb.Horizontal(
-                    rrb.Spatial3DView(name="3D", origin=self.map_entity),
-                    column_shares=[3, 1],
-                )
+            view_container.extend(
+                [
+                    rrb.Horizontal(
+                        rrb.Spatial3DView(name="3D", origin=self.map_entity),
+                        rrb.Horizontal(rrb.MapView(name="Map", origin=self.geocoordinate_entity)),
+                        column_shares=[3, 1],
+                    ),
+                ]
             )
 
         if self.cameras is not None:
@@ -308,12 +318,20 @@ class Tier4Viewer:
             ),
         )
 
+        if ego_pose.geocoordinate is not None:
+            latitude, longitude, _ = ego_pose.geocoordinate
+            rr.log(
+                self.geocoordinate_entity,
+                rr.GeoPoints(lat_lon=(latitude, longitude), radii=rr.Radius.ui_points(10.0)),
+            )
+
     @render_ego.register
     def _render_ego_without_schema(
         self,
         seconds: float,
         translation: TranslationType,
         rotation: RotationType,
+        geocoordinate: GeoCoordinateType | None = None,
     ) -> None:
         rr.set_time_seconds(self.timeline, seconds)
 
@@ -326,6 +344,13 @@ class Tier4Viewer:
                 relation=rr.TransformRelation.ParentFromChild,
             ),
         )
+
+        if geocoordinate is not None:
+            latitude, longitude, _ = geocoordinate
+            rr.log(
+                self.geocoordinate_entity,
+                rr.GeoPoints(lat_lon=(latitude, longitude)),
+            )
 
     @singledispatchmethod
     def render_calibration(self, *args, **kwargs) -> None:
@@ -388,6 +413,12 @@ class Tier4Viewer:
             static=True,
         )
 
+        if modality == SensorModality.CAMERA:
+            rr.log(
+                format_entity(self.ego_entity, channel),
+                rr.Pinhole(image_from_camera=camera_intrinsic),
+                static=True,
+            )
         if modality == SensorModality.CAMERA:
             rr.log(
                 format_entity(self.ego_entity, channel),
