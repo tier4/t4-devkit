@@ -60,6 +60,6 @@ class SegmentationData2D:
         image = np.zeros(self._size, dtype=np.uint8)
 
         for mask, class_id in zip(self._masks, self._class_ids, strict=True):
-            image[mask == 1] == class_id
+            image[mask == 1] = class_id
 
         return rr.SegmentationImage(image=image)
