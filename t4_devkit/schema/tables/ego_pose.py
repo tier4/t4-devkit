@@ -45,12 +45,12 @@ class EgoPose(SchemaBase):
     translation: TranslationType = field(converter=np.asarray)
     rotation: RotationType = field(converter=as_quaternion)
     timestamp: int
-    twist: TwistType = field(
+    twist: TwistType | None = field(
         default=None, converter=lambda x: np.asarray(x) if x is not None else x
     )
-    acceleration: AccelerationType = field(
+    acceleration: AccelerationType | None = field(
         default=None, converter=lambda x: np.asarray(x) if x is not None else x
     )
-    geocoordinate: GeoCoordinateType = field(
+    geocoordinate: GeoCoordinateType | None = field(
         default=None, converter=lambda x: np.asarray(x) if x is not None else x
     )
