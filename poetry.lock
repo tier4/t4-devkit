@@ -1615,16 +1615,16 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "rerun-sdk"
-version = "0.19.0"
+version = "0.20.0"
 description = "The Rerun Logging SDK"
 optional = false
-python-versions = "<3.13,>=3.8"
+python-versions = ">=3.8"
 files = [
-    {file = "rerun_sdk-0.19.0-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:49a48d6d5d7de662ef3e83dc262e65705fa719726f6bc6deefad27c4b6d34e98"},
-    {file = "rerun_sdk-0.19.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:c8012b4e517a911a782472dc97ebbdc6ed4261b44bfdd0e0a0c64496f17ddc91"},
-    {file = "rerun_sdk-0.19.0-cp38-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:65bb8ddf9611827c31d5502f9d1ee997c1facbbdf5dce9a268f0aa6bcaea5439"},
-    {file = "rerun_sdk-0.19.0-cp38-abi3-manylinux_2_31_x86_64.whl", hash = "sha256:6a49fde1c9d0691166402707ec3b317bf0d82fb1b4412b98e02ccbf499d9b92d"},
-    {file = "rerun_sdk-0.19.0-cp38-abi3-win_amd64.whl", hash = "sha256:da304927485cb4e6afe25ea8ed84c0cb7e63f3ba8ce2c72a1034ae1ffc69a6c0"},
+    {file = "rerun_sdk-0.20.0-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:a3219692a9fde1021f6b249e2ed179b6b13a0b57972339a01086bd895d378e7b"},
+    {file = "rerun_sdk-0.20.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:4275f4260f1cf1acd326deb01efc70ac15a0009a72cd765d8361e026dc87ce8f"},
+    {file = "rerun_sdk-0.20.0-cp38-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:75693f7a364e66579085aefe4f6035ec2ddf1c6c6e65838b9ce8975dc33d3d82"},
+    {file = "rerun_sdk-0.20.0-cp38-abi3-manylinux_2_31_x86_64.whl", hash = "sha256:dfaf0e4e60f9909366866a568e4786458b5cd85635f5740bbfe696e298c68a6a"},
+    {file = "rerun_sdk-0.20.0-cp38-abi3-win_amd64.whl", hash = "sha256:9d5988769b6b668728b24303e0502d867ae2a8cd457e21d7da48d5a3ca2e1538"},
 ]
 
 [package.dependencies]
@@ -1635,7 +1635,7 @@ pyarrow = ">=14.0.2"
 typing-extensions = ">=4.5"
 
 [package.extras]
-notebook = ["rerun-notebook (==0.19.0)"]
+notebook = ["rerun-notebook (==0.20.0)"]
 tests = ["pytest (==7.1.2)"]
 
 [[package]]
@@ -1816,4 +1816,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "d5e3fd5a6492421d2e0bc7d72925dda700ec7cf3852a4d8179910a57b93cc41f"
+content-hash = "fec2f2e3841b8dbbe1e966547d9484245f11e74fcb817563e2437013ff51ca36"
