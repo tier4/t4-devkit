@@ -100,7 +100,7 @@ class Tier4Viewer:
         self.with_2d = self.cameras is not None
         self.label2id: dict[str, int] | None = None
 
-        if not self.with_3d and not self.with_2d:
+        if not (self.with_3d or self.with_2d):
             raise ValueError("At least one of 3D or 2D spaces must be rendered.")
 
         view_container: list[rrb.Container | rrb.SpaceView] = []
