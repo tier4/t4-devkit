@@ -904,7 +904,7 @@ class Tier4:
             else None
         )
 
-        viewer = Tier4Viewer(application_id, cameras=cameras, without_3d=not render_3d, spawn=spawn)
+        viewer = Tier4Viewer(application_id, cameras=cameras, with_3d=render_3d, spawn=spawn)
 
         if render_annotation:
             viewer = viewer.with_labels(self._label2id)
