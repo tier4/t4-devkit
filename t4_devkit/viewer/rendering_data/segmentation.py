@@ -62,4 +62,4 @@ class SegmentationData2D:
         for mask, class_id in zip(self._masks, self._class_ids, strict=True):
             image[mask == 1] == class_id
 
-        return rr.SegmentationImage(data=image)
+        return rr.SegmentationImage(image=image)
