@@ -98,6 +98,7 @@ class Tier4Viewer:
         self.cameras = cameras
         self.with_3d = with_3d
         self.with_2d = self.cameras is not None
+        self.label2id: dict[str, int] | None = None
 
         if not self.with_3d and not self.with_2d:
             raise ValueError("At least one of 3D or 2D spaces must be rendered.")
@@ -138,7 +139,7 @@ class Tier4Viewer:
         """Return myself after creating `rr.AnnotationContext` on the recording.
 
         Args:
-            label2id (dict[str, int]): Key-value mapping which maps label name to its ID.
+            label2id (dict[str, int]): Key-value mapping which maps label name to its class ID.
 
         Returns:
             Self instance.
@@ -147,13 +148,14 @@ class Tier4Viewer:
             >>> label2id = {"car": 0, "pedestrian": 1}
             >>> viewer = Tier4Viewer("myapp").with_labels(label2id)
         """
+        self.label2id = label2id
 
         rr.log(
             self.map_entity,
             rr.AnnotationContext(
                 [
                     rr.AnnotationInfo(id=label_id, label=label)
-                    for label, label_id in label2id.items()
+                    for label, label_id in self.label2id.items()
                 ]
             ),
             static=True,
@@ -187,7 +189,7 @@ class Tier4Viewer:
         box_data: dict[str, BoxData3D] = {}
         for box in boxes:
             if box.frame_id not in box_data:
-                box_data[box.frame_id] = BoxData3D()
+                box_data[box.frame_id] = BoxData3D(label2id=self.label2id)
             else:
                 box_data[box.frame_id].append(box)
 
@@ -220,7 +222,7 @@ class Tier4Viewer:
         box_data: dict[str, BoxData2D] = {}
         for box in boxes:
             if box.frame_id not in box_data:
-                box_data[box.frame_id] = BoxData2D()
+                box_data[box.frame_id] = BoxData2D(label2id=self.label2id)
             else:
                 box_data[box.frame_id].append(box)
 

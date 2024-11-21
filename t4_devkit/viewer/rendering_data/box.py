@@ -15,7 +15,12 @@ __all__ = ["BoxData3D", "BoxData2D"]
 class BoxData3D:
     """A class to store 3D boxes data for rendering."""
 
-    def __init__(self) -> None:
+    def __init__(self, label2id: dict[str, int] | None = None) -> None:
+        """Construct a new object.
+
+        Args:
+            label2id (dict[str, int] | None, optional): Key-value mapping which maps label name to its class ID.
+        """
         self._centers: list[TranslationType] = []
         self._rotations: list[rr.Quaternion] = []
         self._sizes: list[SizeType] = []
@@ -23,7 +28,7 @@ class BoxData3D:
         self._uuids: list[int] = []
         self._velocities: list[VelocityType] = []
 
-        self._label2id: dict[str, int] = {}
+        self._label2id: dict[str, int] = {} if label2id is None else label2id
 
     def append(self, box: Box3D) -> None:
         """Append a 3D box data.
@@ -81,12 +86,17 @@ class BoxData3D:
 class BoxData2D:
     """A class to store 2D boxes data for rendering."""
 
-    def __init__(self) -> None:
+    def __init__(self, label2id: dict[str, int] | None = None) -> None:
+        """Construct a new object.
+
+        Args:
+            label2id (dict[str, int] | None, optional): Key-value mapping which maps label name to its class ID.
+        """
         self._rois: list[RoiType] = []
         self._uuids: list[str] = []
         self._class_ids: list[int] = []
 
-        self._label2id: dict[str, int] = {}
+        self._label2id: dict[str, int] = {} if label2id is None else label2id
 
     def append(self, box: Box2D) -> None:
         """Append a 2D box data.
