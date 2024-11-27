@@ -1,14 +1,18 @@
-from t4_devkit.schema import ObjectAnn
+from t4_devkit.schema import ObjectAnn, serialize_schema, serialize_schemas
 
 
 def test_object_ann_json(object_ann_json) -> None:
     """Test loading object ann from a json file."""
-    _ = ObjectAnn.from_json(object_ann_json)
+    schemas = ObjectAnn.from_json(object_ann_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_object_ann(object_ann_dict) -> None:
     """Test loading object ann from a dictionary."""
-    _ = ObjectAnn.from_dict(object_ann_dict)
+    schema = ObjectAnn.from_dict(object_ann_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == object_ann_dict
 
 
 def test_new_object_ann(object_ann_dict) -> None:

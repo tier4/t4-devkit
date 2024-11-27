@@ -1,14 +1,18 @@
-from t4_devkit.schema import SampleAnnotation
+from t4_devkit.schema import SampleAnnotation, serialize_schema, serialize_schemas
 
 
 def test_sample_annotation_json(sample_annotation_json) -> None:
     """Test loading sample annotation from a json file."""
-    _ = SampleAnnotation.from_json(sample_annotation_json)
+    schemas = SampleAnnotation.from_json(sample_annotation_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_sample_annotation(sample_annotation_dict) -> None:
     """Test loading sample annotation from a dictionary."""
-    _ = SampleAnnotation.from_dict(sample_annotation_dict)
+    schema = SampleAnnotation.from_dict(sample_annotation_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == sample_annotation_dict
 
 
 def test_new_sample_annotation(sample_annotation_dict) -> None:

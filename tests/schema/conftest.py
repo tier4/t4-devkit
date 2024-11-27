@@ -165,6 +165,8 @@ def sample_annotation_dict() -> dict:
         "translation": [1.0, 1.0, 1.0],
         "size": [1.0, 1.0, 1.0],
         "rotation": [1.0, 0.0, 0.0, 0.0],
+        "velocity": None,
+        "acceleration": None,
         "num_lidar_pts": 3022,
         "num_radar_pts": 0,
         "next": "7b0ae1dae7531b7b917f403cb22259e6",
@@ -216,6 +218,7 @@ def sample_data_dict() -> dict:
         "height": 1080,
         "timestamp": 1603452042983183,
         "is_key_frame": False,
+        "is_valid": True,
         "next": "efe096cc01a610af846c29aaf4decc9a",
         "prev": "",
     }
@@ -278,7 +281,7 @@ def visibility_dict() -> dict:
     return {
         "description": "visibility of whole object is between 0 and 40%",
         "token": "1",
-        "level": "v0-40",
+        "level": "none",
     }
 
 

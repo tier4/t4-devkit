@@ -1,14 +1,18 @@
-from t4_devkit.schema import Attribute
+from t4_devkit.schema import Attribute, serialize_schema, serialize_schemas
 
 
 def test_attribute_json(attribute_json) -> None:
     """Test loading attribute from a json file."""
-    _ = Attribute.from_json(attribute_json)
+    schemas = Attribute.from_json(attribute_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_attribute(attribute_dict) -> None:
     """Test loading attribute from a dictionary."""
-    _ = Attribute.from_dict(attribute_dict)
+    schema = Attribute.from_dict(attribute_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == attribute_dict
 
 
 def test_new_attribute(attribute_dict) -> None:

@@ -1,4 +1,4 @@
-from t4_devkit.schema import Visibility, VisibilityLevel
+from t4_devkit.schema import Visibility, VisibilityLevel, serialize_schema, serialize_schemas
 
 
 def test_visibility_level() -> None:
@@ -28,12 +28,16 @@ def test_visibility_level_deprecated() -> None:
 
 def test_visibility_json(visibility_json) -> None:
     """Test loading visibility from a json file."""
-    _ = Visibility.from_json(visibility_json)
+    schemas = Visibility.from_json(visibility_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_visibility(visibility_dict) -> None:
     """Test loading visibility from a dictionary."""
-    _ = Visibility.from_dict(visibility_dict)
+    schema = Visibility.from_dict(visibility_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == visibility_dict
 
 
 def test_new_visibility(visibility_dict) -> None:

@@ -103,8 +103,8 @@ class SampleData(SchemaBase):
     is_valid: bool = field(default=True)
 
     # shortcuts
-    modality: SensorModality = field(init=False)
-    channel: str = field(init=False)
+    modality: SensorModality | None = field(init=False, default=None)
+    channel: str = field(init=False, factory=str)
 
     @staticmethod
     def shortcuts() -> tuple[str, str]:

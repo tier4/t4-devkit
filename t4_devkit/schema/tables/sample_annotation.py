@@ -68,7 +68,7 @@ class SampleAnnotation(SchemaBase):
     acceleration: AccelerationType | None = field(default=None, converter=optional(np.asarray))
 
     # shortcuts
-    category_name: str = field(init=False)
+    category_name: str = field(init=False, factory=str)
 
     @staticmethod
     def shortcuts() -> tuple[str]:

@@ -44,6 +44,8 @@ def _value_serializer(data: SchemaTable, attr: Any, value: Any) -> Any:
         return value.tolist()
     elif isinstance(value, Quaternion):
         return value.q.tolist()
+    elif isinstance(value, tuple):
+        return list(value)
     elif isinstance(value, Enum):
         return value.value
     return value
