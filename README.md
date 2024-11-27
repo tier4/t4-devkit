@@ -33,18 +33,19 @@ poetry install
 
 ### Visualization
 
-| Feature | Task                    | Support |
-| :------ | :---------------------- | :-----: |
-| 3D      | 3D Boxes                |   ✅    |
-|         | PointCloud Segmentation |         |
-|         | Raw PointCloud          |   ✅    |
-|         | 3D Trajectories         |         |
-|         | TF Links                |   ✅    |
-|         | Vector Map              |         |
-| 2D      | 2D Boxes                |   ✅    |
-|         | Image Segmentation      |   ✅    |
-|         | Raw Image               |   ✅    |
-|         | Raw PointCloud on Image |   ✅    |
+| Feature | Task                        | Support |
+| :------ | :-------------------------- | :-----: |
+| 3D      | 3D Boxes                    |   ✅    |
+|         | PointCloud Segmentation     |         |
+|         | Raw PointCloud              |   ✅    |
+|         | 3D Trajectories             |         |
+|         | TF Links                    |   ✅    |
+| 2D      | 2D Boxes                    |   ✅    |
+|         | Image Segmentation          |   ✅    |
+|         | Raw Image                   |   ✅    |
+|         | Raw PointCloud on Image     |   ✅    |
+| Map     | Vector Map                  |         |
+|         | Ego Position on Street View |   ✅    |
 
 ### Evaluation
 
