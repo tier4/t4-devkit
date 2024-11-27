@@ -1,4 +1,4 @@
-## Generate Schema with a new token
+## Generate Schema with a New Token
 
 ---
 

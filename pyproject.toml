@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "t4-devkit"
-version = "0.0.3"
+version = "0.0.4"
 description = "A toolkit to load and operate T4 dataset."
 authors = ["Kotaro Uetake <kotaro.uetake@tier4.jp>"]
 readme = "README.md"
