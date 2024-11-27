@@ -43,7 +43,7 @@ class Sensor(SchemaBase):
     modality: SensorModality = field(converter=SensorModality)
 
     # shortcuts
-    first_sd_token: str = field(init=False)
+    first_sd_token: str = field(init=False, factory=str)
 
     @staticmethod
     def shortcuts() -> tuple[str] | None:

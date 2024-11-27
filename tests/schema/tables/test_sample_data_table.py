@@ -1,4 +1,4 @@
-from t4_devkit.schema import FileFormat, SampleData
+from t4_devkit.schema import FileFormat, SampleData, serialize_schema, serialize_schemas
 
 
 def test_fileformat() -> None:
@@ -26,12 +26,16 @@ def test_fileformat() -> None:
 
 def test_sample_data_json(sample_data_json) -> None:
     """Test loading sample data from a json file."""
-    _ = SampleData.from_json(sample_data_json)
+    schemas = SampleData.from_json(sample_data_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_sample_data(sample_data_dict) -> None:
     """Test loading sample data from a dictionary."""
-    _ = SampleData.from_dict(sample_data_dict)
+    schema = SampleData.from_dict(sample_data_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == sample_data_dict
 
 
 def test_new_sample_data(sample_data_dict) -> None:
@@ -39,4 +43,5 @@ def test_new_sample_data(sample_data_dict) -> None:
     without_token = {k: v for k, v in sample_data_dict.items() if k != "token"}
     ret = SampleData.new(without_token)
     # check the new token is not the same with the token in input data
+    assert ret.token != sample_data_dict["token"]
     assert ret.token != sample_data_dict["token"]

@@ -45,4 +45,4 @@ class Sample(SchemaBase):
 
     @staticmethod
     def shortcuts() -> tuple[str, str, str, str]:
-        return ("data", "ann_3ds", "ann_2ds", "surface_ann_2ds")
+        return ("data", "ann_3ds", "ann_2ds", "surface_anns")

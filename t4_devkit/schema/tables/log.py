@@ -32,7 +32,7 @@ class Log(SchemaBase):
     location: str
 
     # shortcuts
-    map_token: str = field(init=False)
+    map_token: str = field(init=False, factory=str)
 
     @staticmethod
     def shortcuts() -> tuple[str]:

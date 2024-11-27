@@ -1,14 +1,18 @@
-from t4_devkit.schema import Log
+from t4_devkit.schema import Log, serialize_schema, serialize_schemas
 
 
 def test_log_json(log_json) -> None:
     """Test loading log from a json file."""
-    _ = Log.from_json(log_json)
+    schemas = Log.from_json(log_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_log(log_dict) -> None:
     """Test loading log from a dictionary."""
-    _ = Log.from_dict(log_dict)
+    schema = Log.from_dict(log_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == log_dict
 
 
 def test_new_log(log_dict) -> None:

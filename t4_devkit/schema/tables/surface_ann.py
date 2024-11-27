@@ -33,7 +33,7 @@ class SurfaceAnn(SchemaBase):
     mask: RLEMask = field(converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x)
 
     # shortcuts
-    category_name: str = field(init=False)
+    category_name: str = field(init=False, factory=str)
 
     @staticmethod
     def shortcuts() -> tuple[str]:

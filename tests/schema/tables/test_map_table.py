@@ -1,14 +1,18 @@
-from t4_devkit.schema import Map
+from t4_devkit.schema import Map, serialize_schema, serialize_schemas
 
 
 def test_map_json(map_json) -> None:
     """Test loading map from a json file."""
-    _ = Map.from_json(map_json)
+    schemas = Map.from_json(map_json)
+    serialized = serialize_schemas(schemas)
+    assert isinstance(serialized, list)
 
 
 def test_map(map_dict) -> None:
     """Test loading map from a dictionary."""
-    _ = Map.from_dict(map_dict)
+    schema = Map.from_dict(map_dict)
+    serialized = serialize_schema(schema)
+    assert serialized == map_dict
 
 
 def test_new_map(map_dict) -> None:
