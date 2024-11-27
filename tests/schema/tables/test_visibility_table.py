@@ -34,3 +34,11 @@ def test_visibility_json(visibility_json) -> None:
 def test_visibility(visibility_dict) -> None:
     """Test loading visibility from a dictionary."""
     _ = Visibility.from_dict(visibility_dict)
+
+
+def test_new_visibility(visibility_dict) -> None:
+    """Test generating visibility with a new token."""
+    without_token = {k: v for k, v in visibility_dict.items() if k != "token"}
+    ret = Visibility.new(without_token)
+    # check the new token is not the same with the token in input data
+    assert ret.token != visibility_dict["token"]

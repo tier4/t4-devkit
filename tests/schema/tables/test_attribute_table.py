@@ -9,3 +9,11 @@ def test_attribute_json(attribute_json) -> None:
 def test_attribute(attribute_dict) -> None:
     """Test loading attribute from a dictionary."""
     _ = Attribute.from_dict(attribute_dict)
+
+
+def test_new_attribute(attribute_dict) -> None:
+    """Test generating attribute with a new token."""
+    without_token = {k: v for k, v in attribute_dict.items() if k != "token"}
+    ret = Attribute.new(without_token)
+    # check the new token is not the same with the token in input data
+    assert ret.token != attribute_dict["token"]

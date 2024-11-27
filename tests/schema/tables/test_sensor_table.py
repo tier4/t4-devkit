@@ -23,3 +23,11 @@ def test_sensor_json(sensor_json) -> None:
 def test_sensor(sensor_dict) -> None:
     """Test loading sensor from a dictionary."""
     _ = Sensor.from_dict(sensor_dict)
+
+
+def test_new_sensor(sensor_dict) -> None:
+    """Test generating sensor with a new token."""
+    without_token = {k: v for k, v in sensor_dict.items() if k != "token"}
+    ret = Sensor.new(without_token)
+    # check the new token is not the same with the token in input data
+    assert ret.token != sensor_dict["token"]
