@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from functools import singledispatchmethod
 
 import numpy as np
 import rerun as rr
 
-if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D
-    from t4_devkit.typing import RoiType, SizeType, TranslationType, VelocityType
+from t4_devkit.dataclass import Box2D, Box3D
+from t4_devkit.typing import RoiType, RotationType, SizeType, TranslationType, VelocityType
 
 __all__ = ["BoxData3D", "BoxData2D"]
 
@@ -30,7 +29,12 @@ class BoxData3D:
 
         self._label2id: dict[str, int] = {} if label2id is None else label2id
 
-    def append(self, box: Box3D) -> None:
+    @singledispatchmethod
+    def append(self, *args, **kwargs) -> None:
+        raise TypeError("Unexpected parameter types.")
+
+    @append.register
+    def append_with_box(self, box: Box3D) -> None:
         """Append a 3D box data.
 
         Args:
@@ -54,6 +58,32 @@ class BoxData3D:
 
         if box.velocity is not None:
             self._velocities.append(box.velocity)
+
+    @append.register
+    def append_with_elements(
+        self,
+        center: TranslationType,
+        rotation: RotationType,
+        size: SizeType,
+        class_id: int,
+        uuid: str | None = None,
+        velocity: VelocityType | None = None,
+    ) -> None:
+        self._centers.append(center)
+
+        rotation_xyzw = np.roll(rotation.q, shift=-1)
+        self._rotations.append(rr.Quaternion(xyzw=rotation_xyzw))
+
+        width, length, height = size
+        self._sizes.append((length, width, height))
+
+        self._class_ids.append(class_id)
+
+        if uuid is not None:
+            self._uuids.append(uuid)
+
+        if velocity is not None:
+            self._velocities.append(velocity)
 
     def as_boxes3d(self) -> rr.Boxes3D:
         """Return 3D boxes data as a `rr.Boxes3D`.
@@ -98,7 +128,12 @@ class BoxData2D:
 
         self._label2id: dict[str, int] = {} if label2id is None else label2id
 
-    def append(self, box: Box2D) -> None:
+    @singledispatchmethod
+    def append(self, *args, **kwargs) -> None:
+        raise TypeError("Unexpected parameter types.")
+
+    @append.register
+    def append_with_box(self, box: Box2D) -> None:
         """Append a 2D box data.
 
         Args:
@@ -113,6 +148,15 @@ class BoxData2D:
 
         if box.uuid is not None:
             self._uuids.append(box.uuid)
+
+    @append.register
+    def append_with_elements(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
+        self._rois.append(roi)
+
+        self._class_ids.append(class_id)
+
+        if uuid is not None:
+            self._uuids.append(uuid)
 
     def as_boxes2d(self) -> rr.Boxes2D:
         """Return 2D boxes data as a `rr.Boxes2D`.

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os.path as osp
 import warnings
 from functools import singledispatchmethod
-from typing import TYPE_CHECKING, Sequence
+from typing import Sequence
 
 import numpy as np
 import rerun as rr
@@ -11,21 +11,21 @@ import rerun.blueprint as rrb
 from typing_extensions import Self
 
 from t4_devkit.common.timestamp import us2sec
+from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike
 from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor, SensorModality
 from t4_devkit.typing import (
     CamIntrinsicType,
     GeoCoordinateType,
     NDArrayU8,
+    RoiType,
     RotationType,
+    SizeType,
     TranslationType,
+    VelocityType,
 )
 
 from .color import distance_color
 from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
-
-if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike
-
 
 __all__ = ["Tier4Viewer", "format_entity"]
 
@@ -172,7 +172,12 @@ class Tier4Viewer:
         filepath = osp.join(save_dir, f"{self.app_id}.rrd")
         rr.save(filepath, default_blueprint=self.blueprint)
 
-    def render_box3ds(self, seconds: float, boxes: Sequence[Box3D]) -> None:
+    @singledispatchmethod
+    def render_box3ds(self, *args, **kwargs) -> None:
+        raise TypeError("Unexpected parameter types.")
+
+    @render_box3ds.register
+    def render_box3ds_with_boxes(self, seconds: float, boxes: Sequence[Box3D]) -> None:
         """Render 3D boxes. Note that if the viewer initialized with `with_3d=False`,
         no 3D box will be rendered.
 
@@ -205,7 +210,42 @@ class Tier4Viewer:
                 data.as_arrows3d(),
             )
 
-    def render_box2ds(self, seconds: float, boxes: Sequence[Box2D]) -> None:
+    @render_box3ds.register
+    def render_box3ds_with_elements(
+        self,
+        seconds: float,
+        centers: Sequence[TranslationType],
+        rotations: Sequence[RotationType],
+        sizes: Sequence[SizeType],
+        class_ids: Sequence[int],
+        uuids: Sequence[str] | None | None = None,
+        velocities: Sequence[VelocityType] | None = None,
+    ) -> None:
+        if uuids is None:
+            uuids = [None] * len(centers)
+
+        if velocities is None:
+            velocities = [None] * len(centers)
+
+        box_data = BoxData3D(label2id=self.label2id)
+        for center, rotation, size, class_id, uuid, velocity in zip(
+            centers, rotations, sizes, class_ids, uuids, velocities, strict=True
+        ):
+            box_data.append(center, rotation, size, class_id, uuid, velocity)
+
+        rr.set_time_seconds(self.timeline, seconds)
+
+        rr.log(format_entity(self.ego_entity, "box"), box_data.as_boxes3d())
+
+        if velocities is not None:
+            rr.log(format_entity(self.ego_entity, "velocity"), box_data.as_arrows3d())
+
+    @singledispatchmethod
+    def render_box2ds(self, *args, **kwargs) -> None:
+        raise TypeError("Unexpected parameter types.")
+
+    @render_box2ds.register
+    def render_box2ds_with_boxes(self, seconds: float, boxes: Sequence[Box2D]) -> None:
         """Render 2D boxes. Note that if the viewer initialized without `cameras=None`,
         no 2D box will be rendered.
 
@@ -231,6 +271,29 @@ class Tier4Viewer:
                 format_entity(self.ego_entity, frame_id, "box"),
                 data.as_boxes2d(),
             )
+
+    @render_box2ds.register
+    def render_box2ds_with_elements(
+        self,
+        seconds: float,
+        camera: str,
+        rois: Sequence[RoiType],
+        class_ids: Sequence[int],
+        uuids: Sequence[str] | None = None,
+    ) -> None:
+        if not self.with_2d:
+            warnings.warn("There is no camera space.")
+            return
+
+        if uuids is None:
+            uuids = [None] * len(rois)
+
+        box_data = BoxData2D(label2id=self.label2id)
+        for roi, class_id, uuid in zip(rois, class_ids, uuids, strict=True):
+            box_data.append(roi, class_id, uuid)
+
+        rr.set_time_seconds(self.timeline, seconds)
+        rr.log(format_entity(self.ego_entity, camera, "box"), box_data.as_boxes2d())
 
     def render_segmentation2d(
         self,
