@@ -39,6 +39,11 @@ class ShapeType(Enum):
 class Shape:
     """A dataclass to represent the 3D box shape.
 
+    Attributes:
+        shape_type (ShapeType): Box shape type.
+        size (SizeType): Box size in the order of (width, length, height).
+        footprint (Polygon): Polygon of footprint.
+
     Examples:
         >>> shape = Shape(
         ...     shape_type=ShapeType.BOUNDING_BOX,
@@ -62,7 +67,7 @@ def _calculate_footprint(size: SizeType) -> Polygon:
     """Return a footprint of box as `Polygon` object.
 
     Args:
-        size (SizeType): Size of box ordering in (length, width, height).
+        size (SizeType): Size of box ordering in (width, length, height).
 
     Returns:
         Footprint in a clockwise order started from the top-right corner.

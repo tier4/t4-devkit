@@ -151,6 +151,11 @@ class Box3D(BaseBox):
 
     @property
     def size(self) -> SizeType:
+        """Return the box size in the order of (width, length, height).
+
+        Returns:
+            (width, length, height) values.
+        """
         return self.shape.size
 
     @property
@@ -175,7 +180,7 @@ class Box3D(BaseBox):
             First four corners are the ones facing forward. The last four are the ones facing backwards,
                 in the shape of (8, 3).
         """
-        length, width, height = self.size * box_scale
+        width, length, height = self.size * box_scale
 
         # 3D box corners (Convention: x points forward, y to the left, z up.)
         x_corners = 0.5 * length * np.array([1, 1, 1, 1, -1, -1, -1, -1])
