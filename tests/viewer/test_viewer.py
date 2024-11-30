@@ -27,6 +27,23 @@ def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
 
     dummy_viewer.render_box3ds(seconds, dummy_box3ds)
 
+    centers = [box.position for box in dummy_box3ds]
+    rotations = [box.rotation for box in dummy_box3ds]
+    sizes = [box.size for box in dummy_box3ds]
+    class_ids = [dummy_viewer.label2id[box.semantic_label.name] for box in dummy_box3ds]
+    velocities = [box.velocity for box in dummy_box3ds]
+    uuids = [box.uuid for box in dummy_box3ds]
+
+    dummy_viewer.render_box3ds(
+        seconds,
+        centers=centers,
+        rotations=rotations,
+        sizes=sizes,
+        class_ids=class_ids,
+        velocities=velocities,
+        uuids=uuids,
+    )
+
 
 def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
     """Test rendering 2D boxes with `Tier4Viewer`.
@@ -38,6 +55,13 @@ def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
     seconds = 1.0  # [sec]
 
     dummy_viewer.render_box2ds(seconds, dummy_box2ds)
+
+    camera = "camera"
+    rois = [box.roi.roi for box in dummy_box2ds]
+    class_ids = [dummy_viewer.label2id[box.semantic_label.name] for box in dummy_box2ds]
+    uuids = [box.uuid for box in dummy_box2ds]
+
+    dummy_viewer.render_box2ds(seconds, camera=camera, rois=rois, class_ids=class_ids, uuids=uuids)
 
 
 def test_render_pointcloud(dummy_viewer) -> None:
@@ -61,15 +85,15 @@ def test_render_ego(dummy_viewer) -> None:
     seconds = 1.0  # [sec]
 
     # without `EgoPose`
-    ego_translation = [1, 0, 0]
-    ego_rotation = Quaternion([0, 0, 0, 1])
-    dummy_viewer.render_ego(seconds, ego_translation, ego_rotation)
+    translation = [1, 0, 0]
+    rotation = Quaternion([0, 0, 0, 1])
+    dummy_viewer.render_ego(seconds, translation=translation, rotation=rotation)
 
     # with `EgoPose`
     ego_pose = EgoPose(
         token="ego",
-        translation=ego_translation,
-        rotation=ego_rotation,
+        translation=translation,
+        rotation=rotation,
         timestamp=1e6,
     )
     dummy_viewer.render_ego(ego_pose)
@@ -84,19 +108,19 @@ def test_render_calibration(dummy_viewer) -> None:
     # without `Sensor` and `CalibratedSensor`
     channel = "camera"
     modality = "camera"
-    camera_translation = [1, 0, 0]
-    camera_rotation = Quaternion([0, 0, 0, 1])
+    translation = [1, 0, 0]
+    rotation = Quaternion([0, 0, 0, 1])
     camera_intrinsic = [
         [1000.0, 0.0, 100.0],
         [0.0, 1000.0, 100.0],
         [0.0, 0.0, 1.0],
     ]
     dummy_viewer.render_calibration(
-        channel,
-        modality,
-        camera_translation,
-        camera_rotation,
-        camera_intrinsic,
+        channel=channel,
+        modality=modality,
+        translation=translation,
+        rotation=rotation,
+        camera_intrinsic=camera_intrinsic,
     )
 
     # with `Sensor` and `CalibratedSensor`
@@ -104,8 +128,8 @@ def test_render_calibration(dummy_viewer) -> None:
     calibration = CalibratedSensor(
         token="sensor_calibration",
         sensor_token="sensor",
-        translation=camera_translation,
-        rotation=camera_rotation,
+        translation=translation,
+        rotation=rotation,
         camera_intrinsic=camera_intrinsic,
         camera_distortion=[0, 0, 0, 0, 0],
     )
