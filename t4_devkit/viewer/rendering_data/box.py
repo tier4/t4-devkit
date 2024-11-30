@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 import rerun as rr
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D
-    from t4_devkit.typing import RoiType, SizeType, TranslationType, VelocityType
+    from t4_devkit.typing import RoiType, RotationType, SizeType, TranslationType, VelocityType
 
 __all__ = ["BoxData3D", "BoxData2D"]
 
@@ -30,12 +30,44 @@ class BoxData3D:
 
         self._label2id: dict[str, int] = {} if label2id is None else label2id
 
+    @overload
     def append(self, box: Box3D) -> None:
-        """Append a 3D box data.
+        """Append a 3D box data with a Box3D object.
 
         Args:
             box (Box3D): `Box3D` object.
         """
+        pass
+
+    @overload
+    def append(
+        self,
+        center: TranslationType,
+        rotation: RotationType,
+        size: SizeType,
+        class_id: int,
+        uuid: str | None = None,
+        velocity: VelocityType | None = None,
+    ) -> None:
+        """Append a 3D box data with its elements.
+
+        Args:
+            center (TranslationType): 3D position in the order of (x, y, z).
+            rotation (RotationType): Quaternion.
+            size (SizeType): Box size in the order of (width, height, length).
+            class_id (int): Class ID.
+            velocity (VelocityType | None, optional): Box velocity. Defaults to None.
+            uuid (str | None, optional): Unique identifier.
+        """
+        pass
+
+    def append(self, *args, **kwargs) -> None:
+        if len(args) + len(kwargs) == 1:
+            self._append_with_box(*args, **kwargs)
+        else:
+            self._append_with_elements(*args, **kwargs)
+
+    def _append_with_box(self, box: Box3D) -> None:
         self._centers.append(box.position)
 
         rotation_xyzw = np.roll(box.rotation.q, shift=-1)
@@ -49,11 +81,36 @@ class BoxData3D:
 
         self._class_ids.append(self._label2id[box.semantic_label.name])
 
+        if box.velocity is not None:
+            self._velocities.append(box.velocity)
+
         if box.uuid is not None:
             self._uuids.append(box.uuid[:6])
 
-        if box.velocity is not None:
-            self._velocities.append(box.velocity)
+    def _append_with_elements(
+        self,
+        center: TranslationType,
+        rotation: RotationType,
+        size: SizeType,
+        class_id: int,
+        velocity: VelocityType | None = None,
+        uuid: str | None = None,
+    ) -> None:
+        self._centers.append(center)
+
+        rotation_xyzw = np.roll(rotation.q, shift=-1)
+        self._rotations.append(rr.Quaternion(xyzw=rotation_xyzw))
+
+        width, length, height = size
+        self._sizes.append((length, width, height))
+
+        self._class_ids.append(class_id)
+
+        if velocity is not None:
+            self._velocities.append(velocity)
+
+        if uuid is not None:
+            self._uuids.append(uuid)
 
     def as_boxes3d(self) -> rr.Boxes3D:
         """Return 3D boxes data as a `rr.Boxes3D`.
@@ -98,12 +155,33 @@ class BoxData2D:
 
         self._label2id: dict[str, int] = {} if label2id is None else label2id
 
+    @overload
     def append(self, box: Box2D) -> None:
-        """Append a 2D box data.
+        """Append a 2D box data with a `Box2D` object.
 
         Args:
             box (Box2D): `Box2D` object.
         """
+        pass
+
+    @overload
+    def append(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
+        """Append a 2D box data with its elements.
+
+        Args:
+            roi (RoiType): ROI in the order of (xmin, ymin, xmax, ymax).
+            class_id (int): Class ID.
+            uuid (str | None, optional): Unique identifier.
+        """
+        pass
+
+    def append(self, *args, **kwargs) -> None:
+        if len(args) + len(kwargs) == 1:
+            self._append_with_box(*args, **kwargs)
+        else:
+            self._append_with_elements(*args, **kwargs)
+
+    def _append_with_box(self, box: Box2D) -> None:
         self._rois.append(box.roi.roi)
 
         if box.semantic_label.name not in self._label2id:
@@ -113,6 +191,14 @@ class BoxData2D:
 
         if box.uuid is not None:
             self._uuids.append(box.uuid)
+
+    def _append_with_elements(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
+        self._rois.append(roi)
+
+        self._class_ids.append(class_id)
+
+        if uuid is not None:
+            self._uuids.append(uuid)
 
     def as_boxes2d(self) -> rr.Boxes2D:
         """Return 2D boxes data as a `rr.Boxes2D`.

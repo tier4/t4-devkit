@@ -13,6 +13,11 @@ from t4_devkit.dataclass import (
 
 
 @pytest.fixture(scope="module")
+def label2id() -> dict[str, int]:
+    return {"car": 0, "bicycle": 1, "pedestrian": 2}
+
+
+@pytest.fixture(scope="module")
 def dummy_box3d() -> Box3D:
     """Return a dummy 3D box.
 
@@ -155,4 +160,5 @@ def dummy_tf_buffer() -> TransformBuffer:
         )
     )
 
+    return tf_buffer
     return tf_buffer

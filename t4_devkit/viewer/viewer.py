@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import os.path as osp
 import warnings
-from functools import singledispatchmethod
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, overload
 
 import numpy as np
 import rerun as rr
@@ -11,21 +10,24 @@ import rerun.blueprint as rrb
 from typing_extensions import Self
 
 from t4_devkit.common.timestamp import us2sec
-from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor, SensorModality
-from t4_devkit.typing import (
-    CamIntrinsicType,
-    GeoCoordinateType,
-    NDArrayU8,
-    RotationType,
-    TranslationType,
-)
+from t4_devkit.schema import SensorModality
 
 from .color import distance_color
 from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike
-
+    from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
+    from t4_devkit.typing import (
+        CamIntrinsicType,
+        GeoCoordinateType,
+        NDArrayU8,
+        RoiType,
+        RotationType,
+        SizeType,
+        TranslationType,
+        VelocityType,
+    )
 
 __all__ = ["Tier4Viewer", "format_entity"]
 
@@ -172,6 +174,7 @@ class Tier4Viewer:
         filepath = osp.join(save_dir, f"{self.app_id}.rrd")
         rr.save(filepath, default_blueprint=self.blueprint)
 
+    @overload
     def render_box3ds(self, seconds: float, boxes: Sequence[Box3D]) -> None:
         """Render 3D boxes. Note that if the viewer initialized with `with_3d=False`,
         no 3D box will be rendered.
@@ -180,6 +183,40 @@ class Tier4Viewer:
             seconds (float): Timestamp in [sec].
             boxes (Sequence[Box3D]): Sequence of `Box3D`s.
         """
+        pass
+
+    @overload
+    def render_box3ds(
+        self,
+        seconds: float,
+        centers: Sequence[TranslationType],
+        rotations: Sequence[RotationType],
+        sizes: Sequence[SizeType],
+        class_ids: Sequence[int],
+        velocities: Sequence[VelocityType] | None = None,
+        uuids: Sequence[str] | None | None = None,
+    ) -> None:
+        """Render 3D boxes with its elements.
+
+        Args:
+            seconds (float): Timestamp in [sec].
+            centers (Sequence[TranslationType]): Sequence of 3D positions in the order of (x, y, z).
+            rotations (Sequence[RotationType]): Sequence of quaternions.
+            sizes (Sequence[SizeType]): Sequence of box sizes in the order of (width, length, height).
+            class_ids (Sequence[int]): Sequence of class IDs.
+            velocities (Sequence[VelocityType] | None, optional): Sequence of velocities.
+            uuids (Sequence[str] | None | None, optional): Sequence of unique identifiers.
+        """
+        pass
+
+    def render_box3ds(self, *args, **kwargs) -> None:
+        """Render 3D boxes."""
+        if len(args) + len(kwargs) == 2:
+            self._render_box3ds_with_boxes(*args, **kwargs)
+        else:
+            self._render_box3ds_with_elements(*args, **kwargs)
+
+    def _render_box3ds_with_boxes(self, seconds: float, boxes: Sequence[Box3D]) -> None:
         if not self.with_3d:
             warnings.warn("There is no camera space.")
             return
@@ -205,6 +242,43 @@ class Tier4Viewer:
                 data.as_arrows3d(),
             )
 
+    def _render_box3ds_with_elements(
+        self,
+        seconds: float,
+        centers: Sequence[TranslationType],
+        rotations: Sequence[RotationType],
+        sizes: Sequence[SizeType],
+        class_ids: Sequence[int],
+        velocities: Sequence[VelocityType] | None = None,
+        uuids: Sequence[str] | None | None = None,
+    ) -> None:
+        if uuids is None:
+            uuids = [None] * len(centers)
+
+        if velocities is None:
+            velocities = [None] * len(centers)
+
+        box_data = BoxData3D(label2id=self.label2id)
+        for center, rotation, size, class_id, velocity, uuid in zip(
+            centers, rotations, sizes, class_ids, velocities, uuids, strict=True
+        ):
+            box_data.append(
+                center=center,
+                rotation=rotation,
+                size=size,
+                class_id=class_id,
+                velocity=velocity,
+                uuid=uuid,
+            )
+
+        rr.set_time_seconds(self.timeline, seconds)
+
+        rr.log(format_entity(self.ego_entity, "box"), box_data.as_boxes3d())
+
+        if velocities is not None:
+            rr.log(format_entity(self.ego_entity, "velocity"), box_data.as_arrows3d())
+
+    @overload
     def render_box2ds(self, seconds: float, boxes: Sequence[Box2D]) -> None:
         """Render 2D boxes. Note that if the viewer initialized without `cameras=None`,
         no 2D box will be rendered.
@@ -213,6 +287,36 @@ class Tier4Viewer:
             seconds (float): Timestamp in [sec].
             boxes (Sequence[Box2D]): Sequence of `Box2D`s.
         """
+        pass
+
+    @overload
+    def render_box2ds(
+        self,
+        seconds: float,
+        camera: str,
+        rois: Sequence[RoiType],
+        class_ids: Sequence[int],
+        uuids: Sequence[str] | None = None,
+    ) -> None:
+        """Render 2D boxes with its elements.
+
+        Args:
+            seconds (float): Timestamp in [sec].
+            camera (str): Camera name.
+            rois (Sequence[RoiType]): Sequence of ROIs in the order of (xmin, ymin, xmax, ymax).
+            class_ids (Sequence[int]): Sequence of class IDs.
+            uuids (Sequence[str] | None, optional): Sequence of unique identifiers.
+        """
+        pass
+
+    def render_box2ds(self, *args, **kwargs) -> None:
+        """Render 2D boxes."""
+        if len(args) + len(kwargs) == 2:
+            self._render_box2ds_with_boxes(*args, **kwargs)
+        else:
+            self._render_box2ds_with_elements(*args, **kwargs)
+
+    def _render_box2ds_with_boxes(self, seconds: float, boxes: Sequence[Box2D]) -> None:
         if not self.with_2d:
             warnings.warn("There is no camera space.")
             return
@@ -231,6 +335,28 @@ class Tier4Viewer:
                 format_entity(self.ego_entity, frame_id, "box"),
                 data.as_boxes2d(),
             )
+
+    def _render_box2ds_with_elements(
+        self,
+        seconds: float,
+        camera: str,
+        rois: Sequence[RoiType],
+        class_ids: Sequence[int],
+        uuids: Sequence[str] | None = None,
+    ) -> None:
+        if not self.with_2d:
+            warnings.warn("There is no camera space.")
+            return
+
+        if uuids is None:
+            uuids = [None] * len(rois)
+
+        box_data = BoxData2D(label2id=self.label2id)
+        for roi, class_id, uuid in zip(rois, class_ids, uuids, strict=True):
+            box_data.append(roi=roi, class_id=class_id, uuid=uuid)
+
+        rr.set_time_seconds(self.timeline, seconds)
+        rr.log(format_entity(self.ego_entity, camera, "box"), box_data.as_boxes2d())
 
     def render_segmentation2d(
         self,
@@ -306,26 +432,17 @@ class Tier4Viewer:
         else:
             rr.log(format_entity(self.ego_entity, camera), rr.Image(image))
 
-    @singledispatchmethod
-    def render_ego(self, *args, **kwargs) -> None:
-        raise TypeError("Unexpected parameter types.")
-
-    @render_ego.register
-    def _render_ego_with_schema(self, ego_pose: EgoPose) -> None:
+    @overload
+    def render_ego(self, ego_pose: EgoPose) -> None:
         """Render an ego pose.
 
         Args:
             ego_pose (EgoPose): `EgoPose` object.
         """
-        self._render_ego_without_schema(
-            seconds=us2sec(ego_pose.timestamp),
-            translation=ego_pose.translation,
-            rotation=ego_pose.rotation,
-            geocoordinate=ego_pose.geocoordinate,
-        )
+        pass
 
-    @render_ego.register
-    def _render_ego_without_schema(
+    @overload
+    def render_ego(
         self,
         seconds: float,
         translation: TranslationType,
@@ -342,6 +459,30 @@ class Tier4Viewer:
             geocoordinate (GeoCoordinateType | None, optional): Coordinates in the WGS 84
                 reference ellipsoid (latitude, longitude, altitude) in degrees and meters.
         """
+        pass
+
+    def render_ego(self, *args, **kwargs) -> None:
+        """Render an ego pose."""
+        if len(args) + len(kwargs) == 1:
+            self._render_ego_with_schema(*args, **kwargs)
+        else:
+            self._render_ego_without_schema(*args, **kwargs)
+
+    def _render_ego_with_schema(self, ego_pose: EgoPose) -> None:
+        self._render_ego_without_schema(
+            seconds=us2sec(ego_pose.timestamp),
+            translation=ego_pose.translation,
+            rotation=ego_pose.rotation,
+            geocoordinate=ego_pose.geocoordinate,
+        )
+
+    def _render_ego_without_schema(
+        self,
+        seconds: float,
+        translation: TranslationType,
+        rotation: RotationType,
+        geocoordinate: GeoCoordinateType | None = None,
+    ) -> None:
         rr.set_time_seconds(self.timeline, seconds)
 
         rotation_xyzw = np.roll(rotation.q, shift=-1)
@@ -361,12 +502,8 @@ class Tier4Viewer:
                 rr.GeoPoints(lat_lon=(latitude, longitude)),
             )
 
-    @singledispatchmethod
-    def render_calibration(self, *args, **kwargs) -> None:
-        raise TypeError("Unexpected parameter types.")
-
-    @render_calibration.register
-    def _render_calibration_with_schema(
+    @overload
+    def render_calibration(
         self,
         sensor: Sensor,
         calibration: CalibratedSensor,
@@ -377,6 +514,41 @@ class Tier4Viewer:
             sensor (Sensor): `Sensor` object.
             calibration (CalibratedSensor): `CalibratedSensor` object.
         """
+        pass
+
+    @overload
+    def render_calibration(
+        self,
+        channel: str,
+        modality: str | SensorModality,
+        translation: TranslationType,
+        rotation: RotationType,
+        camera_intrinsic: CamIntrinsicType | None = None,
+    ) -> None:
+        """Render a sensor calibration.
+
+        Args:
+            channel (str): Name of the sensor channel.
+            modality (str | SensorModality): Sensor modality.
+            translation (TranslationType): Sensor translation in ego centric coords.
+            rotation (RotationType): Sensor rotation in ego centric coords.
+            camera_intrinsic (CamIntrinsicType | None, optional): Camera intrinsic matrix.
+                Defaults to None.
+        """
+        pass
+
+    def render_calibration(self, *args, **kwargs) -> None:
+        """Render a sensor calibration."""
+        if len(args) + len(kwargs) == 2:
+            self._render_calibration_with_schema(*args, **kwargs)
+        else:
+            self._render_calibration_without_schema(*args, **kwargs)
+
+    def _render_calibration_with_schema(
+        self,
+        sensor: Sensor,
+        calibration: CalibratedSensor,
+    ) -> None:
         self._render_calibration_without_schema(
             channel=sensor.channel,
             modality=sensor.modality,
@@ -385,7 +557,6 @@ class Tier4Viewer:
             camera_intrinsic=calibration.camera_intrinsic,
         )
 
-    @render_calibration.register
     def _render_calibration_without_schema(
         self,
         channel: str,

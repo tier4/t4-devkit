@@ -67,3 +67,12 @@ For details, please refer to the API references.
 # Rendering 2D boxes
 >>> viewer.render_box2ds(seconds, box2ds)
 ```
+
+It allows us to render boxes by specifying elements of boxes directly.
+
+```python
+# Rendering 3D boxes
+>>> viewer.render_box3ds(seconds, centers, rotations, sizes, class_ids)
+# Rendering 2D boxes
+>>> viewer.render_box2ds(seconds, rois, class_ids)
+```
