@@ -17,10 +17,10 @@ def test_format_entity() -> None:
 
 
 def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
-    """Test rendering 3D boxes with `Tier4Viewer`.
+    """Test rendering 3D boxes with `RerunViewer`.
 
     Args:
-        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_viewer (RerunViewer): Viewer object.
         dummy_box3ds (list[Box3D]): List of 3D boxes.
     """
     seconds = 1.0  # [sec]
@@ -46,10 +46,10 @@ def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
 
 
 def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
-    """Test rendering 2D boxes with `Tier4Viewer`.
+    """Test rendering 2D boxes with `RerunViewer`.
 
     Args:
-        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_viewer (RerunViewer): Viewer object.
         dummy_box2ds (list[Box2D): List of 2D boxes.
     """
     seconds = 1.0  # [sec]
@@ -65,10 +65,10 @@ def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
 
 
 def test_render_pointcloud(dummy_viewer) -> None:
-    """Test rendering pointcloud with `Tier4Viewer`.
+    """Test rendering pointcloud with `RerunViewer`.
 
     Args:
-        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_viewer (RerunViewer): Viewer object.
     """
     seconds = 1.0  # [sec]
 
@@ -77,10 +77,10 @@ def test_render_pointcloud(dummy_viewer) -> None:
 
 
 def test_render_ego(dummy_viewer) -> None:
-    """Test rendering ego pose with `Tier4Viewer`.
+    """Test rendering ego pose with `RerunViewer`.
 
     Args:
-        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_viewer (RerunViewer): Viewer object.
     """
     seconds = 1.0  # [sec]
 
@@ -100,10 +100,10 @@ def test_render_ego(dummy_viewer) -> None:
 
 
 def test_render_calibration(dummy_viewer) -> None:
-    """Test rendering sensor calibration with `Tier4Viewer`.
+    """Test rendering sensor calibration with `RerunViewer`.
 
     Args:
-        dummy_viewer (Tier4Viewer): Viewer object.
+        dummy_viewer (RerunViewer): Viewer object.
     """
     # without `Sensor` and `CalibratedSensor`
     channel = "camera"

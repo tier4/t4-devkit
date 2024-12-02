@@ -21,7 +21,7 @@ from t4_devkit.dataclass import (
     ShapeType,
 )
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
-from t4_devkit.viewer import Tier4Viewer, distance_color, format_entity
+from t4_devkit.viewer import RerunViewer, distance_color, format_entity
 
 if TYPE_CHECKING:
     from t4_devkit.typing import CamIntrinsicType, NDArrayF64, NDArrayU8, VelocityType
@@ -882,7 +882,7 @@ class Tier4:
         render_2d: bool = True,
         render_annotation: bool = True,
         spawn: bool = False,
-    ) -> Tier4Viewer:
+    ) -> RerunViewer:
         """Initialize rendering viewer.
 
         Args:
@@ -904,7 +904,7 @@ class Tier4:
             else None
         )
 
-        viewer = Tier4Viewer(application_id, cameras=cameras, with_3d=render_3d, spawn=spawn)
+        viewer = RerunViewer(application_id, cameras=cameras, with_3d=render_3d, spawn=spawn)
 
         if render_annotation:
             viewer = viewer.with_labels(self._label2id)
@@ -915,7 +915,7 @@ class Tier4:
 
     def _render_lidar_and_ego(
         self,
-        viewer: Tier4Viewer,
+        viewer: RerunViewer,
         first_lidar_token: str,
         max_timestamp_us: float,
         *,
@@ -925,7 +925,7 @@ class Tier4:
         """Render lidar pointcloud and ego transform.
 
         Args:
-            viewer (Tier4Viewer): Viewer object.
+            viewer (RerunViewer): Viewer object.
             first_lidar_token (str): First sample data token corresponding to the lidar.
             max_timestamp_us (float): Max time length in [us].
             project_points (bool, optional): Whether to project 3d points on 2d images.
@@ -961,14 +961,14 @@ class Tier4:
 
     def _render_radars(
         self,
-        viewer: Tier4Viewer,
+        viewer: RerunViewer,
         first_radar_tokens: list[str],
         max_timestamp_us: float,
     ) -> None:
         """Render radar pointcloud.
 
         Args:
-            viewer (Tier4Viewer): Viewer object.
+            viewer (RerunViewer): Viewer object.
             first_radar_tokens (list[str]): List of first sample data tokens corresponding to radars.
             max_timestamp_us (float): Max time length in [us].
         """
@@ -993,12 +993,12 @@ class Tier4:
                 current_radar_token = sample_data.next
 
     def _render_cameras(
-        self, viewer: Tier4Viewer, first_camera_tokens: list[str], max_timestamp_us: float
+        self, viewer: RerunViewer, first_camera_tokens: list[str], max_timestamp_us: float
     ) -> None:
         """Render camera images.
 
         Args:
-            viewer (Tier4Viewer): Viewer object.
+            viewer (RerunViewer): Viewer object.
             first_camera_tokens (list[str]): List of first sample data tokens corresponding to cameras.
             max_timestamp_us (float): Max time length in [us].
         """
@@ -1038,7 +1038,7 @@ class Tier4:
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
 
         TODO:
-            Replace operation by `Tier4Viewer`.
+            Replace operation by `RerunViewer`.
         """
         point_sample_data: SampleData = self.get("sample_data", point_sample_data_token)
         sample: Sample = self.get("sample", point_sample_data.sample_token)
@@ -1060,10 +1060,10 @@ class Tier4:
 
             sensor_name = channel
             rr.set_time_seconds("timestamp", us2sec(camera_sample_data.timestamp))
-            rr.log(format_entity(Tier4Viewer.ego_entity, sensor_name), rr.Image(img))
+            rr.log(format_entity(RerunViewer.ego_entity, sensor_name), rr.Image(img))
 
             rr.log(
-                format_entity(Tier4Viewer.ego_entity, sensor_name, "pointcloud"),
+                format_entity(RerunViewer.ego_entity, sensor_name, "pointcloud"),
                 rr.Points2D(
                     positions=points_on_img.T,
                     colors=distance_color(depths),
@@ -1072,7 +1072,7 @@ class Tier4:
 
     def _render_annotation_3ds(
         self,
-        viewer: Tier4Viewer,
+        viewer: RerunViewer,
         first_sample_token: str,
         max_timestamp_us: float,
         instance_token: str | None = None,
@@ -1080,7 +1080,7 @@ class Tier4:
         """Render annotated 3D boxes.
 
         Args:
-            viewer (Tier4Viewer): Viewer object.
+            viewer (RerunViewer): Viewer object.
             first_sample_token (str): First sample token.
             max_timestamp_us (float): Max time length in [us].
             instance_token (str | None, optional): Specify if you want to render only particular instance.
@@ -1107,7 +1107,7 @@ class Tier4:
 
     def _render_annotation_2ds(
         self,
-        viewer: Tier4Viewer,
+        viewer: RerunViewer,
         first_sample_token: str,
         max_timestamp_us: float,
         instance_token: str | None = None,
@@ -1115,7 +1115,7 @@ class Tier4:
         """Render annotated 2D boxes.
 
         Args:
-            viewer (Tier4Viewer): Viewer object.
+            viewer (RerunViewer): Viewer object.
             first_sample_token (str): First sample token.
             max_timestamp_us (float): Max time length in [us].
             instance_token (str | None, optional): Specify if you want to render only particular instance.
@@ -1175,11 +1175,11 @@ class Tier4:
             # TODO: add support of rendering keypoints
             current_sample_token = sample.next
 
-    def _render_sensor_calibration(self, viewer: Tier4Viewer, sample_data_token: str) -> None:
+    def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
         """Render a fixed calibrated sensor transform.
 
         Args:
-            viewer (Tier4Viewer): Viewer object.
+            viewer (RerunViewer): Viewer object.
             sample_data_token (str): First sample data token corresponding to the sensor.
         """
         sample_data: SampleData = self.get("sample_data", sample_data_token)
