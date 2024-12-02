@@ -1,15 +1,17 @@
 import pytest
 
-from t4_devkit.viewer import Tier4Viewer
+from t4_devkit.viewer import RerunViewer
 
 
 @pytest.fixture(scope="module")
-def dummy_viewer(label2id) -> Tier4Viewer:
+def dummy_viewer(label2id) -> RerunViewer:
     """Return a dummy viewer.
 
     Returns:
-        `Tier4Viewer` without spawning.
+        `RerunViewer` without spawning.
     """
-    return Tier4Viewer("test_viewer", cameras=["camera"], spawn=False).with_labels(
-        label2id=label2id
-    )
+    return RerunViewer(
+        "test_viewer",
+        cameras=["camera"],
+        spawn=False,
+    ).with_labels(label2id=label2id)

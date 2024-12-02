@@ -29,7 +29,7 @@ if TYPE_CHECKING:
         VelocityType,
     )
 
-__all__ = ["Tier4Viewer", "format_entity"]
+__all__ = ["RerunViewer", "format_entity"]
 
 
 def format_entity(root: str, *entities) -> str:
@@ -61,7 +61,7 @@ def format_entity(root: str, *entities) -> str:
         return osp.join(root, "/".join(entities))
 
 
-class Tier4Viewer:
+class RerunViewer:
     """A viewer class that renders some components powered by rerun."""
 
     # entity paths
@@ -88,13 +88,13 @@ class Tier4Viewer:
             spawn (bool, optional): Whether to spawn the viewer.
 
         Examples:
-            >>> from t4_devkit.viewer import Tier4Viewer
+            >>> from t4_devkit.viewer import RerunViewer
             # Rendering both 3D/2D spaces
-            >>> viewer = Tier4Viewer("myapp", cameras=["camera0", "camera1"])
+            >>> viewer = RerunViewer("myapp", cameras=["camera0", "camera1"])
             # Rendering 3D space only
-            >>> viewer = Tier4Viewer("myapp")
+            >>> viewer = RerunViewer("myapp")
             # Rendering 2D space only
-            >>> viewer = Tier4Viewer("myapp", cameras=["camera0", "camera1"], with_3d=False)
+            >>> viewer = RerunViewer("myapp", cameras=["camera0", "camera1"], with_3d=False)
         """
         self.app_id = app_id
         self.cameras = cameras
@@ -148,7 +148,7 @@ class Tier4Viewer:
 
         Examples:
             >>> label2id = {"car": 0, "pedestrian": 1}
-            >>> viewer = Tier4Viewer("myapp").with_labels(label2id)
+            >>> viewer = RerunViewer("myapp").with_labels(label2id)
         """
         self.label2id = label2id
 

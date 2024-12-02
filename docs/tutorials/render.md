@@ -53,15 +53,15 @@ If you don't want to spawn the viewer, please specify `show=False` as below:
 >>> t4.render_scene(scene_token, save_dir=<DIR_TO_SAVE>, show=False)
 ```
 
-## Rendering with `Tier4Viewer`
+## Rendering with `RerunViewer`
 
-If you want to visualize your components, such as boxes that your ML-model estimated, `Tier4Viewer` allows you to visualize these components.  
+If you want to visualize your components, such as boxes that your ML-model estimated, `RerunViewer` allows you to visualize these components.  
 For details, please refer to the API references.
 
 ```python
->>> from t4_devkit.viewer import Tier4Viewer
+>>> from t4_devkit.viewer import RerunViewer
 # You need to specify `cameras` if you want to 2D spaces
->>> viewer = Tier4Viewer(app_id, cameras=<CAMERA_NAMES:[str;N]>)
+>>> viewer = RerunViewer(app_id, cameras=<CAMERA_NAMES:[str;N]>)
 # Rendering 3D boxes
 >>> viewer.render_box3ds(seconds, box3ds)
 # Rendering 2D boxes
