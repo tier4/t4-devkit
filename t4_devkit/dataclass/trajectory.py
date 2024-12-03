@@ -6,7 +6,7 @@ import numpy as np
 from attrs import define, field
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import TrajectoryType, TranslationType
+    from t4_devkit.typing import RotationType, TrajectoryType, TranslationType
 
 __all__ = ["Trajectory", "to_trajectories"]
 
@@ -65,6 +65,23 @@ class Trajectory:
             Shape of the matrix (N, 3).
         """
         return self.waypoints.shape
+
+    def translate(self, x: TranslationType) -> None:
+        """Apply a translation.
+
+        Args:
+            x (TranslationType): 3D translation vector.
+        """
+        self.waypoints += x
+
+    def rotate(self, q: RotationType) -> None:
+        """Apply a rotation.
+
+        Args:
+            q (RotationType): Rotation quaternion.
+        """
+        # NOTE: R * X = X * R^T
+        self.waypoints = np.dot(self.waypoints, q.rotation_matrix.T)
 
 
 def to_trajectories(

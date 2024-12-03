@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+from pyquaternion import Quaternion
 
 from t4_devkit.dataclass import distance_box
 
@@ -20,14 +21,37 @@ def test_box3d(dummy_box3d) -> None:
         dummy_box3d.corners(box_scale=1.0),
         np.array(
             [
-                [0.5, 0.5, 1.5],
-                [0.5, 1.5, 1.5],
-                [0.5, 1.5, 0.5],
-                [0.5, 0.5, 0.5],
-                [1.5, 0.5, 1.5],
                 [1.5, 1.5, 1.5],
-                [1.5, 1.5, 0.5],
+                [1.5, 0.5, 1.5],
                 [1.5, 0.5, 0.5],
+                [1.5, 1.5, 0.5],
+                [0.5, 1.5, 1.5],
+                [0.5, 0.5, 1.5],
+                [0.5, 0.5, 0.5],
+                [0.5, 1.5, 0.5],
+            ],
+        ),
+    )
+
+
+def test_box3d_translate(dummy_box3d) -> None:
+    dummy_box3d.translate(x=(1.0, 2.0, 3.0))
+
+    assert np.allclose(dummy_box3d.position, (2.0, 3.0, 4.0))
+
+
+def test_box3d_rotate(dummy_box3d) -> None:
+    # +90 [deg]
+    dummy_box3d.rotate(q=Quaternion([0.7071067811865475, 0.0, 0.0, -0.7071067811865475]))
+
+    assert np.allclose(dummy_box3d.position, (1.0, -1.0, 1.0))
+    assert np.allclose(
+        dummy_box3d.rotation.rotation_matrix,
+        np.array(
+            [
+                [0, 1, 0],
+                [-1, 0, 0],
+                [0, 0, 1],
             ]
         ),
     )

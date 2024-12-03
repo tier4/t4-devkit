@@ -293,18 +293,21 @@ class Tier4:
     def get_sample_data(
         self,
         sample_data_token: str,
-        selected_ann_tokens: list[str] | None = None,
         *,
+        selected_ann_tokens: list[str] | None = None,
         as_3d: bool = True,
+        as_sensor_coord: bool = True,
         visibility: VisibilityLevel = VisibilityLevel.NONE,
     ) -> tuple[str, list[BoxType], CamIntrinsicType | None]:
         """Return the data path as well as all annotations related to that `sample_data`.
+        Note that output boxes is w.r.t base link or sensor coordinate system.
 
         Args:
             sample_data_token (str): Token of `sample_data`.
             selected_ann_tokens (list[str] | None, optional):
                 Specify if you want to extract only particular annotations.
             as_3d (bool, optional): Whether to return 3D or 2D boxes.
+            as_sensor_coord (bool, optional): Whether to transform boxes as sensor origin coordinate system.
             visibility (VisibilityLevel, optional): If `sample_data` is an image,
                 this sets required visibility for only 3D boxes.
 
@@ -350,10 +353,13 @@ class Tier4:
             # Move box to ego vehicle coord system.
             box.translate(-pose_record.translation)
             box.rotate(pose_record.rotation.inverse)
+            box.frame_id = "base_link"
 
-            #  Move box to sensor coord system.
-            box.translate(-cs_record.translation)
-            box.rotate(cs_record.rotation.inverse)
+            if as_sensor_coord:
+                #  Move box to sensor coord system.
+                box.translate(-cs_record.translation)
+                box.rotate(cs_record.rotation.inverse)
+                box.frame_id = sensor_record.channel
 
             if sensor_record.modality == SensorModality.CAMERA and not is_box_in_image(
                 box,
