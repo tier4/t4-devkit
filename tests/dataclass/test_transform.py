@@ -40,8 +40,8 @@ def test_tf_buffer(dummy_tf_buffer) -> None:
         mat.matrix,
         np.array(
             [
-                [-1, 0, 0, 3],
-                [0, -1, 0, 3],
+                [1, 0, 0, 3],
+                [0, 1, 0, 3],
                 [0, 0, 1, 3],
                 [0, 0, 0, 1],
             ],

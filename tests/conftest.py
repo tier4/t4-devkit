@@ -8,6 +8,7 @@ from t4_devkit.dataclass import (
     SemanticLabel,
     Shape,
     ShapeType,
+    Trajectory,
     TransformBuffer,
 )
 
@@ -17,7 +18,7 @@ def label2id() -> dict[str, int]:
     return {"car": 0, "bicycle": 1, "pedestrian": 2}
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def dummy_box3d() -> Box3D:
     """Return a dummy 3D box.
 
@@ -29,7 +30,7 @@ def dummy_box3d() -> Box3D:
         frame_id="base_link",
         semantic_label=SemanticLabel("car"),
         position=(1.0, 1.0, 1.0),
-        rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
+        rotation=Quaternion([1.0, 0.0, 0.0, 0.0]),
         shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
         velocity=(1.0, 1.0, 1.0),
         confidence=1.0,
@@ -37,7 +38,7 @@ def dummy_box3d() -> Box3D:
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def dummy_box3ds() -> list[Box3D]:
     """Return a list of dummy 3D boxes.
 
@@ -50,7 +51,7 @@ def dummy_box3ds() -> list[Box3D]:
             frame_id="base_link",
             semantic_label=SemanticLabel("car"),
             position=(1.0, 1.0, 1.0),
-            rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
+            rotation=Quaternion([1.0, 0.0, 0.0, 0.0]),
             shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
@@ -61,7 +62,7 @@ def dummy_box3ds() -> list[Box3D]:
             frame_id="base_link",
             semantic_label=SemanticLabel("bicycle"),
             position=(-1.0, -1.0, 1.0),
-            rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
+            rotation=Quaternion([1.0, 0.0, 0.0, 0.0]),
             shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
@@ -72,7 +73,7 @@ def dummy_box3ds() -> list[Box3D]:
             frame_id="base_link",
             semantic_label=SemanticLabel("pedestrian"),
             position=(-1.0, 1.0, 1.0),
-            rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
+            rotation=Quaternion([1.0, 0.0, 0.0, 0.0]),
             shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
@@ -81,7 +82,7 @@ def dummy_box3ds() -> list[Box3D]:
     ]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def dummy_box2d() -> Box2D:
     """Return a dummy 2D box.
 
@@ -98,7 +99,7 @@ def dummy_box2d() -> Box2D:
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def dummy_box2ds() -> list[Box2D]:
     """Return a list of dummy 2D boxes.
 
@@ -133,6 +134,20 @@ def dummy_box2ds() -> list[Box2D]:
     ]
 
 
+@pytest.fixture(scope="function")
+def dummy_trajectory() -> Trajectory:
+    """Return a dummy trajectory.
+
+    Returns:
+        A trajectory.
+    """
+    # list item is converted to NDArray internally
+    return Trajectory(
+        waypoints=[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]],
+        confidence=1.0,
+    )
+
+
 @pytest.fixture(scope="module")
 def dummy_tf_buffer() -> TransformBuffer:
     """Return a dummy transformation buffer.
@@ -145,7 +160,7 @@ def dummy_tf_buffer() -> TransformBuffer:
     tf_buffer.set_transform(
         HomogeneousMatrix(
             [1.0, 1.0, 1.0],
-            Quaternion([0.0, 0.0, 0.0, 1.0]),
+            Quaternion([1.0, 0.0, 0.0, 0.0]),
             src="base_link",
             dst="map",
         )
@@ -154,11 +169,10 @@ def dummy_tf_buffer() -> TransformBuffer:
     tf_buffer.set_transform(
         HomogeneousMatrix(
             [1.0, 1.0, 1.0],
-            Quaternion([0.0, 0.0, 0.0, 1.0]),
+            Quaternion([1.0, 0.0, 0.0, 0.0]),
             src="base_link",
             dst="camera",
         )
     )
 
-    return tf_buffer
     return tf_buffer

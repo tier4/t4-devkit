@@ -170,6 +170,32 @@ class Box3D(BaseBox):
     def volume(self) -> float:
         return self.area * self.size[2]
 
+    def translate(self, x: TranslationType) -> None:
+        """Apply a translation.
+
+        Args:
+            x (TranslationType): 3D translation vector in the order of (x, y, z).
+        """
+        self.position += x
+
+        if self.future is not None:
+            self.future = [t.translate(x) for t in self.future]
+
+    def rotate(self, q: RotationType) -> None:
+        """Apply a rotation.
+
+        Args:
+            q (RotationType): Rotation quaternion.
+        """
+        self.position = np.dot(q.rotation_matrix, self.position)
+        self.rotation = q * self.rotation
+
+        if self.velocity is not None:
+            self.velocity = np.dot(q.rotation_matrix, self.velocity)
+
+        if self.future is not None:
+            self.future = [t.rotate(q) for t in self.future]
+
     def corners(self, box_scale: float = 1.0) -> NDArrayF64:
         """Return the bounding box corners.
 
