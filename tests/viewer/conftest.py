@@ -13,5 +13,5 @@ def dummy_viewer(label2id) -> RerunViewer:
     return RerunViewer(
         "test_viewer",
         cameras=["camera"],
-        spawn=False,
+        spawn=False,  # set this to True for debugging
     ).with_labels(label2id=label2id)
