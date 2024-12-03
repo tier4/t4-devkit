@@ -68,7 +68,7 @@ def view_points(
         points = points[:3, :]
 
     if normalize:
-        points = points / points[2:3, :].repeat(3, 0).reshape(3, nbr_points)
+        points /= points[2:3, :]
 
     return points
 
@@ -90,21 +90,21 @@ def is_box_in_image(
     Returns:
         Return True if visibility condition is satisfied.
     """
-    corners_3d = box.corners()
-    corners_on_img = view_points(corners_3d.T, intrinsic, normalize=True)[:2, :]
+    corners_3d = box.corners().T  # (3, 8)
+    corners_on_img = view_points(corners_3d, intrinsic, normalize=True)[:2, :]
 
     img_w, img_h = img_size
-    is_visible = np.logical_and(corners_on_img[0, :] > 0, corners_on_img[0, :] < img_w)
-    is_visible = np.logical_and(is_visible, corners_on_img[1, :] < img_h)
-    is_visible = np.logical_and(is_visible, corners_on_img[1, :] > 0)
-    is_visible = np.logical_and(is_visible, corners_on_img[2, :] > 1)
+    is_visible = np.logical_and(corners_on_img[0, :] >= 0, corners_on_img[0, :] <= img_w)
+    is_visible = np.logical_and(is_visible, corners_on_img[1, :] <= img_h)
+    is_visible = np.logical_and(is_visible, corners_on_img[1, :] >= 0)
+    is_visible = np.logical_and(is_visible, corners_3d[2, :] > 1)
 
     in_front = corners_3d[2, :] > 0.1  # True if a corner is at least 0.1 meter in front of camera.
 
     if visibility == VisibilityLevel.FULL:
-        return all(is_visible) and all(in_front)
+        return np.all(is_visible) and np.all(in_front)
     elif visibility in (VisibilityLevel.MOST, VisibilityLevel.PARTIAL):
-        return any(is_visible)
+        return np.any(is_visible)
     elif visibility == VisibilityLevel.NONE:
         return True
     else:

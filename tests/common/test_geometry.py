@@ -1,6 +1,7 @@
 import numpy as np
 
-from t4_devkit.common.geometry import view_points
+from t4_devkit.common.geometry import is_box_in_image, view_points
+from t4_devkit.schema import VisibilityLevel
 
 
 def test_view_points_by_perspective_projection() -> None:
@@ -77,3 +78,46 @@ def test_view_points_with_distortion() -> None:
     )
 
     assert np.allclose(project, expect)
+
+
+# TODO(ktro2828): add unit testing for VisibilityLevel.FULL
+
+
+def test_box_partial_visible(dummy_box3d, dummy_camera_calibration) -> None:
+    """Test `is_box_in_image` function in the case of the box is partially visible."""
+    img_size, intrinsic = dummy_camera_calibration
+
+    dummy_box3d.position = (0.0, 0.0, 2.0)
+    assert is_box_in_image(
+        dummy_box3d,
+        intrinsic=intrinsic,
+        img_size=img_size,
+        visibility=VisibilityLevel.PARTIAL,
+    )
+
+
+def test_box_not_visible(dummy_box3d, dummy_camera_calibration) -> None:
+    """Test `is_box_in_image` function in the case of the box is not visible."""
+    img_size, intrinsic = dummy_camera_calibration
+
+    dummy_box3d.position = (100.0, 100.0, 1.0)
+    assert not is_box_in_image(
+        dummy_box3d,
+        intrinsic=intrinsic,
+        img_size=img_size,
+        visibility=VisibilityLevel.PARTIAL,
+    )
+
+
+def test_box_behind_camera(dummy_box3d, dummy_camera_calibration) -> None:
+    """Test `is_box_in_image` function in the case of the box is behind of the camera."""
+
+    img_size, intrinsic = dummy_camera_calibration
+
+    dummy_box3d.position = (100.0, 100.0, -1.0)
+    assert not is_box_in_image(
+        dummy_box3d,
+        intrinsic=intrinsic,
+        img_size=img_size,
+        visibility=VisibilityLevel.FULL,
+    )
