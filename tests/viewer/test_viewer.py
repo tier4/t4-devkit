@@ -17,12 +17,7 @@ def test_format_entity() -> None:
 
 
 def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
-    """Test rendering 3D boxes with `RerunViewer`.
-
-    Args:
-        dummy_viewer (RerunViewer): Viewer object.
-        dummy_box3ds (list[Box3D]): List of 3D boxes.
-    """
+    """Test rendering 3D boxes with `RerunViewer`."""
     seconds = 1.0  # [sec]
 
     dummy_viewer.render_box3ds(seconds, dummy_box3ds)
@@ -46,12 +41,7 @@ def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
 
 
 def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
-    """Test rendering 2D boxes with `RerunViewer`.
-
-    Args:
-        dummy_viewer (RerunViewer): Viewer object.
-        dummy_box2ds (list[Box2D): List of 2D boxes.
-    """
+    """Test rendering 2D boxes with `RerunViewer`."""
     seconds = 1.0  # [sec]
 
     dummy_viewer.render_box2ds(seconds, dummy_box2ds)
@@ -65,28 +55,29 @@ def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
 
 
 def test_render_pointcloud(dummy_viewer) -> None:
-    """Test rendering pointcloud with `RerunViewer`.
-
-    Args:
-        dummy_viewer (RerunViewer): Viewer object.
-    """
+    """Test rendering pointcloud with `RerunViewer`."""
     seconds = 1.0  # [sec]
 
     dummy_pointcloud = LidarPointCloud(np.random.rand(4, 100))
     dummy_viewer.render_pointcloud(seconds, "lidar", dummy_pointcloud)
 
 
-def test_render_ego(dummy_viewer) -> None:
-    """Test rendering ego pose with `RerunViewer`.
+def test_render_image(dummy_viewer, dummy_camera_calibration) -> None:
+    """Test rendering image with `RerunViewer`."""
+    seconds = 1.0  # [sec]
 
-    Args:
-        dummy_viewer (RerunViewer): Viewer object.
-    """
+    (width, height), _ = dummy_camera_calibration
+    dummy_image = np.zeros((height, width, 3), dtype=np.uint8)
+    dummy_viewer.render_image(seconds=seconds, camera="camera", image=dummy_image)
+
+
+def test_render_ego(dummy_viewer) -> None:
+    """Test rendering ego pose with `RerunViewer`."""
     seconds = 1.0  # [sec]
 
     # without `EgoPose`
     translation = [1, 0, 0]
-    rotation = Quaternion([0, 0, 0, 1])
+    rotation = Quaternion([1, 0, 0, 0])
     dummy_viewer.render_ego(seconds, translation=translation, rotation=rotation)
 
     # with `EgoPose`
@@ -99,22 +90,14 @@ def test_render_ego(dummy_viewer) -> None:
     dummy_viewer.render_ego(ego_pose)
 
 
-def test_render_calibration(dummy_viewer) -> None:
-    """Test rendering sensor calibration with `RerunViewer`.
-
-    Args:
-        dummy_viewer (RerunViewer): Viewer object.
-    """
+def test_render_calibration(dummy_viewer, dummy_camera_calibration) -> None:
+    """Test rendering sensor calibration with `RerunViewer`."""
     # without `Sensor` and `CalibratedSensor`
     channel = "camera"
     modality = "camera"
-    translation = [1, 0, 0]
-    rotation = Quaternion([0, 0, 0, 1])
-    camera_intrinsic = [
-        [1000.0, 0.0, 100.0],
-        [0.0, 1000.0, 100.0],
-        [0.0, 0.0, 1.0],
-    ]
+    translation = [1, 1, 1]
+    rotation = Quaternion([1, 0, 0, 0])
+    _, camera_intrinsic = dummy_camera_calibration
     dummy_viewer.render_calibration(
         channel=channel,
         modality=modality,
