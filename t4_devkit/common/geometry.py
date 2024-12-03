@@ -91,7 +91,7 @@ def is_box_in_image(
         Return True if visibility condition is satisfied.
     """
     corners_3d = box.corners()
-    corners_on_img = view_points(corners_3d, intrinsic, normalize=True)[:2, :]
+    corners_on_img = view_points(corners_3d.T, intrinsic, normalize=True)[:2, :]
 
     img_w, img_h = img_size
     is_visible = np.logical_and(corners_on_img[0, :] > 0, corners_on_img[0, :] < img_w)
