@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import numpy as np
 import pytest
 from pyquaternion import Quaternion
 
@@ -11,6 +16,9 @@ from t4_devkit.dataclass import (
     Trajectory,
     TransformBuffer,
 )
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import NDArrayFloat
 
 
 @pytest.fixture(scope="module")
@@ -176,3 +184,18 @@ def dummy_tf_buffer() -> TransformBuffer:
     )
 
     return tf_buffer
+
+
+@pytest.fixture(scope="function")
+def dummy_camera_calibration() -> tuple[tuple[int, int], NDArrayFloat]:
+    img_size = (1280, 720)
+
+    intrinsic = np.array(
+        [
+            [1000, 0, 640],
+            [0, 1000, 360],
+            [0, 0, 1],
+        ]
+    )
+
+    return img_size, intrinsic
