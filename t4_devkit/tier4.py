@@ -186,11 +186,12 @@ class Tier4:
             record.category_name = category.name
 
         for record in self.object_ann:
-            instance: Instance = self.get("instance", record.instance_token)
-            category: Category = self.get("category", instance.category_token)
+            category: Category = self.get("category", record.category_token)
             record.category_name = category.name
 
         for record in self.surface_ann:
+            if record.category_token == "":  # NOTE: Some database contains this case
+                continue
             category: Category = self.get("category", record.category_token)
             record.category_name = category.name
 
