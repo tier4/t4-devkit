@@ -41,6 +41,10 @@ NDArrayStr = NDArray[np.str_]
 NDArrayInt = NDArrayI32 | NDArrayI64
 NDArrayFloat = NDArrayF32 | NDArrayF64
 
+# NOTE: Custom type aliases are declared because they might allow to include another type as well.
+# (e.g.) TranslationType = TypeBar("TranslationType", NDArrayF64, ArrayLike, ...)
+# If not, they should be removed because these aliases would cause confusing,
+
 # 3D
 TranslationType = NewType("TranslationType", NDArrayF64)
 VelocityType = NewType("VelocityType", NDArrayF64)
