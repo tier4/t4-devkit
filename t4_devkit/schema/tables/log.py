@@ -22,6 +22,7 @@ class Log(SchemaBase):
         location (str): Area where log was captured.
 
     Shortcuts:
+    ---------
         map_token (str): Foreign key pointing to the map record.
             This should be set after instantiated.
     """

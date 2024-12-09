@@ -36,6 +36,7 @@ class Sensor(SchemaBase):
         modality (SensorModality): Sensor modality.
 
     Shortcuts:
+    ---------
         first_sd_token (str): The first sample data token corresponding to its sensor channel.
     """
 

@@ -26,6 +26,10 @@ class SurfaceAnn(SchemaBase):
         sample_data_token (str): Foreign key pointing to the sample data, which must be a keyframe image.
         category_token (str): Foreign key pointing to the surface category.
         mask (RLEMask): Segmentation mask using the COCO format compressed by RLE.
+
+    Shortcuts:
+    ---------
+        category_name (str): Category name. This should be set after instantiated.
     """
 
     sample_data_token: str
