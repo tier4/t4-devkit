@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os.path as osp
 import time
+import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -191,6 +192,7 @@ class Tier4:
 
         for record in self.surface_ann:
             if record.category_token == "":  # NOTE: Some database contains this case
+                warnings.warn(f"Category token is empty for surface ann: {record.token}")
                 continue
             category: Category = self.get("category", record.category_token)
             record.category_name = category.name
