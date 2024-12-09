@@ -62,6 +62,7 @@ class ObjectAnn(SchemaBase):
         mask (RLEMask): Instance mask using the COCO format compressed by RLE.
 
     Shortcuts:
+    ---------
         category_name (str): Category name. This should be set after instantiated.
     """
 

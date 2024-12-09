@@ -85,6 +85,7 @@ class SampleData(SchemaBase):
         is_valid (bool): True if this data is valid, else False. Invalid data should be ignored.
 
     Shortcuts:
+    ---------
         modality (SensorModality): Sensor modality. This should be set after instantiated.
         channel (str): Sensor channel. This should be set after instantiated.
     """

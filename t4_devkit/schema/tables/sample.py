@@ -22,6 +22,7 @@ class Sample(SchemaBase):
         prev (str): Foreign key pointing the sample that precedes this in time. Empty if start of scene.
 
     Shortcuts:
+    ---------
         data (dict[str, str]): Sensor channel and its token.
             This should be set after instantiated.
         ann_3ds (list[str]): List of foreign keys pointing the sample annotations.
