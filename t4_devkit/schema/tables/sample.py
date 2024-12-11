@@ -43,7 +43,3 @@ class Sample(SchemaBase):
     ann_3ds: list[str] = field(factory=list, init=False)
     ann_2ds: list[str] = field(factory=list, init=False)
     surface_anns: list[str] = field(factory=list, init=False)
-
-    @staticmethod
-    def shortcuts() -> tuple[str, str, str, str]:
-        return ("data", "ann_3ds", "ann_2ds", "surface_anns")

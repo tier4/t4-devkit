@@ -76,10 +76,6 @@ class ObjectAnn(SchemaBase):
     # shortcuts
     category_name: str = field(init=False, factory=str)
 
-    @staticmethod
-    def shortcuts() -> tuple[str]:
-        return ("category_name",)
-
     @property
     def width(self) -> int:
         """Return the width of the bounding box.

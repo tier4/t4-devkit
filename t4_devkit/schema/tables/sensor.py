@@ -45,7 +45,3 @@ class Sensor(SchemaBase):
 
     # shortcuts
     first_sd_token: str = field(init=False, factory=str)
-
-    @staticmethod
-    def shortcuts() -> tuple[str] | None:
-        return ("first_sd_token",)

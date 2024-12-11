@@ -106,7 +106,3 @@ class SampleData(SchemaBase):
     # shortcuts
     modality: SensorModality | None = field(init=False, default=None)
     channel: str = field(init=False, factory=str)
-
-    @staticmethod
-    def shortcuts() -> tuple[str, str]:
-        return ("modality", "channel")
