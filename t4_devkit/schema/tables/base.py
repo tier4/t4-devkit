@@ -17,15 +17,6 @@ class SchemaBase(ABC):
 
     token: str
 
-    @staticmethod
-    def shortcuts() -> tuple[str, ...] | None:
-        """Return a sequence of shortcut field names.
-
-        Returns:
-            Returns None if there is no shortcut. Otherwise, returns sequence of shortcut field names.
-        """
-        return None
-
     @classmethod
     def from_json(cls, filepath: str) -> list[SchemaTable]:
         """Construct dataclass from json file.

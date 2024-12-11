@@ -39,10 +39,6 @@ class SurfaceAnn(SchemaBase):
     # shortcuts
     category_name: str = field(init=False, factory=str)
 
-    @staticmethod
-    def shortcuts() -> tuple[str]:
-        return ("category_name",)
-
     @property
     def bbox(self) -> RoiType:
         """Return a bounding box corners calculated from polygon vertices.

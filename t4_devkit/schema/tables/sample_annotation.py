@@ -70,7 +70,3 @@ class SampleAnnotation(SchemaBase):
 
     # shortcuts
     category_name: str = field(init=False, factory=str)
-
-    @staticmethod
-    def shortcuts() -> tuple[str]:
-        return ("category_name",)
