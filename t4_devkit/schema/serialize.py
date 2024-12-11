@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-import numpy as np
-from attrs import asdict, filters
-from pyquaternion import Quaternion
+from t4_devkit.common.serialize import serialize_dataclass
 
 if TYPE_CHECKING:
     from .tables import SchemaTable
@@ -35,17 +32,4 @@ def serialize_schema(data: SchemaTable) -> dict:
     Returns:
         Serialized dict data.
     """
-    excludes = filters.exclude(*data.shortcuts()) if data.shortcuts() is not None else None
-    return asdict(data, filter=excludes, value_serializer=_value_serializer)
-
-
-def _value_serializer(data: SchemaTable, attr: Any, value: Any) -> Any:
-    if isinstance(value, np.ndarray):
-        return value.tolist()
-    elif isinstance(value, Quaternion):
-        return value.q.tolist()
-    elif isinstance(value, tuple):
-        return list(value)
-    elif isinstance(value, Enum):
-        return value.value
-    return value
+    return serialize_dataclass(data)
