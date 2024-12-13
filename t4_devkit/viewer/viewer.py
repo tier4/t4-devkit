@@ -13,6 +13,7 @@ from t4_devkit.common.timestamp import us2sec
 from t4_devkit.schema import SensorModality
 
 from .color import distance_color
+from .geography import calculate_geodetic_point
 from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
 
 if TYPE_CHECKING:
@@ -101,6 +102,7 @@ class RerunViewer:
         self.with_3d = with_3d
         self.with_2d = self.cameras is not None
         self.label2id: dict[str, int] | None = None
+        self.global_origin: tuple[float, float] | None = None
 
         if not (self.with_3d or self.with_2d):
             raise ValueError("At least one of 3D or 2D spaces must be rendered.")
@@ -163,6 +165,22 @@ class RerunViewer:
             static=True,
         )
 
+        return self
+
+    def with_global_origin(self, lat_lon: tuple[float, float]) -> Self:
+        """Return myself after setting global origin.
+
+        Args:
+            lat_lon (tuple[float, float]): Global origin of map (latitude, longitude).
+
+        Returns:
+            Self instance.
+
+        Examples:
+            >>> lat_lon = (42.336849169438615, -71.05785369873047)
+            >>> viewer = RerunViewer("myapp").with_global_origin(lat_lon)
+        """
+        self.global_origin = lat_lon
         return self
 
     def save(self, save_dir: str) -> None:
@@ -497,6 +515,12 @@ class RerunViewer:
 
         if geocoordinate is not None:
             latitude, longitude, _ = geocoordinate
+            rr.log(
+                self.geocoordinate_entity,
+                rr.GeoPoints(lat_lon=(latitude, longitude)),
+            )
+        elif self.global_origin is not None:
+            latitude, longitude = calculate_geodetic_point(translation, self.global_origin)
             rr.log(
                 self.geocoordinate_entity,
                 rr.GeoPoints(lat_lon=(latitude, longitude)),
