@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Sequence
 
 from .functional import (
+    FilterByArea,
     FilterByDistance,
     FilterByLabel,
     FilterByNumPoints,
-    FilterByPosition,
     FilterBySpeed,
     FilterByUUID,
 )
@@ -32,7 +32,7 @@ class BoxFilter:
             FilterByLabel.from_params(params),
             FilterByUUID.from_params(params),
             FilterByDistance.from_params(params),
-            FilterByPosition.from_params(params),
+            FilterByArea.from_params(params),
             FilterBySpeed.from_params(params),
             FilterByNumPoints.from_params(params),
         ]
