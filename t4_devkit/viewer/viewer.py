@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os.path as osp
 import warnings
 from typing import TYPE_CHECKING, Sequence, overload
@@ -30,6 +31,45 @@ if TYPE_CHECKING:
     )
 
 __all__ = ["RerunViewer", "format_entity"]
+
+EARTH_RADIUS_METERS = 6.378137e6
+
+
+def _get_coordinate(
+    origin: tuple[float, float],
+    bearing: float,
+    distance: float,
+) -> tuple[float, float]:
+    lat, lon = np.radians(origin)
+    angular_distance = distance / EARTH_RADIUS_METERS
+
+    target_lat = math.asin(
+        math.sin(lat) * math.cos(angular_distance)
+        + math.cos(lat) * math.sin(angular_distance) * math.cos(bearing)
+    )
+    target_lon = lon + math.atan2(
+        math.sin(bearing) * math.sin(angular_distance) * math.cos(lat),
+        math.cos(angular_distance) - math.sin(lat) * math.sin(target_lat),
+    )
+    return math.degrees(target_lat), math.degrees(target_lon)
+
+
+def _geo_point(position: TranslationType, origin: tuple[float, float]) -> tuple[float, float]:
+    """Transform a position in a map coordinate system to a position in a geodetic coordinate system.
+
+    Args:
+        position (TranslationType): 3D position in a map coordinate system.
+        origin (tuple[float, float]): Map origin position in a geodetic coordinate system,
+            which is (latitude, longitude).
+
+    Returns:
+        tuple[float, float]: Transformed position in a geodetic coordinate system,
+            which is (latitude, longitude).
+    """
+    x, y, _ = position
+    bearing = math.atan(x / y)
+    distance = math.hypot(x, y)
+    return _get_coordinate(origin, bearing, distance)
 
 
 def format_entity(root: str, *entities) -> str:
@@ -101,6 +141,7 @@ class RerunViewer:
         self.with_3d = with_3d
         self.with_2d = self.cameras is not None
         self.label2id: dict[str, int] | None = None
+        self.global_origin: tuple[float, float] | None = None
 
         if not (self.with_3d or self.with_2d):
             raise ValueError("At least one of 3D or 2D spaces must be rendered.")
@@ -163,6 +204,22 @@ class RerunViewer:
             static=True,
         )
 
+        return self
+
+    def with_global_origin(self, lat_lon: tuple[float, float]) -> Self:
+        """Return myself after setting global origin.
+
+        Args:
+            lat_lon (tuple[float, float]): Origin (latitude, longitude).
+
+        Returns:
+            Self instance.
+
+        Examples:
+            >>> lat_lon = (42.336849169438615, -71.05785369873047)
+            >>> viewer = RerunViewer("myapp").with_labels(label2id)
+        """
+        self.global_origin = lat_lon
         return self
 
     def save(self, save_dir: str) -> None:
@@ -497,6 +554,12 @@ class RerunViewer:
 
         if geocoordinate is not None:
             latitude, longitude, _ = geocoordinate
+            rr.log(
+                self.geocoordinate_entity,
+                rr.GeoPoints(lat_lon=(latitude, longitude)),
+            )
+        elif self.global_origin is not None:
+            latitude, longitude = _geo_point(translation, self.global_origin)
             rr.log(
                 self.geocoordinate_entity,
                 rr.GeoPoints(lat_lon=(latitude, longitude)),
