@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import rerun as rr
+import yaml
 from PIL import Image
 from pyquaternion import Quaternion
 
@@ -918,6 +919,15 @@ class Tier4:
         if render_annotation:
             viewer = viewer.with_labels(self._label2id)
 
+        global_map_filepath = osp.join(self.data_root, "map/global_map_center.pcd.yaml")
+        if osp.exists(global_map_filepath):
+            with open(global_map_filepath) as f:
+                map_metadata: dict = yaml.safe_load(f)
+            map_origin: dict = map_metadata["/**"]["ros__parameters"]["map_origin"]
+            latitude = map_origin["latitude"]
+            longitude = map_origin["longitude"]
+            viewer = viewer.with_global_origin((latitude, longitude))
+
         print(f"Finish initializing {application_id} ...")
 
         return viewer
@@ -1230,4 +1240,5 @@ def _append_mask(
         camera_masks[camera]["masks"] = [ann.mask.decode()]
         camera_masks[camera]["class_ids"] = [class_id]
         camera_masks[camera]["uuids"] = [class_id]
+    return camera_masks
     return camera_masks
