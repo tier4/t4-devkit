@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from enum import Enum
+from enum import Enum, unique
 
 from attrs import define, field
 from typing_extensions import Self
@@ -13,6 +13,7 @@ from .registry import SCHEMAS
 __all__ = ("Visibility", "VisibilityLevel")
 
 
+@unique
 class VisibilityLevel(str, Enum):
     """An enum to represent visibility levels.
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, unique
 
 __all__ = ("SchemaName",)
 
 
+@unique
 class SchemaName(str, Enum):
     """An enum to represent schema filenames.
 

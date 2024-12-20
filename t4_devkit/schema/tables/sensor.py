@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, unique
 
 from attrs import define, field
 
@@ -11,6 +11,7 @@ from .registry import SCHEMAS
 __all__ = ("Sensor", "SensorModality")
 
 
+@unique
 class SensorModality(str, Enum):
     """An enum to represent sensor modalities.
 
