@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, unique
 from typing import TYPE_CHECKING
 
 from attrs import define, field
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 __all__ = ["SampleData", "FileFormat"]
 
 
+@unique
 class FileFormat(str, Enum):
     """An enum to represent file formats.
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, unique
 
 from attrs import define, field
 
@@ -11,6 +11,7 @@ from .registry import SCHEMAS
 __all__ = ["ShiftState", "IndicatorState", "Indicators", "AdditionalInfo", "VehicleState"]
 
 
+@unique
 class ShiftState(str, Enum):
     """An enum to represent gear shift state."""
 
@@ -23,6 +24,7 @@ class ShiftState(str, Enum):
     NONE = "NONE"
 
 
+@unique
 class IndicatorState(str, Enum):
     """An enum to represent indicator state."""
 
