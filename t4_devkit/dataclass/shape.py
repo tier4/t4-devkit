@@ -52,7 +52,7 @@ class Shape:
     """
 
     shape_type: ShapeType
-    size: SizeType = field(converter=np.asarray)
+    size: SizeType = field(converter=np.array)
     footprint: Polygon = field(default=None)
 
     def __attrs_post_init__(self) -> None:

@@ -32,5 +32,5 @@ class Keypoint(SchemaBase):
     sample_data_token: str
     instance_token: str
     category_tokens: list[str]
-    keypoints: KeypointType = field(converter=np.asarray)
+    keypoints: KeypointType = field(converter=np.array)
     num_keypoints: int

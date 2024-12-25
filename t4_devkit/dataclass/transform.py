@@ -8,7 +8,7 @@ from attrs import define, field
 from pyquaternion import Quaternion
 from typing_extensions import Self
 
-from t4_devkit.common.converter import as_quaternion
+from t4_devkit.common.converter import to_quaternion
 from t4_devkit.typing import NDArray, RotationType
 
 if TYPE_CHECKING:
@@ -108,8 +108,8 @@ class TransformBuffer:
 
 @define
 class HomogeneousMatrix:
-    position: TranslationType = field(converter=np.asarray)
-    rotation: Quaternion = field(converter=as_quaternion)
+    position: TranslationType = field(converter=np.array)
+    rotation: Quaternion = field(converter=to_quaternion)
     src: str
     dst: str
     matrix: NDArray = field(init=False)
@@ -498,7 +498,7 @@ def _generate_homogeneous_matrix(
         A 4x4 homogeneous matrix.
     """
     position = np.asarray(position)
-    rotation = as_quaternion(rotation)
+    rotation = to_quaternion(rotation)
 
     matrix = np.eye(4)
     matrix[:3, 3] = position

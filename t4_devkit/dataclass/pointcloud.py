@@ -25,10 +25,10 @@ __all__ = [
 class PointCloud:
     """Abstract base dataclass for pointcloud data."""
 
-    points: NDArrayFloat = field(converter=np.asarray)
+    points: NDArrayFloat = field(converter=np.array)
 
     @points.validator
-    def check_dims(self, attribute, value) -> None:
+    def _check_dims(self, attribute, value) -> None:
         if value.shape[0] != self.num_dims():
             raise ValueError(
                 f"Expected point dimension is {self.num_dims()}, but got {value.shape[0]}"
@@ -211,7 +211,7 @@ class SegmentationPointCloud(PointCloud):
         labels (NDArrayU8): Label matrix.
     """
 
-    labels: NDArrayU8 = field(converter=lambda x: np.asarray(x, dtype=np.uint8))
+    labels: NDArrayU8 = field(converter=lambda x: np.array(x, dtype=np.uint8))
 
     @staticmethod
     def num_dims() -> int:

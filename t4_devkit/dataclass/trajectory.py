@@ -41,12 +41,13 @@ class Trajectory:
         [2. 2. 2.]
     """
 
-    waypoints: TrajectoryType = field(converter=np.asarray)
+    waypoints: TrajectoryType = field(converter=np.array)
     confidence: float = field(default=1.0)
 
-    def __attrs_post_init__(self) -> None:
-        if self.waypoints.shape[1] != 3:
-            raise ValueError("Trajectory dimension must be 3.")
+    @waypoints.validator
+    def _check_dims(self, attribute, value) -> None:
+        if value.shape[1] != 3:
+            raise ValueError(f"{attribute.name} dimension must be 3.")
 
     def __len__(self) -> int:
         return len(self.waypoints)

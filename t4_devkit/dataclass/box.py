@@ -8,7 +8,7 @@ from attrs.converters import optional
 from shapely.geometry import Polygon
 from typing_extensions import Self
 
-from t4_devkit.common.converter import as_quaternion
+from t4_devkit.common.converter import to_quaternion
 
 from .roi import Roi
 from .trajectory import to_trajectories
@@ -111,10 +111,10 @@ class Box3D(BaseBox):
         ... )
     """
 
-    position: TranslationType = field(converter=np.asarray)
-    rotation: RotationType = field(converter=as_quaternion)
+    position: TranslationType = field(converter=np.array)
+    rotation: RotationType = field(converter=to_quaternion)
     shape: Shape
-    velocity: VelocityType | None = field(default=None, converter=optional(np.asarray))
+    velocity: VelocityType | None = field(default=None, converter=optional(np.array))
     num_points: int | None = field(default=None)
 
     # additional attributes: set by `with_**`

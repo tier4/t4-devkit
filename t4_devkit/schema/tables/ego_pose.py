@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from attrs import define, field
+from attrs.converters import optional
 
-from t4_devkit.common.converter import as_quaternion
+from t4_devkit.common.converter import to_quaternion
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -42,15 +43,9 @@ class EgoPose(SchemaBase):
             (latitude, longitude, altitude) in degrees and meters.
     """
 
-    translation: TranslationType = field(converter=np.asarray)
-    rotation: RotationType = field(converter=as_quaternion)
+    translation: TranslationType = field(converter=np.array)
+    rotation: RotationType = field(converter=to_quaternion)
     timestamp: int
-    twist: TwistType | None = field(
-        default=None, converter=lambda x: np.asarray(x) if x is not None else x
-    )
-    acceleration: AccelerationType | None = field(
-        default=None, converter=lambda x: np.asarray(x) if x is not None else x
-    )
-    geocoordinate: GeoCoordinateType | None = field(
-        default=None, converter=lambda x: np.asarray(x) if x is not None else x
-    )
+    twist: TwistType | None = field(default=None, converter=optional(np.array))
+    acceleration: AccelerationType | None = field(default=None, converter=optional(np.array))
+    geocoordinate: GeoCoordinateType | None = field(default=None, converter=optional(np.array))

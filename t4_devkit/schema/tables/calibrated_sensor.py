@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from attrs import define, field
 
-from t4_devkit.common.converter import as_quaternion
+from t4_devkit.common.converter import to_quaternion
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -32,7 +32,7 @@ class CalibratedSensor(SchemaBase):
     """
 
     sensor_token: str
-    translation: TranslationType = field(converter=np.asarray)
-    rotation: RotationType = field(converter=as_quaternion)
-    camera_intrinsic: CamIntrinsicType = field(converter=np.asarray)
-    camera_distortion: CamDistortionType = field(converter=np.asarray)
+    translation: TranslationType = field(converter=np.array)
+    rotation: RotationType = field(converter=to_quaternion)
+    camera_intrinsic: CamIntrinsicType = field(converter=np.array)
+    camera_distortion: CamDistortionType = field(converter=np.array)
