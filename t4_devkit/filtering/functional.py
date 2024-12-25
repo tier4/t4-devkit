@@ -18,7 +18,7 @@ __all__ = [
     "FilterByLabel",
     "FilterByUUID",
     "FilterByDistance",
-    "FilterByArea",
+    "FilterByRegion",
     "BoxFilterFunction",
 ]
 
@@ -139,8 +139,8 @@ class FilterByDistance(BaseBoxFilter):
             return self.min_distance < box_distance and box_distance < self.max_distance
 
 
-class FilterByArea(BaseBoxFilter):
-    """Filter a box by checking if the box xy position is within the specified xy area.
+class FilterByRegion(BaseBoxFilter):
+    """Filter a box by checking if the box xy position is within the specified xy region.
 
     Note that, the type box is `Box2D` and its `position` is None,
     these boxes pass through this filter.

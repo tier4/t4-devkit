@@ -1,8 +1,8 @@
 from t4_devkit.filtering.functional import (
-    FilterByArea,
     FilterByDistance,
     FilterByLabel,
     FilterByNumPoints,
+    FilterByRegion,
     FilterBySpeed,
     FilterByUUID,
 )
@@ -66,15 +66,15 @@ def test_filter_by_distance(dummy_box3ds, dummy_box2ds, dummy_tf_buffer) -> None
     assert len(answer2d) == 3
 
 
-def test_filter_by_position(dummy_box3ds, dummy_box2ds, dummy_tf_buffer) -> None:
-    """Test `FilterByArea`.
+def test_filter_by_Region(dummy_box3ds, dummy_box2ds, dummy_tf_buffer) -> None:
+    """Test `FilterByRegion`.
 
     Args:
         dummy_box3ds (list[Box3D]): List of 3D boxes.
         dummy_box2ds (list[Box2D]): List of 2D boxes.
         dummy_tf_buffer (TransformBuffer): Transformation buffer.
     """
-    box_filter = FilterByArea(min_xy=(0.0, 0.0), max_xy=(10.0, 10.0))
+    box_filter = FilterByRegion(min_xy=(0.0, 0.0), max_xy=(10.0, 10.0))
 
     answer3d = [
         box
