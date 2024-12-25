@@ -20,10 +20,12 @@ class Roi:
 
     roi: RoiType = field(converter=tuple)
 
-    def __attrs_post_init__(self) -> None:
-        assert len(self.roi) == 4, (
-            "Expected roi is (x, y, width, height), " f"but got length with {len(self.roi)}."
-        )
+    @roi.validator
+    def _check_dims(self, attribute, value) -> None:
+        if len(value) != 4:
+            raise ValueError(
+                f"Expected {attribute.name} is (x, y, width, height), but got length with {value}."
+            )
 
     @property
     def offset(self) -> tuple[int, int]:

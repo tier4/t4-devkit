@@ -6,7 +6,7 @@ import numpy as np
 from attrs import define, field
 from attrs.converters import optional
 
-from t4_devkit.common.converter import as_quaternion
+from t4_devkit.common.converter import to_quaternion
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -58,15 +58,15 @@ class SampleAnnotation(SchemaBase):
     instance_token: str
     attribute_tokens: list[str]
     visibility_token: str
-    translation: TranslationType = field(converter=np.asarray)
-    size: SizeType = field(converter=np.asarray)
-    rotation: RotationType = field(converter=as_quaternion)
+    translation: TranslationType = field(converter=np.array)
+    size: SizeType = field(converter=np.array)
+    rotation: RotationType = field(converter=to_quaternion)
     num_lidar_pts: int
     num_radar_pts: int
     next: str  # noqa: A003
     prev: str
-    velocity: VelocityType | None = field(default=None, converter=optional(np.asarray))
-    acceleration: AccelerationType | None = field(default=None, converter=optional(np.asarray))
+    velocity: VelocityType | None = field(default=None, converter=optional(np.array))
+    acceleration: AccelerationType | None = field(default=None, converter=optional(np.array))
 
     # shortcuts
     category_name: str = field(init=False, factory=str)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import Enum, unique
 
 from attrs import define, field
+from attrs.converters import optional
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -83,9 +84,7 @@ class VehicleState(SchemaBase):
     steer_pedal: float | None = field(default=None)
     steering_tire_angle: float | None = field(default=None)
     steering_wheel_angle: float | None = field(default=None)
-    shift_state: ShiftState | None = field(
-        default=None, converter=lambda x: None if x is None else ShiftState(x)
-    )
+    shift_state: ShiftState | None = field(default=None, converter=optional(ShiftState))
     indicators: Indicators | None = field(
         default=None, converter=lambda x: Indicators(**x) if isinstance(x, dict) else x
     )

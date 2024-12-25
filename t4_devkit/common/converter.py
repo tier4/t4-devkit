@@ -8,10 +8,10 @@ from pyquaternion import Quaternion
 if TYPE_CHECKING:
     from t4_devkit.typing import ArrayLike, NDArray
 
-__all__ = ["as_quaternion"]
+__all__ = ["to_quaternion"]
 
 
-def as_quaternion(value: ArrayLike | NDArray) -> Quaternion:
+def to_quaternion(value: ArrayLike | NDArray) -> Quaternion:
     """Convert input rotation like array to `Quaternion`.
 
     Args:

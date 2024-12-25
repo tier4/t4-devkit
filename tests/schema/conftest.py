@@ -7,7 +7,7 @@ from t4_devkit.common.io import save_json
 
 
 # === Attribute ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def attribute_dict() -> dict:
     """Return a dummy attribute record as dictionary."""
     return {
@@ -17,7 +17,7 @@ def attribute_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def attribute_json(attribute_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy attribute record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -26,7 +26,7 @@ def attribute_json(attribute_dict) -> Generator[str, Any, None]:
 
 
 # === CalibratedSensor ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def calibrated_sensor_dict() -> dict:
     """Return a dummy calibrated sensor record as dictionary."""
     return {
@@ -43,7 +43,7 @@ def calibrated_sensor_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def calibrated_sensor_json(calibrated_sensor_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy calibrated sensor record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -52,13 +52,13 @@ def calibrated_sensor_json(calibrated_sensor_dict) -> Generator[str, Any, None]:
 
 
 # === Category ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def category_dict() -> dict:
     """Return a dummy category record as dictionary."""
     return {"token": "49e00f215a71612d94ea3bea48a93402", "name": "animal", "description": ""}
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def category_json(category_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy category record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -67,7 +67,7 @@ def category_json(category_dict) -> Generator[str, Any, None]:
 
 
 # === EgoPose ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def ego_pose_dict() -> dict:
     """Return a dummy ego pose record as dictionary."""
     return {
@@ -81,7 +81,7 @@ def ego_pose_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def ego_pose_json(ego_pose_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy ego pose record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -90,7 +90,7 @@ def ego_pose_json(ego_pose_dict) -> Generator[str, Any, None]:
 
 
 # === Instance ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def instance_dict() -> dict:
     """Return a dummy instance record as dictionary."""
     return {
@@ -103,8 +103,8 @@ def instance_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
-def instance_json(instance_dict) -> dict:
+@pytest.fixture(scope="session")
+def instance_json(instance_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy instance record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
         save_json([instance_dict], f.name)
@@ -112,7 +112,7 @@ def instance_json(instance_dict) -> dict:
 
 
 # === Log ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def log_dict() -> dict:
     """Return a dummy log record as dictionary."""
     return {
@@ -124,7 +124,7 @@ def log_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def log_json(log_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy log record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -133,7 +133,7 @@ def log_json(log_dict) -> Generator[str, Any, None]:
 
 
 # === Map ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def map_dict() -> dict:
     """Return a dummy map record as dictionary."""
     return {
@@ -144,7 +144,7 @@ def map_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def map_json(map_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy map record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -153,7 +153,7 @@ def map_json(map_dict) -> Generator[str, Any, None]:
 
 
 # === SampleAnnotation ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sample_annotation_dict() -> dict:
     """Return a dummy sample annotation record as dictionary."""
     return {
@@ -174,7 +174,7 @@ def sample_annotation_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sample_annotation_json(sample_annotation_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy sample annotation record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -183,7 +183,7 @@ def sample_annotation_json(sample_annotation_dict) -> Generator[str, Any, None]:
 
 
 # === Sample ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sample_dict() -> dict:
     """Return a dummy sample record as dictionary."""
     return {
@@ -195,7 +195,7 @@ def sample_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sample_json(sample_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy sample record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -204,7 +204,7 @@ def sample_json(sample_dict) -> Generator[str, Any, None]:
 
 
 # === SampleData ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sample_data_dict() -> dict:
     """Return a dummy sample data record as dictionary."""
     return {
@@ -224,7 +224,7 @@ def sample_data_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sample_data_json(sample_data_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy sample data record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -233,7 +233,7 @@ def sample_data_json(sample_data_dict) -> Generator[str, Any, None]:
 
 
 # === Scene ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def scene_dict() -> dict:
     """Return a dummy scene record as dictionary."""
     return {
@@ -247,7 +247,7 @@ def scene_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def scene_json(scene_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy scene record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -256,7 +256,7 @@ def scene_json(scene_dict) -> Generator[str, Any, None]:
 
 
 # === Sensor ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sensor_dict() -> dict:
     """Return a dummy sensor record as dictionary."""
     return {
@@ -266,7 +266,7 @@ def sensor_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sensor_json(sensor_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy sensor record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -275,7 +275,7 @@ def sensor_json(sensor_dict) -> Generator[str, Any, None]:
 
 
 # === Visibility ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def visibility_dict() -> dict:
     """Return a dummy visibility record as dictionary."""
     return {
@@ -285,7 +285,7 @@ def visibility_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def visibility_json(visibility_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy visibility record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -294,7 +294,7 @@ def visibility_json(visibility_dict) -> Generator[str, Any, None]:
 
 
 # === ObjectAnn ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def object_ann_dict() -> dict:
     """Return a dummy object ann as dictionary."""
     return {
@@ -308,7 +308,7 @@ def object_ann_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def object_ann_json(object_ann_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy object ann record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -317,7 +317,7 @@ def object_ann_json(object_ann_dict) -> Generator[str, Any, None]:
 
 
 # === SurfaceAnn ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def surface_ann_dict() -> dict:
     """Return a dummy surface ann as dictionary."""
     return {
@@ -328,7 +328,7 @@ def surface_ann_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def surface_ann_json(surface_ann_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy surface ann record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
@@ -337,7 +337,7 @@ def surface_ann_json(surface_ann_dict) -> Generator[str, Any, None]:
 
 
 # === VehicleState ===
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def vehicle_state_dict() -> dict:
     """Return a dummy vehicle state as dictionary."""
     return {
@@ -354,7 +354,7 @@ def vehicle_state_dict() -> dict:
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def vehicle_state_json(vehicle_state_dict) -> Generator[str, Any, None]:
     """Return a file path of dummy vehicle state record."""
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
