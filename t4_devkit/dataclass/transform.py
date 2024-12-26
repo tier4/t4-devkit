@@ -27,7 +27,7 @@ __all__ = [
 class TransformBuffer:
     """A buffer class to store transformation matrices.
 
-    Args:
+    Attributes:
         buffer (dict[tuple[str, str], HomogeneousMatrix]): Matrix buffer whose key is `(src, dst)`.
     """
 

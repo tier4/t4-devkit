@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 __all__ = ["RerunViewer", "format_entity"]
 
 
-def format_entity(root: str, *entities) -> str:
+def format_entity(root: str, *entities: Sequence[str]) -> str:
     """Format entity path.
 
     Args:
@@ -44,7 +44,7 @@ def format_entity(root: str, *entities) -> str:
 
     Examples:
         >>> format_entity("map")
-        >>> "map"
+        "map"
         >>> format_entity("map", "map/base_link")
         "map/base_link"
         >>> format_entity("map", "map/base_link", "camera")
