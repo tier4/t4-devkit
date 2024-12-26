@@ -31,3 +31,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
