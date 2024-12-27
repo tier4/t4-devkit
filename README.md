@@ -29,6 +29,10 @@ cd t4-devkit
 poetry install
 ```
 
+## Dataset Format
+
+For details of T4 dataset format, please refer to [tier4_perception_dataset/t4_format_3d_detailed.md](https://github.com/tier4/tier4_perception_dataset/blob/main/docs/t4_format_3d_detailed.md).
+
 ## Feature supports
 
 ### Visualization
