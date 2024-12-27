@@ -275,6 +275,9 @@ class RerunViewer:
 
         if velocities is None:
             velocities = [None] * len(centers)
+            show_arrows = False
+        else:
+            show_arrows = True
 
         box_data = BoxData3D(label2id=self.label2id)
         for center, rotation, size, class_id, velocity, uuid in zip(
@@ -293,7 +296,7 @@ class RerunViewer:
 
         rr.log(format_entity(self.ego_entity, "box"), box_data.as_boxes3d())
 
-        if velocities is not None:
+        if show_arrows:
             rr.log(format_entity(self.ego_entity, "velocity"), box_data.as_arrows3d())
 
     @overload
