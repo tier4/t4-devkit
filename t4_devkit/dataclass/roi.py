@@ -15,16 +15,23 @@ class Roi:
     """A dataclass to represent 2D box ROI.
 
     Attributes:
-        roi (RoiType): Box ROI in the order of (x, y, width, height).
+        roi (RoiType): Box ROI in the order of (xmin, ymin, xmax, ymax).
     """
 
     roi: RoiType = field(converter=tuple)
 
     @roi.validator
-    def _check_dims(self, attribute, value) -> None:
+    def _check_roi(self, attribute, value) -> None:
         if len(value) != 4:
             raise ValueError(
-                f"Expected {attribute.name} is (x, y, width, height), but got length with {value}."
+                f"Expected {attribute.name} is (xmin, ymin, xmax, ymax), but got length with {value}."
+            )
+
+        xmin, ymin, xmax, ymax = value
+        if (xmax < xmin) or (ymax < ymin):
+            raise ValueError(
+                f"Expected {attribute.name} is the order of (xmin, ymin, xmax, ymax) and "
+                f"xmin <= xmax and ymin <= ymax, but got {value}"
             )
 
     @property
@@ -43,7 +50,7 @@ class Roi:
         Returns:
             Box size (width, height).
         """
-        return self.roi[2:]
+        return self.roi[2] - self.roi[0], self.roi[3] - self.roi[1]
 
     @property
     def width(self) -> int:
