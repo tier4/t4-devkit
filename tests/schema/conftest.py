@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import tempfile
 from typing import Any, Generator
 
@@ -171,6 +173,7 @@ def sample_annotation_dict() -> dict:
         "num_radar_pts": 0,
         "next": "7b0ae1dae7531b7b917f403cb22259e6",
         "prev": "",
+        "automatic_annotation": False,
     }
 
 
@@ -305,6 +308,7 @@ def object_ann_dict() -> dict:
         "attribute_tokens": [],
         "bbox": [0, 408.0529355733727, 1920, 728.1832152454293],
         "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
+        "automatic_annotation": False,
     }
 
 
@@ -325,6 +329,7 @@ def surface_ann_dict() -> dict:
         "sample_data_token": "a1d3257e11ec9d4a587ea7053b33f1c1",
         "category_token": "7864884179fb37bf9e973016b13a332c",
         "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
+        "automatic_annotation": False,
     }
 
 
