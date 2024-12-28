@@ -66,7 +66,7 @@ class SegmentationData2D:
         TODO:
             Add support of instance segmentation.
         """
-        image = np.zeros(self.size, dtype=np.uint8)
+        image = np.full(self.size, -1, dtype=np.int64)
 
         for mask, class_id in zip(self.masks, self.class_ids, strict=True):
             image[mask == 1] = class_id
