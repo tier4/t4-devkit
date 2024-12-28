@@ -197,7 +197,7 @@ class BoxData2D:
         self.class_ids.append(self.label2id[box.semantic_label.name])
 
         if box.uuid is not None:
-            self.uuids.append(box.uuid)
+            self.uuids.append(box.uuid[:6])
 
     def _append_with_elements(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
         self.rois.append(roi)

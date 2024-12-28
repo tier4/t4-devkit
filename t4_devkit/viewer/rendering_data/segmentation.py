@@ -53,7 +53,9 @@ class SegmentationData2D:
                 )
         self.masks.append(mask)
         self.class_ids.append(class_id)
-        self.uuids.append(uuid)
+
+        if uuid is not None:
+            self.uuids.append(uuid[:6])
 
     def as_segmentation_image(self) -> rr.SegmentationImage:
         """Return mask data as a `rr.SegmentationImage`.
