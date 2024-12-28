@@ -1239,5 +1239,5 @@ def _append_mask(
         camera_masks[camera] = {}
         camera_masks[camera]["masks"] = [ann.mask.decode()]
         camera_masks[camera]["class_ids"] = [class_id]
-        camera_masks[camera]["uuids"] = [class_id]
+        camera_masks[camera]["uuids"] = [uuid]
     return camera_masks
