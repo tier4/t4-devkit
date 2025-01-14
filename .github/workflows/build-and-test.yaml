@@ -32,7 +32,7 @@ jobs:
           enable-cache: true
 
       - name: Install the project
-        run: uv sync --all-extras
+        run: uv sync
 
       - name: Run tests
         run: uv run pytest --cov-report xml:coverage.xml --cov=t4_devkit
