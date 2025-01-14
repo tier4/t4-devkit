@@ -17,7 +17,7 @@ dependencies = [
     "pycocotools>=2.0.8",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=8.2.2",
     "pytest-asyncio>=0.23.7",
