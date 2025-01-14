@@ -1,33 +1,30 @@
-[tool.poetry]
+[project]
 name = "t4-devkit"
 version = "0.0.7"
 description = "A toolkit to load and operate T4 dataset."
-authors = ["Kotaro Uetake <kotaro.uetake@tier4.jp>"]
+authors = [{ name = "Kotaro Uetake", email = "kotaro.uetake@tier4.jp" }]
 readme = "README.md"
-packages = [{ include = "t4_devkit" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "rerun-sdk==0.20.0",
+    "pyquaternion>=0.9.9",
+    "matplotlib>=3.9.2",
+    "shapely<2.0.0",
+    "pycocotools>=2.0.8",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-rerun-sdk = "0.20.0"
-pyquaternion = "^0.9.9"
-matplotlib = "^3.9.2"
-shapely = "<2.0.0"
-pycocotools = "^2.0.8"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.2"
-pytest-asyncio = "^0.23.7"
-pytest-mock = "^3.14.0"
-pytest-cov = "^6.0.0"
-lark = "^1.1.9"
-mkdocs = "^1.6.0"
-mkdocstrings = { extras = ["python"], version = "^0.25.1" }
-mkdocs-material = "^9.5.27"
-ruff = "^0.6.8"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.2",
+    "pytest-asyncio>=0.23.7",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=6.0.0",
+    "lark>=1.1.9",
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.47",
+    "mkdocstrings[python]>=0.18",
+    "ruff>=0.8",
+]
 
 [tool.ruff]
 line-length = 100

@@ -25,20 +25,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install poetry
-        run: pip install poetry
-
-      - name: Setup python (with pip)
-        uses: actions/setup-python@v5
+      - name: Define a cache dependency glob
+        uses: astral-sh/setup-uv@v5
         with:
-          cache: "poetry"
           python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
-      - name: Install dependencies
-        run: poetry install
+      - name: Install the project
+        run: uv sync --all-extras
 
       - name: Run tests
-        run: poetry run pytest --cov-report xml:coverage.xml --cov=t4_devkit
+        run: uv run pytest --cov-report xml:coverage.xml --cov=t4_devkit
 
       - name: Get test coverage
         uses: orgoro/coverage@v3.1
