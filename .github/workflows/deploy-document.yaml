@@ -17,7 +17,7 @@ jobs:
           enable-cache: true
 
       - name: Install the project
-        run: uv sync --all-extras
+        run: uv sync --extra dev
 
       - name: Create the document
         run: uv run mkdocs gh-deploy --force
