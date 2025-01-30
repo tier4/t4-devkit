@@ -44,7 +44,7 @@ class RLEMask:
         """
         counts = base64.b64decode(self.counts)
         data = {"counts": counts, "size": self.size}
-        return cocomask.decode(data)
+        return cocomask.decode(data).T
 
 
 @define(slots=False)
