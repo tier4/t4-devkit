@@ -1157,33 +1157,45 @@ class Tier4:
             camera_masks: dict[str, dict[str, list]] = {}
 
             # Object Annotation
-            for ann_token in sample.ann_2ds:
-                ann: ObjectAnn = self.get("object_ann", ann_token)
-                box = self.get_box2d(ann_token)
-                boxes.append(box)
-
-                sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
-                camera_masks = _append_mask(
-                    camera_masks,
-                    camera=sample_data.channel,
-                    ann=ann,
-                    class_id=self._label2id[ann.category_name],
-                    uuid=box.uuid,
-                )
+            for obj_ann_token in sample.ann_2ds:
+                obj_ann: ObjectAnn = self.get("object_ann", obj_ann_token)
+                box = self.get_box2d(obj_ann_token)
+                if instance_token is not None:
+                    if obj_ann.instance_token == instance_token:
+                        boxes.append(box)
+                        sample_data: SampleData = self.get("sample_data", obj_ann.sample_data_token)
+                        camera_masks = _append_mask(
+                            camera_masks,
+                            camera=sample_data.channel,
+                            ann=obj_ann,
+                            class_id=self._label2id[obj_ann.category_name],
+                            uuid=box.uuid,
+                        )
+                else:
+                    boxes.append(box)
+                    sample_data: SampleData = self.get("sample_data", obj_ann.sample_data_token)
+                    camera_masks = _append_mask(
+                        camera_masks,
+                        camera=sample_data.channel,
+                        ann=obj_ann,
+                        class_id=self._label2id[obj_ann.category_name],
+                        uuid=box.uuid,
+                    )
 
             # Render 2D box
             viewer.render_box2ds(us2sec(sample.timestamp), boxes)
 
-            # Surface Annotation
-            for ann_token in sample.surface_anns:
-                sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
-                ann: SurfaceAnn = self.get("surface_ann", ann_token)
-                camera_masks = _append_mask(
-                    camera_masks,
-                    camera=sample_data.channel,
-                    ann=ann,
-                    class_id=self._label2id[ann.category_name],
-                )
+            if instance_token is None:
+                # Surface Annotation
+                for ann_token in sample.surface_anns:
+                    surface_ann: SurfaceAnn = self.get("surface_ann", ann_token)
+                    sample_data: SampleData = self.get("sample_data", surface_ann.sample_data_token)
+                    camera_masks = _append_mask(
+                        camera_masks,
+                        camera=sample_data.channel,
+                        ann=surface_ann,
+                        class_id=self._label2id[surface_ann.category_name],
+                    )
 
             # Render 2D segmentation image
             for camera, data in camera_masks.items():
