@@ -17,7 +17,7 @@ from .geography import calculate_geodetic_point
 from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike
+    from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike, Trajectory
     from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
     from t4_devkit.typing import (
         CamIntrinsicType,
@@ -259,6 +259,11 @@ class RerunViewer:
                 format_entity(self.map_entity, frame_id, "velocity"),
                 data.as_arrows3d(),
             )
+            # record futures
+            rr.log(
+                format_entity(self.map_entity, frame_id, "future"),
+                data.as_linestrips3d(),
+            )
 
     def _render_box3ds_with_elements(
         self,
@@ -269,6 +274,7 @@ class RerunViewer:
         class_ids: Sequence[int],
         velocities: Sequence[VelocityType] | None = None,
         uuids: Sequence[str] | None | None = None,
+        future: Sequence[Sequence[Trajectory]] | None = None,
     ) -> None:
         if uuids is None:
             uuids = [None] * len(centers)
@@ -279,9 +285,22 @@ class RerunViewer:
         else:
             show_arrows = True
 
+        if future is None:
+            futures = [None] * len(centers)
+            show_futures = False
+        else:
+            show_futures = True
+
         box_data = BoxData3D(label2id=self.label2id)
-        for center, rotation, size, class_id, velocity, uuid in zip(
-            centers, rotations, sizes, class_ids, velocities, uuids, strict=True
+        for center, rotation, size, class_id, velocity, uuid, future in zip(
+            centers,
+            rotations,
+            sizes,
+            class_ids,
+            velocities,
+            uuids,
+            futures,
+            strict=True,
         ):
             box_data.append(
                 center=center,
@@ -290,6 +309,7 @@ class RerunViewer:
                 class_id=class_id,
                 velocity=velocity,
                 uuid=uuid,
+                future=future,
             )
 
         rr.set_time_seconds(self.timeline, seconds)
@@ -298,6 +318,9 @@ class RerunViewer:
 
         if show_arrows:
             rr.log(format_entity(self.ego_entity, "velocity"), box_data.as_arrows3d())
+
+        if show_futures:
+            rr.log(format_entity(self.ego_entity, "future"), box_data.as_linestrips3d())
 
     @overload
     def render_box2ds(self, seconds: float, boxes: Sequence[Box2D]) -> None:

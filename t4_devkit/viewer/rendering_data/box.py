@@ -7,8 +7,14 @@ import rerun as rr
 from attrs import define, field
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D
-    from t4_devkit.typing import RoiType, RotationType, SizeType, TranslationType, VelocityType
+    from t4_devkit.dataclass import Box2D, Box3D, Trajectory
+    from t4_devkit.typing import (
+        RoiType,
+        RotationType,
+        SizeType,
+        TranslationType,
+        VelocityType,
+    )
 
 __all__ = ["BoxData3D", "BoxData2D"]
 
@@ -35,6 +41,7 @@ class BoxData3D:
     class_ids: list[int] = field(init=False, factory=list)
     uuids: list[str] = field(init=False, factory=list)
     velocities: list[VelocityType] = field(init=False, factory=list)
+    future: list[list[Trajectory]] = field(init=False, factory=list)
 
     @overload
     def append(self, box: Box3D) -> None:
@@ -54,6 +61,7 @@ class BoxData3D:
         class_id: int,
         uuid: str | None = None,
         velocity: VelocityType | None = None,
+        future: list[Trajectory] | None = None,
     ) -> None:
         """Append a 3D box data with its elements.
 
@@ -63,7 +71,8 @@ class BoxData3D:
             size (SizeType): Box size in the order of (width, height, length).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
-            velocity (VelocityType | None, optional): Box velocity. Defaults to None.
+            velocity (VelocityType | None, optional): Box velocity.
+            future (list[Trajectory] | None, optional): Future trajectory.
         """
         pass
 
@@ -93,6 +102,9 @@ class BoxData3D:
         if box.uuid is not None:
             self.uuids.append(box.uuid[:6])
 
+        if box.future is not None:
+            self.future.append(box.future)
+
     def _append_with_elements(
         self,
         center: TranslationType,
@@ -101,6 +113,7 @@ class BoxData3D:
         class_id: int,
         velocity: VelocityType | None = None,
         uuid: str | None = None,
+        future: list[Trajectory] | None = None,
     ) -> None:
         self.centers.append(center)
 
@@ -117,6 +130,9 @@ class BoxData3D:
 
         if uuid is not None:
             self.uuids.append(uuid)
+
+        if future is not None:
+            self.future.append(future)
 
     def as_boxes3d(self) -> rr.Boxes3D:
         """Return 3D boxes data as a `rr.Boxes3D`.
@@ -144,6 +160,19 @@ class BoxData3D:
             origins=self.centers,
             class_ids=self.class_ids,
         )
+
+    def as_linestrips3d(self) -> rr.LineStrips3D:
+        """Return future trajectories data as a list of `rr.LineStrips3D`.
+
+        Returns:
+            `rr.LineStrips3D` object for each box.
+        """
+        stripes = []
+        class_ids = []
+        for class_id, modes in zip(self.class_ids, self.future):
+            class_ids += [class_id] * len(modes)
+            stripes += [x.waypoints for x in modes]
+        return rr.LineStrips3D(strips=stripes, class_ids=class_ids)
 
 
 @define
