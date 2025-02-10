@@ -5,21 +5,40 @@ on:
     branches: [main]
   pull_request:
     types: [opened, synchronize]
-    paths:
-      - "**"
-      - "!docs/**"
-      - "!README.md"
-      - "!.github/**"
-      - .github/workflows/build-and-test.yaml
   workflow_dispatch:
 
 jobs:
+  need-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changes: ${{ steps.changes.outputs.changes }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Filter paths
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            changes:
+              - .github/workflows/build-and-test.yaml
+              - pyproject.toml
+              - t4_devkit/**
+              - tests/**
+
   build-and-test:
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
         python-version: ["3.10", "3.12"]
+    needs:
+      - need-ci
+    if: (!failure()) && (needs.need-ci.outputs.changes == 'true')
 
     steps:
       - name: Checkout code
