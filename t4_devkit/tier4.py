@@ -217,9 +217,14 @@ class Tier4:
                 sample_record: Sample = self.get("sample", record.sample_token)
                 sample_record.data[record.channel] = record.token
 
+        self._sample_and_instance_to_ann3d: dict[tuple[str, str], str] = {}
         for ann_record in self.sample_annotation:
             sample_record: Sample = self.get("sample", ann_record.sample_token)
             sample_record.ann_3ds.append(ann_record.token)
+
+            self._sample_and_instance_to_ann3d[(sample_record.token, ann_record.instance_token)] = (
+                ann_record.token
+            )
 
         for ann_record in self.object_ann:
             sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
@@ -301,6 +306,7 @@ class Tier4:
         selected_ann_tokens: list[str] | None = None,
         as_3d: bool = True,
         as_sensor_coord: bool = True,
+        future_seconds: float = 0.0,
         visibility: VisibilityLevel = VisibilityLevel.NONE,
     ) -> tuple[str, list[BoxType], CamIntrinsicType | None]:
         """Return the data path as well as all annotations related to that `sample_data`.
@@ -339,13 +345,18 @@ class Tier4:
         boxes: list[BoxType]
         if selected_ann_tokens is not None:
             boxes = (
-                list(map(self.get_box3d, selected_ann_tokens))
+                [
+                    self.get_box3d(token, future_seconds=future_seconds)
+                    for token in selected_ann_tokens
+                ]
                 if as_3d
                 else list(map(self.get_box2d, selected_ann_tokens))
             )
         else:
             boxes = (
-                self.get_box3ds(sample_data_token) if as_3d else self.get_box2ds(sample_data_token)
+                self.get_box3ds(sample_data_token, future_seconds=future_seconds)
+                if as_3d
+                else self.get_box2ds(sample_data_token)
             )
 
         if not as_3d:
@@ -399,11 +410,12 @@ class Tier4:
 
         return SemanticLabel(category.name, attributes)
 
-    def get_box3d(self, sample_annotation_token: str) -> Box3D:
+    def get_box3d(self, sample_annotation_token: str, *, future_seconds: float = 0.0) -> Box3D:
         """Return a Box3D class from a `sample_annotation` record.
 
         Args:
             sample_annotation_token (str): Token of `sample_annotation`.
+            future_seconds (float, optional): Future time in [s].
 
         Returns:
             Instantiated Box3D.
@@ -423,7 +435,7 @@ class Tier4:
         # velocity
         velocity = self.box_velocity(sample_annotation_token=sample_annotation_token)
 
-        return Box3D(
+        box = Box3D(
             unix_time=sample.timestamp,
             frame_id="map",
             semantic_label=semantic_label,
@@ -434,6 +446,51 @@ class Tier4:
             confidence=1.0,
             uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
         )
+
+        if future_seconds > 0.0:
+            # NOTE: Future trajectory is map coordinate frame
+            anns: list[SampleAnnotation] = self.get_sample_annotations_until(
+                ann.instance_token, ann.sample_token, future_seconds
+            )
+            if len(anns) == 0:
+                return box
+            waypoints = [ann.translation for ann in anns]
+            return box.with_future(waypoints=[waypoints], confidences=[1.0])
+        else:
+            return box
+
+    def get_sample_annotations_until(
+        self,
+        instance_token: str,
+        sample_token: str,
+        seconds: float,
+    ) -> list[SampleAnnotation]:
+        """Return a list of sample annotations until the specified seconds.
+
+        Args:
+            instance_token (str): Instance token.
+            sample_token (str): Start sample token.
+            seconds (float): Time seconds until.
+
+        Returns:
+            list[SampleAnnotation]: List of sample annotation records.
+        """
+        outputs = []
+        start_sample: Sample = self.get("sample", sample_token)
+
+        current_sample = start_sample
+        while current_sample.next != "":
+            next_sample: Sample = self.get("sample", current_sample.next)
+            if us2sec(next_sample.timestamp - start_sample.timestamp) > seconds:
+                break
+
+            ann_token = self._sample_and_instance_to_ann3d.get((next_sample.token, instance_token))
+            if ann_token is not None:
+                outputs.append(self.get("sample_annotation", ann_token))
+
+            current_sample = next_sample
+
+        return outputs
 
     def get_box2d(self, object_ann_token: str) -> Box2D:
         """Return a Box2D class from a `object_ann` record.
@@ -462,12 +519,13 @@ class Tier4:
             uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
         )
 
-    def get_box3ds(self, sample_data_token: str) -> list[Box3D]:
+    def get_box3ds(self, sample_data_token: str, *, future_seconds: float = 0.0) -> list[Box3D]:
         """Rerun a list of Box3D classes for all annotations of a particular `sample_data` record.
         It the `sample_data` is a keyframe, this returns annotations for the corresponding `sample`.
 
         Args:
             sample_data_token (str): Token of `sample_data`.
+            future_seconds (float, optional): Future time in [s].
 
         Returns:
             List of instantiated Box3D classes.
@@ -478,7 +536,10 @@ class Tier4:
 
         if curr_sample_record.prev == "" or sd_record.is_key_frame:
             # If no previous annotations available, or if sample_data is keyframe just return the current ones.
-            boxes = list(map(self.get_box3d, curr_sample_record.ann_3ds))
+            boxes = [
+                self.get_box3d(token, future_seconds=future_seconds)
+                for token in curr_sample_record.ann_3ds
+            ]
 
         else:
             prev_sample_record: Sample = self.get("sample", curr_sample_record.prev)
@@ -542,7 +603,7 @@ class Tier4:
                     )
                 else:
                     # If not, simply grab the current annotation.
-                    box = self.get_box3d(curr_ann.token)
+                    box = self.get_box3d(curr_ann.token, future_seconds=future_seconds)
                 boxes.append(box)
 
         return boxes
@@ -708,6 +769,7 @@ class Tier4:
         scene_token: str,
         *,
         max_time_seconds: float = np.inf,
+        future_seconds: float = 0.0,
         save_dir: str | None = None,
         show: bool = True,
     ) -> None:
@@ -716,6 +778,7 @@ class Tier4:
         Args:
             scene_token (str): Unique identifier of scene.
             max_time_seconds (float, optional): Max time length to be rendered [s].
+            future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
             show (bool, optional): Whether to spawn rendering viewer.
         """
@@ -756,7 +819,9 @@ class Tier4:
         self._render_cameras(viewer, first_camera_tokens, max_timestamp_us)
 
         # render annotation
-        self._render_annotation_3ds(viewer, scene.first_sample_token, max_timestamp_us)
+        self._render_annotation_3ds(
+            viewer, scene.first_sample_token, max_timestamp_us, future_seconds
+        )
         self._render_annotation_2ds(viewer, scene.first_sample_token, max_timestamp_us)
 
         if save_dir is not None:
@@ -766,6 +831,7 @@ class Tier4:
         self,
         instance_token: str,
         *,
+        future_seconds: float = 0.0,
         save_dir: str | None = None,
         show: bool = True,
     ) -> None:
@@ -773,6 +839,7 @@ class Tier4:
 
         Args:
             instance_token (str): Instance token.
+            future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
             show (bool, optional): Whether to spawn rendering viewer.
         """
@@ -822,6 +889,7 @@ class Tier4:
             viewer,
             first_sample.token,
             max_timestamp_us,
+            future_seconds=future_seconds,
             instance_token=instance_token,
         )
         self._render_annotation_2ds(
@@ -1094,6 +1162,7 @@ class Tier4:
         viewer: RerunViewer,
         first_sample_token: str,
         max_timestamp_us: float,
+        future_seconds: float = 0.0,
         instance_token: str | None = None,
     ) -> None:
         """Render annotated 3D boxes.
@@ -1116,10 +1185,12 @@ class Tier4:
                 for ann_token in sample.ann_3ds:
                     ann: SampleAnnotation = self.get("sample_annotation", ann_token)
                     if ann.instance_token == instance_token:
-                        boxes.append(self.get_box3d(ann_token))
+                        boxes.append(self.get_box3d(ann_token, future_seconds=future_seconds))
                         break
             else:
-                boxes = list(map(self.get_box3d, sample.ann_3ds))
+                boxes = [
+                    self.get_box3d(token, future_seconds=future_seconds) for token in sample.ann_3ds
+                ]
             viewer.render_box3ds(us2sec(sample.timestamp), boxes)
 
             current_sample_token = sample.next

@@ -43,6 +43,26 @@ def dummy_box3d() -> Box3D:
         velocity=(1.0, 1.0, 1.0),
         confidence=1.0,
         uuid="car3d_0",
+    ).with_future(
+        waypoints=[
+            np.array(
+                [
+                    [1.1, 1.0, 1.0],
+                    [1.2, 1.0, 1.0],
+                    [1.3, 1.0, 1.0],
+                    [1.4, 1.0, 1.0],
+                ]
+            ),
+            np.array(
+                [
+                    [1.0, 1.1, 1.0],
+                    [1.0, 1.2, 1.0],
+                    [1.0, 1.3, 1.0],
+                    [1.0, 1.4, 1.0],
+                ]
+            ),
+        ],
+        confidences=[1.0, 0.5],
     )
 
 
@@ -64,6 +84,18 @@ def dummy_box3ds() -> list[Box3D]:
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
             uuid="car3d_1",
+        ).with_future(
+            waypoints=[
+                np.array(
+                    [
+                        [1.1, 1.0, 1.0],
+                        [1.2, 1.0, 1.0],
+                        [1.3, 1.0, 1.0],
+                        [1.4, 1.0, 1.0],
+                    ]
+                ),
+            ],
+            confidences=[1.0],
         ),
         Box3D(
             unix_time=100,
@@ -75,6 +107,26 @@ def dummy_box3ds() -> list[Box3D]:
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
             uuid="bicycle3d_1",
+        ).with_future(
+            waypoints=[
+                np.array(
+                    [
+                        [1.1, -1.0, 1.0],
+                        [1.2, -1.0, 1.0],
+                        [1.3, -1.0, 1.0],
+                        [1.4, -1.0, 1.0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [-1.0, 1.1, 1.0],
+                        [-1.0, 1.2, 1.0],
+                        [-1.0, 1.3, 1.0],
+                        [-1.0, 1.4, 1.0],
+                    ]
+                ),
+            ],
+            confidences=[1.0, 0.5],
         ),
         Box3D(
             unix_time=100,
@@ -86,6 +138,34 @@ def dummy_box3ds() -> list[Box3D]:
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
             uuid="pedestrian3d_1",
+        ).with_future(
+            waypoints=[
+                np.array(
+                    [
+                        [-1.1, 1.0, 1.0],
+                        [-1.2, 1.0, 1.0],
+                        [-1.3, 1.0, 1.0],
+                        [-1.4, 1.0, 1.0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [1.0, -1.1, 1.0],
+                        [1.0, -1.2, 1.0],
+                        [1.0, -1.3, 1.0],
+                        [1.0, -1.4, 1.0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [1.1, 1.0, 1.0],
+                        [1.2, 1.0, 1.0],
+                        [1.3, 1.0, 1.0],
+                        [1.4, 1.0, 1.0],
+                    ]
+                ),
+            ],
+            confidences=[1.0, 0.5, 0.2],
         ),
     ]
 
