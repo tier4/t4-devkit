@@ -59,7 +59,7 @@ For details of T4 dataset format, please refer to [tier4_perception_dataset/t4_f
 | 3D      | 3D Boxes                    |   ✅    |
 |         | PointCloud Segmentation     |         |
 |         | Raw PointCloud              |   ✅    |
-|         | 3D Trajectories             |         |
+|         | 3D Trajectories             |   ✅    |
 |         | TF Links                    |   ✅    |
 | 2D      | 2D Boxes                    |   ✅    |
 |         | Image Segmentation          |   ✅    |
