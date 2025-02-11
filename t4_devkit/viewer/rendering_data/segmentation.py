@@ -48,8 +48,7 @@ class SegmentationData2D:
         else:
             if self.size != mask.shape:
                 raise ValueError(
-                    f"All masks must be the same size. Expected: {self.size}, "
-                    f"but got {mask.shape}."
+                    f"All masks must be the same size. Expected: {self.size}, but got {mask.shape}."
                 )
         self.masks.append(mask)
         self.class_ids.append(class_id)
@@ -66,7 +65,7 @@ class SegmentationData2D:
         TODO:
             Add support of instance segmentation.
         """
-        image = np.full(self.size, -1, dtype=np.int64)
+        image = np.zeros(self.size, dtype=np.uint8)
 
         for mask, class_id in zip(self.masks, self.class_ids, strict=True):
             image[mask == 1] = class_id
