@@ -11,7 +11,6 @@ from PIL import Image
 from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image, view_points
-from t4_devkit.common.timestamp import us2sec
 from t4_devkit.dataclass import (
     Box2D,
     Box3D,
@@ -21,7 +20,7 @@ from t4_devkit.dataclass import (
     Shape,
     ShapeType,
 )
-from t4_devkit.helper import RenderingHelper
+from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
 if TYPE_CHECKING:
@@ -135,6 +134,7 @@ class Tier4:
             print(f"Done loading in {elapsed_time:.3f} seconds.\n======")
 
         # initialize helpers after finishing construction of Tier4
+        self._timeseries_helper = TimeseriesHelper(self)
         self._rendering_helper = RenderingHelper(self)
 
     def __load_table__(self, schema: SchemaName) -> list[SchemaTable]:
@@ -219,14 +219,9 @@ class Tier4:
                 sample_record: Sample = self.get("sample", record.sample_token)
                 sample_record.data[record.channel] = record.token
 
-        self._sample_and_instance_to_ann3d: dict[tuple[str, str], str] = {}
         for ann_record in self.sample_annotation:
             sample_record: Sample = self.get("sample", ann_record.sample_token)
             sample_record.ann_3ds.append(ann_record.token)
-
-            self._sample_and_instance_to_ann3d[(sample_record.token, ann_record.instance_token)] = (
-                ann_record.token
-            )
 
         for ann_record in self.object_ann:
             sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
@@ -451,7 +446,7 @@ class Tier4:
 
         if future_seconds > 0.0:
             # NOTE: Future trajectory is map coordinate frame
-            anns: list[SampleAnnotation] = self.get_sample_annotations_until(
+            anns: list[SampleAnnotation] = self._timeseries_helper.get_sample_annotations_util(
                 ann.instance_token, ann.sample_token, future_seconds
             )
             if len(anns) == 0:
@@ -460,39 +455,6 @@ class Tier4:
             return box.with_future(waypoints=[waypoints], confidences=[1.0])
         else:
             return box
-
-    def get_sample_annotations_until(
-        self,
-        instance_token: str,
-        sample_token: str,
-        seconds: float,
-    ) -> list[SampleAnnotation]:
-        """Return a list of sample annotations until the specified seconds.
-
-        Args:
-            instance_token (str): Instance token.
-            sample_token (str): Start sample token.
-            seconds (float): Time seconds until.
-
-        Returns:
-            list[SampleAnnotation]: List of sample annotation records.
-        """
-        outputs = []
-        start_sample: Sample = self.get("sample", sample_token)
-
-        current_sample = start_sample
-        while current_sample.next != "":
-            next_sample: Sample = self.get("sample", current_sample.next)
-            if us2sec(next_sample.timestamp - start_sample.timestamp) > seconds:
-                break
-
-            ann_token = self._sample_and_instance_to_ann3d.get((next_sample.token, instance_token))
-            if ann_token is not None:
-                outputs.append(self.get("sample_annotation", ann_token))
-
-            current_sample = next_sample
-
-        return outputs
 
     def get_box2d(self, object_ann_token: str) -> Box2D:
         """Return a Box2D class from a `object_ann` record.
