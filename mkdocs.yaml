@@ -8,6 +8,7 @@ nav:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
       - Customization: tutorials/customize.md
+      - CLI: tutorials/cli.md
   - API:
       - TIER IV: apis/tier4.md
       - Schema:
