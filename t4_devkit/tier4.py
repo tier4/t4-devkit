@@ -1,18 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import os.path as osp
 import time
 import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
-import rerun as rr
-import yaml
 from PIL import Image
 from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image, view_points
-from t4_devkit.common.timestamp import sec2us, us2sec
+from t4_devkit.common.timestamp import us2sec
 from t4_devkit.dataclass import (
     Box2D,
     Box3D,
@@ -22,8 +21,8 @@ from t4_devkit.dataclass import (
     Shape,
     ShapeType,
 )
+from t4_devkit.helper import RenderingHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
-from t4_devkit.viewer import RerunViewer, distance_color, format_entity
 
 if TYPE_CHECKING:
     from t4_devkit.typing import CamIntrinsicType, NDArrayF64, NDArrayU8, VelocityType
@@ -134,6 +133,9 @@ class Tier4:
                 print(f"{len(self.get_table(schema))} {schema.value}")
             elapsed_time = time.time() - start_time
             print(f"Done loading in {elapsed_time:.3f} seconds.\n======")
+
+        # initialize helpers after finishing construction of Tier4
+        self._rendering_helper = RenderingHelper(self)
 
     def __load_table__(self, schema: SchemaName) -> list[SchemaTable]:
         """Load schema table from a json file.
@@ -782,50 +784,15 @@ class Tier4:
             save_dir (str | None, optional): Directory path to save the recording.
             show (bool, optional): Whether to spawn rendering viewer.
         """
-        # search first sample data tokens
-        first_lidar_token: str | None = None
-        first_radar_tokens: list[str] = []
-        first_camera_tokens: list[str] = []
-        for sensor in self.sensor:
-            sd_token = sensor.first_sd_token
-            if sensor.modality == SensorModality.LIDAR:
-                first_lidar_token = sd_token
-            elif sensor.modality == SensorModality.RADAR:
-                first_radar_tokens.append(sd_token)
-            elif sensor.modality == SensorModality.CAMERA:
-                first_camera_tokens.append(sd_token)
-
-        render_3d = first_lidar_token is not None or len(first_radar_tokens) > 0
-        render_2d = len(first_camera_tokens) > 0
-
-        # initialize viewer
-        application_id = f"t4-devkit@{scene_token}"
-        viewer = self._init_viewer(
-            application_id,
-            render_3d=render_3d,
-            render_2d=render_2d,
-            render_annotation=True,
-            spawn=show,
+        coroutine = self._rendering_helper.async_render_scene(
+            scene_token=scene_token,
+            max_time_seconds=max_time_seconds,
+            future_seconds=future_seconds,
+            save_dir=save_dir,
+            show=show,
         )
 
-        scene: Scene = self.get("scene", scene_token)
-        first_sample: Sample = self.get("sample", scene.first_sample_token)
-        max_timestamp_us = first_sample.timestamp + sec2us(max_time_seconds)
-
-        # render raw data for each sensor
-        if first_lidar_token is not None:
-            self._render_lidar_and_ego(viewer, first_lidar_token, max_timestamp_us)
-        self._render_radars(viewer, first_radar_tokens, max_timestamp_us)
-        self._render_cameras(viewer, first_camera_tokens, max_timestamp_us)
-
-        # render annotation
-        self._render_annotation_3ds(
-            viewer, scene.first_sample_token, max_timestamp_us, future_seconds
-        )
-        self._render_annotation_2ds(viewer, scene.first_sample_token, max_timestamp_us)
-
-        if save_dir is not None:
-            viewer.save(save_dir)
+        asyncio.run(coroutine)
 
     def render_instance(
         self,
@@ -843,64 +810,14 @@ class Tier4:
             save_dir (str | None, optional): Directory path to save the recording.
             show (bool, optional): Whether to spawn rendering viewer.
         """
-        # search first sample associated with the instance
-        instance: Instance = self.get("instance", instance_token)
-        first_ann: SampleAnnotation = self.get("sample_annotation", instance.first_annotation_token)
-        first_sample: Sample = self.get("sample", first_ann.sample_token)
-
-        # search first sample data tokens
-        first_lidar_token: str | None = None
-        first_radar_tokens: list[str] = []
-        first_camera_tokens: list[str] = []
-        for sensor in self.sensor:
-            sd_token = sensor.first_sd_token
-            if sensor.modality == SensorModality.LIDAR:
-                first_lidar_token = sd_token
-            elif sensor.modality == SensorModality.RADAR:
-                first_radar_tokens.append(sd_token)
-            elif sensor.modality == SensorModality.CAMERA:
-                first_camera_tokens.append(sd_token)
-
-        render_3d = first_lidar_token is not None or len(first_radar_tokens) > 0
-        render_2d = len(first_camera_tokens) > 0
-
-        # initialize viewer
-        application_id = f"t4-devkit@{instance_token}"
-        viewer = self._init_viewer(
-            application_id,
-            render_3d=render_3d,
-            render_2d=render_2d,
-            render_annotation=True,
-            spawn=show,
-        )
-
-        last_ann: SampleAnnotation = self.get("sample_annotation", instance.last_annotation_token)
-        last_sample: Sample = self.get("sample", last_ann.sample_token)
-        max_timestamp_us = last_sample.timestamp
-
-        # render sensors
-        if first_lidar_token is not None:
-            self._render_lidar_and_ego(viewer, first_lidar_token, max_timestamp_us)
-        self._render_radars(viewer, first_radar_tokens, max_timestamp_us)
-        self._render_cameras(viewer, first_camera_tokens, max_timestamp_us)
-
-        # render annotations
-        self._render_annotation_3ds(
-            viewer,
-            first_sample.token,
-            max_timestamp_us,
+        coroutine = self._rendering_helper.async_render_instance(
+            instance_token=instance_token,
             future_seconds=future_seconds,
-            instance_token=instance_token,
-        )
-        self._render_annotation_2ds(
-            viewer,
-            first_sample.token,
-            max_timestamp_us,
-            instance_token=instance_token,
+            save_dir=save_dir,
+            show=show,
         )
 
-        if save_dir is not None:
-            viewer.save(save_dir)
+        asyncio.run(coroutine)
 
     def render_pointcloud(
         self,
@@ -923,404 +840,12 @@ class Tier4:
         TODO:
             Add an option of rendering radar channels.
         """
-        # search first lidar sample data token
-        first_lidar_token: str | None = None
-        for sensor in self.sensor:
-            if sensor.modality != SensorModality.LIDAR:
-                continue
-            first_lidar_token = sensor.first_sd_token
-
-        if first_lidar_token is None:
-            print("There is no 3D pointcloud data, abort rendering...")
-            return
-
-        # initialize viewer
-        application_id = f"t4-devkit@{scene_token}"
-        viewer = self._init_viewer(application_id, render_annotation=False, spawn=show)
-        first_lidar_sd_record: SampleData = self.get("sample_data", first_lidar_token)
-        max_timestamp_us = first_lidar_sd_record.timestamp + sec2us(max_time_seconds)
-
-        # render pointcloud
-        self._render_lidar_and_ego(
-            viewer,
-            first_lidar_token,
-            max_timestamp_us,
-            project_points=True,
+        coroutine = self._rendering_helper.async_render_pointcloud(
+            scene_token=scene_token,
+            max_time_seconds=max_time_seconds,
             ignore_distortion=ignore_distortion,
+            save_dir=save_dir,
+            show=show,
         )
 
-        if save_dir is not None:
-            viewer.save(save_dir)
-
-    def _init_viewer(
-        self,
-        application_id: str,
-        *,
-        render_3d: bool = True,
-        render_2d: bool = True,
-        render_annotation: bool = True,
-        spawn: bool = False,
-    ) -> RerunViewer:
-        """Initialize rendering viewer.
-
-        Args:
-            application_id (str): Application ID.
-            render_3d (bool, optional): Whether to render 3D space.
-            render_2d (bool, optional): Whether to render 2D space.
-            render_annotation (bool, optional): Whether to render annotations.
-            spawn (bool, optional): Whether to spawn rendering viewer.
-
-        Returns:
-            Viewer object.
-        """
-        if not (render_3d or render_2d):
-            raise ValueError("At least one of `render_3d` or `render_2d` must be True.")
-
-        cameras = (
-            [sensor.channel for sensor in self.sensor if sensor.modality == SensorModality.CAMERA]
-            if render_2d
-            else None
-        )
-
-        viewer = RerunViewer(application_id, cameras=cameras, with_3d=render_3d, spawn=spawn)
-
-        if render_annotation:
-            viewer = viewer.with_labels(self._label2id)
-
-        global_map_filepath = osp.join(self.data_root, "map/global_map_center.pcd.yaml")
-        if osp.exists(global_map_filepath):
-            with open(global_map_filepath) as f:
-                map_metadata: dict = yaml.safe_load(f)
-            map_origin: dict = map_metadata["/**"]["ros__parameters"]["map_origin"]
-            latitude = map_origin["latitude"]
-            longitude = map_origin["longitude"]
-            viewer = viewer.with_global_origin((latitude, longitude))
-
-        print(f"Finish initializing {application_id} ...")
-
-        return viewer
-
-    def _render_lidar_and_ego(
-        self,
-        viewer: RerunViewer,
-        first_lidar_token: str,
-        max_timestamp_us: float,
-        *,
-        project_points: bool = False,
-        ignore_distortion: bool = True,
-    ) -> None:
-        """Render lidar pointcloud and ego transform.
-
-        Args:
-            viewer (RerunViewer): Viewer object.
-            first_lidar_token (str): First sample data token corresponding to the lidar.
-            max_timestamp_us (float): Max time length in [us].
-            project_points (bool, optional): Whether to project 3d points on 2d images.
-            ignore_distortion (boo, optional): Whether to ignore distortion parameters.
-                This argument is only used if `project_points=True`.
-        """
-        self._render_sensor_calibration(viewer, first_lidar_token)
-
-        current_lidar_token = first_lidar_token
-
-        while current_lidar_token != "":
-            sample_data: SampleData = self.get("sample_data", current_lidar_token)
-
-            if max_timestamp_us < sample_data.timestamp:
-                break
-
-            # render ego
-            ego_pose: EgoPose = self.get("ego_pose", sample_data.ego_pose_token)
-            viewer.render_ego(ego_pose)
-
-            # render lidar pointcloud
-            pointcloud = LidarPointCloud.from_file(osp.join(self.data_root, sample_data.filename))
-            viewer.render_pointcloud(us2sec(sample_data.timestamp), sample_data.channel, pointcloud)
-
-            if project_points:
-                self._render_points_on_cameras(
-                    current_lidar_token,
-                    max_timestamp_us,
-                    ignore_distortion=ignore_distortion,
-                )
-
-            current_lidar_token = sample_data.next
-
-    def _render_radars(
-        self,
-        viewer: RerunViewer,
-        first_radar_tokens: list[str],
-        max_timestamp_us: float,
-    ) -> None:
-        """Render radar pointcloud.
-
-        Args:
-            viewer (RerunViewer): Viewer object.
-            first_radar_tokens (list[str]): List of first sample data tokens corresponding to radars.
-            max_timestamp_us (float): Max time length in [us].
-        """
-        for first_radar_token in first_radar_tokens:
-            self._render_sensor_calibration(viewer, first_radar_token)
-
-            current_radar_token = first_radar_token
-            while current_radar_token != "":
-                sample_data: SampleData = self.get("sample_data", current_radar_token)
-
-                if max_timestamp_us < sample_data.timestamp:
-                    break
-
-                # render radar pointcloud
-                pointcloud = RadarPointCloud.from_file(
-                    osp.join(self.data_root, sample_data.filename)
-                )
-                viewer.render_pointcloud(
-                    us2sec(sample_data.timestamp), sample_data.channel, pointcloud
-                )
-
-                current_radar_token = sample_data.next
-
-    def _render_cameras(
-        self, viewer: RerunViewer, first_camera_tokens: list[str], max_timestamp_us: float
-    ) -> None:
-        """Render camera images.
-
-        Args:
-            viewer (RerunViewer): Viewer object.
-            first_camera_tokens (list[str]): List of first sample data tokens corresponding to cameras.
-            max_timestamp_us (float): Max time length in [us].
-        """
-        for first_camera_token in first_camera_tokens:
-            self._render_sensor_calibration(viewer, first_camera_token)
-
-            current_camera_token = first_camera_token
-            while current_camera_token != "":
-                sample_data: SampleData = self.get("sample_data", current_camera_token)
-
-                if max_timestamp_us < sample_data.timestamp:
-                    break
-
-                # render camera image
-                viewer.render_image(
-                    us2sec(sample_data.timestamp),
-                    sample_data.channel,
-                    osp.join(self.data_root, sample_data.filename),
-                )
-
-                current_camera_token = sample_data.next
-
-    def _render_points_on_cameras(
-        self,
-        point_sample_data_token: str,
-        max_timestamp_us: float,
-        *,
-        min_dist: float = 1.0,
-        ignore_distortion: bool = False,
-    ) -> None:
-        """Render points on each camera sensor at a sample.
-
-        Args:
-            point_sample_data_token (str): Sample data token of pointcloud sensor.
-            max_timestamp_us (float): Max time length in [us].
-            min_dist (float, optional): Min focal distance to render points.
-            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
-
-        TODO:
-            Replace operation by `RerunViewer`.
-        """
-        point_sample_data: SampleData = self.get("sample_data", point_sample_data_token)
-        sample: Sample = self.get("sample", point_sample_data.sample_token)
-
-        for channel, sd_token in sample.data.items():
-            camera_sample_data: SampleData = self.get("sample_data", sd_token)
-            if camera_sample_data.modality != SensorModality.CAMERA:
-                continue
-
-            if max_timestamp_us < camera_sample_data.timestamp:
-                break
-
-            points_on_img, depths, img = self.project_pointcloud(
-                point_sample_data_token=point_sample_data_token,
-                camera_sample_data_token=sd_token,
-                min_dist=min_dist,
-                ignore_distortion=ignore_distortion,
-            )
-
-            sensor_name = channel
-            rr.set_time_seconds("timestamp", us2sec(camera_sample_data.timestamp))
-            rr.log(format_entity(RerunViewer.ego_entity, sensor_name), rr.Image(img))
-
-            rr.log(
-                format_entity(RerunViewer.ego_entity, sensor_name, "pointcloud"),
-                rr.Points2D(
-                    positions=points_on_img.T,
-                    colors=distance_color(depths),
-                ),
-            )
-
-    def _render_annotation_3ds(
-        self,
-        viewer: RerunViewer,
-        first_sample_token: str,
-        max_timestamp_us: float,
-        future_seconds: float = 0.0,
-        instance_token: str | None = None,
-    ) -> None:
-        """Render annotated 3D boxes.
-
-        Args:
-            viewer (RerunViewer): Viewer object.
-            first_sample_token (str): First sample token.
-            max_timestamp_us (float): Max time length in [us].
-            instance_token (str | None, optional): Specify if you want to render only particular instance.
-        """
-        current_sample_token = first_sample_token
-        while current_sample_token != "":
-            sample: Sample = self.get("sample", current_sample_token)
-
-            if max_timestamp_us < sample.timestamp:
-                break
-
-            if instance_token is not None:
-                boxes = []
-                for ann_token in sample.ann_3ds:
-                    ann: SampleAnnotation = self.get("sample_annotation", ann_token)
-                    if ann.instance_token == instance_token:
-                        boxes.append(self.get_box3d(ann_token, future_seconds=future_seconds))
-                        break
-            else:
-                boxes = [
-                    self.get_box3d(token, future_seconds=future_seconds) for token in sample.ann_3ds
-                ]
-            viewer.render_box3ds(us2sec(sample.timestamp), boxes)
-
-            current_sample_token = sample.next
-
-    def _render_annotation_2ds(
-        self,
-        viewer: RerunViewer,
-        first_sample_token: str,
-        max_timestamp_us: float,
-        instance_token: str | None = None,
-    ) -> None:
-        """Render annotated 2D boxes.
-
-        Args:
-            viewer (RerunViewer): Viewer object.
-            first_sample_token (str): First sample token.
-            max_timestamp_us (float): Max time length in [us].
-            instance_token (str | None, optional): Specify if you want to render only particular instance.
-
-        TODO:
-            2D boxes are rendered at sample data timestamp.
-            Then, they remains until next timestamp annotation is coming.
-        """
-        current_sample_token = first_sample_token
-        while current_sample_token != "":
-            sample: Sample = self.get("sample", current_sample_token)
-
-            if max_timestamp_us < sample.timestamp:
-                break
-
-            boxes: list[Box2D] = []
-
-            # For segmentation masks
-            # TODO: declare specific class for segmentation mask in `dataclass`
-            camera_masks: dict[str, dict[str, list]] = {}
-
-            # Object Annotation
-            for obj_ann_token in sample.ann_2ds:
-                obj_ann: ObjectAnn = self.get("object_ann", obj_ann_token)
-                box = self.get_box2d(obj_ann_token)
-                if instance_token is not None:
-                    if obj_ann.instance_token == instance_token:
-                        boxes.append(box)
-                        sample_data: SampleData = self.get("sample_data", obj_ann.sample_data_token)
-                        camera_masks = _append_mask(
-                            camera_masks,
-                            camera=sample_data.channel,
-                            ann=obj_ann,
-                            class_id=self._label2id[obj_ann.category_name],
-                            uuid=box.uuid,
-                        )
-                else:
-                    boxes.append(box)
-                    sample_data: SampleData = self.get("sample_data", obj_ann.sample_data_token)
-                    camera_masks = _append_mask(
-                        camera_masks,
-                        camera=sample_data.channel,
-                        ann=obj_ann,
-                        class_id=self._label2id[obj_ann.category_name],
-                        uuid=box.uuid,
-                    )
-
-            # Render 2D box
-            viewer.render_box2ds(us2sec(sample.timestamp), boxes)
-
-            if instance_token is None:
-                # Surface Annotation
-                for ann_token in sample.surface_anns:
-                    surface_ann: SurfaceAnn = self.get("surface_ann", ann_token)
-                    sample_data: SampleData = self.get("sample_data", surface_ann.sample_data_token)
-                    camera_masks = _append_mask(
-                        camera_masks,
-                        camera=sample_data.channel,
-                        ann=surface_ann,
-                        class_id=self._label2id[surface_ann.category_name],
-                    )
-
-            # Render 2D segmentation image
-            for camera, data in camera_masks.items():
-                viewer.render_segmentation2d(
-                    seconds=us2sec(sample.timestamp), camera=camera, **data
-                )
-
-            # TODO: add support of rendering keypoints
-            current_sample_token = sample.next
-
-    def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
-        """Render a fixed calibrated sensor transform.
-
-        Args:
-            viewer (RerunViewer): Viewer object.
-            sample_data_token (str): First sample data token corresponding to the sensor.
-        """
-        sample_data: SampleData = self.get("sample_data", sample_data_token)
-        calibrated_sensor: CalibratedSensor = self.get(
-            "calibrated_sensor", sample_data.calibrated_sensor_token
-        )
-        sensor: Sensor = self.get("sensor", calibrated_sensor.sensor_token)
-        viewer.render_calibration(sensor, calibrated_sensor)
-
-
-def _append_mask(
-    camera_masks: dict[str, dict[str, list]],
-    camera: str,
-    ann: ObjectAnn | SurfaceAnn,
-    class_id: int,
-    uuid: str | None = None,
-) -> dict[str, dict[str, list]]:
-    """Append segmentation mask data from `ObjectAnn/SurfaceAnn`.
-
-    TODO:
-        This function should be removed after declaring specific dataclass for 2D segmentation.
-
-    Args:
-        camera_masks (dict[str, dict[str, list]]): Key-value data mapping camera name and mask data.
-        camera (str): Name of camera channel.
-        ann (ObjectAnn | SurfaceAnn): Annotation object.
-        class_id (int): Class ID.
-        uuid (str | None, optional): Unique instance identifier.
-
-    Returns:
-        dict[str, dict[str, list]]: Updated `camera_masks`.
-    """
-    if camera in camera_masks:
-        camera_masks[camera]["masks"].append(ann.mask.decode())
-        camera_masks[camera]["class_ids"].append(class_id)
-        camera_masks[camera]["uuids"].append(uuid)
-    else:
-        camera_masks[camera] = {}
-        camera_masks[camera]["masks"] = [ann.mask.decode()]
-        camera_masks[camera]["class_ids"] = [class_id]
-        camera_masks[camera]["uuids"] = [uuid]
-    return camera_masks
+        asyncio.run(coroutine)
