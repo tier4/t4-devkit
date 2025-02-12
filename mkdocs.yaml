@@ -10,6 +10,7 @@ nav:
       - Customization: tutorials/customize.md
   - API:
       - TIER IV: apis/tier4.md
+      - Helper: apis/helper.md
       - Schema:
           - Home: apis/schema/index.md
           - Schema Names: apis/schema/name.md
