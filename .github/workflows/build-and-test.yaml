@@ -16,6 +16,9 @@ jobs:
         python-version: ["3.10", "3.12"]
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Check if relevant files have been changed
         uses: dorny/paths-filter@v3
         id: is-changed
@@ -26,10 +29,6 @@ jobs:
               - pyproject.toml
               - t4_devkit/**
               - tests/**
-
-      - name: Checkout code
-        if: ${{ steps.is-changed.outputs.changes == 'true'}}
-        uses: actions/checkout@v4
 
       - name: Define a cache dependency glob
         if: ${{ steps.is-changed.outputs.changes == 'true'}}
