@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Generator
 
 import numpy as np
-from attrs import define, field
+from attrs import Attribute, define, field
 
 if TYPE_CHECKING:
     from t4_devkit.typing import RotationType, TrajectoryType, TranslationType
@@ -45,7 +45,10 @@ class Trajectory:
     confidence: float = field(default=1.0)
 
     @waypoints.validator
-    def _check_dims(self, attribute, value) -> None:
+    def _check_dims(self, attribute: Attribute, value: TrajectoryType) -> None:
+        if value.ndim != 2:
+            raise ValueError(f"{attribute.name} must be 2D matrix.")
+
         if value.shape[1] != 3:
             raise ValueError(f"{attribute.name} dimension must be 3.")
 
