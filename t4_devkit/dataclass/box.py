@@ -248,7 +248,7 @@ class Box2D(BaseBox):
     roi: Roi | None = field(default=None, converter=lambda x: None if x is None else Roi(x))
 
     # additional attributes: set by `with_**`
-    position: TranslationType | None = field(default=None, init=False)
+    position: TranslationType | None = field(default=None)
 
     def with_position(self, position: TranslationType) -> Self:
         """Return a self instance setting `position` attribute.
