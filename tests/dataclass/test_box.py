@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import math
 
 import numpy as np
 from pyquaternion import Quaternion
 
+from t4_devkit.common.serialize import serialize_dataclass
 from t4_devkit.dataclass import distance_box
 
 
@@ -57,6 +60,32 @@ def test_box3d_rotate(dummy_box3d) -> None:
     )
 
 
+def test_box3d_serialize(dummy_box3d) -> None:
+    """Test serialized result of `Box3D` with `serialize_dataclass`.
+
+    Args:
+        dummy_box3d (Box3D): 3D box.
+    """
+    serialized = serialize_dataclass(dummy_box3d)
+
+    assert all(
+        key in serialized
+        for key in (
+            "unix_time",
+            "frame_id",
+            "semantic_label",
+            "confidence",
+            "uuid",
+            "position",
+            "rotation",
+            "shape",
+            "velocity",
+            "num_points",
+            "future",
+        )
+    )
+
+
 def test_box2d(dummy_box2d) -> None:
     """Test `Box2D` class.
 
@@ -70,6 +99,28 @@ def test_box2d(dummy_box2d) -> None:
     assert dummy_box2d.height == 50
     assert dummy_box2d.center == (125, 125)
     assert dummy_box2d.area == 2500
+
+
+def test_box2d_serialize(dummy_box2d) -> None:
+    """Test serialized result of `Box2D` with `serialize_dataclass`.
+
+    Args:
+        dummy_box2d (Box2D): 2D box.
+    """
+    serialized = serialize_dataclass(dummy_box2d)
+
+    assert all(
+        key in serialized
+        for key in (
+            "unix_time",
+            "frame_id",
+            "semantic_label",
+            "confidence",
+            "uuid",
+            "roi",
+            "position",
+        )
+    )
 
 
 def test_distance_box(dummy_box3d, dummy_tf_buffer) -> None:
