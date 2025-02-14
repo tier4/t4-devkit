@@ -118,7 +118,7 @@ class Box3D(BaseBox):
     num_points: int | None = field(default=None)
 
     # additional attributes: set by `with_**`
-    future: list[Trajectory] | None = field(default=None, init=False)
+    future: list[Trajectory] | None = field(default=None)
 
     def with_future(
         self,
