@@ -245,9 +245,7 @@ class RerunViewer:
         for box in boxes:
             if box.frame_id not in box_data:
                 box_data[box.frame_id] = BoxData3D(label2id=self.label2id)
-                box_data[box.frame_id].append(box)
-            else:
-                box_data[box.frame_id].append(box)
+            box_data[box.frame_id].append(box)
 
         for frame_id, data in box_data.items():
             # record boxes 3d
