@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 import rerun as rr
+import rerun.components as rrc
 from attrs import define, field
 
 if TYPE_CHECKING:
@@ -145,6 +146,7 @@ class BoxData3D:
             sizes=self.sizes,
             centers=self.centers,
             rotations=self.rotations,
+            fill_mode=rrc.FillMode.Solid,
             labels=labels,
             class_ids=self.class_ids,
             show_labels=False,
