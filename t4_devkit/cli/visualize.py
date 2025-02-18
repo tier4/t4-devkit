@@ -36,7 +36,7 @@ def scene(data_root: str, output: str | None, future: float, no_show: bool) -> N
 
 @main.command(name="instance", help="Visualize a particular instance in a corresponding scene")
 @click.argument("data_root", type=click.Path(exists=True))
-@click.argument("instance", type=click.STRING)
+@click.argument("instance", type=click.STRING, nargs=-1)
 @click.option("-f", "--future", type=float, default=0.0, help="Future time seconds.")
 @click.option(
     "-o",
@@ -46,7 +46,11 @@ def scene(data_root: str, output: str | None, future: float, no_show: bool) -> N
 )
 @click.option("--no-show", is_flag=True, help="Indicates whether not to show viewer.")
 def instance(
-    data_root: str, instance: str, future: float, output: str | None, no_show: bool
+    data_root: str,
+    instance: tuple[str, ...],
+    future: float,
+    output: str | None,
+    no_show: bool,
 ) -> None:
     _create_dir(output)
 

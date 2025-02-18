@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 import rerun as rr
+import rerun.components as rrc
 from attrs import define, field
 
 if TYPE_CHECKING:
@@ -100,7 +101,7 @@ class BoxData3D:
             self.velocities.append(box.velocity)
 
         if box.uuid is not None:
-            self.uuids.append(box.uuid[:6])
+            self.uuids.append(box.uuid)
 
         if box.future is not None:
             self.future.append(box.future)
@@ -145,8 +146,10 @@ class BoxData3D:
             sizes=self.sizes,
             centers=self.centers,
             rotations=self.rotations,
+            fill_mode=rrc.FillMode.Solid,
             labels=labels,
             class_ids=self.class_ids,
+            show_labels=False,
         )
 
     def as_arrows3d(self) -> rr.Arrows3D:
@@ -226,7 +229,7 @@ class BoxData2D:
         self.class_ids.append(self.label2id[box.semantic_label.name])
 
         if box.uuid is not None:
-            self.uuids.append(box.uuid[:6])
+            self.uuids.append(box.uuid)
 
     def _append_with_elements(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
         self.rois.append(roi)
@@ -248,4 +251,5 @@ class BoxData2D:
             array_format=rr.Box2DFormat.XYXY,
             labels=labels,
             class_ids=self.class_ids,
+            show_labels=False,
         )

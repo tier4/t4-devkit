@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import os.path as osp
 from concurrent.futures import Future
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 import rerun as rr
@@ -132,7 +132,7 @@ class RenderingHelper:
 
     async def async_render_instance(
         self,
-        instance_token: str,
+        instance_token: str | Sequence[str],
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
@@ -141,7 +141,7 @@ class RenderingHelper:
         """Render particular instance.
 
         Args:
-            instance_token (str): Instance token.
+            instance_token (str | Sequence[str]): Instance token(s).
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
             show (bool, optional): Whether to spawn rendering viewer.
@@ -149,6 +149,29 @@ class RenderingHelper:
         Returns:
             Future aggregating results.
         """
+        instance_tokens = [instance_token] if isinstance(instance_token, str) else instance_token
+
+        first_sample: Sample | None = None
+        last_sample: Sample | None = None
+        for token in instance_tokens:
+            instance: Instance = self._t4.get("instance", token)
+            first_ann: SampleAnnotation = self._t4.get(
+                "sample_annotation", instance.first_annotation_token
+            )
+            current_first_sample: Sample = self._t4.get("sample", first_ann.sample_token)
+            if first_sample is None or current_first_sample.timestamp < first_sample.timestamp:
+                first_sample = current_first_sample
+
+            last_ann: SampleAnnotation = self._t4.get(
+                "sample_annotation", instance.last_annotation_token
+            )
+            current_last_sample: Sample = self._t4.get("sample", last_ann.sample_token)
+            if last_sample is None or current_last_sample.timestamp > last_sample.timestamp:
+                last_sample = current_last_sample
+
+        scene_token = first_sample.scene_token
+        max_timestamp_us = last_sample.timestamp
+
         # search first sample data tokens
         first_lidar_tokens: list[str] = []
         first_radar_tokens: list[str] = []
@@ -165,7 +188,7 @@ class RenderingHelper:
         render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
         render2d = len(first_camera_tokens) > 0
 
-        app_id = f"instance@{instance_token}"
+        app_id = f"instance@{scene_token}"
         viewer = self._init_viewer(
             app_id,
             render3d=render3d,
@@ -173,17 +196,6 @@ class RenderingHelper:
             render_ann=True,
             spawn=show,
         )
-
-        instance: Instance = self._t4.get("instance", instance_token)
-        first_ann: SampleAnnotation = self._t4.get(
-            "sample_annotation", instance.first_annotation_token
-        )
-        first_sample: Sample = self._t4.get("sample", first_ann.sample_token)
-        last_ann: SampleAnnotation = self._t4.get(
-            "sample_annotation", instance.last_annotation_token
-        )
-        last_sample: Sample = self._t4.get("sample", last_ann.sample_token)
-        max_timestamp_us = last_sample.timestamp
 
         gather = await asyncio.gather(
             self._render_lidar_and_ego(
@@ -206,13 +218,13 @@ class RenderingHelper:
                 first_sample_token=first_sample.token,
                 max_timestamp_us=max_timestamp_us,
                 future_seconds=future_seconds,
-                instance_token=instance_token,
+                instance_tokens=instance_tokens,
             ),
             self._render_annotation2ds(
                 viewer=viewer,
                 first_sample_token=first_sample.token,
                 max_timestamp_us=max_timestamp_us,
-                instance_token=instance_token,
+                instance_tokens=instance_tokens,
             ),
         )
 
@@ -521,7 +533,7 @@ class RenderingHelper:
         max_timestamp_us: float,
         *,
         future_seconds: float = 0.0,
-        instance_token: str | None = None,
+        instance_tokens: Sequence[str] | None = None,
     ) -> None:
         current_sample_token = first_sample_token
         while current_sample_token != "":
@@ -530,13 +542,12 @@ class RenderingHelper:
             if max_timestamp_us < sample.timestamp:
                 break
 
-            if instance_token is not None:
+            if instance_tokens is not None:
                 boxes = []
                 for ann_token in sample.ann_3ds:
                     ann: SampleAnnotation = self._t4.get("sample_annotation", ann_token)
-                    if ann.instance_token == instance_token:
+                    if ann.instance_token in instance_tokens:
                         boxes.append(self._t4.get_box3d(ann_token, future_seconds=future_seconds))
-                        break
             else:
                 boxes = [
                     self._t4.get_box3d(token, future_seconds=future_seconds)
@@ -552,7 +563,7 @@ class RenderingHelper:
         first_sample_token: str,
         max_timestamp_us: float,
         *,
-        instance_token: str | None = None,
+        instance_tokens: Sequence[str] | None = None,
     ) -> None:
         current_sample_token = first_sample_token
         while current_sample_token != "":
@@ -570,8 +581,8 @@ class RenderingHelper:
             for obj_ann_token in sample.ann_2ds:
                 obj_ann: ObjectAnn = self._t4.get("object_ann", obj_ann_token)
                 box = self._t4.get_box2d(obj_ann_token)
-                if instance_token is not None:
-                    if obj_ann.instance_token == instance_token:
+                if instance_tokens is not None:
+                    if obj_ann.instance_token in instance_tokens:
                         boxes.append(box)
                         sample_data: SampleData = self._t4.get(
                             "sample_data",
@@ -598,7 +609,7 @@ class RenderingHelper:
             # Render 2D box
             viewer.render_box2ds(us2sec(sample.timestamp), boxes)
 
-            if instance_token is None:
+            if instance_tokens is None:
                 # Surface Annotation
                 for ann_token in sample.surface_anns:
                     surface_ann: SurfaceAnn = self._t4.get("surface_ann", ann_token)

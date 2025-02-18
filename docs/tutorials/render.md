@@ -11,7 +11,7 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 
 ![Render Scene GIF](../assets/render_scene.gif)
 
-### Rendering Instance
+### Rendering Instance(s)
 
 ```python
 >>> instance_token = t4.instance[0].token
@@ -19,6 +19,13 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 ```
 
 ![Render Instance GIF](../assets/render_instance.gif)
+
+You can also render multiple instances at once:
+
+```python
+>>> instance_tokens = [inst.token for inst in t4.instance[:3]]
+>>> t4.render_instance(instance_tokens)
+```
 
 ### Rendering PointCloud
 
