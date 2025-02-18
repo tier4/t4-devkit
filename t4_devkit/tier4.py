@@ -4,7 +4,7 @@ import asyncio
 import os.path as osp
 import time
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 from PIL import Image
@@ -758,7 +758,7 @@ class Tier4:
 
     def render_instance(
         self,
-        instance_token: str,
+        instance_token: str | Sequence[str],
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
@@ -767,7 +767,7 @@ class Tier4:
         """Render particular instance.
 
         Args:
-            instance_token (str): Instance token.
+            instance_token (str | Sequence[str]): Instance token(s).
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
             show (bool, optional): Whether to spawn rendering viewer.
