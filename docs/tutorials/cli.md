@@ -24,8 +24,6 @@ echo "source $HOME/.t4viz-complete.bash" >> ~/.bashrc
 _T4VIZ_COMPLETE=fish_source t4viz > $HOME/.config/fish/completions/t4viz.fish
 ```
 
-###
-
 ### `t4viz`
 
 #### Visualize a Scene
@@ -41,16 +39,22 @@ Arguments
 - `-o, --output <OUTPUT_DIR>`: Directory path to save recording `.rrd` file.
 - `--no-show`: Indicates whether not to show viewer.
 
-#### Visualize a Specific Instance
+#### Visualize Specific Instance(s)
 
 ```shell
 t4viz instance <DATA_ROOT> <INSTANCE_TOKEN> [OPTIONS]
 ```
 
+You can also specify multiple instance tokens:
+
+```shell
+t4viz instance <DATA_ROOT> <INSTANCE_TOKEN1> <INSTANCE_TOKEN2> ... [OPTIONS]
+```
+
 Arguments
 
 - `<DATA_ROOT>`: Root directory path to T4 dataset.
-- `<INSTANCE_TOKEN>`: Unique identifier token of an instance record.
+- `<INSTANCE_TOKEN>`: Unique identifier token(s) of the instance record(s).
 - `-f, --future <SECONDS>`: Future time seconds.
 - `-o, --output <OUTPUT_DIR>`: Directory path to save recording `.rrd` file.
 - `--no-show`: Indicates whether not to show viewer.
