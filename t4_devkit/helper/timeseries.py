@@ -35,7 +35,7 @@ class TimeseriesHelper:
         instance_token: str,
         sample_token: str,
         seconds: float,
-    ) -> list[SampleAnnotation]:
+    ) -> tuple[list[int], list[SampleAnnotation]]:
         """Return a list of sample annotations until the specified seconds.
 
         If `seconds>=0` explores future, otherwise past.
@@ -46,11 +46,12 @@ class TimeseriesHelper:
             seconds (float): Time seconds until. If `>=0` explore future, otherwise past.
 
         Returns:
-            List of sample annotation records of the specified instance.
+            List of timestamps and associated sample annotation records of the specified instance.
         """
         start_sample: Sample = self._t4.get("sample", sample_token)
 
-        outputs: list[SampleAnnotation] = []
+        timestamps: list[int] = []
+        anns: list[SampleAnnotation] = []
         is_successor = seconds >= 0
         current_sample_token = start_sample.next if is_successor else start_sample.prev
         while current_sample_token != "":
@@ -63,18 +64,19 @@ class TimeseriesHelper:
                 (current_sample_token, instance_token)
             )
             if ann_token is not None:
-                outputs.append(self._t4.get("sample_annotation", ann_token))
+                timestamps.append(current_sample.timestamp)
+                anns.append(self._t4.get("sample_annotation", ann_token))
 
             current_sample_token = current_sample.next if is_successor else current_sample.prev
 
-        return outputs
+        return timestamps, anns
 
     def get_object_anns_until(
         self,
         instance_token: str,
         sample_data_token: str,
         seconds: float,
-    ) -> list[ObjectAnn]:
+    ) -> tuple[list[int], list[ObjectAnn]]:
         """Return a list of object anns until the specified seconds.
 
         If `seconds>=0` explores future, otherwise past.
@@ -85,11 +87,12 @@ class TimeseriesHelper:
             seconds (float): Time seconds until. If `>=0` explore future, otherwise past.
 
         Returns:
-            List of object annotation records of the specified instance.
+            List of timestamps and associated object annotation records of the specified instance.
         """
         start_sample_data: SampleData = self._t4.get("sample_data", sample_data_token)
 
-        outputs: list[ObjectAnn] = []
+        timestamps: list[int] = []
+        anns: list[ObjectAnn] = []
         is_successor = seconds >= 0
         current_sample_data_token = (
             start_sample_data.next if is_successor else start_sample_data.prev
@@ -106,10 +109,11 @@ class TimeseriesHelper:
                 (current_sample_data_token, instance_token)
             )
             if ann_token is not None:
-                outputs.append(self._t4.get("object_ann", ann_token))
+                timestamps.append(current_sample_data.timestamp)
+                anns.append(self._t4.get("object_ann", ann_token))
 
             current_sample_data_token = (
                 current_sample_data.next if is_successor else current_sample_data.prev
             )
 
-        return outputs
+        return timestamps, anns

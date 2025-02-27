@@ -9,11 +9,11 @@ from pyquaternion import Quaternion
 from t4_devkit.dataclass import (
     Box2D,
     Box3D,
+    Future,
     HomogeneousMatrix,
     SemanticLabel,
     Shape,
     ShapeType,
-    Trajectory,
     TransformBuffer,
 )
 
@@ -44,6 +44,8 @@ def dummy_box3d() -> Box3D:
         confidence=1.0,
         uuid="car3d_0",
     ).with_future(
+        timestamps=[101, 102, 103, 104],
+        confidences=[1.0, 0.5],
         waypoints=[
             np.array(
                 [
@@ -62,7 +64,6 @@ def dummy_box3d() -> Box3D:
                 ]
             ),
         ],
-        confidences=[1.0, 0.5],
     )
 
 
@@ -85,6 +86,8 @@ def dummy_box3ds() -> list[Box3D]:
             confidence=1.0,
             uuid="car3d_1",
         ).with_future(
+            timestamps=[101, 102, 103, 104],
+            confidences=[1.0],
             waypoints=[
                 np.array(
                     [
@@ -95,7 +98,6 @@ def dummy_box3ds() -> list[Box3D]:
                     ]
                 ),
             ],
-            confidences=[1.0],
         ),
         Box3D(
             unix_time=100,
@@ -108,6 +110,8 @@ def dummy_box3ds() -> list[Box3D]:
             confidence=1.0,
             uuid="bicycle3d_1",
         ).with_future(
+            timestamps=[101, 102, 103, 104],
+            confidences=[1.0, 0.5],
             waypoints=[
                 np.array(
                     [
@@ -126,7 +130,6 @@ def dummy_box3ds() -> list[Box3D]:
                     ]
                 ),
             ],
-            confidences=[1.0, 0.5],
         ),
         Box3D(
             unix_time=100,
@@ -139,6 +142,8 @@ def dummy_box3ds() -> list[Box3D]:
             confidence=1.0,
             uuid="pedestrian3d_1",
         ).with_future(
+            timestamps=[101, 102, 103, 104],
+            confidences=[1.0, 0.5, 0.2],
             waypoints=[
                 np.array(
                     [
@@ -165,7 +170,6 @@ def dummy_box3ds() -> list[Box3D]:
                     ]
                 ),
             ],
-            confidences=[1.0, 0.5, 0.2],
         ),
     ]
 
@@ -223,16 +227,17 @@ def dummy_box2ds() -> list[Box2D]:
 
 
 @pytest.fixture(scope="function")
-def dummy_trajectory() -> Trajectory:
-    """Return a dummy trajectory.
+def dummy_future() -> Future:
+    """Return a dummy future trajectory.
 
     Returns:
-        A trajectory.
+        A future trajectory.
     """
     # list item is converted to NDArray internally
-    return Trajectory(
-        waypoints=[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]],
-        confidence=1.0,
+    return Future(
+        timestamps=[101, 102],
+        confidences=[1.0],
+        waypoints=[[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]],
     )
 
 
