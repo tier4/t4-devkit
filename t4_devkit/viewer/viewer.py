@@ -17,7 +17,7 @@ from .geography import calculate_geodetic_point
 from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, PointCloudLike, Trajectory
+    from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
     from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
     from t4_devkit.typing import (
         CamIntrinsicType,
@@ -212,7 +212,8 @@ class RerunViewer:
         sizes: Sequence[SizeType],
         class_ids: Sequence[int],
         velocities: Sequence[VelocityType] | None = None,
-        uuids: Sequence[str] | None | None = None,
+        uuids: Sequence[str] | None = None,
+        futures: Sequence[Future] | None = None,
     ) -> None:
         """Render 3D boxes with its elements.
 
@@ -223,7 +224,8 @@ class RerunViewer:
             sizes (Sequence[SizeType]): Sequence of box sizes in the order of (width, length, height).
             class_ids (Sequence[int]): Sequence of class IDs.
             velocities (Sequence[VelocityType] | None, optional): Sequence of velocities.
-            uuids (Sequence[str] | None | None, optional): Sequence of unique identifiers.
+            uuids (Sequence[str] | None, optional): Sequence of unique identifiers.
+            futures (Sequence[Future] | None, optional): Sequence future trajectories.
         """
         pass
 
@@ -273,7 +275,7 @@ class RerunViewer:
         class_ids: Sequence[int],
         velocities: Sequence[VelocityType] | None = None,
         uuids: Sequence[str] | None | None = None,
-        future: Sequence[Sequence[Trajectory]] | None = None,
+        futures: Sequence[Future] | None = None,
     ) -> None:
         if uuids is None:
             uuids = [None] * len(centers)
@@ -284,7 +286,7 @@ class RerunViewer:
         else:
             show_arrows = True
 
-        if future is None:
+        if futures is None:
             futures = [None] * len(centers)
             show_futures = False
         else:
