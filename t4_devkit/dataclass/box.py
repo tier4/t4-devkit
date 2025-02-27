@@ -11,22 +11,21 @@ from typing_extensions import Self
 from t4_devkit.common.converter import to_quaternion
 
 from .roi import Roi
-from .trajectory import to_trajectories
+from .trajectory import Future
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import HomogeneousMatrix
     from t4_devkit.typing import (
+        ArrayLike,
         NDArrayF64,
         RotationType,
         SizeType,
-        TrajectoryType,
         TranslationType,
         VelocityType,
     )
 
     from .label import SemanticLabel
     from .shape import Shape
-    from .trajectory import Trajectory
 
 
 __all__ = ["Box3D", "Box2D", "BoxType", "distance_box"]
@@ -118,23 +117,25 @@ class Box3D(BaseBox):
     num_points: int | None = field(default=None)
 
     # additional attributes: set by `with_**`
-    future: list[Trajectory] | None = field(default=None)
+    future: Future | None = field(default=None)
 
     def with_future(
         self,
-        waypoints: list[TrajectoryType],
-        confidences: list[float],
+        timestamps: ArrayLike,
+        confidences: ArrayLike,
+        waypoints: ArrayLike,
     ) -> Self:
         """Return a self instance setting `future` attribute.
 
         Args:
-            waypoints (list[TrajectoryType]): List of waypoints for each mode.
-            confidences (list[float]): List of confidences for each mode.
+            timestamps (ArrayLike): Array of future timestamps at each waypoint in the shape of (T).
+            confidences (ArrayLike): Array of confidences for each mode in the shape of (M).
+            waypoints (ArrayLike): Array of waypoints for each mode in the shape of (M, T, D).
 
         Returns:
             Self instance after setting `future`.
         """
-        self.future = to_trajectories(waypoints, confidences)
+        self.future = Future(timestamps=timestamps, confidences=confidences, waypoints=waypoints)
         return self
 
     def __eq__(self, other: Box3D | None) -> bool:
@@ -179,7 +180,7 @@ class Box3D(BaseBox):
         self.position += x
 
         if self.future is not None:
-            self.future = [t.translate(x) for t in self.future]
+            self.future.translate(x)
 
     def rotate(self, q: RotationType) -> None:
         """Apply a rotation.
@@ -194,7 +195,7 @@ class Box3D(BaseBox):
             self.velocity = np.dot(q.rotation_matrix, self.velocity)
 
         if self.future is not None:
-            self.future = [t.rotate(q) for t in self.future]
+            self.future.rotate(q)
 
     def corners(self, box_scale: float = 1.0) -> NDArrayF64:
         """Return the bounding box corners.

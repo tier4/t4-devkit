@@ -8,7 +8,7 @@ import rerun.components as rrc
 from attrs import define, field
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, Trajectory
+    from t4_devkit.dataclass import Box2D, Box3D, Future
     from t4_devkit.typing import (
         RoiType,
         RotationType,
@@ -42,7 +42,7 @@ class BoxData3D:
     class_ids: list[int] = field(init=False, factory=list)
     uuids: list[str] = field(init=False, factory=list)
     velocities: list[VelocityType] = field(init=False, factory=list)
-    future: list[list[Trajectory]] = field(init=False, factory=list)
+    future: list[Future] = field(init=False, factory=list)
 
     @overload
     def append(self, box: Box3D) -> None:
@@ -62,7 +62,7 @@ class BoxData3D:
         class_id: int,
         uuid: str | None = None,
         velocity: VelocityType | None = None,
-        future: list[Trajectory] | None = None,
+        future: Future | None = None,
     ) -> None:
         """Append a 3D box data with its elements.
 
@@ -73,7 +73,7 @@ class BoxData3D:
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
             velocity (VelocityType | None, optional): Box velocity.
-            future (list[Trajectory] | None, optional): Future trajectory.
+            future (Future | None, optional): Future trajectory.
         """
         pass
 
@@ -114,7 +114,7 @@ class BoxData3D:
         class_id: int,
         velocity: VelocityType | None = None,
         uuid: str | None = None,
-        future: list[Trajectory] | None = None,
+        future: Future | None = None,
     ) -> None:
         self.centers.append(center)
 
@@ -172,9 +172,9 @@ class BoxData3D:
         """
         stripes = []
         class_ids = []
-        for class_id, modes in zip(self.class_ids, self.future):
-            class_ids += [class_id] * len(modes)
-            stripes += [x.waypoints for x in modes]
+        for class_id, future in zip(self.class_ids, self.future):
+            class_ids += [class_id] * future.num_mode
+            stripes += [waypoints for _, waypoints in future]
         return rr.LineStrips3D(strips=stripes, class_ids=class_ids)
 
 
