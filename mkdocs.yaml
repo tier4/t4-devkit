@@ -1,28 +1,30 @@
-site_name: T4 Perception Dataset devkit
+site_name: T4 dataset devkit
+repo_url: https://github.com/tier4/t4-devkit
+repo_name: tier4/t4-devkit
 
 nav:
   - Home:
-      - T4Devkit: index.md
+      - t4-devkit: index.md
       - Installation: install.md
   - Tutorials:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
       - Customization: tutorials/customize.md
       - CLI: tutorials/cli.md
-  - API:
-      - TIER IV: apis/tier4.md
-      - Helper: apis/helper.md
-      - Schema:
+  - API References:
+      - t4_devkit.tier4: apis/tier4.md
+      - t4_devkit.helper: apis/helper.md
+      - t4_devkit.schema:
           - Home: apis/schema/index.md
           - Schema Names: apis/schema/name.md
           - Schema Tables: apis/schema/table.md
           - Other Items for Tables: apis/schema/other.md
           - Schema Registry: apis/schema/registry.md
           - Serialize Schema: apis/schema/serialize.md
-      - DataClass: apis/dataclass.md
-      - Filtering: apis/filtering.md
-      - Viewer: apis/viewer.md
-      - Common: apis/common.md
+      - t4_devkit.dataclass: apis/dataclass.md
+      - t4_devkit.filtering: apis/filtering.md
+      - t4_devkit.viewer: apis/viewer.md
+      - t4_devkit.common: apis/common.md
 
 theme:
   name: material

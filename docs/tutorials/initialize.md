@@ -1,8 +1,8 @@
-## Initialize `Tier4` API
+## Initialize `Tier4` class
 
 ---
 
-`Tier4` API expects the following dataset directly structure:
+`Tier4` class expects the following dataset directly structure:
 
 ```shell
 data/tier4/
@@ -51,7 +51,7 @@ Done loading in 0.061 seconds.
 ======
 ```
 
-## Access to Fields
+## Access to Schema Fields
 
 ---
 
