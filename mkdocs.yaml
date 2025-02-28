@@ -1,4 +1,6 @@
 site_name: T4 dataset devkit
+repo_url: https://github.com/tier4/t4-devkit
+repo_name: tier4/t4-devkit
 
 nav:
   - Home:
