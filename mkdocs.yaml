@@ -1,8 +1,8 @@
-site_name: T4 Perception Dataset devkit
+site_name: T4 dataset devkit
 
 nav:
   - Home:
-      - T4Devkit: index.md
+      - t4-devkit: index.md
       - Installation: install.md
   - Tutorials:
       - Initialization: tutorials/initialize.md
