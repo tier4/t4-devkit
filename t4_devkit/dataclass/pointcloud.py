@@ -126,7 +126,7 @@ class RadarPointCloud(PointCloud):
     ) -> Self:
         assert filepath.endswith(".pcd"), f"Unexpected filetype: {filepath}"
 
-        metadata = []
+        metadata: list[str] = []
         with open(filepath, "rb") as f:
             for line in f:
                 line = line.strip().decode("utf-8")
