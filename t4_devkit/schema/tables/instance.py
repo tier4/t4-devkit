@@ -1,4 +1,6 @@
-from attrs import define
+from __future__ import annotations
+
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -21,8 +23,8 @@ class Instance(SchemaBase):
         last_annotation_token (str): Foreign key pointing to the last annotation of this instance.
     """
 
-    category_token: str
-    instance_name: str
-    nbr_annotations: int
-    first_annotation_token: str
-    last_annotation_token: str
+    category_token: str = field(validator=validators.instance_of(str))
+    instance_name: str = field(validator=validators.instance_of(str))
+    nbr_annotations: int = field(validator=validators.instance_of(int))
+    first_annotation_token: str = field(validator=validators.instance_of(str))
+    last_annotation_token: str = field(validator=validators.instance_of(str))

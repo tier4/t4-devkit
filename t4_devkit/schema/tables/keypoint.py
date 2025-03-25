@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -29,8 +29,10 @@ class Keypoint(SchemaBase):
         num_keypoints (int): The number of keypoints to be annotated.
     """
 
-    sample_data_token: str
-    instance_token: str
-    category_tokens: list[str]
+    sample_data_token: str = field(validator=validators.instance_of(str))
+    instance_token: str = field(validator=validators.instance_of(str))
+    category_tokens: list[str] = field(
+        validator=validators.deep_iterable(validators.instance_of(str))
+    )
     keypoints: KeypointLike = field(converter=np.array)
-    num_keypoints: int
+    num_keypoints: int = field(validator=validators.instance_of(int))

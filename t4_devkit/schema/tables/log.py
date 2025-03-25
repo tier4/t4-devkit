@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from attrs import define, field
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -27,10 +27,10 @@ class Log(SchemaBase):
             This should be set after instantiated.
     """
 
-    logfile: str
-    vehicle: str
-    data_captured: str
-    location: str
+    logfile: str = field(validator=validators.instance_of(str))
+    vehicle: str = field(validator=validators.instance_of(str))
+    data_captured: str = field(validator=validators.instance_of(str))
+    location: str = field(validator=validators.instance_of(str))
 
     # shortcuts
     map_token: str = field(init=False, factory=str)

@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Generator
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
+
+from t4_devkit.common.validator import is_trajectory
 
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayFloat, NDArrayInt, QuaternionLike, Vector3Like
@@ -45,19 +47,16 @@ class Trajectory:
     """
 
     timestamps: NDArrayInt = field(converter=np.array)
-    confidences: NDArrayFloat = field(converter=np.array)
-    waypoints: NDArrayFloat = field(converter=np.array)
+    confidences: NDArrayFloat = field(
+        converter=np.array,
+        validator=validators.deep_iterable((validators.ge(0.0), validators.le(1.0))),
+    )
+    waypoints: NDArrayFloat = field(converter=np.array, validator=is_trajectory)
 
     def __attrs_post_init__(self) -> None:
         self._check_dims()
 
     def _check_dims(self) -> None:
-        if self.waypoints.ndim != 3:
-            raise ValueError(f"`waypoints` must be [M, T, D] tensor, but got {self.waypoints.ndim}")
-
-        if self.waypoints.shape[2] != 3:
-            raise ValueError(f"`waypoints` dimension must be 3, but got {self.waypoints.shape[2]}")
-
         # check timestamp length between timestamps and waypoints
         if len(self.timestamps) != self.waypoints.shape[1]:
             raise ValueError(

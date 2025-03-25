@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from enum import Enum, unique
 
-from attrs import define, field
-from attrs.converters import optional
+from attrs import converters, define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -56,7 +55,10 @@ class AdditionalInfo:
         speed (float | None): Speed of the ego vehicle.
     """
 
-    speed: float | None = field(default=None)
+    speed: float | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(float)),
+    )
 
 
 @define(slots=False)
@@ -77,17 +79,39 @@ class VehicleState(SchemaBase):
         additional_info (AdditionalInfo | None): Additional state information.
     """
 
-    token: str
-    timestamp: int
-    accel_pedal: float | None = field(default=None)
-    brake_pedal: float | None = field(default=None)
-    steer_pedal: float | None = field(default=None)
-    steering_tire_angle: float | None = field(default=None)
-    steering_wheel_angle: float | None = field(default=None)
-    shift_state: ShiftState | None = field(default=None, converter=optional(ShiftState))
+    timestamp: int = field(validator=validators.instance_of(int))
+    accel_pedal: float | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(float)),
+    )
+    brake_pedal: float | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(float)),
+    )
+    steer_pedal: float | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(float)),
+    )
+    steering_tire_angle: float | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(float)),
+    )
+    steering_wheel_angle: float | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(float)),
+    )
+    shift_state: ShiftState | None = field(
+        default=None,
+        converter=converters.optional(ShiftState),
+        validator=validators.optional(validators.instance_of(ShiftState)),
+    )
     indicators: Indicators | None = field(
-        default=None, converter=lambda x: Indicators(**x) if isinstance(x, dict) else x
+        default=None,
+        converter=lambda x: Indicators(**x) if isinstance(x, dict) else x,
+        validator=validators.optional(validators.instance_of(Indicators)),
     )
     additional_info: AdditionalInfo | None = field(
-        default=None, converter=lambda x: AdditionalInfo(**x) if isinstance(x, dict) else x
+        default=None,
+        converter=lambda x: AdditionalInfo(**x) if isinstance(x, dict) else x,
+        validator=validators.optional(validators.instance_of(AdditionalInfo)),
     )

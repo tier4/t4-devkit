@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from attrs import define
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -20,5 +20,5 @@ class Category(SchemaBase):
         description (str): Category description.
     """
 
-    name: str
-    description: str
+    name: str = field(validator=validators.instance_of(str))
+    description: str = field(validator=validators.instance_of(str))
