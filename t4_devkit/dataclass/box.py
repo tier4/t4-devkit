@@ -15,27 +15,20 @@ from .trajectory import Future
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import HomogeneousMatrix
-    from t4_devkit.typing import (
-        ArrayLike,
-        NDArrayF64,
-        RotationType,
-        SizeType,
-        TranslationType,
-        VelocityType,
-    )
+    from t4_devkit.typing import ArrayLike, NDArrayF64, QuaternionLike, Vector3Like
 
     from .label import SemanticLabel
     from .shape import Shape
 
 
-__all__ = ["Box3D", "Box2D", "BoxType", "distance_box"]
+__all__ = ["Box3D", "Box2D", "BoxLike", "distance_box"]
 
 
-def distance_box(box: BoxType, tf_matrix: HomogeneousMatrix) -> float | None:
+def distance_box(box: BoxLike, tf_matrix: HomogeneousMatrix) -> float | None:
     """Return a box distance from `base_link`.
 
     Args:
-        box (BoxType): A box.
+        box (BoxLike): A box.
         tf_matrix (HomogeneousMatrix): Transformation matrix.
 
     Raises:
@@ -83,12 +76,12 @@ class Box3D(BaseBox):
         semantic_label (SemanticLabel): `SemanticLabel` object.
         confidence (float, optional): Confidence score of the box.
         uuid (str | None, optional): Unique box identifier.
-        position (TranslationType): Box center position (x, y, z).
-        rotation (RotationType): Box rotation quaternion.
+        position (Vector3Like): Box center position (x, y, z).
+        rotation (QuaternionLike): Box rotation quaternion.
         shape (Shape): `Shape` object.
-        velocity (VelocityType | None, optional): Box velocity (vx, vy, vz).
+        velocity (Vector3Like | None, optional): Box velocity (vx, vy, vz).
         num_points (int | None, optional): The number of points inside the box.
-        future (list[Trajectory] | None, optional): Box trajectory in the future of each mode.
+        future (Future | None, optional): Box trajectory in the future of each mode.
 
     Examples:
         >>> # without future
@@ -110,10 +103,10 @@ class Box3D(BaseBox):
         ... )
     """
 
-    position: TranslationType = field(converter=np.array)
-    rotation: RotationType = field(converter=to_quaternion)
+    position: Vector3Like = field(converter=np.array)
+    rotation: QuaternionLike = field(converter=to_quaternion)
     shape: Shape
-    velocity: VelocityType | None = field(default=None, converter=optional(np.array))
+    velocity: Vector3Like | None = field(default=None, converter=optional(np.array))
     num_points: int | None = field(default=None)
 
     # additional attributes: set by `with_**`
@@ -151,7 +144,7 @@ class Box3D(BaseBox):
             return eq
 
     @property
-    def size(self) -> SizeType:
+    def size(self) -> Vector3Like:
         """Return the box size in the order of (width, length, height).
 
         Returns:
@@ -171,22 +164,22 @@ class Box3D(BaseBox):
     def volume(self) -> float:
         return self.area * self.size[2]
 
-    def translate(self, x: TranslationType) -> None:
+    def translate(self, x: Vector3Like) -> None:
         """Apply a translation.
 
         Args:
-            x (TranslationType): 3D translation vector in the order of (x, y, z).
+            x (Vector3Like): 3D translation vector in the order of (x, y, z).
         """
         self.position += x
 
         if self.future is not None:
             self.future.translate(x)
 
-    def rotate(self, q: RotationType) -> None:
+    def rotate(self, q: QuaternionLike) -> None:
         """Apply a rotation.
 
         Args:
-            q (RotationType): Rotation quaternion.
+            q (QuaternionLike): Rotation quaternion.
         """
         self.position = np.dot(q.rotation_matrix, self.position)
         self.rotation = q * self.rotation
@@ -230,7 +223,7 @@ class Box2D(BaseBox):
         confidence (float, optional): Confidence score of the box.
         uuid (str | None, optional): Unique box identifier.
         roi (Roi | None, optional): `Roi` object.
-        position (TranslationType | None, optional): 3D position (x, y, z).
+        position (Vector3Like | None, optional): 3D position (x, y, z).
 
     Examples:
         >>> # without 3D position
@@ -249,13 +242,13 @@ class Box2D(BaseBox):
     roi: Roi | None = field(default=None, converter=lambda x: None if x is None else Roi(x))
 
     # additional attributes: set by `with_**`
-    position: TranslationType | None = field(default=None)
+    position: Vector3Like | None = field(default=None)
 
-    def with_position(self, position: TranslationType) -> Self:
+    def with_position(self, position: Vector3Like) -> Self:
         """Return a self instance setting `position` attribute.
 
         Args:
-            position (TranslationType): 3D position.
+            position (Vector3Like): 3D position.
 
         Returns:
             Self instance after setting `position`.
@@ -299,4 +292,4 @@ class Box2D(BaseBox):
 
 
 # type aliases
-BoxType = TypeVar("BoxType", bound=BaseBox)
+BoxLike = TypeVar("BoxLike", bound=BaseBox)

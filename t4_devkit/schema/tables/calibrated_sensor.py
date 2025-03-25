@@ -12,7 +12,7 @@ from .base import SchemaBase
 from .registry import SCHEMAS
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import CamDistortionType, CamIntrinsicType, RotationType, TranslationType
+    from t4_devkit.typing import CamDistortionLike, CamIntrinsicLike, QuaternionLike, Vector3Like
 
 __all__ = ["CalibratedSensor"]
 
@@ -25,14 +25,14 @@ class CalibratedSensor(SchemaBase):
     Attributes:
         token (str): Unique record identifier.
         sensor_token (str): Foreign key pointing to the sensor type.
-        translation (TranslationType): Coordinates system origin given as [x, y, z] in [m].
-        rotation (RotationType): Coordinates system orientation given as quaternion [w, x, y, z].
-        camera_intrinsic (CamIntrinsicType): 3x3 camera intrinsic matrix. Empty for sensors that are not cameras.
-        camera_distortion (CamDistortionType): Camera distortion array. Empty for sensors that are not cameras.
+        translation (Vector3Like): Coordinates system origin given as [x, y, z] in [m].
+        rotation (QuaternionLike): Coordinates system orientation given as quaternion [w, x, y, z].
+        camera_intrinsic (CamIntrinsicLike): 3x3 camera intrinsic matrix. Empty for sensors that are not cameras.
+        camera_distortion (CamDistortionLike): Camera distortion array. Empty for sensors that are not cameras.
     """
 
     sensor_token: str
-    translation: TranslationType = field(converter=np.array)
-    rotation: RotationType = field(converter=to_quaternion)
-    camera_intrinsic: CamIntrinsicType = field(converter=np.array)
-    camera_distortion: CamDistortionType = field(converter=np.array)
+    translation: Vector3Like = field(converter=np.array)
+    rotation: QuaternionLike = field(converter=to_quaternion)
+    camera_intrinsic: CamIntrinsicLike = field(converter=np.array)
+    camera_distortion: CamDistortionLike = field(converter=np.array)

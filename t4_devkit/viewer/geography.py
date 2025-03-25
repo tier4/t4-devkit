@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import TranslationType
+    from t4_devkit.typing import Vector3Like
 
 
 __all__ = ["calculate_geodetic_point"]
@@ -16,13 +16,13 @@ FLATTENING = 1 / 298.257223563
 
 
 def calculate_geodetic_point(
-    position: TranslationType,
+    position: Vector3Like,
     origin: tuple[float, float],
 ) -> tuple[float, float]:
     """Transform a position in a map coordinate system to a position in a geodetic coordinate system.
 
     Args:
-        position (TranslationType): 3D position in a map coordinate system.
+        position (Vector3Like): 3D position in a map coordinate system.
         origin (tuple[float, float]): Map origin position in a geodetic coordinate system,
             which is (latitude, longitude).
 

@@ -10,7 +10,7 @@ from .base import SchemaBase
 from .registry import SCHEMAS
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import KeypointType
+    from t4_devkit.typing import KeypointLike
 
 __all__ = ["Keypoint"]
 
@@ -25,12 +25,12 @@ class Keypoint(SchemaBase):
         sample_data_token (str): Foreign key pointing to the sample data, which must be a keyframe image.
         instance_token (str): Foreign key pointing to the instance.
         category_tokens (list[str]): Foreign key pointing to keypoints categories.
-        keypoints (KeypointType): Annotated keypoints. Given as a list of [x, y].
+        keypoints (KeypointLike): Annotated keypoints. Given as a list of [x, y].
         num_keypoints (int): The number of keypoints to be annotated.
     """
 
     sample_data_token: str
     instance_token: str
     category_tokens: list[str]
-    keypoints: KeypointType = field(converter=np.array)
+    keypoints: KeypointLike = field(converter=np.array)
     num_keypoints: int
