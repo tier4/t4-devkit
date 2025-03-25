@@ -11,7 +11,7 @@ from .object_ann import RLEMask
 from .registry import SCHEMAS
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import RoiType
+    from t4_devkit.typing import RoiLike
 
 __all__ = ["SurfaceAnn"]
 
@@ -43,7 +43,7 @@ class SurfaceAnn(SchemaBase):
     category_name: str = field(init=False, factory=str)
 
     @property
-    def bbox(self) -> RoiType:
+    def bbox(self) -> RoiLike:
         """Return a bounding box corners calculated from polygon vertices.
 
         Returns:

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from attrs import define, field
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import RoiType
+    from t4_devkit.typing import RoiLike
 
 __all__ = ["Roi"]
 
@@ -15,10 +15,10 @@ class Roi:
     """A dataclass to represent 2D box ROI.
 
     Attributes:
-        roi (RoiType): Box ROI in the order of (xmin, ymin, xmax, ymax).
+        roi (RoiLike): Box ROI in the order of (xmin, ymin, xmax, ymax).
     """
 
-    roi: RoiType = field(converter=tuple)
+    roi: RoiLike = field(converter=tuple)
 
     @roi.validator
     def _check_roi(self, attribute, value) -> None:

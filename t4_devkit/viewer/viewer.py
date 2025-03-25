@@ -20,14 +20,11 @@ if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
     from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
     from t4_devkit.typing import (
-        CamIntrinsicType,
-        GeoCoordinateType,
+        CamIntrinsicLike,
         NDArrayU8,
-        RoiType,
-        RotationType,
-        SizeType,
-        TranslationType,
-        VelocityType,
+        QuaternionLike,
+        RoiLike,
+        Vector3Like,
     )
 
 __all__ = ["RerunViewer", "format_entity"]
@@ -207,11 +204,11 @@ class RerunViewer:
     def render_box3ds(
         self,
         seconds: float,
-        centers: Sequence[TranslationType],
-        rotations: Sequence[RotationType],
-        sizes: Sequence[SizeType],
+        centers: Sequence[Vector3Like],
+        rotations: Sequence[QuaternionLike],
+        sizes: Sequence[Vector3Like],
         class_ids: Sequence[int],
-        velocities: Sequence[VelocityType] | None = None,
+        velocities: Sequence[Vector3Like] | None = None,
         uuids: Sequence[str] | None = None,
         futures: Sequence[Future] | None = None,
     ) -> None:
@@ -219,11 +216,11 @@ class RerunViewer:
 
         Args:
             seconds (float): Timestamp in [sec].
-            centers (Sequence[TranslationType]): Sequence of 3D positions in the order of (x, y, z).
-            rotations (Sequence[RotationType]): Sequence of quaternions.
-            sizes (Sequence[SizeType]): Sequence of box sizes in the order of (width, length, height).
+            centers (Sequence[Vector3Like]): Sequence of 3D positions in the order of (x, y, z).
+            rotations (Sequence[QuaternionLike]): Sequence of quaternions.
+            sizes (Sequence[Vector3Like]): Sequence of box sizes in the order of (width, length, height).
             class_ids (Sequence[int]): Sequence of class IDs.
-            velocities (Sequence[VelocityType] | None, optional): Sequence of velocities.
+            velocities (Sequence[Vector3Like] | None, optional): Sequence of velocities.
             uuids (Sequence[str] | None, optional): Sequence of unique identifiers.
             futures (Sequence[Future] | None, optional): Sequence future trajectories.
         """
@@ -269,11 +266,11 @@ class RerunViewer:
     def _render_box3ds_with_elements(
         self,
         seconds: float,
-        centers: Sequence[TranslationType],
-        rotations: Sequence[RotationType],
-        sizes: Sequence[SizeType],
+        centers: Sequence[Vector3Like],
+        rotations: Sequence[QuaternionLike],
+        sizes: Sequence[Vector3Like],
         class_ids: Sequence[int],
-        velocities: Sequence[VelocityType] | None = None,
+        velocities: Sequence[Vector3Like] | None = None,
         uuids: Sequence[str] | None | None = None,
         futures: Sequence[Future] | None = None,
     ) -> None:
@@ -339,7 +336,7 @@ class RerunViewer:
         self,
         seconds: float,
         camera: str,
-        rois: Sequence[RoiType],
+        rois: Sequence[RoiLike],
         class_ids: Sequence[int],
         uuids: Sequence[str] | None = None,
     ) -> None:
@@ -348,7 +345,7 @@ class RerunViewer:
         Args:
             seconds (float): Timestamp in [sec].
             camera (str): Camera name.
-            rois (Sequence[RoiType]): Sequence of ROIs in the order of (xmin, ymin, xmax, ymax).
+            rois (Sequence[RoiLike]): Sequence of ROIs in the order of (xmin, ymin, xmax, ymax).
             class_ids (Sequence[int]): Sequence of class IDs.
             uuids (Sequence[str] | None, optional): Sequence of unique identifiers.
         """
@@ -384,7 +381,7 @@ class RerunViewer:
         self,
         seconds: float,
         camera: str,
-        rois: Sequence[RoiType],
+        rois: Sequence[RoiLike],
         class_ids: Sequence[int],
         uuids: Sequence[str] | None = None,
     ) -> None:
@@ -489,18 +486,18 @@ class RerunViewer:
     def render_ego(
         self,
         seconds: float,
-        translation: TranslationType,
-        rotation: RotationType,
-        geocoordinate: GeoCoordinateType | None = None,
+        translation: Vector3Like,
+        rotation: QuaternionLike,
+        geocoordinate: Vector3Like | None = None,
     ) -> None:
         """Render an ego pose.
 
         Args:
             seconds (float): Timestamp in [sec].
-            translation (TranslationType): 3D position in the map coordinate system
+            translation (Vector3Like): 3D position in the map coordinate system
               , in the order of (x, y, z) in [m].
-            rotation (RotationType): Rotation in the map coordinate system.
-            geocoordinate (GeoCoordinateType | None, optional): Coordinates in the WGS 84
+            rotation (QuaternionLike): Rotation in the map coordinate system.
+            geocoordinate (Vector3Like | None, optional): Coordinates in the WGS 84
                 reference ellipsoid (latitude, longitude, altitude) in degrees and meters.
         """
         pass
@@ -523,9 +520,9 @@ class RerunViewer:
     def _render_ego_without_schema(
         self,
         seconds: float,
-        translation: TranslationType,
-        rotation: RotationType,
-        geocoordinate: GeoCoordinateType | None = None,
+        translation: Vector3Like,
+        rotation: QuaternionLike,
+        geocoordinate: Vector3Like | None = None,
     ) -> None:
         rr.set_time_seconds(self.timeline, seconds)
 
@@ -571,18 +568,18 @@ class RerunViewer:
         self,
         channel: str,
         modality: str | SensorModality,
-        translation: TranslationType,
-        rotation: RotationType,
-        camera_intrinsic: CamIntrinsicType | None = None,
+        translation: Vector3Like,
+        rotation: QuaternionLike,
+        camera_intrinsic: CamIntrinsicLike | None = None,
     ) -> None:
         """Render a sensor calibration.
 
         Args:
             channel (str): Name of the sensor channel.
             modality (str | SensorModality): Sensor modality.
-            translation (TranslationType): Sensor translation in ego centric coords.
-            rotation (RotationType): Sensor rotation in ego centric coords.
-            camera_intrinsic (CamIntrinsicType | None, optional): Camera intrinsic matrix.
+            translation (Vector3Like): Sensor translation in ego centric coords.
+            rotation (QuaternionLike): Sensor rotation in ego centric coords.
+            camera_intrinsic (CamIntrinsicLike | None, optional): Camera intrinsic matrix.
                 Defaults to None.
         """
         pass
@@ -611,18 +608,18 @@ class RerunViewer:
         self,
         channel: str,
         modality: str | SensorModality,
-        translation: TranslationType,
-        rotation: RotationType,
-        camera_intrinsic: CamIntrinsicType | None = None,
+        translation: Vector3Like,
+        rotation: QuaternionLike,
+        camera_intrinsic: CamIntrinsicLike | None = None,
     ) -> None:
         """Render a sensor calibration.
 
         Args:
             channel (str): Name of the sensor channel.
             modality (str | SensorModality): Sensor modality.
-            translation (TranslationType): Sensor translation in ego centric coords.
-            rotation (RotationType): Sensor rotation in ego centric coords.
-            camera_intrinsic (CamIntrinsicType | None, optional): Camera intrinsic matrix.
+            translation (Vector3Like): Sensor translation in ego centric coords.
+            rotation (QuaternionLike): Sensor rotation in ego centric coords.
+            camera_intrinsic (CamIntrinsicLike | None, optional): Camera intrinsic matrix.
                 Defaults to None.
         """
         rotation_xyzw = np.roll(rotation.q, shift=-1)

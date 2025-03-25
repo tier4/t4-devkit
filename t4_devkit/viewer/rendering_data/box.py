@@ -9,13 +9,7 @@ from attrs import define, field
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future
-    from t4_devkit.typing import (
-        RoiType,
-        RotationType,
-        SizeType,
-        TranslationType,
-        VelocityType,
-    )
+    from t4_devkit.typing import QuaternionLike, RoiLike, Vector3Like
 
 __all__ = ["BoxData3D", "BoxData2D"]
 
@@ -26,9 +20,9 @@ class BoxData3D:
 
     Attributes:
         label2id (dict[str, int]): Key-value of map of label name and its ID.
-        centers (list[TranslationType]): List of 3D center positions in the order of (x, y, z).
+        centers (list[Vector3Like]): List of 3D center positions in the order of (x, y, z).
         rotations (list[rr.Quaternion]): List of quaternions.
-        sizes (list[SizeType]): List of 3D box dimensions in the order of (width, length, height).
+        sizes (list[Vector3Like]): List of 3D box dimensions in the order of (width, length, height).
         class_ids (list[int]): List of label class IDs.
         uuids (list[str]): List of unique identifier IDs.
         velocities (list[Velocities]): List of velocities in the order of (vx, vy, vz).
@@ -36,12 +30,12 @@ class BoxData3D:
 
     label2id: dict[str, int] = field(factory=dict)
 
-    centers: list[TranslationType] = field(init=False, factory=list)
+    centers: list[Vector3Like] = field(init=False, factory=list)
     rotations: list[rr.Quaternion] = field(init=False, factory=list)
-    sizes: list[SizeType] = field(init=False, factory=list)
+    sizes: list[Vector3Like] = field(init=False, factory=list)
     class_ids: list[int] = field(init=False, factory=list)
     uuids: list[str] = field(init=False, factory=list)
-    velocities: list[VelocityType] = field(init=False, factory=list)
+    velocities: list[Vector3Like] = field(init=False, factory=list)
     future: list[Future] = field(init=False, factory=list)
 
     @overload
@@ -56,23 +50,23 @@ class BoxData3D:
     @overload
     def append(
         self,
-        center: TranslationType,
-        rotation: RotationType,
-        size: SizeType,
+        center: Vector3Like,
+        rotation: QuaternionLike,
+        size: Vector3Like,
         class_id: int,
         uuid: str | None = None,
-        velocity: VelocityType | None = None,
+        velocity: Vector3Like | None = None,
         future: Future | None = None,
     ) -> None:
         """Append a 3D box data with its elements.
 
         Args:
-            center (TranslationType): 3D position in the order of (x, y, z).
-            rotation (RotationType): Quaternion.
-            size (SizeType): Box size in the order of (width, height, length).
+            center (Vector3Like): 3D position in the order of (x, y, z).
+            rotation (QuaternionLike): Quaternion.
+            size (Vector3Like): Box size in the order of (width, height, length).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
-            velocity (VelocityType | None, optional): Box velocity.
+            velocity (Vector3Like | None, optional): Box velocity.
             future (Future | None, optional): Future trajectory.
         """
         pass
@@ -108,11 +102,11 @@ class BoxData3D:
 
     def _append_with_elements(
         self,
-        center: TranslationType,
-        rotation: RotationType,
-        size: SizeType,
+        center: Vector3Like,
+        rotation: QuaternionLike,
+        size: Vector3Like,
         class_id: int,
-        velocity: VelocityType | None = None,
+        velocity: Vector3Like | None = None,
         uuid: str | None = None,
         future: Future | None = None,
     ) -> None:
@@ -184,13 +178,13 @@ class BoxData2D:
 
     Attributes:
         label2id (dict[str, int]): Key-value of map of label name and its ID.
-        rois (list[RoiType]): List of ROIs in the order of (xmin, ymin, xmax, ymax).
+        rois (list[RoiLike]): List of ROIs in the order of (xmin, ymin, xmax, ymax).
         class_ids (list[int]): List of label class IDs.
         uuids (list[str]): List of unique identifier IDs.
     """
 
     label2id: dict[str, int] = field(factory=dict)
-    rois: list[RoiType] = field(init=False, factory=list)
+    rois: list[RoiLike] = field(init=False, factory=list)
     class_ids: list[int] = field(init=False, factory=list)
     uuids: list[str] = field(init=False, factory=list)
 
@@ -204,11 +198,11 @@ class BoxData2D:
         pass
 
     @overload
-    def append(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
+    def append(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
         """Append a 2D box data with its elements.
 
         Args:
-            roi (RoiType): ROI in the order of (xmin, ymin, xmax, ymax).
+            roi (RoiLike): ROI in the order of (xmin, ymin, xmax, ymax).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
         """
@@ -231,7 +225,7 @@ class BoxData2D:
         if box.uuid is not None:
             self.uuids.append(box.uuid)
 
-    def _append_with_elements(self, roi: RoiType, class_id: int, uuid: str | None = None) -> None:
+    def _append_with_elements(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
         self.rois.append(roi)
 
         self.class_ids.append(class_id)

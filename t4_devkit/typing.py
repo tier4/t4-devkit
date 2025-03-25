@@ -1,4 +1,5 @@
-# flake8: noqa
+from __future__ import annotations
+
 from typing import NewType
 
 import numpy as np
@@ -16,17 +17,11 @@ __all__ = (
     "NDArrayStr",
     "NDArrayInt",
     "NDArrayFloat",
-    "TranslationType",
-    "VelocityType",
-    "TwistType",
-    "AccelerationType",
-    "RotationType",
-    "SizeType",
-    "TrajectoryType",
-    "CamIntrinsicType",
-    "CamDistortionType",
-    "RoiType",
-    "KeypointType",
+    "QuaternionLike",
+    "TrajectoryLike",
+    "CamIntrinsicLike",
+    "CamDistortionLike",
+    "KeypointLike",
 )
 
 # numpy
@@ -41,22 +36,15 @@ NDArrayStr = NDArray[np.str_]
 NDArrayInt = NDArrayI32 | NDArrayI64
 NDArrayFloat = NDArrayF32 | NDArrayF64
 
-# NOTE: Custom type aliases are declared because they might allow to include another type as well.
-# (e.g.) TranslationType = TypeBar("TranslationType", NDArrayF64, ArrayLike, ...)
-# If not, they should be removed because these aliases would cause confusing,
-
 # 3D
-TranslationType = NewType("TranslationType", NDArrayF64)
-VelocityType = NewType("VelocityType", NDArrayF64)
-TwistType = NewType("TwistType", NDArrayF64)
-AccelerationType = NewType("AccelerationType", NDArrayF64)
-RotationType = NewType("RotationType", Quaternion)
-SizeType = NewType("SizeType", NDArrayF64)
-TrajectoryType = NewType("TrajectoryType", NDArrayF64)
-GeoCoordinateType = NewType("GeoCoordinateType", NDArrayF64)
-CamIntrinsicType = NewType("CamIntrinsicType", NDArrayF64)
-CamDistortionType = NewType("CamDistortionType", NDArrayF64)
+Vector2Like = NewType("Vector2Like", np.ndarray)
+Vector3Like = NewType("Vector3Like", np.ndarray)
+Vector6Like = NewType("Vector6Like", np.ndarray)
+QuaternionLike = NewType("QuaternionLike", Quaternion)
+TrajectoryLike = NewType("TrajectoryLike", np.ndarray)  # (T, 3) or (M, T, 3)
+CamIntrinsicLike = NewType("CamIntrinsicLike", np.ndarray)
+CamDistortionLike = NewType("CamDistortionLike", np.ndarray)
 
 # 2D
-RoiType = NewType("RoiType", tuple[int, int, int, int])  # (xmin, ymin, xmax, ymax)
-KeypointType = NewType("KeypointType", NDArrayF64)
+RoiLike = NewType("RoiLike", tuple[int, int, int, int])  # (xmin, ymin, xmax, ymax)
+KeypointLike = NewType("KeypointLike", np.ndarray)  # [(x0, y0), (x1, y1), ...]

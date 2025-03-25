@@ -6,7 +6,7 @@ import numpy as np
 from attrs import define, field
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import NDArrayFloat, NDArrayInt, RotationType, TranslationType
+    from t4_devkit.typing import NDArrayFloat, NDArrayInt, QuaternionLike, Vector3Like
 
 __all__ = ["Past", "Future"]
 
@@ -109,19 +109,19 @@ class Trajectory:
         """
         return self.waypoints.shape
 
-    def translate(self, x: TranslationType) -> None:
+    def translate(self, x: Vector3Like) -> None:
         """Apply a translation.
 
         Args:
-            x (TranslationType): 3D translation vector.
+            x (Vector3Like): 3D translation vector.
         """
         self.waypoints += x
 
-    def rotate(self, q: RotationType) -> None:
+    def rotate(self, q: QuaternionLike) -> None:
         """Apply a rotation.
 
         Args:
-            q (RotationType): Rotation quaternion.
+            q (QuaternionLike): Rotation quaternion.
         """
         # NOTE: R * X = X * R^T
         self.waypoints = np.dot(self.waypoints, q.rotation_matrix.T)

@@ -24,9 +24,9 @@ from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import CamIntrinsicType, NDArrayF64, NDArrayU8, VelocityType
+    from t4_devkit.typing import CamIntrinsicLike, NDArrayF64, NDArrayU8, Vector3Like
 
-    from .dataclass import BoxType
+    from .dataclass import BoxLike
     from .schema import (
         Attribute,
         CalibratedSensor,
@@ -305,7 +305,7 @@ class Tier4:
         as_sensor_coord: bool = True,
         future_seconds: float = 0.0,
         visibility: VisibilityLevel = VisibilityLevel.NONE,
-    ) -> tuple[str, list[BoxType], CamIntrinsicType | None]:
+    ) -> tuple[str, list[BoxLike], CamIntrinsicLike | None]:
         """Return the data path as well as all annotations related to that `sample_data`.
         Note that output boxes is w.r.t base link or sensor coordinate system.
 
@@ -339,7 +339,7 @@ class Tier4:
             img_size = None
 
         # Retrieve all sample annotations and map to sensor coordinate system.
-        boxes: list[BoxType]
+        boxes: list[BoxLike]
         if selected_ann_tokens is not None:
             boxes = (
                 [
@@ -586,9 +586,7 @@ class Tier4:
         sample_record: Sample = self.get("sample", sd_record.sample_token)
         return list(map(self.get_box2d, sample_record.ann_2ds))
 
-    def box_velocity(
-        self, sample_annotation_token: str, max_time_diff: float = 1.5
-    ) -> VelocityType:
+    def box_velocity(self, sample_annotation_token: str, max_time_diff: float = 1.5) -> Vector3Like:
         """Return the velocity of an annotation.
         If corresponding annotation has a true velocity, this returns it.
         Otherwise, this estimates the velocity by computing the difference
@@ -601,7 +599,7 @@ class Tier4:
                 between consecutive samples.
 
         Returns:
-            VelocityType: Velocity in the order of (vx, vy, vz) in m/s.
+            Vector3Like: Velocity in the order of (vx, vy, vz) in m/s.
 
         TODO:
             Currently, velocity coordinates is with respect to map, but

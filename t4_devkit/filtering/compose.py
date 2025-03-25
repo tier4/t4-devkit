@@ -13,7 +13,7 @@ from .functional import (
 from .parameter import FilterParams
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import BoxType, TransformBuffer
+    from t4_devkit.dataclass import BoxLike, TransformBuffer
 
     from .functional import BoxFilterFunction
 
@@ -39,8 +39,8 @@ class BoxFilter:
 
         self.tf_buffer = tf_buffer
 
-    def __call__(self, boxes: Sequence[BoxType]) -> list[BoxType]:
-        output: list[BoxType] = []
+    def __call__(self, boxes: Sequence[BoxLike]) -> list[BoxLike]:
+        output: list[BoxLike] = []
 
         for box in boxes:
             tf_matrix = self.tf_buffer.lookup_transform(box.frame_id, "base_link")

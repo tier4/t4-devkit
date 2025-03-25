@@ -9,7 +9,7 @@ from shapely.geometry import Polygon
 from typing_extensions import Self
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import NDArrayF64, SizeType
+    from t4_devkit.typing import NDArrayF64, Vector3Like
 
 
 __all__ = ["ShapeType", "Shape"]
@@ -41,7 +41,7 @@ class Shape:
 
     Attributes:
         shape_type (ShapeType): Box shape type.
-        size (SizeType): Box size in the order of (width, length, height).
+        size (Vector3Like): Box size in the order of (width, length, height).
         footprint (Polygon): Polygon of footprint.
 
     Examples:
@@ -52,7 +52,7 @@ class Shape:
     """
 
     shape_type: ShapeType
-    size: SizeType = field(converter=np.array)
+    size: Vector3Like = field(converter=np.array)
     footprint: Polygon = field(default=None)
 
     def __attrs_post_init__(self) -> None:
@@ -63,11 +63,11 @@ class Shape:
             self.footprint = _calculate_footprint(self.size)
 
 
-def _calculate_footprint(size: SizeType) -> Polygon:
+def _calculate_footprint(size: Vector3Like) -> Polygon:
     """Return a footprint of box as `Polygon` object.
 
     Args:
-        size (SizeType): Size of box ordering in (width, length, height).
+        size (Vector3Like): Size of box ordering in (width, length, height).
 
     Returns:
         Footprint in a clockwise order started from the top-right corner.

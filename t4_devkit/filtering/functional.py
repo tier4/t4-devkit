@@ -10,7 +10,7 @@ from t4_devkit.dataclass import Box2D, Box3D, HomogeneousMatrix, distance_box
 from t4_devkit.filtering.parameter import FilterParams
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import BoxType, SemanticLabel
+    from t4_devkit.dataclass import BoxLike, SemanticLabel
 
 
 __all__ = [
@@ -40,11 +40,11 @@ class BaseBoxFilter(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, box: BoxType, tf_matrix: HomogeneousMatrix | None = None) -> bool:
+    def __call__(self, box: BoxLike, tf_matrix: HomogeneousMatrix | None = None) -> bool:
         """Check whether the input box satisfies requirements.
 
         Args:
-            box (BoxType): Box.
+            box (BoxLike): Box.
             tf_matrix (HomogeneousMatrix): Transformation matrix.
 
         Returns:
@@ -73,7 +73,7 @@ class FilterByLabel(BaseBoxFilter):
     def from_params(cls, params: FilterParams) -> Self:
         return cls(params.labels)
 
-    def __call__(self, box: BoxType, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
+    def __call__(self, box: BoxLike, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
         if self.labels is None:
             return True
 
@@ -100,7 +100,7 @@ class FilterByUUID(BaseBoxFilter):
     def from_params(cls, params: FilterParams) -> Self:
         return cls(params.uuids)
 
-    def __call__(self, box: BoxType, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
+    def __call__(self, box: BoxLike, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
         if self.uuids is None:
             return True
 
@@ -129,7 +129,7 @@ class FilterByDistance(BaseBoxFilter):
     def from_params(cls, params: FilterParams) -> Self:
         return cls(params.min_distance, params.max_distance)
 
-    def __call__(self, box: BoxType, tf_matrix: HomogeneousMatrix) -> bool:
+    def __call__(self, box: BoxLike, tf_matrix: HomogeneousMatrix) -> bool:
         box_distance = distance_box(box, tf_matrix)
 
         # box_distance is None, only if the box is 2D and its position is None.
@@ -161,7 +161,7 @@ class FilterByRegion(BaseBoxFilter):
     def from_params(cls, params: FilterParams) -> Self:
         return cls(params.min_xy, params.max_xy)
 
-    def __call__(self, box: BoxType, tf_matrix: HomogeneousMatrix) -> bool:
+    def __call__(self, box: BoxLike, tf_matrix: HomogeneousMatrix) -> bool:
         if isinstance(box, Box2D) and box.position is None:
             return True
 
@@ -197,7 +197,7 @@ class FilterBySpeed(BaseBoxFilter):
     def from_params(cls, params: FilterParams) -> Self:
         return cls(params.min_speed, params.max_speed)
 
-    def __call__(self, box: BoxType, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
+    def __call__(self, box: BoxLike, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
         if isinstance(box, Box2D):
             return True
         elif isinstance(box, Box3D) and box.velocity is None:
@@ -227,7 +227,7 @@ class FilterByNumPoints(BaseBoxFilter):
     def from_params(cls, params: FilterParams) -> Self:
         return cls(params.min_num_points)
 
-    def __call__(self, box: BoxType, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
+    def __call__(self, box: BoxLike, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
         if isinstance(box, Box2D):
             return True
         elif isinstance(box, Box3D) and box.num_points is None:
