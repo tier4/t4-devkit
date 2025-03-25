@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from attrs import define
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -21,6 +21,6 @@ class Map(SchemaBase):
         filename (str): Relative path to the file with the map mask.
     """
 
-    log_tokens: list[str]
-    category: str
-    filename: str
+    log_tokens: list[str] = field(validator=validators.deep_iterable(validators.instance_of(str)))
+    category: str = field(validator=validators.instance_of(str))
+    filename: str = field(validator=validators.instance_of(str))

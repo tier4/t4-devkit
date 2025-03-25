@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum, unique
 
-from attrs import define, field
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -41,7 +41,7 @@ class Sensor(SchemaBase):
         first_sd_token (str): The first sample data token corresponding to its sensor channel.
     """
 
-    channel: str
+    channel: str = field(validator=validators.instance_of(str))
     modality: SensorModality = field(converter=SensorModality)
 
     # shortcuts
