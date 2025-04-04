@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 from enum import Enum, unique
 
-from attrs import define, field
+from attrs import define, field, validators
 from typing_extensions import Self
 
 from ..name import SchemaName
@@ -76,4 +76,4 @@ class Visibility(SchemaBase):
         if not isinstance(x, VisibilityLevel)
         else VisibilityLevel(x)
     )
-    description: str
+    description: str = field(validator=validators.instance_of(str))

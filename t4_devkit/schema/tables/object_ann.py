@@ -3,8 +3,10 @@ from __future__ import annotations
 import base64
 from typing import TYPE_CHECKING
 
-from attrs import define, field
+from attrs import define, field, validators
 from pycocotools import mask as cocomask
+
+from t4_devkit.common.validator import is_roi
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -25,8 +27,8 @@ class RLEMask:
         counts (str): RLE compressed mask data.
     """
 
-    size: list[int, int]
-    counts: str
+    size: list[int, int] = field(validator=validators.deep_iterable(validators.instance_of(int)))
+    counts: str = field(validator=validators.instance_of(str))
 
     @property
     def width(self) -> int:
@@ -68,13 +70,18 @@ class ObjectAnn(SchemaBase):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_data_token: str
-    instance_token: str
-    category_token: str
-    attribute_tokens: list[str]
-    bbox: RoiLike = field(converter=tuple)
-    mask: RLEMask = field(converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x)
-    automatic_annotation: bool = field(default=False)
+    sample_data_token: str = field(validator=validators.instance_of(str))
+    instance_token: str = field(validator=validators.instance_of(str))
+    category_token: str = field(validator=validators.instance_of(str))
+    attribute_tokens: list[str] = field(
+        validator=validators.deep_iterable(validators.instance_of(str))
+    )
+    bbox: RoiLike = field(converter=tuple, validator=is_roi)
+    mask: RLEMask = field(
+        converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
+        validator=validators.instance_of(RLEMask),
+    )
+    automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
 
     # shortcuts
     category_name: str = field(init=False, factory=str)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum, unique
 from typing import TYPE_CHECKING
 
-from attrs import define, field
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -91,18 +91,18 @@ class SampleData(SchemaBase):
         channel (str): Sensor channel. This should be set after instantiated.
     """
 
-    sample_token: str
-    ego_pose_token: str
-    calibrated_sensor_token: str
-    filename: str
+    sample_token: str = field(validator=validators.instance_of(str))
+    ego_pose_token: str = field(validator=validators.instance_of(str))
+    calibrated_sensor_token: str = field(validator=validators.instance_of(str))
+    filename: str = field(validator=validators.instance_of(str))
     fileformat: FileFormat = field(converter=FileFormat)
-    width: int
-    height: int
-    timestamp: int
-    is_key_frame: bool
-    next: str  # noqa: A003
-    prev: str
-    is_valid: bool = field(default=True)
+    width: int = field(validator=validators.instance_of(int))
+    height: int = field(validator=validators.instance_of(int))
+    timestamp: int = field(validator=validators.instance_of(int))
+    is_key_frame: bool = field(validator=validators.instance_of(bool))
+    next: str = field(validator=validators.instance_of(str))  # noqa: A003
+    prev: str = field(validator=validators.instance_of(str))
+    is_valid: bool = field(default=True, validator=validators.instance_of(bool))
 
     # shortcuts
     modality: SensorModality | None = field(init=False, default=None)

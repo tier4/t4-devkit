@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from attrs import define, field
-from attrs.converters import optional
+from attrs import converters, define, field, validators
 
 from t4_devkit.common.converter import to_quaternion
+from t4_devkit.common.validator import is_vector3, is_vector6
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -38,9 +38,21 @@ class EgoPose(SchemaBase):
             (latitude, longitude, altitude) in degrees and meters.
     """
 
-    translation: Vector3Like = field(converter=np.array)
+    translation: Vector3Like = field(converter=np.array, validator=is_vector3)
     rotation: QuaternionLike = field(converter=to_quaternion)
-    timestamp: int
-    twist: Vector6Like | None = field(default=None, converter=optional(np.array))
-    acceleration: Vector3Like | None = field(default=None, converter=optional(np.array))
-    geocoordinate: Vector3Like | None = field(default=None, converter=optional(np.array))
+    timestamp: int = field(validator=validators.instance_of(int))
+    twist: Vector6Like | None = field(
+        default=None,
+        converter=converters.optional(np.array),
+        validator=validators.optional(is_vector6),
+    )
+    acceleration: Vector3Like | None = field(
+        default=None,
+        converter=converters.optional(np.array),
+        validator=validators.optional(is_vector3),
+    )
+    geocoordinate: Vector3Like | None = field(
+        default=None,
+        converter=converters.optional(np.array),
+        validator=validators.optional(is_vector3),
+    )

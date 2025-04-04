@@ -85,7 +85,7 @@ def test_render_ego(dummy_viewer) -> None:
         token="ego",
         translation=translation,
         rotation=rotation,
-        timestamp=1e6,
+        timestamp=int(1e6),
     )
     dummy_viewer.render_ego(ego_pose)
 

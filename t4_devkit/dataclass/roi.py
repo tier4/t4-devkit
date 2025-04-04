@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 from attrs import define, field
 
+from t4_devkit.common.validator import is_roi
+
 if TYPE_CHECKING:
     from t4_devkit.typing import RoiLike
 
@@ -18,21 +20,7 @@ class Roi:
         roi (RoiLike): Box ROI in the order of (xmin, ymin, xmax, ymax).
     """
 
-    roi: RoiLike = field(converter=tuple)
-
-    @roi.validator
-    def _check_roi(self, attribute, value) -> None:
-        if len(value) != 4:
-            raise ValueError(
-                f"Expected {attribute.name} is (xmin, ymin, xmax, ymax), but got length with {value}."
-            )
-
-        xmin, ymin, xmax, ymax = value
-        if (xmax < xmin) or (ymax < ymin):
-            raise ValueError(
-                f"Expected {attribute.name} is the order of (xmin, ymin, xmax, ymax) and "
-                f"xmin <= xmax and ymin <= ymax, but got {value}"
-            )
+    roi: RoiLike = field(converter=tuple, validator=is_roi)
 
     @property
     def offset(self) -> tuple[int, int]:

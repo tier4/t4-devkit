@@ -58,7 +58,7 @@ def test_to_future() -> None:
         timestamps=[101, 102, 103],
         confidences=[
             1.0,  # mode0
-            2.0,  # mode1
+            0.5,  # mode1
         ],
         waypoints=[
             [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]],  # mode0

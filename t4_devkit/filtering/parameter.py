@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Sequence
+from typing import Sequence
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
 
-if TYPE_CHECKING:
-    from t4_devkit.dataclass import SemanticLabel
+from t4_devkit.dataclass import SemanticLabel
 
 
 @define
@@ -25,12 +24,23 @@ class FilterParams:
         min_num_points (int): The minimum number of points which the 3D box should include.
     """
 
-    labels: Sequence[str | SemanticLabel] | None = field(default=None)
-    uuids: Sequence[str] | None = field(default=None)
-    min_distance: float = field(default=0.0)
-    max_distance: float = field(default=np.inf)
+    labels: Sequence[str | SemanticLabel] | None = field(
+        default=None,
+        validator=validators.deep_iterable(
+            validators.or_(validators.instance_of(str), validators.instance_of(SemanticLabel))
+        ),
+    )
+    uuids: Sequence[str] | None = field(
+        default=None,
+        validator=validators.optional(validators.deep_iterable(validators.instance_of(str))),
+    )
+    min_distance: float = field(default=0.0, validator=validators.ge(0.0))
+    max_distance: float = field(default=np.inf, validator=validators.ge(0.0))
     min_xy: tuple[float, float] = field(default=(-np.inf, -np.inf))
     max_xy: tuple[float, float] = field(default=(np.inf, np.inf))
-    min_speed: float = field(default=0.0)
-    max_speed: float = field(default=np.inf)
-    min_num_points: int = field(default=0)
+    min_speed: float = field(default=0.0, validator=validators.ge(0.0))
+    max_speed: float = field(default=np.inf, validator=validators.ge(0.0))
+    min_num_points: int = field(
+        default=0,
+        validator=[validators.instance_of(int), validators.ge(0)],
+    )
