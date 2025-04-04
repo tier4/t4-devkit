@@ -30,7 +30,7 @@ class TimeseriesHelper:
             (ann.sample_data_token, ann.instance_token): ann.token for ann in self._t4.object_ann
         }
 
-    def get_sample_annotations_util(
+    def get_sample_annotations_until(
         self,
         instance_token: str,
         sample_token: str,

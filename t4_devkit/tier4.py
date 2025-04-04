@@ -446,7 +446,7 @@ class Tier4:
 
         if future_seconds > 0.0:
             # NOTE: Future trajectory is map coordinate frame
-            timestamps, anns = self._timeseries_helper.get_sample_annotations_util(
+            timestamps, anns = self._timeseries_helper.get_sample_annotations_until(
                 ann.instance_token, ann.sample_token, future_seconds
             )
             if len(anns) == 0:
