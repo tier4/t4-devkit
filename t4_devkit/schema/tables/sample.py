@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from attrs import define, field
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -33,10 +33,10 @@ class Sample(SchemaBase):
             This should be set after instantiated.
     """
 
-    timestamp: int
-    scene_token: str
-    next: str  # noqa: A003
-    prev: str
+    timestamp: int = field(validator=validators.instance_of(int))
+    scene_token: str = field(validator=validators.instance_of(str))
+    next: str = field(validator=validators.instance_of(str))  # noqa: A003
+    prev: str = field(validator=validators.instance_of(str))
 
     # shortcuts
     data: dict[str, str] = field(factory=dict, init=False)

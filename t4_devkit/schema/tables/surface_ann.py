@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -34,10 +34,13 @@ class SurfaceAnn(SchemaBase):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_data_token: str
-    category_token: str
-    mask: RLEMask = field(converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x)
-    automatic_annotation: bool = field(default=False)
+    sample_data_token: str = field(validator=validators.instance_of(str))
+    category_token: str = field(validator=validators.instance_of(str))
+    mask: RLEMask = field(
+        converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
+        validator=validators.instance_of(RLEMask),
+    )
+    automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
 
     # shortcuts
     category_name: str = field(init=False, factory=str)

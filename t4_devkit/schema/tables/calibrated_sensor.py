@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
 
 from t4_devkit.common.converter import to_quaternion
+from t4_devkit.common.validator import is_vector3
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -31,8 +32,8 @@ class CalibratedSensor(SchemaBase):
         camera_distortion (CamDistortionLike): Camera distortion array. Empty for sensors that are not cameras.
     """
 
-    sensor_token: str
-    translation: Vector3Like = field(converter=np.array)
+    sensor_token: str = field(validator=validators.instance_of(str))
+    translation: Vector3Like = field(converter=np.array, validator=is_vector3)
     rotation: QuaternionLike = field(converter=to_quaternion)
     camera_intrinsic: CamIntrinsicLike = field(converter=np.array)
     camera_distortion: CamDistortionLike = field(converter=np.array)

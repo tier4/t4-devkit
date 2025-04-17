@@ -3,22 +3,22 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
 from attrs.converters import optional
 from shapely.geometry import Polygon
 from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
+from t4_devkit.common.validator import is_vector3
 
+from .label import SemanticLabel
 from .roi import Roi
+from .shape import Shape
 from .trajectory import Future
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import HomogeneousMatrix
     from t4_devkit.typing import ArrayLike, NDArrayF64, QuaternionLike, Vector3Like
-
-    from .label import SemanticLabel
-    from .shape import Shape
 
 
 __all__ = ["Box3D", "Box2D", "BoxLike", "distance_box"]
@@ -55,11 +55,19 @@ def distance_box(box: BoxLike, tf_matrix: HomogeneousMatrix) -> float | None:
 class BaseBox:
     """Abstract base class for box objects."""
 
-    unix_time: int
-    frame_id: str
-    semantic_label: SemanticLabel
-    confidence: float = field(default=1.0, kw_only=True)
-    uuid: str | None = field(default=None, kw_only=True)
+    unix_time: int = field(validator=validators.instance_of(int))
+    frame_id: str = field(validator=validators.instance_of(str))
+    semantic_label: SemanticLabel = field(validator=validators.instance_of(SemanticLabel))
+    confidence: float = field(
+        default=1.0,
+        validator=[validators.ge(0.0), validators.le(1.0)],
+        kw_only=True,
+    )
+    uuid: str | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(str)),
+        kw_only=True,
+    )
 
 
 # TODO: add intermediate class to represent the box state.
@@ -103,14 +111,24 @@ class Box3D(BaseBox):
         ... )
     """
 
-    position: Vector3Like = field(converter=np.array)
+    position: Vector3Like = field(converter=np.array, validator=is_vector3)
     rotation: QuaternionLike = field(converter=to_quaternion)
-    shape: Shape
-    velocity: Vector3Like | None = field(default=None, converter=optional(np.array))
-    num_points: int | None = field(default=None)
+    shape: Shape = field(validator=validators.instance_of(Shape))
+    velocity: Vector3Like | None = field(
+        default=None,
+        converter=optional(np.array),
+        validator=validators.optional(is_vector3),
+    )
+    num_points: int | None = field(
+        default=None,
+        validator=validators.optional((validators.instance_of(int), validators.ge(0))),
+    )
 
     # additional attributes: set by `with_**`
-    future: Future | None = field(default=None)
+    future: Future | None = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(Future)),
+    )
 
     def with_future(
         self,
@@ -239,10 +257,14 @@ class Box2D(BaseBox):
         >>> box2d = box2d.with_position(position=(1.0, 1.0, 1.0))
     """
 
-    roi: Roi | None = field(default=None, converter=lambda x: None if x is None else Roi(x))
+    roi: Roi | None = field(
+        default=None,
+        converter=lambda x: None if x is None else Roi(x),
+        validator=validators.optional(validators.instance_of(Roi)),
+    )
 
     # additional attributes: set by `with_**`
-    position: Vector3Like | None = field(default=None)
+    position: Vector3Like | None = field(default=None, validator=validators.optional(is_vector3))
 
     def with_position(self, position: Vector3Like) -> Self:
         """Return a self instance setting `position` attribute.

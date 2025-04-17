@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from attrs import define, field
-from attrs.converters import optional
+from attrs import converters, define, field, validators
 
 from t4_devkit.common.converter import to_quaternion
+from t4_devkit.common.validator import is_vector3
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -50,20 +50,30 @@ class SampleAnnotation(SchemaBase):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_token: str
-    instance_token: str
-    attribute_tokens: list[str]
-    visibility_token: str
-    translation: Vector3Like = field(converter=np.array)
-    size: Vector3Like = field(converter=np.array)
+    sample_token: str = field(validator=validators.instance_of(str))
+    instance_token: str = field(validator=validators.instance_of(str))
+    attribute_tokens: list[str] = field(
+        validator=validators.deep_iterable(validators.instance_of(str))
+    )
+    visibility_token: str = field(validator=validators.instance_of(str))
+    translation: Vector3Like = field(converter=np.array, validator=is_vector3)
+    size: Vector3Like = field(converter=np.array, validator=is_vector3)
     rotation: QuaternionLike = field(converter=to_quaternion)
-    num_lidar_pts: int
-    num_radar_pts: int
-    next: str  # noqa: A003
-    prev: str
-    velocity: Vector3Like | None = field(default=None, converter=optional(np.array))
-    acceleration: Vector3Like | None = field(default=None, converter=optional(np.array))
-    automatic_annotation: bool = field(default=False)
+    num_lidar_pts: int = field(validator=validators.instance_of(int))
+    num_radar_pts: int = field(validator=validators.instance_of(int))
+    next: str = field(validator=validators.instance_of(str))  # noqa: A003
+    prev: str = field(validator=validators.instance_of(str))
+    velocity: Vector3Like | None = field(
+        default=None,
+        converter=converters.optional(np.array),
+        validator=validators.optional(is_vector3),
+    )
+    acceleration: Vector3Like | None = field(
+        default=None,
+        converter=converters.optional(np.array),
+        validator=validators.optional(is_vector3),
+    )
+    automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
 
     # shortcuts
     category_name: str = field(init=False, factory=str)

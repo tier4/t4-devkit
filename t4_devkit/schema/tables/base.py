@@ -4,7 +4,7 @@ from abc import ABC
 from secrets import token_hex
 from typing import Any, TypeVar
 
-from attrs import define
+from attrs import define, field, validators
 
 from t4_devkit.common.io import load_json
 
@@ -15,7 +15,7 @@ __all__ = ["SchemaBase", "SchemaTable"]
 class SchemaBase(ABC):
     """Abstract base dataclass of schema tables."""
 
-    token: str
+    token: str = field(validator=validators.instance_of(str))
 
     @classmethod
     def from_json(cls, filepath: str) -> list[SchemaTable]:

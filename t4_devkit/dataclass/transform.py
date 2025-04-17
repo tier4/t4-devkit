@@ -4,11 +4,12 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
-from attrs import define, field
+from attrs import define, field, validators
 from pyquaternion import Quaternion
 from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
+from t4_devkit.common.validator import is_vector3
 from t4_devkit.typing import NDArray, QuaternionLike
 
 if TYPE_CHECKING:
@@ -108,10 +109,10 @@ class TransformBuffer:
 
 @define
 class HomogeneousMatrix:
-    position: Vector3Like = field(converter=np.array)
+    position: Vector3Like = field(converter=np.array, validator=is_vector3)
     rotation: Quaternion = field(converter=to_quaternion)
-    src: str
-    dst: str
+    src: str = field(validator=validators.instance_of(str))
+    dst: str = field(validator=validators.instance_of(str))
     matrix: NDArray = field(init=False)
 
     def __attrs_post_init__(self) -> None:
