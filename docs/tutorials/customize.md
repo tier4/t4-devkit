@@ -5,7 +5,8 @@
 You can crate a schema containing the specified table data with a new token using `new(...)` methods.
 
 ```python title="generate_attribute.py"
-from t4_devkit.schema import Attribute, serialize_schema
+from t4_devkit.schema import Attribute
+from t4_devkit.common.serialize import serialize_dataclass
 
 # schema data except of the unique identifier token
 data = {
@@ -16,7 +17,7 @@ data = {
 attr1 = Attribute.new(data)
 
 # Also, it allows us to create a copy of the existing table data with a new token
-serialized = serialize_schema(attr1)
+serialized = serialize_dataclass(attr1)
 attr2 = Attribute.new(serialized)
 
 assert attr1.token != attr2.token
