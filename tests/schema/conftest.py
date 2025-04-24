@@ -57,7 +57,12 @@ def calibrated_sensor_json(calibrated_sensor_dict) -> Generator[str, Any, None]:
 @pytest.fixture(scope="session")
 def category_dict() -> dict:
     """Return a dummy category record as dictionary."""
-    return {"token": "49e00f215a71612d94ea3bea48a93402", "name": "animal", "description": ""}
+    return {
+        "token": "49e00f215a71612d94ea3bea48a93402",
+        "name": "animal",
+        "description": "",
+        "index": None,
+    }
 
 
 @pytest.fixture(scope="session")
