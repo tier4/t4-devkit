@@ -1,17 +1,20 @@
-from t4_devkit.schema import Sample, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import Sample
 
 
 def test_sample_json(sample_json) -> None:
     """Test loading sample from a json file."""
     schemas = Sample.from_json(sample_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_sample(sample_dict) -> None:
     """Test loading sample from a dictionary."""
     schema = Sample.from_dict(sample_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == sample_dict
 
 

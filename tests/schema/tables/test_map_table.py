@@ -1,17 +1,20 @@
-from t4_devkit.schema import Map, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import Map
 
 
 def test_map_json(map_json) -> None:
     """Test loading map from a json file."""
     schemas = Map.from_json(map_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_map(map_dict) -> None:
     """Test loading map from a dictionary."""
     schema = Map.from_dict(map_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == map_dict
 
 

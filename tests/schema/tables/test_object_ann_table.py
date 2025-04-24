@@ -1,17 +1,20 @@
-from t4_devkit.schema import ObjectAnn, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import ObjectAnn
 
 
 def test_object_ann_json(object_ann_json) -> None:
     """Test loading object ann from a json file."""
     schemas = ObjectAnn.from_json(object_ann_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_object_ann(object_ann_dict) -> None:
     """Test loading object ann from a dictionary."""
     schema = ObjectAnn.from_dict(object_ann_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == object_ann_dict
 
 

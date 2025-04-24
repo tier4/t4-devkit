@@ -1,17 +1,20 @@
-from t4_devkit.schema import SurfaceAnn, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import SurfaceAnn
 
 
 def test_surface_ann_json(surface_ann_json) -> None:
     """Test loading surface ann from a json file."""
     schemas = SurfaceAnn.from_json(surface_ann_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_surface_ann(surface_ann_dict) -> None:
     """Test loading surface ann from a dictionary."""
     schema = SurfaceAnn.from_dict(surface_ann_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == surface_ann_dict
 
 

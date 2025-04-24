@@ -1,17 +1,20 @@
-from t4_devkit.schema import VehicleState, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import VehicleState
 
 
 def test_vehicle_state_json(vehicle_state_json) -> None:
     """Test loading vehicle state from a json file."""
     schemas = VehicleState.from_json(vehicle_state_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_vehicle_state(vehicle_state_dict) -> None:
     """Test loading vehicle state from a dictionary."""
     schema = VehicleState.from_dict(vehicle_state_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == vehicle_state_dict
 
 

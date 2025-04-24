@@ -1,4 +1,7 @@
-from t4_devkit.schema import Sensor, SensorModality, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import Sensor, SensorModality
 
 
 def test_sensor_modality() -> None:
@@ -18,14 +21,14 @@ def test_sensor_modality() -> None:
 def test_sensor_json(sensor_json) -> None:
     """Test loading sensor from a json file."""
     schemas = Sensor.from_json(sensor_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_sensor(sensor_dict) -> None:
     """Test loading sensor from a dictionary."""
     schema = Sensor.from_dict(sensor_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == sensor_dict
 
 
