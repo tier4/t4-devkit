@@ -1,17 +1,20 @@
-from t4_devkit.schema import Category, serialize_schema, serialize_schemas
+from __future__ import annotations
+
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
+from t4_devkit.schema import Category
 
 
 def test_category_json(category_json) -> None:
     """Test loading category from a json file."""
     schemas = Category.from_json(category_json)
-    serialized = serialize_schemas(schemas)
+    serialized = serialize_dataclasses(schemas)
     assert isinstance(serialized, list)
 
 
 def test_category(category_dict) -> None:
     """Test loading sample data from a dictionary."""
     schema = Category.from_dict(category_dict)
-    serialized = serialize_schema(schema)
+    serialized = serialize_dataclass(schema)
     assert serialized == category_dict
 
 
