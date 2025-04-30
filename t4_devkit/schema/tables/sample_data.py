@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum, unique
 from typing import TYPE_CHECKING
 
-from attrs import define, field, validators
+from attrs import converters, define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
@@ -104,6 +104,10 @@ class SampleData(SchemaBase):
     prev: str = field(validator=validators.instance_of(str))
     is_valid: bool = field(default=True, validator=validators.instance_of(bool))
 
+    sensor_modality: SensorModality | None = field(
+        default=None, converter=converters.optional(SensorModality)
+    )
+
     # shortcuts
     modality: SensorModality | None = field(init=False, default=None)
-    channel: str = field(init=False, factory=str)
+    channel: str = field(factory=str)
