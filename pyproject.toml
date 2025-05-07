@@ -18,6 +18,7 @@ dependencies = [
     "pycocotools>=2.0.8",
     "click>=8.1.8",
     "pyyaml>=6.0.2",
+    "typer>=0.15.3",
 ]
 
 [dependency-groups]
@@ -34,7 +35,7 @@ dev = [
 ]
 
 [project.scripts]
-t4viz = "t4_devkit.cli.visualize:main"
+t4viz = "t4_devkit.cli.visualize:cli"
 
 [tool.ruff]
 line-length = 100
