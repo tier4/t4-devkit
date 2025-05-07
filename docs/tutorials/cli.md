@@ -6,44 +6,51 @@ Following command line tools are supported:
 
 - `t4viz`: Visualize T4 dataset features.
 
-To enable shell completion, please run following commands:
-
-### Shell Completion
-
-#### Bash
-
-```shell
-_T4VIZ_COMPLETE=bash_source t4viz > $HOME/.t4viz-complete.bash
-
-echo "source $HOME/.t4viz-complete.bash" >> ~/.bashrc
-```
-
-#### Fish
-
-```shell
-_T4VIZ_COMPLETE=fish_source t4viz > $HOME/.config/fish/completions/t4viz.fish
-```
-
 ### `t4viz`
+
+`t4viz` performs visualizing particular dataset attributes from command line.
+
+```shell
+$ t4viz -h
+
+ Usage: t4viz [OPTIONS] COMMAND [ARGS]...
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --version             -v        Show the application version and exit.                                           │
+│ --install-completion            Install completion for the current shell.                                        │
+│ --show-completion               Show completion for the current shell, to copy it or customize the installation. │
+│ --help                -h        Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ scene        Visualize a specific scene.                                                                         │
+│ instance     Visualize a particular instance in the corresponding scene.                                         │
+│ pointcloud   Visualize pointcloud in the corresponding scene.                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+#### Shell Completion
+
+Run the following command to install completion, and reload shell.
+
+```shell
+t4viz --install-completion
+```
 
 #### Visualize a Scene
 
 This command performs the same behavior with [`Tier4.render_scene(...)`](./render.md#rendering-scene).
 
+For options, run `t4viz scene -h`.
+
 ```shell
 t4viz scene <DATA_ROOT> [OPTIONS]
 ```
 
-Arguments
-
-- `<DATA_ROOT>`: Root directory path to T4 dataset.
-- `-f, --future <SECONDS>`: Future time seconds.
-- `-o, --output <OUTPUT_DIR>`: Directory path to save recording `.rrd` file.
-- `--no-show`: Indicates whether not to show viewer.
-
 #### Visualize Specific Instance(s)
 
 This command performs the same behavior with [`Tier4.render_instance(...)`](./render.md#rendering-instances).
+
+For options, run `t4viz instance -h`.
 
 ```shell
 t4viz instance <DATA_ROOT> <INSTANCE_TOKEN> [OPTIONS]
@@ -55,26 +62,12 @@ You can also specify multiple instance tokens:
 t4viz instance <DATA_ROOT> <INSTANCE_TOKEN1> <INSTANCE_TOKEN2> ... [OPTIONS]
 ```
 
-Arguments
-
-- `<DATA_ROOT>`: Root directory path to T4 dataset.
-- `<INSTANCE_TOKEN>`: Unique identifier token(s) of the instance record(s).
-- `-f, --future <SECONDS>`: Future time seconds.
-- `-o, --output <OUTPUT_DIR>`: Directory path to save recording `.rrd` file.
-- `--no-show`: Indicates whether not to show viewer.
-
 #### Visualize PointCloud
 
 This command performs the same behavior with [`Tier4.render_pointcloud(...)`](./render.md#rendering-pointcloud).
 
+For options, run `t4viz pointcloud -h`.
+
 ```shell
 t4viz pointcloud <DATA_ROOT> [OPTIONS]
 ```
-
-Arguments
-
-- `<DATA_ROOT>`: Root directory path to T4 dataset.
-- `<INSTANCE_TOKEN>`: Unique identifier token of an instance record.
-- `-d, --distortion`: Indicates whether not to ignore camera distortion.
-- `-o, --output <OUTPUT_DIR>`: Directory path to save recording `.rrd` file.
-- `--no-show`: Indicates whether not to show viewer.
