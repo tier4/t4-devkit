@@ -1,98 +1,152 @@
 from __future__ import annotations
 
+import importlib
+import importlib.metadata
 import os
+from typing import Annotated
 
-import click
+import typer
+from rich.console import Console
 
 from t4_devkit import Tier4
 
+console = Console()
 
-@click.group(invoke_without_command=True)
-@click.pass_context
-def main(ctx: click.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        print(ctx.get_help())
-    else:
-        ctx.invoked_subcommand
-
-
-@main.command(name="scene", help="Visualize a specific scene.")
-@click.argument("data_root", type=click.Path(exists=True))
-@click.option("-f", "--future", type=float, default=0.0, help="Future time seconds.")
-@click.option(
-    "-o",
-    "--output",
-    type=click.Path(writable=True),
-    help="Output directory to save recoding .rrd file.",
+cli = typer.Typer(
+    name="t4viz",
+    no_args_is_help=True,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    pretty_exceptions_enable=False,
 )
-@click.option("--no-show", is_flag=True, help="Indicates whether not to show viewer.")
-def scene(data_root: str, output: str | None, future: float, no_show: bool) -> None:
-    _create_dir(output)
-
-    t4 = Tier4("annotation", data_root, verbose=False)
-    scene_token = t4.scene[0].token
-    t4.render_scene(scene_token, future_seconds=future, save_dir=output, show=not no_show)
 
 
-@main.command(name="instance", help="Visualize a particular instance in a corresponding scene")
-@click.argument("data_root", type=click.Path(exists=True))
-@click.argument("instance", type=click.STRING, nargs=-1)
-@click.option("-f", "--future", type=float, default=0.0, help="Future time seconds.")
-@click.option(
-    "-o",
-    "--output",
-    type=click.Path(writable=True),
-    help="Output directory to save recoding .rrd file.",
-)
-@click.option("--no-show", is_flag=True, help="Indicates whether not to show viewer.")
-def instance(
-    data_root: str,
-    instance: tuple[str, ...],
-    future: float,
-    output: str | None,
-    no_show: bool,
+@cli.command("scene", help="Visualize a specific scene.")
+def scene(
+    data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
+    future: Annotated[
+        float,
+        typer.Option(
+            ...,
+            "-f",
+            "--future",
+            help="Future time seconds.",
+        ),
+    ] = 0.0,
+    output: Annotated[
+        str | None,
+        typer.Option(
+            ...,
+            "-o",
+            "--output",
+            help="Output directory to save recorded .rrd file.",
+        ),
+    ] = None,
+    show: Annotated[bool, typer.Option(help="Indicates whether to show viewer.")] = True,
 ) -> None:
     _create_dir(output)
 
     t4 = Tier4("annotation", data_root, verbose=False)
-    t4.render_instance(
-        instance_token=instance, future_seconds=future, save_dir=output, show=not no_show
-    )
+    scene_token = t4.scene[0].token
+    t4.render_scene(scene_token, future_seconds=future, save_dir=output, show=show)
 
 
-@main.command(name="pointcloud", help="Visualize pointcloud in a corresponding scene.")
-@click.argument("data_root", type=click.Path(exists=True))
-@click.option(
-    "-d",
-    "--distortion",
-    is_flag=True,
-    help="Indicates whether not to ignore camera distortion.",
-)
-@click.option(
-    "-o",
-    "--output",
-    type=click.Path(writable=True),
-    help="Output directory to save recoding .rrd file.",
-)
-@click.option("--no-show", is_flag=True, help="Indicates whether not to show viewer.")
-def pointcloud(data_root: str, distortion: bool, output: str | None, no_show: bool) -> None:
+@cli.command("instance", help="Visualize a particular instance in the corresponding scene.")
+def instance(
+    data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
+    instance: Annotated[list[str], typer.Argument(help="Instance token(s).")],
+    future: Annotated[
+        float,
+        typer.Option(
+            ...,
+            "-f",
+            "--future",
+            help="Future time seconds.",
+        ),
+    ] = 0.0,
+    output: Annotated[
+        str | None,
+        typer.Option(
+            ...,
+            "-o",
+            "--output",
+            help="Output directory to save recorded .rrd file.",
+        ),
+    ] = None,
+    show: Annotated[bool, typer.Option(help="Indicates whether to show viewer.")] = True,
+) -> None:
+    _create_dir(output)
+
+    t4 = Tier4("annotation", data_root, verbose=False)
+    t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output, show=show)
+
+
+@cli.command("pointcloud", help="Visualize pointcloud in the corresponding scene.")
+def pointcloud(
+    data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
+    ignore_distortion: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-ig",
+            "--ignore-distortion",
+            help="Indicates whether to ignore camera distortion",
+        ),
+    ] = True,
+    output: Annotated[
+        str | None,
+        typer.Option(
+            ...,
+            "-o",
+            "--output",
+            help="Output directory to save recorded .rrd file.",
+        ),
+    ] = None,
+    show: Annotated[bool, typer.Option(help="Indicates whether to show viewer.")] = True,
+) -> None:
     _create_dir(output)
 
     t4 = Tier4("annotation", data_root, verbose=False)
     scene_token = t4.scene[0].token
     t4.render_pointcloud(
         scene_token,
-        ignore_distortion=not distortion,
+        ignore_distortion=ignore_distortion,
         save_dir=output,
-        show=not no_show,
+        show=show,
     )
 
 
-def _create_dir(dir_path: str) -> None:
+def _create_dir(dir_path: str | None) -> None:
     """Create a directory with the specified path.
+
     If the input path is `None` this function does nothing.
+
     Args:
         dir_path (str | None): Directory path to create.
     """
     if dir_path is not None:
         os.makedirs(dir_path, exist_ok=True)
+
+
+def _version_callback(value: bool):
+    if value:
+        version = importlib.metadata.version("t4-devkit")
+        console.print(f"[bold green]t4viz[/bold green]: [cyan]{version}[/cyan]")
+        raise typer.Exit()
+
+
+@cli.callback()
+def main(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-v",
+        help="Show the application version and exit.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
+) -> None:
+    pass
+
+
+if __name__ == "__main__":
+    cli()
