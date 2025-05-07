@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 from enum import Enum, unique
-from typing import TYPE_CHECKING
 
 from attrs import converters, define, field, validators
 
 from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
-
-if TYPE_CHECKING:
-    from .sensor import SensorModality
+from .sensor import SensorModality
 
 __all__ = ["SampleData", "FileFormat"]
 
