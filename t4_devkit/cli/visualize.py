@@ -53,7 +53,7 @@ def scene(
 @cli.command("instance", help="Visualize a particular instance in the corresponding scene.")
 def instance(
     data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
-    instance: Annotated[str, typer.Argument(help="Instance token.")],
+    instance: Annotated[list[str], typer.Argument(help="Instance token(s).")],
     future: Annotated[
         float,
         typer.Option(
