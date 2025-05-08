@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from t4_devkit.viewer import RerunViewer
