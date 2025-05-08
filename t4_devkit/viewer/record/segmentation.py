@@ -67,7 +67,7 @@ class BatchSegmentation2D:
             Add support of instance segmentation.
         """
         # (N, H, W)
-        masks = np.stack([r.mask for r in self.records], dtype=np.uint8)
+        masks = np.stack([r.mask for r in self.records]).astype(np.uint8)
 
         # (N, 1, 1)
         class_ids = np.asarray([r.class_id for r in self.records], dtype=np.uint8)[:, None, None]

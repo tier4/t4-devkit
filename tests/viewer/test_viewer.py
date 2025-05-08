@@ -54,6 +54,19 @@ def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
     dummy_viewer.render_box2ds(seconds, camera=camera, rois=rois, class_ids=class_ids, uuids=uuids)
 
 
+def test_render_segmentation2d(dummy_viewer) -> None:
+    """Test rendering 2D segmentation mask with `RerunViewer`."""
+    seconds = 1.0  # [sec]
+
+    camera = "camera"
+    masks = [np.zeros((100, 200), dtype=np.uint8) for _ in range(2)]
+    masks[0][0:10, 0:10] = 1
+    masks[1][20:30, 20:30] = 1
+    class_ids = [1, 2]
+
+    dummy_viewer.render_segmentation2d(seconds, camera=camera, masks=masks, class_ids=class_ids)
+
+
 def test_render_pointcloud(dummy_viewer) -> None:
     """Test rendering pointcloud with `RerunViewer`."""
     seconds = 1.0  # [sec]
