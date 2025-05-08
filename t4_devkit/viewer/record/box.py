@@ -11,11 +11,11 @@ if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future
     from t4_devkit.typing import QuaternionLike, RoiLike, Vector3Like
 
-__all__ = ["BoxData3D", "BoxData2D"]
+__all__ = ["BatchBox3D", "BatchBox2D"]
 
 
 @define
-class BoxData3D:
+class BatchBox3D:
     """A class to store 3D boxes data for rendering.
 
     Attributes:
@@ -183,7 +183,7 @@ class BoxData3D:
 
 
 @define
-class BoxData2D:
+class BatchBox2D:
     """A class to store 2D boxes data for rendering.
 
     Attributes:

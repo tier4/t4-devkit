@@ -9,11 +9,11 @@ from attrs import define, field
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayU8
 
-__all__ = ["SegmentationData2D"]
+__all__ = ["BatchSegmentation2D"]
 
 
 @define
-class SegmentationData2D:
+class BatchSegmentation2D:
     """A class to store 2D segmentation image data for rendering.
 
     Attributes:
