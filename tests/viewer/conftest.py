@@ -6,7 +6,7 @@ from t4_devkit.viewer import RerunViewer
 
 
 @pytest.fixture(scope="module")
-def dummy_viewer(label2id) -> RerunViewer:
+def dummy_viewer(spawn_viewer, label2id) -> RerunViewer:
     """Return a dummy viewer.
 
     Returns:
@@ -15,5 +15,5 @@ def dummy_viewer(label2id) -> RerunViewer:
     return RerunViewer(
         "test_viewer",
         cameras=["camera"],
-        spawn=False,  # set this to True for debugging
+        spawn=spawn_viewer,  # set this to True for debugging
     ).with_labels(label2id=label2id)

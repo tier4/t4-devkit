@@ -21,6 +21,21 @@ if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayFloat
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add pytest options."""
+    parser.addoption(
+        "--spawn-viewer",
+        action="store_true",
+        help="Whether to spawn viewer for unit tests.",
+    )
+
+
+@pytest.fixture(scope="session")
+def spawn_viewer(pytestconfig) -> bool:
+    """Indicate whether to spawn viewer for unit tests."""
+    return pytestconfig.getoption("spawn_viewer")
+
+
 @pytest.fixture(scope="module")
 def label2id() -> dict[str, int]:
     return {"car": 0, "bicycle": 1, "pedestrian": 2}
