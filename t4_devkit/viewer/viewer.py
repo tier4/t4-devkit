@@ -14,7 +14,7 @@ from t4_devkit.schema import SensorModality
 
 from .color import distance_color
 from .geography import calculate_geodetic_point
-from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
+from .record import BatchBox2D, BatchBox3D, BatchSegmentation2D
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
@@ -240,27 +240,27 @@ class RerunViewer:
 
         rr.set_time_seconds(self.timeline, seconds)
 
-        box_data: dict[str, BoxData3D] = {}
+        batches: dict[str, BatchBox3D] = {}
         for box in boxes:
-            if box.frame_id not in box_data:
-                box_data[box.frame_id] = BoxData3D(label2id=self.label2id)
-            box_data[box.frame_id].append(box)
+            if box.frame_id not in batches:
+                batches[box.frame_id] = BatchBox3D(label2id=self.label2id)
+            batches[box.frame_id].append(box)
 
-        for frame_id, data in box_data.items():
+        for frame_id, batch in batches.items():
             # record boxes 3d
             rr.log(
                 format_entity(self.map_entity, frame_id, "box"),
-                data.as_boxes3d(),
+                batch.as_boxes3d(),
             )
             # record velocities
             rr.log(
                 format_entity(self.map_entity, frame_id, "velocity"),
-                data.as_arrows3d(),
+                batch.as_arrows3d(),
             )
             # record futures
             rr.log(
                 format_entity(self.map_entity, frame_id, "future"),
-                data.as_linestrips3d(),
+                batch.as_linestrips3d(),
             )
 
     def _render_box3ds_with_elements(
@@ -289,7 +289,7 @@ class RerunViewer:
         else:
             show_futures = True
 
-        box_data = BoxData3D(label2id=self.label2id)
+        batch = BatchBox3D(label2id=self.label2id)
         for center, rotation, size, class_id, velocity, uuid, future in zip(
             centers,
             rotations,
@@ -300,7 +300,7 @@ class RerunViewer:
             futures,
             strict=True,
         ):
-            box_data.append(
+            batch.append(
                 center=center,
                 rotation=rotation,
                 size=size,
@@ -312,13 +312,13 @@ class RerunViewer:
 
         rr.set_time_seconds(self.timeline, seconds)
 
-        rr.log(format_entity(self.ego_entity, "box"), box_data.as_boxes3d())
+        rr.log(format_entity(self.ego_entity, "box"), batch.as_boxes3d())
 
         if show_arrows:
-            rr.log(format_entity(self.ego_entity, "velocity"), box_data.as_arrows3d())
+            rr.log(format_entity(self.ego_entity, "velocity"), batch.as_arrows3d())
 
         if show_futures:
-            rr.log(format_entity(self.ego_entity, "future"), box_data.as_linestrips3d())
+            rr.log(format_entity(self.ego_entity, "future"), batch.as_linestrips3d())
 
     @overload
     def render_box2ds(self, seconds: float, boxes: Sequence[Box2D]) -> None:
@@ -365,16 +365,16 @@ class RerunViewer:
 
         rr.set_time_seconds(self.timeline, seconds)
 
-        box_data: dict[str, BoxData2D] = {}
+        batches: dict[str, BatchBox2D] = {}
         for box in boxes:
-            if box.frame_id not in box_data:
-                box_data[box.frame_id] = BoxData2D(label2id=self.label2id)
-            box_data[box.frame_id].append(box)
+            if box.frame_id not in batches:
+                batches[box.frame_id] = BatchBox2D(label2id=self.label2id)
+            batches[box.frame_id].append(box)
 
-        for frame_id, data in box_data.items():
+        for frame_id, batch in batches.items():
             rr.log(
                 format_entity(self.ego_entity, frame_id, "box"),
-                data.as_boxes2d(),
+                batch.as_boxes2d(),
             )
 
     def _render_box2ds_with_elements(
@@ -392,12 +392,12 @@ class RerunViewer:
         if uuids is None:
             uuids = [None] * len(rois)
 
-        box_data = BoxData2D(label2id=self.label2id)
+        batch = BatchBox2D(label2id=self.label2id)
         for roi, class_id, uuid in zip(rois, class_ids, uuids, strict=True):
-            box_data.append(roi=roi, class_id=class_id, uuid=uuid)
+            batch.append(roi=roi, class_id=class_id, uuid=uuid)
 
         rr.set_time_seconds(self.timeline, seconds)
-        rr.log(format_entity(self.ego_entity, camera, "box"), box_data.as_boxes2d())
+        rr.log(format_entity(self.ego_entity, camera, "box"), batch.as_boxes2d())
 
     def render_segmentation2d(
         self,
@@ -423,15 +423,15 @@ class RerunViewer:
 
         rr.set_time_seconds(self.timeline, seconds)
 
-        segmentation_data = SegmentationData2D()
+        batch = BatchSegmentation2D()
         if uuids is None:
             uuids = [None] * len(masks)
         for mask, class_id, uuid in zip(masks, class_ids, uuids, strict=True):
-            segmentation_data.append(mask, class_id, uuid)
+            batch.append(mask, class_id, uuid)
 
         rr.log(
             format_entity(self.ego_entity, camera, "segmentation"),
-            segmentation_data.as_segmentation_image(),
+            batch.as_segmentation_image(),
         )
 
     def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloudLike) -> None:

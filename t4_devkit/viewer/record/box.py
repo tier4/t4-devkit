@@ -11,16 +11,16 @@ if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future
     from t4_devkit.typing import QuaternionLike, RoiLike, Vector3Like
 
-__all__ = ["BoxData3D", "BoxData2D"]
+__all__ = ["BatchBox3D", "BatchBox2D"]
 
 
 @define
-class BoxData3D:
+class BatchBox3D:
     """A class to store 3D boxes data for rendering.
 
     Attributes:
         label2id (dict[str, int]): Key-value of map of label name and its ID.
-        records (list[_AssetBox3D]): List of 3D box records for rendering.
+        records (list[Record]): List of 3D box records for rendering.
     """
 
     label2id: dict[str, int] = field(factory=dict)
@@ -78,23 +78,17 @@ class BoxData3D:
             self._append_with_elements(*args, **kwargs)
 
     def _append_with_box(self, box: Box3D) -> None:
-        rotation_xyzw = np.roll(box.rotation.q, shift=-1)
-
-        width, length, height = box.size
-
         if box.semantic_label.name not in self.label2id:
             self.label2id[box.semantic_label.name] = len(self.label2id)
 
-        self.records.append(
-            self.Record(
-                center=box.position,
-                rotation=rr.Quaternion(xyzw=rotation_xyzw),
-                size=(length, width, height),
-                class_id=self.label2id[box.semantic_label.name],
-                uuid=box.uuid,
-                velocity=box.velocity,
-                future=box.future,
-            )
+        self._append_with_elements(
+            center=box.position,
+            rotation=box.rotation,
+            size=box.size,
+            class_id=self.label2id[box.semantic_label.name],
+            uuid=box.uuid,
+            velocity=box.velocity,
+            future=box.future,
         )
 
     def _append_with_elements(
@@ -189,20 +183,24 @@ class BoxData3D:
 
 
 @define
-class BoxData2D:
+class BatchBox2D:
     """A class to store 2D boxes data for rendering.
 
     Attributes:
         label2id (dict[str, int]): Key-value of map of label name and its ID.
-        rois (list[RoiLike]): List of ROIs in the order of (xmin, ymin, xmax, ymax).
-        class_ids (list[int]): List of label class IDs.
-        uuids (list[str]): List of unique identifier IDs.
+        records (list[Record]): List of 2D box records for rendering.
     """
 
     label2id: dict[str, int] = field(factory=dict)
-    rois: list[RoiLike] = field(init=False, factory=list)
-    class_ids: list[int] = field(init=False, factory=list)
-    uuids: list[str] = field(init=False, factory=list)
+    records: list[Record] = field(init=False, factory=list)
+
+    @define
+    class Record:
+        """Inner class to represent a record of 2D box instance for rendering."""
+
+        roi: RoiLike
+        class_id: int
+        uuid: str | None = field(default=None)
 
     @overload
     def append(self, box: Box2D) -> None:
@@ -231,23 +229,18 @@ class BoxData2D:
             self._append_with_elements(*args, **kwargs)
 
     def _append_with_box(self, box: Box2D) -> None:
-        self.rois.append(box.roi.roi)
-
         if box.semantic_label.name not in self.label2id:
             self.label2id[box.semantic_label.name] = len(self.label2id)
 
-        self.class_ids.append(self.label2id[box.semantic_label.name])
-
-        if box.uuid is not None:
-            self.uuids.append(box.uuid)
+        if box.roi is not None:
+            self._append_with_elements(
+                roi=box.roi.roi,
+                class_id=self.label2id[box.semantic_label.name],
+                uuid=box.uuid,
+            )
 
     def _append_with_elements(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
-        self.rois.append(roi)
-
-        self.class_ids.append(class_id)
-
-        if uuid is not None:
-            self.uuids.append(uuid)
+        self.records.append(self.Record(roi=roi, class_id=class_id, uuid=uuid))
 
     def as_boxes2d(self) -> rr.Boxes2D:
         """Return 2D boxes data as a `rr.Boxes2D`.
@@ -255,11 +248,14 @@ class BoxData2D:
         Returns:
             `rr.Boxes2D` object.
         """
-        labels = None if len(self.uuids) == 0 else self.uuids
+        rois, class_ids, labels = map(
+            list, zip(*((r.roi, r.class_id, r.uuid) for r in self.records))
+        )
+
         return rr.Boxes2D(
-            array=self.rois,
+            array=rois,
             array_format=rr.Box2DFormat.XYXY,
             labels=labels,
-            class_ids=self.class_ids,
+            class_ids=class_ids,
             show_labels=False,
         )

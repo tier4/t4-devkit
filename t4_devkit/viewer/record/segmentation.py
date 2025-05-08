@@ -9,24 +9,28 @@ from attrs import define, field
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayU8
 
-__all__ = ["SegmentationData2D"]
+__all__ = ["BatchSegmentation2D"]
 
 
 @define
-class SegmentationData2D:
+class BatchSegmentation2D:
     """A class to store 2D segmentation image data for rendering.
 
     Attributes:
-        masks (list[NDArray]): List of segmentation masks in the shape of (H, W).
-        class_ids (list[int]): List of label class IDs.
-        uuids (list[str]): List of unique identifier IDs.
+        records (list[Record]): List of 2D segmentation mask records for rendering.
         size (tuple[int, int] | None): Size of image in the order of (height, width).
     """
 
-    masks: list[NDArrayU8] = field(init=False, factory=list)
-    class_ids: list[int] = field(init=False, factory=list)
-    uuids: list[str] = field(init=False, factory=list)
+    records: list[Record] = field(init=False, factory=list)
     size: tuple[int, int] | None = field(init=False, default=None)
+
+    @define
+    class Record:
+        """Inner class to represent a record of 2D segmentation mask instance for rendering."""
+
+        mask: NDArrayU8
+        class_id: int
+        uuid: str | None = field(default=None)
 
     def append(self, mask: NDArrayU8, class_id: int, uuid: str | None = None) -> None:
         """Append a segmentation mask and its class ID.
@@ -50,11 +54,8 @@ class SegmentationData2D:
                 raise ValueError(
                     f"All masks must be the same size. Expected: {self.size}, but got {mask.shape}."
                 )
-        self.masks.append(mask)
-        self.class_ids.append(class_id)
 
-        if uuid is not None:
-            self.uuids.append(uuid[:6])
+        self.records.append(self.Record(mask=mask, class_id=class_id, uuid=uuid))
 
     def as_segmentation_image(self) -> rr.SegmentationImage:
         """Return mask data as a `rr.SegmentationImage`.
@@ -65,9 +66,12 @@ class SegmentationData2D:
         TODO:
             Add support of instance segmentation.
         """
-        image = np.zeros(self.size, dtype=np.uint8)
+        # (N, H, W)
+        masks = np.stack([r.mask for r in self.records]).astype(np.uint8)
 
-        for mask, class_id in zip(self.masks, self.class_ids, strict=True):
-            image[mask == 1] = class_id
+        # (N, 1, 1)
+        class_ids = np.asarray([r.class_id for r in self.records], dtype=np.uint8)[:, None, None]
+
+        image = np.max(masks * class_ids, axis=0)
 
         return rr.SegmentationImage(image=image)
