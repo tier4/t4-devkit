@@ -20,23 +20,23 @@ class BoxData3D:
 
     Attributes:
         label2id (dict[str, int]): Key-value of map of label name and its ID.
-        centers (list[Vector3Like]): List of 3D center positions in the order of (x, y, z).
-        rotations (list[rr.Quaternion]): List of quaternions.
-        sizes (list[Vector3Like]): List of 3D box dimensions in the order of (width, length, height).
-        class_ids (list[int]): List of label class IDs.
-        uuids (list[str]): List of unique identifier IDs.
-        velocities (list[Velocities]): List of velocities in the order of (vx, vy, vz).
+        records (list[_AssetBox3D]): List of 3D box records for rendering.
     """
 
     label2id: dict[str, int] = field(factory=dict)
+    records: list[Record] = field(init=False, factory=list)
 
-    centers: list[Vector3Like] = field(init=False, factory=list)
-    rotations: list[rr.Quaternion] = field(init=False, factory=list)
-    sizes: list[Vector3Like] = field(init=False, factory=list)
-    class_ids: list[int] = field(init=False, factory=list)
-    uuids: list[str] = field(init=False, factory=list)
-    velocities: list[Vector3Like] = field(init=False, factory=list)
-    future: list[Future] = field(init=False, factory=list)
+    @define
+    class Record:
+        """Inner class to represent a record of 3D box instance for rendering."""
+
+        center: Vector3Like
+        rotation: rr.Quaternion
+        size: Vector3Like
+        class_id: int
+        uuid: int | None = field(default=None)
+        velocity: Vector3Like | None = field(default=None)
+        future: Future | None = field(default=None)
 
     @overload
     def append(self, box: Box3D) -> None:
@@ -78,27 +78,24 @@ class BoxData3D:
             self._append_with_elements(*args, **kwargs)
 
     def _append_with_box(self, box: Box3D) -> None:
-        self.centers.append(box.position)
-
         rotation_xyzw = np.roll(box.rotation.q, shift=-1)
-        self.rotations.append(rr.Quaternion(xyzw=rotation_xyzw))
 
         width, length, height = box.size
-        self.sizes.append((length, width, height))
 
         if box.semantic_label.name not in self.label2id:
             self.label2id[box.semantic_label.name] = len(self.label2id)
 
-        self.class_ids.append(self.label2id[box.semantic_label.name])
-
-        if box.velocity is not None:
-            self.velocities.append(box.velocity)
-
-        if box.uuid is not None:
-            self.uuids.append(box.uuid)
-
-        if box.future is not None:
-            self.future.append(box.future)
+        self.records.append(
+            self.Record(
+                center=box.position,
+                rotation=rr.Quaternion(xyzw=rotation_xyzw),
+                size=(length, width, height),
+                class_id=self.label2id[box.semantic_label.name],
+                uuid=box.uuid,
+                velocity=box.velocity,
+                future=box.future,
+            )
+        )
 
     def _append_with_elements(
         self,
@@ -110,24 +107,21 @@ class BoxData3D:
         uuid: str | None = None,
         future: Future | None = None,
     ) -> None:
-        self.centers.append(center)
-
         rotation_xyzw = np.roll(rotation.q, shift=-1)
-        self.rotations.append(rr.Quaternion(xyzw=rotation_xyzw))
 
         width, length, height = size
-        self.sizes.append((length, width, height))
 
-        self.class_ids.append(class_id)
-
-        if velocity is not None:
-            self.velocities.append(velocity)
-
-        if uuid is not None:
-            self.uuids.append(uuid)
-
-        if future is not None:
-            self.future.append(future)
+        self.records.append(
+            self.Record(
+                center=center,
+                rotation=rr.Quaternion(xyzw=rotation_xyzw),
+                size=(length, width, height),
+                class_id=class_id,
+                uuid=uuid,
+                velocity=velocity,
+                future=future,
+            )
+        )
 
     def as_boxes3d(self) -> rr.Boxes3D:
         """Return 3D boxes data as a `rr.Boxes3D`.
@@ -135,14 +129,17 @@ class BoxData3D:
         Returns:
             `rr.Boxes3D` object.
         """
-        labels = None if len(self.uuids) == 0 else self.uuids
+        sizes, centers, rotations, class_ids, labels = map(
+            list, zip(*((r.size, r.center, r.rotation, r.class_id, r.uuid) for r in self.records))
+        )
+
         return rr.Boxes3D(
-            sizes=self.sizes,
-            centers=self.centers,
-            rotations=self.rotations,
+            sizes=sizes,
+            centers=centers,
+            rotations=rotations,
             fill_mode=rrc.FillMode.Solid,
             labels=labels,
-            class_ids=self.class_ids,
+            class_ids=class_ids,
             show_labels=False,
         )
 
@@ -152,10 +149,21 @@ class BoxData3D:
         Returns:
             `rr.Arrows3D` object.
         """
+        velocities, centers, class_ids = map(
+            list,
+            zip(
+                *(
+                    (r.velocity, r.center, r.class_id)
+                    for r in self.records
+                    if r.velocity is not None
+                )
+            ),
+        )
+
         return rr.Arrows3D(
-            vectors=self.velocities,
-            origins=self.centers,
-            class_ids=self.class_ids,
+            vectors=velocities,
+            origins=centers,
+            class_ids=class_ids,
         )
 
     def as_linestrips3d(self) -> rr.LineStrips3D:
@@ -164,11 +172,19 @@ class BoxData3D:
         Returns:
             `rr.LineStrips3D` object for each box.
         """
-        stripes = []
-        class_ids = []
-        for class_id, future in zip(self.class_ids, self.future):
-            class_ids += [class_id] * future.num_mode
-            stripes += [waypoints for _, waypoints in future]
+        class_ids = [
+            record.class_id
+            for record in self.records
+            if record.future is not None
+            for _ in range(record.future.num_mode)
+        ]
+
+        stripes = [
+            waypoints
+            for record in self.records
+            if record.future is not None
+            for _, waypoints in record.future
+        ]
         return rr.LineStrips3D(strips=stripes, class_ids=class_ids)
 
 
