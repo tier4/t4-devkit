@@ -78,23 +78,17 @@ class BoxData3D:
             self._append_with_elements(*args, **kwargs)
 
     def _append_with_box(self, box: Box3D) -> None:
-        rotation_xyzw = np.roll(box.rotation.q, shift=-1)
-
-        width, length, height = box.size
-
         if box.semantic_label.name not in self.label2id:
             self.label2id[box.semantic_label.name] = len(self.label2id)
 
-        self.records.append(
-            self.Record(
-                center=box.position,
-                rotation=rr.Quaternion(xyzw=rotation_xyzw),
-                size=(length, width, height),
-                class_id=self.label2id[box.semantic_label.name],
-                uuid=box.uuid,
-                velocity=box.velocity,
-                future=box.future,
-            )
+        self._append_with_elements(
+            center=box.position,
+            rotation=box.rotation,
+            size=box.size,
+            class_id=self.label2id[box.semantic_label.name],
+            uuid=box.uuid,
+            velocity=box.velocity,
+            future=box.future,
         )
 
     def _append_with_elements(
@@ -231,15 +225,14 @@ class BoxData2D:
             self._append_with_elements(*args, **kwargs)
 
     def _append_with_box(self, box: Box2D) -> None:
-        self.rois.append(box.roi.roi)
-
         if box.semantic_label.name not in self.label2id:
             self.label2id[box.semantic_label.name] = len(self.label2id)
 
-        self.class_ids.append(self.label2id[box.semantic_label.name])
-
-        if box.uuid is not None:
-            self.uuids.append(box.uuid)
+        self._append_with_elements(
+            roi=box.roi.roi,
+            class_id=self.label2id[box.semantic_label.name],
+            uuid=box.uuid,
+        )
 
     def _append_with_elements(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
         self.rois.append(roi)
