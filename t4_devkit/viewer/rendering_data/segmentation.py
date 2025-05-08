@@ -66,9 +66,12 @@ class SegmentationData2D:
         TODO:
             Add support of instance segmentation.
         """
-        image = np.zeros(self.size, dtype=np.uint8)
+        # (N, H, W)
+        masks = np.stack([r.mask for r in self.records], dtype=np.uint8)
 
-        for record in self.records:
-            image[record.mask == 1] = record.class_id
+        # (N, 1, 1)
+        class_ids = np.asarray([r.class_id for r in self.records], dtype=np.uint8)[:, None, None]
+
+        image = np.max(masks * class_ids, axis=0)
 
         return rr.SegmentationImage(image=image)
