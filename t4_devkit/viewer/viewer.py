@@ -14,7 +14,7 @@ from t4_devkit.schema import SensorModality
 
 from .color import distance_color
 from .geography import calculate_geodetic_point
-from .rendering_data import BoxData2D, BoxData3D, SegmentationData2D
+from .record import BoxData2D, BoxData3D, SegmentationData2D
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
