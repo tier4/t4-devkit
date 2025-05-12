@@ -78,7 +78,11 @@ class Ap:
                     continue
 
                 buffer.confidences.append(box_match.estimation.confidence)
-                if box_match.is_tp(scorer=self.scorer, threshold=self.threshold):
+                if box_match.is_tp(
+                    scorer=self.scorer,
+                    threshold=self.threshold,
+                    ego2map=frame.ego2map,
+                ):
                     buffer.tp_list.append(1.0)
                     buffer.fp_list.append(0.0)
                 else:
