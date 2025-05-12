@@ -56,11 +56,11 @@ class MatchingScorerImpl(ABC):
         Returns:
             Returns `True` the calculated matching score is better than the threshold.
         """
-        return score <= threshold if self.smaller_is_better() else threshold <= score
+        return score <= threshold if self.is_smaller_score_better() else threshold <= score
 
     @classmethod
     @abstractmethod
-    def smaller_is_better(cls) -> bool:
+    def is_smaller_score_better(cls) -> bool:
         """Indicate whether the smaller matching score is better.
 
         Returns:
@@ -89,7 +89,7 @@ MatchingScorerLike = TypeVar("MatchingScorer", bound=MatchingScorerImpl)
 
 class CenterDistance(MatchingScorerImpl):
     @classmethod
-    def smaller_is_better(cls) -> bool:
+    def is_smaller_score_better(cls) -> bool:
         return True
 
     def _calculate_score(self, box1: BoxLike, box2: BoxLike) -> float:
@@ -108,7 +108,7 @@ class PlaneDistance(MatchingScorerImpl):
             raise TypeError("For PlaneDistance, input boxes must be 3D.")
 
     @classmethod
-    def smaller_is_better(cls) -> bool:
+    def is_smaller_score_better(cls) -> bool:
         return True
 
     def _calculate_score(self, box1: Box3D, box2: Box3D) -> float:
@@ -117,7 +117,7 @@ class PlaneDistance(MatchingScorerImpl):
 
 class Iou2D(MatchingScorerImpl):
     @classmethod
-    def smaller_is_better(cls) -> bool:
+    def is_smaller_score_better(cls) -> bool:
         return False
 
     def _calculate_score(self, box1: BoxLike, box2: BoxLike) -> float:
@@ -134,7 +134,7 @@ class Iou3D(MatchingScorerImpl):
             raise TypeError("For Iou3D, input boxes must be 3D.")
 
     @classmethod
-    def smaller_is_better(cls) -> bool:
+    def is_smaller_score_better(cls) -> bool:
         return False
 
     def _calculate_score(self, box1: Box3D, box2: Box3D) -> float:

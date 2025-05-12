@@ -95,7 +95,7 @@ class MatchingAlgorithmImpl(ABC):
         """
         estimation_idx, ground_truth_idx = (
             np.unravel_index(np.nanargmin(score_table), score_table.shape)
-            if self._scorer.smaller_is_better()
+            if self._scorer.is_smaller_score_better()
             else np.unravel_index(np.nanargmax(score_table), score_table.shape)
         )
         return estimation_idx, ground_truth_idx
