@@ -18,7 +18,7 @@ class BoxMatch:
     """A class to represent the match of an estimation and ground truth.
 
     Raises:
-        Construction raises error if both `estimation` and `ground_truth` is `None`.
+        ValueError: Construction raises error if both `estimation` and `ground_truth` is `None`.
 
     Attributes:
         estimation (BoxLike | None): Estimation.

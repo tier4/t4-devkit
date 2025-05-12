@@ -25,7 +25,6 @@ nav:
       - t4_devkit.filtering: apis/filtering.md
       - t4_devkit.evaluation: apis/evaluation.md
       - t4_devkit.viewer: apis/viewer.md
-      - t4_devkit.evaluation: apis/evaluation.md
       - t4_devkit.common: apis/common.md
 
 theme:
