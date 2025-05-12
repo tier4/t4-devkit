@@ -93,8 +93,8 @@ class Ap:
 
 
 class ApH(Ap):
-    def __init__(self, threshold: float) -> None:
-        super().__init__(threshold=threshold)
+    def __init__(self, scorer: MatchingScorerLike, threshold: float) -> None:
+        super().__init__(scorer=scorer, threshold=threshold)
 
     def _compute_tp(self, box_match: BoxMatch) -> float:
         if not box_match.is_matched():
