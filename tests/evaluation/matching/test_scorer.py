@@ -6,7 +6,7 @@ import pytest
 from pyquaternion import Quaternion
 
 from t4_devkit.dataclass import Box3D, SemanticLabel, Shape, ShapeType
-from t4_devkit.evaluation import CenterDistance, Iou2D, Iou3D
+from t4_devkit.evaluation import CenterDistance, Iou2D, Iou3D, PlaneDistance
 
 
 @pytest.fixture(scope="module")
@@ -42,6 +42,14 @@ def ground_truth() -> Box3D:
 
 def test_center_distance(estimation, ground_truth) -> None:
     scorer = CenterDistance()
+
+    score = scorer(estimation, ground_truth)
+
+    assert math.isclose(score, 0.0)
+
+
+def test_plane_distance(estimation, ground_truth) -> None:
+    scorer = PlaneDistance()
 
     score = scorer(estimation, ground_truth)
 
