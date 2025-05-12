@@ -87,6 +87,7 @@ class MatchingScorer(str, Enum):
     PLANE_DISTANCE = "PLANE_DISTANCE"
     IOU2D = "IOU2D"
     IOU3D = "IOU3D"
+    HEADING_YAW = "HEADING_YAW"
 
 
 class MatchingPolicy(str, Enum):
