@@ -32,10 +32,13 @@ class BoxMatch:
         if self.estimation is None and self.ground_truth is None:
             raise ValueError("At least one of `estimation` or `ground_truth` must be set.")
 
+    def is_matched(self) -> bool:
+        return self.estimation is not None and self.ground_truth is not None
+
     def is_label_ok(self) -> bool:
         return (
             False
-            if self.estimation is None or self.ground_truth is None
+            if not self.is_matched()
             else self.estimation.semantic_label == self.ground_truth.semantic_label
         )
 
@@ -45,7 +48,7 @@ class BoxMatch:
         threshold: float,
         ego2map: HomogeneousMatrix | None = None,
     ) -> bool:
-        if self.estimation is None or self.ground_truth is None:
+        if not self.is_matched():
             return False
 
         score = scorer(self.estimation, self.ground_truth, ego2map)
