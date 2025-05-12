@@ -7,7 +7,7 @@ from attrs import define, field
 from .status import MatchingStatus
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import BoxLike
+    from t4_devkit.dataclass import BoxLike, HomogeneousMatrix
     from t4_devkit.evaluation import MatchingScorerLike
 
 __all__ = ["BoxMatch", "FrameBoxMatch"]
@@ -39,11 +39,16 @@ class BoxMatch:
             else self.estimation.semantic_label == self.ground_truth.semantic_label
         )
 
-    def is_tp(self, scorer: MatchingScorerLike, threshold: float) -> bool:
+    def is_tp(
+        self,
+        scorer: MatchingScorerLike,
+        threshold: float,
+        ego2map: HomogeneousMatrix | None = None,
+    ) -> bool:
         if self.estimation is None or self.ground_truth is None:
             return False
 
-        score = scorer(self.estimation, self.ground_truth)
+        score = scorer(self.estimation, self.ground_truth, ego2map)
         return scorer.is_better_than(score, threshold)
 
     def to_status(self, scorer: MatchingScorerLike, threshold: float) -> MatchingStatus:
@@ -63,11 +68,13 @@ class FrameBoxMatch:
         unix_time (int): Unix timestamp.
         frame_index (int): Index number of the frame.
         matches (list[BoxMatch]): List of box matches.
+        ego2map (HomogeneousMatrix): Transformation matrix from ego to map coordinate.
     """
 
     unix_time: int
     frame_index: int
     matches: list[BoxMatch]
+    ego2map: HomogeneousMatrix
 
     @property
     def num_estimation(self) -> int:
