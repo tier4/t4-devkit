@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from t4_devkit.dataclass import HomogeneousMatrix
 from t4_devkit.evaluation import (
     BoxMatch,
     FrameBoxMatch,
@@ -28,7 +29,14 @@ def test_frame_box_match(dummy_evaluation_box3ds) -> None:
 
     matches = matcher(estimations, ground_truths)
 
-    frame = FrameBoxMatch(unix_time=100, frame_index=0, matches=matches)
+    ego2map = HomogeneousMatrix(
+        position=(1, 0, 0),
+        rotation=(1, 0, 0, 0),
+        src="base_link",
+        dst="map",
+    )
+
+    frame = FrameBoxMatch(unix_time=100, frame_index=0, matches=matches, ego2map=ego2map)
 
     scorer = build_matching_scorer(params=MatchingParams())
     threshold = 1.0
