@@ -19,7 +19,6 @@ __all__ = [
     "PlaneDistance",
     "Iou2D",
     "Iou3D",
-    "HeadingYaw",
 ]
 
 
@@ -246,61 +245,3 @@ class Iou3D(MatchingScorerImpl):
         intersection = compute_volume_intersection(box1, box2)
         union = box1.volume + box2.volume - intersection
         return intersection / union
-
-
-class HeadingYaw(MatchingScorerImpl):
-    def _validate(self, box1, box2):
-        super()._validate(box1, box2)
-
-        if not isinstance(box1, Box3D):
-            raise TypeError("For Iou3D, input boxes must be 3D.")
-
-    @classmethod
-    def is_smaller_score_better(cls) -> bool:
-        return True
-
-    def _calculate_score(
-        self,
-        box1: Box3D,
-        box2: Box3D,
-        ego2map: HomogeneousMatrix | None = None,
-    ) -> float:
-        box1 = self._transform2ego(box1, ego2map)
-        box2 = self._transform2ego(box2, ego2map)
-
-        return abs(box2.diff_yaw(box1))
-
-    def _transform2ego(self, box: Box3D, ego2map: HomogeneousMatrix | None = None) -> Box3D:
-        """Transform the box to base link frame if it is not.
-
-        Todo:
-            This method should be function.
-        """
-        if box.frame_id == "base_link":
-            return box
-
-        if ego2map is None:
-            raise ValueError(f"For {box.frame_id}, `ego2map` must be specified.")
-
-        matrix = HomogeneousMatrix(
-            position=box.position,
-            rotation=box.rotation,
-            src=box.frame_id,
-            dst="base_link",
-        )
-
-        tf = ego2map.inv().transform(matrix=matrix)
-
-        return Box3D(
-            unix_time=box.unix_time,
-            frame_id="base_link",
-            semantic_label=box.semantic_label,
-            position=tf.position,
-            rotation=tf.rotation,
-            shape=box.shape,
-            velocity=box.velocity,
-            num_points=box.num_points,
-            future=box.future,
-            confidence=box.confidence,
-            uuid=box.uuid,
-        )
