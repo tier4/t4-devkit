@@ -8,7 +8,7 @@ from attrs import define, field
 from ..matching import CenterDistance, HeadingYaw
 
 if TYPE_CHECKING:
-    from t4_devkit.evaluation import FrameBoxMatch
+    from t4_devkit.evaluation import FrameBoxMatch, MatchingScorerLike
 
 __all__ = ["Ap", "ApH"]
 
@@ -62,8 +62,11 @@ class Ap:
             return float(np.mean(filtered_precision)) / (1.0 - Ap.min_precision)
 
     def __init__(self, threshold: float) -> None:
-        self.scorer = CenterDistance()
+        self.scorer = self._configure_scorer()
         self.threshold = threshold
+
+    def _configure_scorer(self) -> MatchingScorerLike:
+        return CenterDistance()
 
     def __call__(self, frames: list[FrameBoxMatch]) -> float:
         component = self._compute_tp_fp(frames)
@@ -93,5 +96,7 @@ class Ap:
 
 class ApH(Ap):
     def __init__(self, threshold: float) -> None:
-        super().__init__(threshold)
-        self.scorer = HeadingYaw()
+        super().__init__(threshold=threshold)
+
+    def _configure_scorer(self) -> HeadingYaw:
+        return HeadingYaw()
