@@ -36,8 +36,8 @@ def load_dataset(data_root: str) -> SceneGroundTruth:
         ego2map = HomogeneousMatrix(
             position=ego_pose.translation,
             rotation=ego_pose.rotation,
-            src="map",
-            dst="base_link",
+            src="base_link",
+            dst="map",
         )
 
         frames.append(
