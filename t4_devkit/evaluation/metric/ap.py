@@ -5,10 +5,12 @@ from typing import TYPE_CHECKING
 import numpy as np
 from attrs import define, field
 
-if TYPE_CHECKING:
-    from t4_devkit.evaluation import FrameBoxMatch, MatchingScorerLike
+from ..matching import CenterDistance, HeadingYaw
 
-__all__ = ["Ap"]
+if TYPE_CHECKING:
+    from t4_devkit.evaluation import FrameBoxMatch
+
+__all__ = ["Ap", "ApH"]
 
 
 class Ap:
@@ -59,8 +61,8 @@ class Ap:
 
             return float(np.mean(filtered_precision)) / (1.0 - Ap.min_precision)
 
-    def __init__(self, scorer: MatchingScorerLike, threshold: float) -> None:
-        self.scorer = scorer
+    def __init__(self, threshold: float) -> None:
+        self.scorer = CenterDistance()
         self.threshold = threshold
 
     def __call__(self, frames: list[FrameBoxMatch]) -> float:
@@ -83,3 +85,9 @@ class Ap:
                     buffer.tp_list.append(0.0)
                     buffer.fp_list.append(1.0)
         return buffer
+
+
+class ApH(Ap):
+    def __init__(self, threshold: float) -> None:
+        super().__init__(threshold)
+        self.scorer = HeadingYaw()
