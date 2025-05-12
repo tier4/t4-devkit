@@ -88,6 +88,7 @@ class Mota:
                         buffer.num_id_switch += 1
                 else:
                     buffer.num_fp += 1
+        return buffer
 
     def _is_id_switched(self, current_match: BoxMatch, previous_match: BoxMatch) -> bool:
         if (not current_match.is_matched()) and (not previous_match.is_matched()):
