@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 
 from attrs import define, field
 
-from ..matching import CenterDistance
-
 if TYPE_CHECKING:
     from t4_devkit.evaluation import BoxMatch, FrameBoxMatch, MatchingScorerLike
 
@@ -31,18 +29,15 @@ class Mota:
         def compute_motp(self) -> float:
             return max(self.score / self.num_tp, 0.0) if self.num_tp > 0 else 0.0
 
-    def __init__(self, threshold: float) -> None:
-        self.scorer = self._configure_scorer()
+    def __init__(self, scorer: MatchingScorerLike, threshold: float) -> None:
+        self.scorer = scorer
         self.threshold = threshold
 
-    def _configure_scorer(self) -> MatchingScorerLike:
-        return CenterDistance()
-
     def __call__(self, frames: list[FrameBoxMatch]) -> float:
-        buffer = self._compute_clear(frames)
+        buffer = self._update_buffer(frames)
         return buffer.compute_mota()
 
-    def _compute_clear(self, frames: list[FrameBoxMatch]) -> ClearBuffer:
+    def _update_buffer(self, frames: list[FrameBoxMatch]) -> ClearBuffer:
         buffer = self.ClearBuffer()
         num_frame = len(frames)
         for i in range(1, num_frame):
@@ -75,7 +70,7 @@ class Mota:
                         buffer.score += self.scorer(
                             previous_match.estimation,
                             previous_match.ground_truth,
-                            previous_frame.ego2map,
+                            ego2map=previous_frame.ego2map,
                         )
                         break
 
@@ -129,5 +124,5 @@ class Mota:
 
 class Motp(Mota):
     def __call__(self, frames: list[FrameBoxMatch]) -> float:
-        buffer = self._compute_clear(frames)
+        buffer = self._update_buffer(frames)
         return buffer.compute_motp()
