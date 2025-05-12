@@ -5,10 +5,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from attrs import define, field
 
-from ..matching import CenterDistance, HeadingYaw
-
 if TYPE_CHECKING:
-    from t4_devkit.evaluation import FrameBoxMatch, MatchingScorerLike
+    from t4_devkit.evaluation import BoxMatch, FrameBoxMatch, MatchingScorerLike
 
 __all__ = ["Ap", "ApH"]
 
@@ -61,18 +59,18 @@ class Ap:
 
             return float(np.mean(filtered_precision)) / (1.0 - Ap.min_precision)
 
-    def __init__(self, threshold: float) -> None:
-        self.scorer = self._configure_scorer()
+    def __init__(self, scorer: MatchingScorerLike, threshold: float) -> None:
+        self.scorer = scorer
         self.threshold = threshold
 
-    def _configure_scorer(self) -> MatchingScorerLike:
-        return CenterDistance()
-
     def __call__(self, frames: list[FrameBoxMatch]) -> float:
-        component = self._compute_tp_fp(frames)
-        return component.compute_ap()
+        buffer = self._update_buffer(frames)
+        return buffer.compute_ap()
 
-    def _compute_tp_fp(self, frames: list[FrameBoxMatch]) -> ApBuffer:
+    def _compute_tp(self, _box_match: BoxMatch) -> float:
+        return 1.0
+
+    def _update_buffer(self, frames: list[FrameBoxMatch]) -> ApBuffer:
         buffer = self.ApBuffer()
         for frame in frames:
             buffer.num_gt += frame.num_gt
@@ -86,7 +84,7 @@ class Ap:
                     threshold=self.threshold,
                     ego2map=frame.ego2map,
                 ):
-                    buffer.tp_list.append(1.0)
+                    buffer.tp_list.append(self._compute_tp(box_match))
                     buffer.fp_list.append(0.0)
                 else:
                     buffer.tp_list.append(0.0)
@@ -98,5 +96,11 @@ class ApH(Ap):
     def __init__(self, threshold: float) -> None:
         super().__init__(threshold=threshold)
 
-    def _configure_scorer(self) -> HeadingYaw:
-        return HeadingYaw()
+    def _compute_tp(self, box_match: BoxMatch) -> float:
+        if not box_match.is_matched():
+            return 0.0
+
+        diff_yaw = box_match.estimation.diff_yaw(box_match.ground_truth)
+        if diff_yaw > np.pi:
+            diff_yaw = 2.0 * np.pi - diff_yaw
+        return min(1.0, max(0.0, 1.0 - diff_yaw / np.pi))
