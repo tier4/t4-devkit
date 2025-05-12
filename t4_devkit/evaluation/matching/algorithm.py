@@ -127,7 +127,7 @@ class GreedyMatcher(MatchingAlgorithmImpl):
         tmp_ground_truths = list(deepcopy(ground_truths))
 
         output: list[BoxMatch] = []
-        # 1. Matching the nearest matchable estimations and GTs
+        # 1. match the nearest matchable estimations and GTs
         num_estimations, *_ = score_table.shape
         for _ in range(num_estimations):
             if np.isnan(score_table).all():
@@ -139,10 +139,12 @@ class GreedyMatcher(MatchingAlgorithmImpl):
             ground_truth_picked = tmp_ground_truths.pop(ground_truth_idx)
             output.append(BoxMatch(estimation_picked, ground_truth_picked))
 
-            # Remove picked estimations and GTs
+            # remove picked estimations and GTs
             score_table = np.delete(score_table, estimation_idx, axis=0)
-            score_table = np.delete(score_table, ground_truth_idx, axis=0)
+            score_table = np.delete(score_table, ground_truth_idx, axis=1)
 
-        output += [BoxMatch(estimation) for estimation in tmp_estimations]
+        # 2. assign remaining estimations(=FPs) and GTs(=FNs)
+        output += [BoxMatch(estimation=estimation) for estimation in tmp_estimations]
+        output += [BoxMatch(ground_truth=ground_truth) for ground_truth in tmp_ground_truths]
 
         return output
