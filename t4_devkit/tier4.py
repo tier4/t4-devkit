@@ -733,7 +733,6 @@ class Tier4:
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
-        show: bool = True,
     ) -> None:
         """Render specified scene.
 
@@ -742,14 +741,12 @@ class Tier4:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
-            show (bool, optional): Whether to spawn rendering viewer.
         """
         coroutine = self._rendering_helper.async_render_scene(
             scene_token=scene_token,
             max_time_seconds=max_time_seconds,
             future_seconds=future_seconds,
             save_dir=save_dir,
-            show=show,
         )
 
         asyncio.run(coroutine)
@@ -760,7 +757,6 @@ class Tier4:
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
-        show: bool = True,
     ) -> None:
         """Render particular instance.
 
@@ -768,13 +764,11 @@ class Tier4:
             instance_token (str | Sequence[str]): Instance token(s).
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
-            show (bool, optional): Whether to spawn rendering viewer.
         """
         coroutine = self._rendering_helper.async_render_instance(
             instance_token=instance_token,
             future_seconds=future_seconds,
             save_dir=save_dir,
-            show=show,
         )
 
         asyncio.run(coroutine)
@@ -786,7 +780,6 @@ class Tier4:
         max_time_seconds: float = np.inf,
         ignore_distortion: bool = True,
         save_dir: str | None = None,
-        show: bool = True,
     ) -> None:
         """Render pointcloud on 3D and 2D view.
 
@@ -795,7 +788,6 @@ class Tier4:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             save_dir (str | None, optional): Directory path to save the recording.
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
-            show (bool, optional): Whether to spawn rendering viewer.
 
         TODO:
             Add an option of rendering radar channels.
@@ -805,7 +797,6 @@ class Tier4:
             max_time_seconds=max_time_seconds,
             ignore_distortion=ignore_distortion,
             save_dir=save_dir,
-            show=show,
         )
 
         asyncio.run(coroutine)

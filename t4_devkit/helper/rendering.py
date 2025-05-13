@@ -53,7 +53,6 @@ class RenderingHelper:
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
-        show: bool = True,
     ) -> Future:
         """Render specified scene.
 
@@ -62,7 +61,7 @@ class RenderingHelper:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
-            show (bool, optional): Whether to spawn rendering viewer.
+                Viewer will be spawned if it is None, otherwise not.
 
         Returns:
             Future aggregating results.
@@ -89,7 +88,7 @@ class RenderingHelper:
             render3d=render3d,
             render2d=render2d,
             render_ann=True,
-            spawn=show,
+            save_dir=save_dir,
         )
 
         scene: Scene = self._t4.get("scene", scene_token)
@@ -125,9 +124,6 @@ class RenderingHelper:
             ),
         )
 
-        if save_dir is not None:
-            viewer.save(save_dir)
-
         return gather
 
     async def async_render_instance(
@@ -136,7 +132,6 @@ class RenderingHelper:
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
-        show: bool = True,
     ) -> Future:
         """Render particular instance.
 
@@ -144,7 +139,7 @@ class RenderingHelper:
             instance_token (str | Sequence[str]): Instance token(s).
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
-            show (bool, optional): Whether to spawn rendering viewer.
+                Viewer will be spawned if it is None, otherwise not.
 
         Returns:
             Future aggregating results.
@@ -194,7 +189,7 @@ class RenderingHelper:
             render3d=render3d,
             render2d=render2d,
             render_ann=True,
-            spawn=show,
+            save_dir=save_dir,
         )
 
         gather = await asyncio.gather(
@@ -228,9 +223,6 @@ class RenderingHelper:
             ),
         )
 
-        if save_dir is not None:
-            viewer.save(save_dir)
-
         return gather
 
     async def async_render_pointcloud(
@@ -240,16 +232,15 @@ class RenderingHelper:
         max_time_seconds: float = np.inf,
         ignore_distortion: bool = True,
         save_dir: str | None = None,
-        show: bool = True,
     ) -> Future:
         """Render pointcloud on 3D and 2D view.
 
         Args:
             scene_token (str): Scene token.
             max_time_seconds (float, optional): Max time length to be rendered [s].
-            save_dir (str | None, optional): Directory path to save the recording.
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
-            show (bool, optional): Whether to spawn rendering viewer.
+            save_dir (str | None, optional): Directory path to save the recording.
+                Viewer will be spawned if it is None, otherwise not.
 
         Returns:
             Future aggregating results.
@@ -259,7 +250,7 @@ class RenderingHelper:
         """
         # initialize viewer
         app_id = f"pointcloud@{scene_token}"
-        viewer = self._init_viewer(app_id, render_ann=False, spawn=show)
+        viewer = self._init_viewer(app_id, render_ann=False, save_dir=save_dir)
 
         # search first lidar sample data token
         first_lidar_token: str | None = None
@@ -288,9 +279,6 @@ class RenderingHelper:
             ),
         )
 
-        if save_dir is not None:
-            viewer.save(save_dir)
-
         return gather
 
     def _init_viewer(
@@ -300,7 +288,7 @@ class RenderingHelper:
         render3d: bool = True,
         render2d: bool = True,
         render_ann: bool = True,
-        spawn: bool = False,
+        save_dir: str | None = None,
     ) -> RerunViewer:
         if not (render3d or render2d):
             raise ValueError("At least one of `render3d` or `render2d` must be True.")
@@ -315,7 +303,12 @@ class RenderingHelper:
             else None
         )
 
-        viewer = RerunViewer(app_id=app_id, cameras=cameras, with_3d=render3d, spawn=spawn)
+        viewer = RerunViewer(
+            app_id=app_id,
+            cameras=cameras,
+            with_3d=render3d,
+            save_dir=save_dir,
+        )
 
         if render_ann:
             viewer = viewer.with_labels(self._label2id)

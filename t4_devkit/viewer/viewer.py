@@ -74,7 +74,7 @@ class RerunViewer:
         *,
         cameras: Sequence[str] | None = None,
         with_3d: bool = True,
-        spawn: bool = True,
+        save_dir: str | None = None,
     ) -> None:
         """Construct a new object.
 
@@ -83,7 +83,8 @@ class RerunViewer:
             cameras (Sequence[str] | None, optional): Sequence of camera names.
                 If `None`, any 2D spaces will not be visualized.
             with_3d (bool, optional): Whether to render objects with the 3D space.
-            spawn (bool, optional): Whether to spawn the viewer.
+            save_dir (str | None, optional): Directory path to save the recording.
+                Viewer will be spawned if it is None, otherwise not.
 
         Examples:
             >>> from t4_devkit.viewer import RerunViewer
@@ -128,11 +129,15 @@ class RerunViewer:
         rr.init(
             application_id=self.app_id,
             recording_id=None,
-            spawn=spawn,
+            spawn=save_dir is None,
             default_enabled=True,
             strict=True,
             default_blueprint=self.blueprint,
         )
+
+        # NOTE: rr.save() must be invoked before logging
+        if save_dir is not None:
+            self._start_saving(save_dir=save_dir)
 
         rr.log(self.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
 
@@ -180,8 +185,11 @@ class RerunViewer:
         self.global_origin = lat_lon
         return self
 
-    def save(self, save_dir: str) -> None:
+    def _start_saving(self, save_dir: str) -> None:
         """Save recording result as `save_dir/{app_id}.rrd`.
+
+        Note:
+            This method must be called before any logging started.
 
         Args:
             save_dir (str): Directory path to save the result.
