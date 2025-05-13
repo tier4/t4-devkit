@@ -174,7 +174,7 @@ class BatchBox3D:
         ]
 
         stripes = [
-            waypoints
+            np.vstack([record.center[None, :3], waypoints[:, :3]])  # (T, 3) -> (T+1, 3)
             for record in self.records
             if record.future is not None
             for _, waypoints in record.future
