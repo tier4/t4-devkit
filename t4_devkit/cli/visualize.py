@@ -41,13 +41,12 @@ def scene(
             help="Output directory to save recorded .rrd file.",
         ),
     ] = None,
-    show: Annotated[bool, typer.Option(help="Indicates whether to show viewer.")] = True,
 ) -> None:
     _create_dir(output)
 
     t4 = Tier4("annotation", data_root, verbose=False)
     scene_token = t4.scene[0].token
-    t4.render_scene(scene_token, future_seconds=future, save_dir=output, show=show)
+    t4.render_scene(scene_token, future_seconds=future, save_dir=output)
 
 
 @cli.command("instance", help="Visualize a particular instance in the corresponding scene.")
@@ -72,12 +71,11 @@ def instance(
             help="Output directory to save recorded .rrd file.",
         ),
     ] = None,
-    show: Annotated[bool, typer.Option(help="Indicates whether to show viewer.")] = True,
 ) -> None:
     _create_dir(output)
 
     t4 = Tier4("annotation", data_root, verbose=False)
-    t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output, show=show)
+    t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
 
 
 @cli.command("pointcloud", help="Visualize pointcloud in the corresponding scene.")
@@ -101,7 +99,6 @@ def pointcloud(
             help="Output directory to save recorded .rrd file.",
         ),
     ] = None,
-    show: Annotated[bool, typer.Option(help="Indicates whether to show viewer.")] = True,
 ) -> None:
     _create_dir(output)
 
@@ -111,7 +108,6 @@ def pointcloud(
         scene_token,
         ignore_distortion=ignore_distortion,
         save_dir=output,
-        show=show,
     )
 
 

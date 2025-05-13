@@ -36,7 +36,7 @@ def spawn_viewer(pytestconfig) -> bool:
     return pytestconfig.getoption("spawn_viewer")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def label2id() -> dict[str, int]:
     return {"car": 0, "bicycle": 1, "pedestrian": 2}
 
