@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 from attrs import define, field, validators
@@ -36,9 +36,10 @@ class SurfaceAnn(SchemaBase):
 
     sample_data_token: str = field(validator=validators.instance_of(str))
     category_token: str = field(validator=validators.instance_of(str))
-    mask: RLEMask = field(
+    mask: Optional[RLEMask] = field(
+        default=None,
         converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
-        validator=validators.instance_of(RLEMask),
+        validator=validators.optional(validators.instance_of(RLEMask)),
     )
     automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
 
