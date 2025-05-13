@@ -71,3 +71,13 @@ For options, run `t4viz pointcloud -h`.
 ```shell
 t4viz pointcloud <DATA_ROOT> [OPTIONS]
 ```
+
+#### Save Recording as `.rrd`
+
+You can save visualized recording with `-o --output` option as follows:
+
+```shell
+t4viz <COMMAND> <DATA_ROOT> -o <OUTPUT_DIR>
+```
+
+Note that if you specify `--output` option, viewer will not be spawned.
