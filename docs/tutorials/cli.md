@@ -72,12 +72,22 @@ For options, run `t4viz pointcloud -h`.
 t4viz pointcloud <DATA_ROOT> [OPTIONS]
 ```
 
+#### Visualize Trajectories
+
+`scene` and `instance` commands support visualizing future trajectories for each object.
+
+By specifying `-f --future` option, you can render them in the particular time length:
+
+```shell
+t4viz <COMMAND> ... -f <FUTURE_LENGTH[s]>
+```
+
 #### Save Recording as `.rrd`
 
 You can save visualized recording with `-o --output` option as follows:
 
 ```shell
-t4viz <COMMAND> <DATA_ROOT> -o <OUTPUT_DIR>
+t4viz <COMMAND> ... -o <OUTPUT_DIR>
 ```
 
 Note that if you specify `--output` option, viewer will not be spawned.
