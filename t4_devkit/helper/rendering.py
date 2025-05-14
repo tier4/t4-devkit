@@ -52,6 +52,49 @@ class RenderingHelper:
 
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
+    def _init_viewer(
+        self,
+        app_id: str,
+        *,
+        render3d: bool = True,
+        render2d: bool = True,
+        render_ann: bool = True,
+        save_dir: str | None = None,
+    ) -> RerunViewer:
+        if not (render3d or render2d):
+            raise ValueError("At least one of `render3d` or `render2d` must be True.")
+
+        cameras = (
+            [
+                sensor.channel
+                for sensor in self._t4.sensor
+                if sensor.modality == SensorModality.CAMERA
+            ]
+            if render2d
+            else None
+        )
+
+        viewer = RerunViewer(
+            app_id=app_id,
+            cameras=cameras,
+            with_3d=render3d,
+            save_dir=save_dir,
+        )
+
+        if render_ann:
+            viewer = viewer.with_labels(self._label2id)
+
+        global_map_filepath = osp.join(self._t4.data_root, "map/global_map_center.pcd.yaml")
+        if osp.exists(global_map_filepath):
+            with open(global_map_filepath) as f:
+                map_metadata: dict = yaml.safe_load(f)
+            map_origin: dict = map_metadata["/**"]["ros__parameters"]["map_origin"]
+            latitude = map_origin["latitude"]
+            longitude = map_origin["longitude"]
+            viewer = viewer.with_global_origin((latitude, longitude))
+
+        return viewer
+
     def render_scene(
         self,
         scene_token: str,
@@ -276,49 +319,6 @@ class RenderingHelper:
                 ignore_distortion=ignore_distortion,
             ),
         )
-
-    def _init_viewer(
-        self,
-        app_id: str,
-        *,
-        render3d: bool = True,
-        render2d: bool = True,
-        render_ann: bool = True,
-        save_dir: str | None = None,
-    ) -> RerunViewer:
-        if not (render3d or render2d):
-            raise ValueError("At least one of `render3d` or `render2d` must be True.")
-
-        cameras = (
-            [
-                sensor.channel
-                for sensor in self._t4.sensor
-                if sensor.modality == SensorModality.CAMERA
-            ]
-            if render2d
-            else None
-        )
-
-        viewer = RerunViewer(
-            app_id=app_id,
-            cameras=cameras,
-            with_3d=render3d,
-            save_dir=save_dir,
-        )
-
-        if render_ann:
-            viewer = viewer.with_labels(self._label2id)
-
-        global_map_filepath = osp.join(self._t4.data_root, "map/global_map_center.pcd.yaml")
-        if osp.exists(global_map_filepath):
-            with open(global_map_filepath) as f:
-                map_metadata: dict = yaml.safe_load(f)
-            map_origin: dict = map_metadata["/**"]["ros__parameters"]["map_origin"]
-            latitude = map_origin["latitude"]
-            longitude = map_origin["longitude"]
-            viewer = viewer.with_global_origin((latitude, longitude))
-
-        return viewer
 
     def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
         sample_data: SampleData = self._t4.get("sample_data", sample_data_token)
