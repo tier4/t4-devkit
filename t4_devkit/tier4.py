@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import os.path as osp
 import time
 import warnings
@@ -659,14 +658,12 @@ class Tier4:
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
         """
-        coroutine = self._rendering_helper.async_render_scene(
+        self._rendering_helper.render_scene(
             scene_token=scene_token,
             max_time_seconds=max_time_seconds,
             future_seconds=future_seconds,
             save_dir=save_dir,
         )
-
-        asyncio.run(coroutine)
 
     def render_instance(
         self,
@@ -682,13 +679,11 @@ class Tier4:
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
         """
-        coroutine = self._rendering_helper.async_render_instance(
+        self._rendering_helper.render_instance(
             instance_token=instance_token,
             future_seconds=future_seconds,
             save_dir=save_dir,
         )
-
-        asyncio.run(coroutine)
 
     def render_pointcloud(
         self,
@@ -709,11 +704,9 @@ class Tier4:
         TODO:
             Add an option of rendering radar channels.
         """
-        coroutine = self._rendering_helper.async_render_pointcloud(
+        self._rendering_helper.render_pointcloud(
             scene_token=scene_token,
             max_time_seconds=max_time_seconds,
             ignore_distortion=ignore_distortion,
             save_dir=save_dir,
         )
-
-        asyncio.run(coroutine)
