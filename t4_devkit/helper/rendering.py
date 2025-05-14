@@ -113,17 +113,21 @@ class RenderingHelper:
                 Viewer will be spawned if it is None, otherwise not.
         """
         # search first sample data tokens
-        first_lidar_tokens: list[str] = []
-        first_radar_tokens: list[str] = []
-        first_camera_tokens: list[str] = []
-        for sensor in self._t4.sensor:
-            sd_token = sensor.first_sd_token
-            if sensor.modality == SensorModality.LIDAR:
-                first_lidar_tokens.append(sd_token)
-            elif sensor.modality == SensorModality.RADAR:
-                first_radar_tokens.append(sd_token)
-            elif sensor.modality == SensorModality.CAMERA:
-                first_camera_tokens.append(sd_token)
+        first_lidar_tokens: list[str] = [
+            sensor.first_sd_token
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.LIDAR
+        ]
+        first_radar_tokens: list[str] = [
+            sensor.first_sd_token
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.RADAR
+        ]
+        first_camera_tokens: list[str] = [
+            sensor.first_sd_token
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.CAMERA
+        ]
 
         render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
         render2d = len(first_camera_tokens) > 0
@@ -212,17 +216,21 @@ class RenderingHelper:
         max_timestamp_us = last_sample.timestamp
 
         # search first sample data tokens
-        first_lidar_tokens: list[str] = []
-        first_radar_tokens: list[str] = []
-        first_camera_tokens: list[str] = []
-        for sensor in self._t4.sensor:
-            sd_token = sensor.first_sd_token
-            if sensor.modality == SensorModality.LIDAR:
-                first_lidar_tokens.append(sd_token)
-            elif sensor.modality == SensorModality.RADAR:
-                first_radar_tokens.append(sd_token)
-            elif sensor.modality == SensorModality.CAMERA:
-                first_camera_tokens.append(sd_token)
+        first_lidar_tokens: list[str] = [
+            sensor.first_sd_token
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.LIDAR
+        ]
+        first_radar_tokens: list[str] = [
+            sensor.first_sd_token
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.RADAR
+        ]
+        first_camera_tokens: list[str] = [
+            sensor.first_sd_token
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.CAMERA
+        ]
 
         render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
         render2d = len(first_camera_tokens) > 0
