@@ -70,7 +70,7 @@ Done loading in 0.061 seconds.
 >>> my_sample = t4.get("sample", first_sample_token)
 ```
 
-You can access to the `sample_data` associated with this `sample`.
+You can access the `sample_data` associated with this `sample`.
 `sample.data` returns a `dict` object consists of `{str: <SAMPLE_DATA_TOKEN (str)>}`.
 
 ```python
@@ -90,7 +90,7 @@ You can access to the `sample_data` associated with this `sample`.
 
 `sample_annotation` refers to any 3D bounding box in a corresponding `sample`.
 All location data is given with respect to the global coordinate system.
-You can access to the list of `sample_annotation` tokens with `sample.ann_3ds: list[str]`.
+You can access the list of `sample_annotation` tokens with `sample.ann_3ds: list[str]`.
 
 ```python
 >>> my_annotation_token = my_sample.ann_3ds[0]

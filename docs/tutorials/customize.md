@@ -34,10 +34,10 @@ Attribute(token='f40e605870aa29b1473ca6e65255c45e', name='foo', description='thi
 
 You can customize schema classes on your own code, if you need for some reasons.
 
-For example, you might meet the error because some mandatory field but you are OK whatever the actual value is.
+For example, you might meet the error because of missing some mandatory fields but it is OK whatever the actual value is.
 
 In here, let's define a custom `Attribute` class, called `CustomAttribute`, in your workspace.
-This class allows it is OK even `description` field is not recorded in `attribute.json`.
+This class suppresses runtime exception caused by missing `description` in `attribute.json`.
 
 Now you have the following workspace structure:
 
@@ -50,7 +50,7 @@ my_package
 └── pyproject.toml
 ```
 
-By editing `custom_schema.py`, you can overwrite `Attribute` as follows:
+By editing `custom_schema.py`, you can define `CustomAttribute` overwriting `Attribute` as follows:
 
 ```python title="custom_schema.py"
 from __future__ import annotations
