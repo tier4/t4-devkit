@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING, Sequence
 import numpy as np
 import rerun as rr
 import yaml
+from PIL import Image
 
+from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud
 from t4_devkit.schema import SensorModality
@@ -28,6 +30,7 @@ if TYPE_CHECKING:
         Sensor,
         SurfaceAnn,
     )
+    from t4_devkit.typing import NDArrayF64, NDArrayU8
 
 __all__ = ["RenderingHelper"]
 
@@ -489,7 +492,7 @@ class RenderingHelper:
                 if max_timestamp_us < sample.timestamp:
                     break
 
-                points_on_image, depths, image = self._t4.project_pointcloud(
+                points_on_image, depths, image = self._project_pointcloud(
                     point_sample_data_token=current_point_sample_data_token,
                     camera_sample_data_token=camera_sample_data_token,
                     min_dist=min_dist,
@@ -518,6 +521,86 @@ class RenderingHelper:
                 if sensor.modality == SensorModality.CAMERA
             ]
         )
+
+    def _project_pointcloud(
+        self,
+        point_sample_data_token: str,
+        camera_sample_data_token: str,
+        min_dist: float = 1.0,
+        *,
+        ignore_distortion: bool = True,
+    ) -> tuple[NDArrayF64, NDArrayF64, NDArrayU8]:
+        """Project pointcloud on image plane.
+
+        Args:
+            point_sample_data_token (str): Sample data token of lidar or radar sensor.
+            camera_sample_data_token (str): Sample data token of camera.
+            min_dist (float, optional): Distance from the camera below which points are discarded.
+            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
+
+        Returns:
+            Projected points [2, n], their normalized depths [n] and an image.
+        """
+        point_sample_data: SampleData = self._t4.get("sample_data", point_sample_data_token)
+        pc_filepath = osp.join(self._t4.data_root, point_sample_data.filename)
+        if point_sample_data.modality == SensorModality.LIDAR:
+            pointcloud = LidarPointCloud.from_file(pc_filepath)
+        elif point_sample_data.modality == SensorModality.RADAR:
+            pointcloud = RadarPointCloud.from_file(pc_filepath)
+        else:
+            raise ValueError(f"Expected sensor lidar/radar, but got {point_sample_data.modality}")
+
+        camera_sample_data: SampleData = self._t4.get("sample_data", camera_sample_data_token)
+        if camera_sample_data.modality != SensorModality.CAMERA:
+            f"Expected camera, but got {camera_sample_data.modality}"
+
+        img = Image.open(osp.join(self._t4.data_root, camera_sample_data.filename))
+
+        # 1. transform the pointcloud to the ego vehicle frame for the timestamp to the sweep.
+        point_cs_record: CalibratedSensor = self._t4.get(
+            "calibrated_sensor", point_sample_data.calibrated_sensor_token
+        )
+        pointcloud.rotate(point_cs_record.rotation.rotation_matrix)
+        pointcloud.translate(point_cs_record.translation)
+
+        # 2. transform from ego to the global frame.
+        point_ego_pose: EgoPose = self._t4.get("ego_pose", point_sample_data.ego_pose_token)
+        pointcloud.rotate(point_ego_pose.rotation.rotation_matrix)
+        pointcloud.translate(point_ego_pose.translation)
+
+        # 3. transform from global into the ego vehicle frame for the timestamp of the image
+        camera_ego_pose: EgoPose = self._t4.get("ego_pose", camera_sample_data.ego_pose_token)
+        pointcloud.translate(-camera_ego_pose.translation)
+        pointcloud.rotate(camera_ego_pose.rotation.rotation_matrix.T)
+
+        # 4. transform from ego into the camera
+        camera_cs_record: CalibratedSensor = self._t4.get(
+            "calibrated_sensor", camera_sample_data.calibrated_sensor_token
+        )
+        pointcloud.translate(-camera_cs_record.translation)
+        pointcloud.rotate(camera_cs_record.rotation.rotation_matrix.T)
+
+        depths = pointcloud.points[2, :]
+
+        distortion = None if ignore_distortion else camera_cs_record.camera_distortion
+
+        points_on_img = view_points(
+            points=pointcloud.points[:3, :],
+            intrinsic=camera_cs_record.camera_intrinsic,
+            distortion=distortion,
+            normalize=True,
+        )[:2]
+
+        mask = np.ones(depths.shape[0], dtype=bool)
+        mask = np.logical_and(mask, depths > min_dist)
+        mask = np.logical_and(mask, 1 < points_on_img[0])
+        mask = np.logical_and(mask, points_on_img[0] < img.size[0] - 1)
+        mask = np.logical_and(mask, 1 < points_on_img[1])
+        mask = np.logical_and(mask, points_on_img[1] < img.size[1] - 1)
+        points_on_img = points_on_img[:, mask]
+        depths = depths[mask]
+
+        return points_on_img, depths, np.array(img, dtype=np.uint8)
 
     async def _render_annotation3ds(
         self,
