@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import asyncio
+import concurrent
+import concurrent.futures
 import os.path as osp
 from concurrent.futures import Future
 from typing import TYPE_CHECKING, Sequence
@@ -49,14 +50,16 @@ class RenderingHelper:
             category.name: idx for idx, category in enumerate(self._t4.category)
         }
 
-    async def async_render_scene(
+        self._executor = concurrent.futures.ThreadPoolExecutor()
+
+    def render_scene(
         self,
         scene_token: str,
         *,
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
-    ) -> Future:
+    ) -> None:
         """Render specified scene.
 
         Args:
@@ -65,9 +68,6 @@ class RenderingHelper:
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
-
-        Returns:
-            Future aggregating results.
         """
         # search first sample data tokens
         first_lidar_tokens: list[str] = []
@@ -98,44 +98,44 @@ class RenderingHelper:
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
         max_timestamp_us = first_sample.timestamp + sec2us(max_time_seconds)
 
-        gather = await asyncio.gather(
+        concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
-            ),
-            self._render_radars(
+            )
+            + self._render_radars(
                 viewer=viewer,
                 first_radar_tokens=first_radar_tokens,
                 max_timestamp_us=max_timestamp_us,
-            ),
-            self._render_cameras(
+            )
+            + self._render_cameras(
                 viewer=viewer,
                 first_camera_tokens=first_camera_tokens,
                 max_timestamp_us=max_timestamp_us,
-            ),
-            self._render_annotation3ds(
-                viewer=viewer,
-                first_sample_token=scene.first_sample_token,
-                max_timestamp_us=max_timestamp_us,
-                future_seconds=future_seconds,
-            ),
-            self._render_annotation2ds(
-                viewer=viewer,
-                first_sample_token=scene.first_sample_token,
-                max_timestamp_us=max_time_seconds,
-            ),
+            )
         )
 
-        return gather
+        # TODO(ktro2828): speed up annotation rendering
+        self._render_annotation3ds(
+            viewer=viewer,
+            first_sample_token=scene.first_sample_token,
+            max_timestamp_us=max_timestamp_us,
+            future_seconds=future_seconds,
+        )
+        self._render_annotation2ds(
+            viewer=viewer,
+            first_sample_token=scene.first_sample_token,
+            max_timestamp_us=max_time_seconds,
+        )
 
-    async def async_render_instance(
+    def render_instance(
         self,
         instance_token: str | Sequence[str],
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
-    ) -> Future:
+    ) -> None:
         """Render particular instance.
 
         Args:
@@ -144,8 +144,6 @@ class RenderingHelper:
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
 
-        Returns:
-            Future aggregating results.
         """
         instance_tokens = [instance_token] if isinstance(instance_token, str) else instance_token
 
@@ -195,47 +193,47 @@ class RenderingHelper:
             save_dir=save_dir,
         )
 
-        gather = await asyncio.gather(
+        concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
-            ),
-            self._render_radars(
+            )
+            + self._render_radars(
                 viewer=viewer,
                 first_radar_tokens=first_radar_tokens,
                 max_timestamp_us=max_timestamp_us,
-            ),
-            self._render_cameras(
+            )
+            + self._render_cameras(
                 viewer=viewer,
                 first_camera_tokens=first_camera_tokens,
                 max_timestamp_us=max_timestamp_us,
             ),
-            self._render_annotation3ds(
-                viewer=viewer,
-                first_sample_token=first_sample.token,
-                max_timestamp_us=max_timestamp_us,
-                future_seconds=future_seconds,
-                instance_tokens=instance_tokens,
-            ),
-            self._render_annotation2ds(
-                viewer=viewer,
-                first_sample_token=first_sample.token,
-                max_timestamp_us=max_timestamp_us,
-                instance_tokens=instance_tokens,
-            ),
         )
 
-        return gather
+        # TODO(ktro2828): speed up annotation rendering
+        self._render_annotation3ds(
+            viewer=viewer,
+            first_sample_token=first_sample.token,
+            max_timestamp_us=max_timestamp_us,
+            future_seconds=future_seconds,
+            instance_tokens=instance_tokens,
+        )
+        self._render_annotation2ds(
+            viewer=viewer,
+            first_sample_token=first_sample.token,
+            max_timestamp_us=max_timestamp_us,
+            instance_tokens=instance_tokens,
+        )
 
-    async def async_render_pointcloud(
+    def render_pointcloud(
         self,
         scene_token: str,
         *,
         max_time_seconds: float = np.inf,
         ignore_distortion: bool = True,
         save_dir: str | None = None,
-    ) -> Future:
+    ) -> None:
         """Render pointcloud on 3D and 2D view.
 
         Args:
@@ -244,9 +242,6 @@ class RenderingHelper:
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
-
-        Returns:
-            Future aggregating results.
 
         TODO:
             Add an option of rendering radar channels.
@@ -268,21 +263,19 @@ class RenderingHelper:
         first_lidar_sample_data: Sample = self._t4.get("sample_data", first_lidar_token)
         max_timestamp_us = first_lidar_sample_data.timestamp + sec2us(max_time_seconds)
 
-        gather = await asyncio.gather(
+        concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=[first_lidar_token],
                 max_timestamp_us=max_timestamp_us,
-            ),
-            self._render_points_on_cameras(
+            )
+            + self._render_points_on_cameras(
                 first_point_sample_data_token=first_lidar_token,
                 max_timestamp_us=max_timestamp_us,
                 min_dist=1.0,
                 ignore_distortion=ignore_distortion,
             ),
         )
-
-        return gather
 
     def _init_viewer(
         self,
@@ -335,17 +328,13 @@ class RenderingHelper:
         sensor: Sensor = self._t4.get("sensor", calibration.sensor_token)
         viewer.render_calibration(sensor=sensor, calibration=calibration)
 
-    async def _render_lidar_and_ego(
+    def _render_lidar_and_ego(
         self,
         viewer: RerunViewer,
         first_lidar_tokens: list[str],
         max_timestamp_us: float,
-    ) -> Future:
-        async def render_lidar(
-            viewer: RerunViewer,
-            first_lidar_token: str,
-            max_timestamp_us: float,
-        ) -> None:
+    ) -> list[Future]:
+        def _render_single_lidar(first_lidar_token: str) -> None:
             self._render_sensor_calibration(viewer=viewer, sample_data_token=first_lidar_token)
 
             current_lidar_token = first_lidar_token
@@ -369,28 +358,15 @@ class RenderingHelper:
 
                 current_lidar_token = sample_data.next
 
-        return await asyncio.gather(
-            *[
-                render_lidar(
-                    viewer=viewer,
-                    first_lidar_token=token,
-                    max_timestamp_us=max_timestamp_us,
-                )
-                for token in first_lidar_tokens
-            ]
-        )
+        return [self._executor.submit(_render_single_lidar, token) for token in first_lidar_tokens]
 
-    async def _render_radars(
+    def _render_radars(
         self,
         viewer: RerunViewer,
         first_radar_tokens: list[str],
         max_timestamp_us: float,
-    ) -> Future:
-        async def render_radar(
-            viewer: RerunViewer,
-            first_radar_token: str,
-            max_timestamp_us: float,
-        ) -> None:
+    ) -> list[Future]:
+        def _render_single_radar(first_radar_token: str) -> None:
             self._render_sensor_calibration(viewer=viewer, sample_data_token=first_radar_token)
 
             current_radar_token = first_radar_token
@@ -411,28 +387,15 @@ class RenderingHelper:
 
                 current_radar_token = sample_data.next
 
-        return await asyncio.gather(
-            *[
-                render_radar(
-                    viewer=viewer,
-                    first_radar_token=token,
-                    max_timestamp_us=max_timestamp_us,
-                )
-                for token in first_radar_tokens
-            ]
-        )
+        return [self._executor.submit(_render_single_radar, token) for token in first_radar_tokens]
 
-    async def _render_cameras(
+    def _render_cameras(
         self,
         viewer: RerunViewer,
         first_camera_tokens: list[str],
         max_timestamp_us: float,
-    ) -> Future:
-        async def render_camera(
-            viewer: RerunViewer,
-            first_camera_token: str,
-            max_timestamp_us: float,
-        ) -> None:
+    ) -> list[Future]:
+        def _render_single_camera(first_camera_token: str) -> None:
             self._render_sensor_calibration(viewer=viewer, sample_data_token=first_camera_token)
 
             current_camera_token = first_camera_token
@@ -450,32 +413,19 @@ class RenderingHelper:
 
                 current_camera_token = sample_data.next
 
-        return await asyncio.gather(
-            *[
-                render_camera(
-                    viewer=viewer,
-                    first_camera_token=token,
-                    max_timestamp_us=max_timestamp_us,
-                )
-                for token in first_camera_tokens
-            ]
-        )
+        return [
+            self._executor.submit(_render_single_camera, token) for token in first_camera_tokens
+        ]
 
-    async def _render_points_on_cameras(
+    def _render_points_on_cameras(
         self,
         first_point_sample_data_token: str,
         max_timestamp_us: float,
         *,
         min_dist: float = 1.0,
         ignore_distortion: bool = True,
-    ) -> Future:
-        async def render_points_on_camera(
-            first_point_sample_data_token: str,
-            camera: str,
-            *,
-            min_dist: float = 1.0,
-            ignore_distortion: bool = True,
-        ) -> None:
+    ) -> list[Future]:
+        def _render_points_on_single_camera(camera: str) -> None:
             current_point_sample_data_token = first_point_sample_data_token
             while current_point_sample_data_token != "":
                 sample_data: SampleData = self._t4.get(
@@ -509,18 +459,11 @@ class RenderingHelper:
 
                 current_point_sample_data_token = sample_data.next
 
-        return await asyncio.gather(
-            *[
-                render_points_on_camera(
-                    first_point_sample_data_token=first_point_sample_data_token,
-                    camera=sensor.channel,
-                    min_dist=min_dist,
-                    ignore_distortion=ignore_distortion,
-                )
-                for sensor in self._t4.sensor
-                if sensor.modality == SensorModality.CAMERA
-            ]
-        )
+        return [
+            self._executor.submit(_render_points_on_single_camera, sensor.channel)
+            for sensor in self._t4.sensor
+            if sensor.modality == SensorModality.CAMERA
+        ]
 
     def _project_pointcloud(
         self,
@@ -602,7 +545,7 @@ class RenderingHelper:
 
         return points_on_img, depths, np.array(img, dtype=np.uint8)
 
-    async def _render_annotation3ds(
+    def _render_annotation3ds(
         self,
         viewer: RerunViewer,
         first_sample_token: str,
@@ -633,7 +576,7 @@ class RenderingHelper:
 
             current_sample_token = sample.next
 
-    async def _render_annotation2ds(
+    def _render_annotation2ds(
         self,
         viewer: RerunViewer,
         first_sample_token: str,
