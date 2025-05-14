@@ -54,11 +54,7 @@ You can save the rendering result as follows:
 >>> t4.render_scene(scene_token, save_dir=<DIR_TO_SAVE>)
 ```
 
-If you don't want to spawn the viewer, please specify `show=False` as below:
-
-```python
->>> t4.render_scene(scene_token, save_dir=<DIR_TO_SAVE>, show=False)
-```
+When you specify `save_dir`, viewer will not be spawned on your screen.
 
 ## Rendering with `RerunViewer`
 
@@ -75,7 +71,7 @@ For details, please refer to the API references.
 >>> viewer.render_box2ds(seconds, box2ds)
 ```
 
-It allows us to render boxes by specifying elements of boxes directly.
+It allows you to render boxes by specifying elements of boxes directly.
 
 ```python
 # Rendering 3D boxes
