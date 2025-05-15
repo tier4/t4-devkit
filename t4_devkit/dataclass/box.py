@@ -229,6 +229,33 @@ class Box3D(BaseBox):
         # Rotate and translate
         return np.dot(self.rotation.rotation_matrix, corners).T + self.position
 
+    def diff_yaw(self, other: Box3D) -> float:
+        """Return the yaw difference between the two boxes.
+
+        Args:
+            other (Box3D): Another box.
+
+        Raises:
+            ValueError: Both boxes must have the same `frame_id`.
+
+        Returns:
+            Yaw difference in the range of [-pi, pi].
+        """
+        if self.frame_id != other.frame_id:
+            raise ValueError(f"Invalid frame comparison: {self.frame_id=} and {other.frame_id=}")
+
+        yaw1, *_ = self.rotation.yaw_pitch_roll
+        yaw2, *_ = other.rotation.yaw_pitch_roll
+
+        def _clip(diff: float) -> float:
+            if diff < -np.pi:
+                diff += 2 * np.pi
+            elif diff > np.pi:
+                diff -= 2 * np.pi
+            return diff
+
+        return _clip(yaw2 - yaw1)
+
 
 @define(eq=False)
 class Box2D(BaseBox):
