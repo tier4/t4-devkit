@@ -33,7 +33,13 @@ nav:
           - Serialize Schema: apis/schema/serialize.md
       - t4_devkit.dataclass: apis/dataclass.md
       - t4_devkit.filtering: apis/filtering.md
-      - t4_devkit.evaluation: apis/evaluation.md
+      - t4_devkit.evaluation:
+          - Home: apis/evaluation/index.md
+          - Evaluation Tasks: apis/evaluation/task.md
+          - Load Dataset: apis/evaluation/dataset.md
+          - Matching Boxes: apis/evaluation/matching.md
+          - Matching Results: apis/evaluation/result.md
+          - Metrics: apis/evaluation/metric.md
       - t4_devkit.viewer: apis/viewer.md
       - t4_devkit.typing: apis/typing.md
       - t4_devkit.common: apis/common.md
