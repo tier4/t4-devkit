@@ -5,3 +5,5 @@ from .matching import *  # noqa
 from .result import *  # noqa
 from .metric import *  # noqa
 from .task import *  # noqa
+from .config import *  # noqa
+from .evaluator import *  # noqa
