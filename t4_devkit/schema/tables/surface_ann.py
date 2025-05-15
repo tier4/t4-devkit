@@ -10,7 +10,6 @@ from .base import SchemaBase
 from .object_ann import RLEMask
 from .registry import SCHEMAS
 
-
 if TYPE_CHECKING:
     from t4_devkit.typing import RoiLike
 
