@@ -7,6 +7,8 @@ from attrs import define
 from t4_devkit import Tier4
 from t4_devkit.dataclass import HomogeneousMatrix, TransformBuffer
 
+from .task import EvaluationTask
+
 if TYPE_CHECKING:
     from t4_devkit.dataclass import BoxLike
     from t4_devkit.schema import EgoPose, Sensor
@@ -15,11 +17,12 @@ if TYPE_CHECKING:
 __all__ = ["load_dataset", "FrameGroundTruth", "SceneGroundTruth"]
 
 
-def load_dataset(data_root: str) -> SceneGroundTruth:
+def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
     """Load dataset.
 
     Args:
         data_root (str): Root directory path to the dataset.
+        task (EvaluationTask): Evaluation task.
 
     Returns:
         SceneGroundTruth: Loaded container of ground truths.
@@ -29,7 +32,11 @@ def load_dataset(data_root: str) -> SceneGroundTruth:
     frames: list[FrameGroundTruth] = []
     for i, sample in enumerate(t4.sample):
         # annotation boxes
-        boxes = list(map(t4.get_box3d, sample.ann_3ds))
+        boxes = (
+            list(map(t4.get_box3d, sample.ann_3ds))
+            if task.is_3d()
+            else list(map(t4.get_box2d, sample.ann_2ds))
+        )
 
         # transformation matrix from ego to map
         ego_pose = _closest_ego_pose(t4, sample.timestamp)
