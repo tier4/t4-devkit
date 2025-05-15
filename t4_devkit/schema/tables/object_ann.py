@@ -77,9 +77,10 @@ class ObjectAnn(SchemaBase):
         validator=validators.deep_iterable(validators.instance_of(str))
     )
     bbox: RoiLike = field(converter=tuple, validator=is_roi)
-    mask: RLEMask = field(
+    mask: RLEMask | None = field(
+        default=None,
         converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
-        validator=validators.instance_of(RLEMask),
+        validator=validators.optional(validators.instance_of(RLEMask)),
     )
     automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
 

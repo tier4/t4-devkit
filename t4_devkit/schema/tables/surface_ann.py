@@ -36,9 +36,10 @@ class SurfaceAnn(SchemaBase):
 
     sample_data_token: str = field(validator=validators.instance_of(str))
     category_token: str = field(validator=validators.instance_of(str))
-    mask: RLEMask = field(
+    mask: RLEMask | None = field(
+        default=None,
         converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
-        validator=validators.instance_of(RLEMask),
+        validator=validators.optional(validators.instance_of(RLEMask)),
     )
     automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
 
@@ -46,12 +47,15 @@ class SurfaceAnn(SchemaBase):
     category_name: str = field(init=False, factory=str)
 
     @property
-    def bbox(self) -> RoiLike:
+    def bbox(self) -> RoiLike | None:
         """Return a bounding box corners calculated from polygon vertices.
 
         Returns:
             Given as [xmin, ymin, xmax, ymax].
         """
+        if self.mask is None:
+            return None
+
         mask = self.mask.decode()
         indices = np.where(mask == 1)
         xmin, ymin = np.min(indices, axis=1)
