@@ -682,6 +682,9 @@ def _append_mask(
     Returns:
         dict[str, dict[str, list]]: Updated `camera_masks`.
     """
+    if ann.mask is None:
+        return camera_masks
+
     if camera in camera_masks:
         camera_masks[camera]["masks"].append(ann.mask.decode())
         camera_masks[camera]["class_ids"].append(class_id)
