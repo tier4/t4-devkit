@@ -12,6 +12,7 @@ from ..name import SchemaName
 from .base import SchemaBase
 from .registry import SCHEMAS
 
+
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayU8, RoiLike
 

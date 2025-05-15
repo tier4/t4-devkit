@@ -10,6 +10,7 @@ from .base import SchemaBase
 from .object_ann import RLEMask
 from .registry import SCHEMAS
 
+
 if TYPE_CHECKING:
     from t4_devkit.typing import RoiLike
 
@@ -54,8 +55,8 @@ class SurfaceAnn(SchemaBase):
             Given as [xmin, ymin, xmax, ymax].
         """
         if self.mask is None:
-            return None	
-        
+            return None
+
         mask = self.mask.decode()
         indices = np.where(mask == 1)
         xmin, ymin = np.min(indices, axis=1)
