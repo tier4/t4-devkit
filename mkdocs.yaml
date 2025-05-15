@@ -11,6 +11,7 @@ nav:
       - Visualization: tutorials/render.md
       - Customization: tutorials/customize.md
       - CLI: tutorials/cli.md
+      - Evaluation: tutorials/evaluation.md
   - API References:
       - t4_devkit.tier4: apis/tier4.md
       - t4_devkit.helper: apis/helper.md
