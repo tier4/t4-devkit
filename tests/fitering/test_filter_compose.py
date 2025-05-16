@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from t4_devkit.filtering import BoxFilter, FilterParams
+from t4_devkit.schema import VisibilityLevel
 
 
 def test_composite_filter(dummy_box3ds, dummy_box2ds, dummy_tf_buffer) -> None:
@@ -19,6 +22,7 @@ def test_composite_filter(dummy_box3ds, dummy_box2ds, dummy_tf_buffer) -> None:
         min_speed=0.5,
         max_speed=2.0,
         min_num_points=0,
+        visibility=VisibilityLevel.FULL,
     )
 
     box_filter = BoxFilter(params, dummy_tf_buffer)

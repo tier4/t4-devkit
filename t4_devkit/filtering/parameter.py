@@ -6,6 +6,7 @@ import numpy as np
 from attrs import define, field, validators
 
 from t4_devkit.dataclass import SemanticLabel
+from t4_devkit.schema import VisibilityLevel
 
 
 @define
@@ -22,6 +23,7 @@ class FilterParams:
         min_speed (float, optional): Minimum speed [m/s].
         max_speed (float, optional): Maximum speed [m/s].
         min_num_points (int): The minimum number of points which the 3D box should include.
+        visibility (str | VisibilityLevel, optional): Visibility threshold.
     """
 
     labels: Sequence[str | SemanticLabel] | None = field(
@@ -43,4 +45,9 @@ class FilterParams:
     min_num_points: int = field(
         default=0,
         validator=[validators.instance_of(int), validators.ge(0)],
+    )
+    visibility: VisibilityLevel = field(
+        default=VisibilityLevel.NONE,
+        converter=VisibilityLevel,
+        validator=validators.instance_of(VisibilityLevel),
     )

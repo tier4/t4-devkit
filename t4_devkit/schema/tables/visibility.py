@@ -59,6 +59,41 @@ class VisibilityLevel(str, Enum):
             )
             return VisibilityLevel.UNAVAILABLE
 
+    def rank(self) -> int:
+        """Return an integer rank for comparison (higher is more visible)."""
+        ranking = {
+            "full": 4,
+            "most": 3,
+            "partial": 2,
+            "none": 1,
+            "unavailable": None,
+        }
+        return ranking[self.value]
+
+    def is_comparable(self) -> bool:
+        """Return True if the visibility level has a defined rank."""
+        return self.rank() is not None
+
+    def _check_comparability(self, other: VisibilityLevel) -> None:
+        if not (self.is_comparable() and other.is_comparable()):
+            raise ValueError(f"Cannot compare unknown visibility levels: {self}, {other}")
+
+    def __lt__(self, other: VisibilityLevel) -> bool:
+        self._check_comparability(other)
+        return self.rank() < other.rank()
+
+    def __le__(self, other: VisibilityLevel) -> bool:
+        self._check_comparability(other)
+        return self.rank() <= other.rank()
+
+    def __gt__(self, other: VisibilityLevel) -> bool:
+        self._check_comparability(other)
+        return self.rank() > other.rank()
+
+    def __ge__(self, other: VisibilityLevel) -> bool:
+        self._check_comparability(other)
+        return self.rank() >= other.rank()
+
 
 @define(slots=False)
 @SCHEMAS.register(SchemaName.VISIBILITY)

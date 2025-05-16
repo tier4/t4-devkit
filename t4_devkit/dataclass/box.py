@@ -126,8 +126,8 @@ class Box3D(BaseBox):
     )
     visibility: VisibilityLevel = field(
         default=VisibilityLevel.UNAVAILABLE,
-        converter=converters.optional(VisibilityLevel),
-        validator=validators.optional(validators.instance_of(VisibilityLevel)),
+        converter=VisibilityLevel,
+        validator=validators.instance_of(VisibilityLevel),
     )
 
     # additional attributes: set by `with_**`

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from t4_devkit.filtering.functional import (
     FilterByDistance,
     FilterByLabel,
@@ -5,7 +7,9 @@ from t4_devkit.filtering.functional import (
     FilterByRegion,
     FilterBySpeed,
     FilterByUUID,
+    FilterByVisibility,
 )
+from t4_devkit.schema import VisibilityLevel
 
 
 def test_filter_by_label(dummy_box3ds, dummy_box2ds) -> None:
@@ -116,3 +120,16 @@ def test_filter_by_num_points(dummy_box3ds) -> None:
     answer = [box for box in dummy_box3ds if box_filter(box)]
 
     assert len(answer) == 3
+
+
+def test_filter_by_visibility(dummy_box3ds) -> None:
+    """Test `FilterByVisibility`.
+
+    Args:
+        dummy_box3ds (list[Box3D]): List of 3D boxes.
+    """
+    box_filter = FilterByVisibility(visibility=VisibilityLevel.MOST)
+
+    answer = [box for box in dummy_box3ds if box_filter(box)]
+
+    assert len(answer) == 2

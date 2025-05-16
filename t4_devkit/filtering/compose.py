@@ -9,6 +9,7 @@ from .functional import (
     FilterByRegion,
     FilterBySpeed,
     FilterByUUID,
+    FilterByVisibility,
 )
 from .parameter import FilterParams
 
@@ -35,6 +36,7 @@ class BoxFilter:
             FilterByRegion.from_params(params),
             FilterBySpeed.from_params(params),
             FilterByNumPoints.from_params(params),
+            FilterByVisibility.from_params(params),
         ]
 
         self.tf_buffer = tf_buffer
