@@ -16,6 +16,7 @@ from t4_devkit.dataclass import (
     ShapeType,
     TransformBuffer,
 )
+from t4_devkit.schema import VisibilityLevel
 
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayFloat
@@ -58,6 +59,8 @@ def dummy_box3d() -> Box3D:
         velocity=(1.0, 1.0, 1.0),
         confidence=1.0,
         uuid="car3d_0",
+        num_points=1,
+        visibility=VisibilityLevel.FULL,
     ).with_future(
         timestamps=[101, 102, 103, 104],
         confidences=[1.0, 0.5],
@@ -100,6 +103,8 @@ def dummy_box3ds() -> list[Box3D]:
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
             uuid="car3d_1",
+            num_points=1,
+            visibility=VisibilityLevel.FULL,
         ).with_future(
             timestamps=[101, 102, 103, 104],
             confidences=[1.0],
@@ -124,6 +129,8 @@ def dummy_box3ds() -> list[Box3D]:
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
             uuid="bicycle3d_1",
+            num_points=1,
+            visibility=VisibilityLevel.FULL,
         ).with_future(
             timestamps=[101, 102, 103, 104],
             confidences=[1.0, 0.5],
@@ -156,6 +163,8 @@ def dummy_box3ds() -> list[Box3D]:
             velocity=(1.0, 1.0, 1.0),
             confidence=1.0,
             uuid="pedestrian3d_1",
+            num_points=1,
+            visibility="full",
         ).with_future(
             timestamps=[101, 102, 103, 104],
             confidences=[1.0, 0.5, 0.2],
