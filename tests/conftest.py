@@ -130,7 +130,7 @@ def dummy_box3ds() -> list[Box3D]:
             confidence=1.0,
             uuid="bicycle3d_1",
             num_points=1,
-            visibility=VisibilityLevel.FULL,
+            visibility=VisibilityLevel.MOST,
         ).with_future(
             timestamps=[101, 102, 103, 104],
             confidences=[1.0, 0.5],
@@ -164,7 +164,7 @@ def dummy_box3ds() -> list[Box3D]:
             confidence=1.0,
             uuid="pedestrian3d_1",
             num_points=1,
-            visibility="full",
+            visibility="none",  # str is also OK
         ).with_future(
             timestamps=[101, 102, 103, 104],
             confidences=[1.0, 0.5, 0.2],
