@@ -9,13 +9,7 @@ import numpy as np
 from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image
-from t4_devkit.dataclass import (
-    Box2D,
-    Box3D,
-    SemanticLabel,
-    Shape,
-    ShapeType,
-)
+from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel, Shape, ShapeType
 from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
@@ -416,6 +410,7 @@ class Tier4:
         ann: SampleAnnotation = self.get("sample_annotation", sample_annotation_token)
         instance: Instance = self.get("instance", ann.instance_token)
         sample: Sample = self.get("sample", ann.sample_token)
+        visibility: Visibility = self.get("visibility", ann.visibility_token)
 
         # semantic label
         semantic_label = self.get_semantic_label(
@@ -438,6 +433,8 @@ class Tier4:
             velocity=velocity,
             confidence=1.0,
             uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+            num_points=ann.num_lidar_pts,
+            visibility=visibility.level,
         )
 
         if future_seconds > 0.0:
@@ -549,6 +546,7 @@ class Tier4:
                         instance.category_token, curr_ann.attribute_tokens
                     )
                     velocity = self.box_velocity(curr_ann.token)
+                    visibility: Visibility = self.get("visibility", curr_ann.visibility_token)
 
                     box = Box3D(
                         unix_time=t,
@@ -560,6 +558,8 @@ class Tier4:
                         velocity=velocity,
                         confidence=1.0,
                         uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+                        num_points=curr_ann.num_lidar_pts,
+                        visibility=visibility.level,
                     )
                 else:
                     # If not, simply grab the current annotation.
