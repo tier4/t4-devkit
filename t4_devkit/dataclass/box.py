@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
-from attrs import define, field, validators
-from attrs.converters import optional
+from attrs import converters, define, field, validators
 from shapely.geometry import Polygon
 from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
 from t4_devkit.common.validator import is_vector3
+from t4_devkit.schema import VisibilityLevel
 
 from .label import SemanticLabel
 from .roi import Roi
@@ -89,6 +89,7 @@ class Box3D(BaseBox):
         shape (Shape): `Shape` object.
         velocity (Vector3Like | None, optional): Box velocity (vx, vy, vz).
         num_points (int | None, optional): The number of points inside the box.
+        visibility (VisibilityLevel | None, optional):
         future (Future | None, optional): Box trajectory in the future of each mode.
 
     Examples:
@@ -116,12 +117,17 @@ class Box3D(BaseBox):
     shape: Shape = field(validator=validators.instance_of(Shape))
     velocity: Vector3Like | None = field(
         default=None,
-        converter=optional(np.array),
+        converter=converters.optional(np.array),
         validator=validators.optional(is_vector3),
     )
     num_points: int | None = field(
         default=None,
         validator=validators.optional((validators.instance_of(int), validators.ge(0))),
+    )
+    visibility: VisibilityLevel | None = field(
+        default=None,
+        converter=converters.optional(VisibilityLevel),
+        validator=validators.optional(validators.instance_of(VisibilityLevel)),
     )
 
     # additional attributes: set by `with_**`
