@@ -89,7 +89,7 @@ class Box3D(BaseBox):
         shape (Shape): `Shape` object.
         velocity (Vector3Like | None, optional): Box velocity (vx, vy, vz).
         num_points (int | None, optional): The number of points inside the box.
-        visibility (VisibilityLevel | None, optional):
+        visibility (VisibilityLevel, optional): Box visibility.
         future (Future | None, optional): Box trajectory in the future of each mode.
 
     Examples:
@@ -124,8 +124,8 @@ class Box3D(BaseBox):
         default=None,
         validator=validators.optional((validators.instance_of(int), validators.ge(0))),
     )
-    visibility: VisibilityLevel | None = field(
-        default=None,
+    visibility: VisibilityLevel = field(
+        default=VisibilityLevel.UNAVAILABLE,
         converter=converters.optional(VisibilityLevel),
         validator=validators.optional(validators.instance_of(VisibilityLevel)),
     )
