@@ -4,13 +4,15 @@ from typing import TYPE_CHECKING
 
 from attrs import define, field
 
+from .base import BaseMetric
+
 if TYPE_CHECKING:
     from t4_devkit.evaluation import BoxMatch, FrameBoxMatch, MatchingScorerLike
 
 __all__ = ["Mota", "Motp"]
 
 
-class Mota:
+class Mota(BaseMetric):
     @define
     class ClearBuffer:
         num_gt: int = field(init=False, default=0)
