@@ -7,7 +7,9 @@ import numpy as np
 from typing_extensions import Self
 
 from t4_devkit.dataclass import Box2D, Box3D, HomogeneousMatrix, distance_box
-from t4_devkit.filtering.parameter import FilterParams
+from t4_devkit.schema import VisibilityLevel
+
+from .parameter import FilterParams
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import BoxLike, SemanticLabel
@@ -19,6 +21,9 @@ __all__ = [
     "FilterByUUID",
     "FilterByDistance",
     "FilterByRegion",
+    "FilterBySpeed",
+    "FilterByNumPoints",
+    "FilterByVisibility",
     "BoxFilterFunction",
 ]
 
@@ -234,6 +239,39 @@ class FilterByNumPoints(BaseBoxFilter):
             return True
         else:
             return self.min_num_points <= box.num_points
+
+
+class FilterByVisibility(BaseBoxFilter):
+    """A filter that excludes 3D boxes with lower visibility than a specified threshold.
+
+    Boxes with `UNAVAILABLE` visibility are always passed through (i.e., not filtered).
+    """
+
+    def __init__(self, visibility: VisibilityLevel = VisibilityLevel.NONE) -> None:
+        """
+        Initialize the filter with a visibility threshold.
+
+        Args:
+            visibility (VisibilityLevel): The minimum visibility level for a box to pass the filter.
+
+        Raises:
+            ValueError: If the given visibility is not comparable (e.g., UNAVAILABLE).
+        """
+        super().__init__()
+        if not visibility.is_comparable():
+            raise ValueError(f"Comparable visibility must be set as threshold: {visibility}")
+
+        self.visibility = visibility
+
+    @classmethod
+    def from_params(cls, params: FilterParams) -> Self:
+        return cls(params.visibility)
+
+    def __call__(self, box: BoxLike, _tf_matrix: HomogeneousMatrix | None = None) -> bool:
+        if not isinstance(box, Box3D):
+            return True
+        else:
+            return self.visibility <= box.visibility if box.visibility.is_comparable() else True
 
 
 BoxFilterFunction = TypeVar("BoxFilterFunction", bound=BaseBoxFilter)
