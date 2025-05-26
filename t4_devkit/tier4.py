@@ -84,7 +84,6 @@ class Tier4:
         """Load database and creates reverse indexes and shortcuts.
 
         Args:
-            version (str): Directory name of database json files.
             data_root (str): Path to the root directory of dataset.
             verbose (bool, optional): Whether to display status during load.
 

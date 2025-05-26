@@ -2,22 +2,42 @@
 
 ---
 
-`Tier4` class expects the following dataset directly structure:
+`Tier4` class expects both following dataset directly structure with or without `<VERSION>` directory:
 
-```shell
-data/tier4/
-├── annotation ...contains `*.json` files.
-├── data
-│   ├── CAM_BACK
-│   ├── CAM_BACK_LEFT
-│   ├── CAM_BACK_RIGHT
-│   ├── CAM_FRONT
-│   ├── CAM_FRONT_LEFT
-│   ├── CAM_FRONT_RIGHT
-│   ├── LIDAR_CONCAT
-│   └── ...Other sensor channels
-...
-```
+- With `<VERSION>` directory:
+
+  ```shell
+  data/tier4/
+  └── <VERSION> ...version number
+      ├── annotation ...contains `*.json` files
+      ├── data
+      │   ├── CAM_BACK
+      │   ├── CAM_BACK_LEFT
+      │   ├── CAM_BACK_RIGHT
+      │   ├── CAM_FRONT
+      │   ├── CAM_FRONT_LEFT
+      │   ├── CAM_FRONT_RIGHT
+      │   ├── LIDAR_CONCAT
+      │   └── ...Other sensor channels
+      ...
+  ```
+
+- Without `<VERSION>` directory:
+
+  ```shell
+  data/tier4/
+  ├── annotation ...contains `*.json` files
+  ├── data
+  │   ├── CAM_BACK
+  │   ├── CAM_BACK_LEFT
+  │   ├── CAM_BACK_RIGHT
+  │   ├── CAM_FRONT
+  │   ├── CAM_FRONT_LEFT
+  │   ├── CAM_FRONT_RIGHT
+  │   ├── LIDAR_CONCAT
+  │   └── ...Other sensor channels
+  ...
+  ```
 
 You can initialize a `Tier4` instance as follows:
 
