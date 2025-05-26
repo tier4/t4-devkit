@@ -5,13 +5,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 from attrs import define, field
 
+from .base import BaseMetric
+
 if TYPE_CHECKING:
     from t4_devkit.evaluation import BoxMatch, FrameBoxMatch, MatchingScorerLike
 
 __all__ = ["Ap", "ApH"]
 
 
-class Ap:
+class Ap(BaseMetric):
     num_recall_point = 101
     min_precision = 0.1
     min_recall = 0.1
