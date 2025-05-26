@@ -108,9 +108,39 @@ $ t4sanity -h
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --version             -v         Show the application version and exit.                                              │
-│ --ignore-warning      -iw        Indicates whether to ignore warnings                                                │
+│ --include-warning     -iw        Indicates whether to report any warnings.                                           │
 │ --install-completion             Install completion for the current shell.                                           │
 │ --show-completion                Show completion for the current shell, to copy it or customize the installation.    │
 │ --help                -h         Show this message and exit.                                                         │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+#### Examples
+
+As an example, we have the following the dataset structure:
+
+```shell
+<DATA_ROOT>
+├── dataset1
+│   └── <VERSION>
+│       ├── annotation
+│       ├── data
+|       ...
+├── dataset2
+│   ├── annotation
+│   ├── data
+|   ...
+...
+```
+
+To run sanity check ignoring warnings, providing the path to the parent directory of the datasets:
+
+```shell
+t4sanity <DATA_ROOT>
+```
+
+To run sanity check and report any warnings, use the `-iw; --include-warning` option:
+
+```shell
+t4sanity <DATA_ROOT> -iw
 ```

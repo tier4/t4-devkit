@@ -67,9 +67,9 @@ def main(
         callback=version_callback,
         is_eager=True,
     ),
-    db_parent: str = typer.Argument(..., help="Path to parent directory of the databases"),
+    db_parent: str = typer.Argument(..., help="Path to parent directory of the databases."),
     include_warning: bool = typer.Option(
-        False, "-iw", "--include-warning", help="Indicates whether to include warnings"
+        False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
 ) -> None:
     with warnings.catch_warnings():
