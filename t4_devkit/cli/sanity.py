@@ -54,14 +54,6 @@ def _check_sanity(db_parent: str) -> list[DBException]:
                     message=str(e),
                 )
             )
-        except Warning as w:
-            exceptions.append(
-                DBException(
-                    dataset_id=db_root.name,
-                    version=version,
-                    message=str(w),
-                )
-            )
     return exceptions
 
 
@@ -76,13 +68,15 @@ def main(
         is_eager=True,
     ),
     db_parent: str = typer.Argument(..., help="Path to parent directory of the databases"),
-    ignore_warning: bool = typer.Option(
-        False, "-iw", "--ignore-warning", help="Indicates whether to ignore warnings"
+    include_warning: bool = typer.Option(
+        False, "-iw", "--include-warning", help="Indicates whether to include warnings"
     ),
 ) -> None:
     with warnings.catch_warnings():
-        if not ignore_warning:
+        if include_warning:
             warnings.filterwarnings("error")
+        else:
+            warnings.filterwarnings("ignore")
         exceptions = _check_sanity(db_parent)
 
     headers = ["DatasetID", "Version", "Message"]
