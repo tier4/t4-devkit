@@ -5,6 +5,7 @@
 Following command line tools are supported:
 
 - `t4viz`: Visualize T4 dataset features.
+- `t4sanity`: Sanity checker of T4 datasets.
 
 ### `t4viz`
 
@@ -91,3 +92,55 @@ t4viz <COMMAND> ... -o <OUTPUT_DIR>
 ```
 
 Note that if you specify `--output` option, viewer will not be spawned.
+
+### `t4sanity`
+
+`t4sanity` performs sanity checks on T4 datasets, reporting any issues in a structured format.
+It checks the dataset directories and versions, tries to load them using the `Tier4` library, and reports any exceptions or warnings.
+
+```shell
+$ t4sanity -h
+
+ Usage: t4sanity [OPTIONS] DB_PARENT
+
+╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    db_parent      TEXT  Path to parent directory of the databases [default: None] [required]                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --version             -v         Show the application version and exit.                                              │
+│ --include-warning     -iw        Indicates whether to report any warnings.                                           │
+│ --install-completion             Install completion for the current shell.                                           │
+│ --show-completion                Show completion for the current shell, to copy it or customize the installation.    │
+│ --help                -h         Show this message and exit.                                                         │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+#### Examples
+
+As an example, we have the following the dataset structure:
+
+```shell
+<DATA_ROOT>
+├── dataset1
+│   └── <VERSION>
+│       ├── annotation
+│       ├── data
+|       ...
+├── dataset2
+│   ├── annotation
+│   ├── data
+|   ...
+...
+```
+
+To run sanity check ignoring warnings, providing the path to the parent directory of the datasets:
+
+```shell
+t4sanity <DATA_ROOT>
+```
+
+To run sanity check and report any warnings, use the `-iw; --include-warning` option:
+
+```shell
+t4sanity <DATA_ROOT> -iw
+```

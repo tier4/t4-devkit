@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import importlib
-import importlib.metadata
 import os
 from typing import Annotated
 
 import typer
-from rich.console import Console
 
 from t4_devkit import Tier4
 
-console = Console()
+from .version import version_callback
 
 cli = typer.Typer(
     name="t4viz",
@@ -123,13 +120,6 @@ def _create_dir(dir_path: str | None) -> None:
         os.makedirs(dir_path, exist_ok=True)
 
 
-def _version_callback(value: bool):
-    if value:
-        version = importlib.metadata.version("t4-devkit")
-        console.print(f"[bold green]t4viz[/bold green]: [cyan]{version}[/cyan]")
-        raise typer.Exit()
-
-
 @cli.callback()
 def main(
     version: bool = typer.Option(
@@ -137,12 +127,8 @@ def main(
         "--version",
         "-v",
         help="Show the application version and exit.",
-        callback=_version_callback,
+        callback=version_callback,
         is_eager=True,
     ),
 ) -> None:
     pass
-
-
-if __name__ == "__main__":
-    cli()
