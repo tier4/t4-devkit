@@ -5,6 +5,7 @@
 Following command line tools are supported:
 
 - `t4viz`: Visualize T4 dataset features.
+- `t4sanity`: Sanity checker of T4 datasets.
 
 ### `t4viz`
 
@@ -91,3 +92,25 @@ t4viz <COMMAND> ... -o <OUTPUT_DIR>
 ```
 
 Note that if you specify `--output` option, viewer will not be spawned.
+
+### `t4sanity`
+
+`t4sanity` performs sanity checks on T4 datasets, reporting any issues in a structured format.
+It checks the dataset directories and versions, tries to load them using the `Tier4` library, and reports any exceptions or warnings.
+
+```shell
+$ t4sanity -h
+
+ Usage: t4sanity [OPTIONS] DB_PARENT
+
+╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    db_parent      TEXT  Path to parent directory of the databases [default: None] [required]                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --version             -v         Show the application version and exit.                                              │
+│ --ignore-warning      -iw        Indicates whether to ignore warnings                                                │
+│ --install-completion             Install completion for the current shell.                                           │
+│ --show-completion                Show completion for the current shell, to copy it or customize the installation.    │
+│ --help                -h         Show this message and exit.                                                         │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
