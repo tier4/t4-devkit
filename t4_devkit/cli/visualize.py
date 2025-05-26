@@ -41,7 +41,7 @@ def scene(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4("annotation", data_root, verbose=False)
+    t4 = Tier4(data_root, verbose=False)
     scene_token = t4.scene[0].token
     t4.render_scene(scene_token, future_seconds=future, save_dir=output)
 
@@ -71,7 +71,7 @@ def instance(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4("annotation", data_root, verbose=False)
+    t4 = Tier4(data_root, verbose=False)
     t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
 
 
@@ -99,7 +99,7 @@ def pointcloud(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4("annotation", data_root, verbose=False)
+    t4 = Tier4(data_root, verbose=False)
     scene_token = t4.scene[0].token
     t4.render_pointcloud(
         scene_token,

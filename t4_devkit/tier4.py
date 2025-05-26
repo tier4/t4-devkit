@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import os.path as osp
+import re
 import time
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
+from attrs import define
 from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image
@@ -38,13 +41,46 @@ if TYPE_CHECKING:
         Visibility,
     )
 
-__all__ = ("Tier4",)
+__all__ = ["DBMetadata", "load_metadata", "Tier4"]
+
+
+@define
+class DBMetadata:
+    data_root: str
+    dataset_id: str
+    version: str | None
+
+
+def load_metadata(db_root: str) -> DBMetadata:
+    """Load metadata of T4 dataset including root directory path, dataset ID, and version.
+
+    Args:
+        db_root (str): Path to root directory of database.
+
+    Returns:
+        Metadata of T4 dataset.
+    """
+    db_root_path = Path(db_root)
+
+    version_pattern = re.compile(r".*/\d+$")
+    versions = [d.name for d in db_root_path.iterdir() if version_pattern.match(d.as_posix())]
+
+    if versions:
+        version = sorted(versions)[-1]
+        data_root = db_root_path.joinpath(version).as_posix()
+    else:
+        version = None
+        data_root = db_root_path.as_posix()
+
+    return DBMetadata(data_root=data_root, dataset_id=db_root_path.name, version=version)
 
 
 class Tier4:
     """Database class for T4 dataset to help query and retrieve information from the database."""
 
-    def __init__(self, version: str, data_root: str, verbose: bool = True) -> None:
+    schema_dir: str = "annotation"
+
+    def __init__(self, data_root: str, verbose: bool = True) -> None:
         """Load database and creates reverse indexes and shortcuts.
 
         Args:
@@ -54,7 +90,7 @@ class Tier4:
 
         Examples:
             >>> from t4_devkit import Tier4
-            >>> t4 = Tier4("annotation", "data/tier4")
+            >>> t4 = Tier4("data/tier4")
             ======
             Loading T4 tables in `annotation`...
             Reverse indexing...
@@ -80,16 +116,14 @@ class Tier4:
             ======
 
         """
-        self.version = version
-        self.data_root = data_root
-        self.verbose = verbose
+        self._metadata = load_metadata(data_root)
 
         if not osp.exists(self.data_root):
             raise FileNotFoundError(f"Database directory is not found: {self.data_root}")
 
         start_time = time.time()
         if verbose:
-            print(f"======\nLoading T4 tables in `{self.version}`...")
+            print(f"======\nLoading T4 tables in `{self.schema_dir}`...")
 
         # assign tables explicitly
         self.attribute: list[Attribute] = self.__load_table__(SchemaName.ATTRIBUTE)
@@ -127,6 +161,21 @@ class Tier4:
         self._timeseries_helper = TimeseriesHelper(self)
         self._rendering_helper = RenderingHelper(self)
 
+    @property
+    def data_root(self) -> str:
+        """Return the path to dataset root directory."""
+        return self._metadata.data_root
+
+    @property
+    def dataset_id(self) -> str:
+        """Return the dataset ID."""
+        return self._metadata.dataset_id
+
+    @property
+    def version(self) -> str | None:
+        """Return the dataset version, or None if it is failed to lookup."""
+        return self._metadata.version
+
     def __load_table__(self, schema: SchemaName) -> list[SchemaTable]:
         """Load schema table from a json file.
 
@@ -139,7 +188,7 @@ class Tier4:
         Returns:
             Loaded table data saved in `.json`.
         """
-        filepath = osp.join(self.data_root, self.version, schema.filename)
+        filepath = osp.join(self.data_root, self.schema_dir, schema.filename)
         if not osp.exists(filepath) and schema.is_optional():
             return []
 

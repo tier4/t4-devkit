@@ -25,7 +25,7 @@ You can initialize a `Tier4` instance as follows:
 
 >>> from t4_devkit import Tier4
 
->>> t4 = Tier4("annotation", "data/tier4/", verbose=True)
+>>> t4 = Tier4("data/tier4/", verbose=True)
 ======
 Loading T4 tables in `annotation`...
 Reverse indexing...
