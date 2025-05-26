@@ -7,6 +7,7 @@ from pathlib import Path
 import typer
 from attrs import define
 from tabulate import tabulate
+from tqdm import tqdm
 
 from t4_devkit import Tier4
 
@@ -34,7 +35,7 @@ def _check_sanity(db_parent: str) -> list[DBException]:
     db_dirs: list[Path] = Path(db_parent).glob("*")
     version_pattern = re.compile(r".*/\d+$")
 
-    for db_root in db_dirs:
+    for db_root in tqdm(db_dirs, desc=">>> Sanity checking..."):
         versions = [d.name for d in db_root.iterdir() if version_pattern.match(str(d))]
         if versions:
             version = sorted(versions)[-1]
@@ -79,11 +80,10 @@ def main(
         False, "-iw", "--ignore-warning", help="Indicates whether to ignore warnings"
     ),
 ) -> None:
-    if ignore_warning:
+    with warnings.catch_warnings():
+        if not ignore_warning:
+            warnings.filterwarnings("error")
         exceptions = _check_sanity(db_parent)
-    else:
-        with warnings.catch_warnings():
-            exceptions = _check_sanity(db_parent)
 
     headers = ["DatasetID", "Version", "Message"]
     table = [[e.dataset_id, e.version, e.message] for e in exceptions]
