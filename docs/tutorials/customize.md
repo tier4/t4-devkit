@@ -1,4 +1,4 @@
-## Generate Schema Record with a New Token
+## Generate with a New Token
 
 ---
 
@@ -28,7 +28,7 @@ Attribute(token='b08701e5095fbd12a45e7f51b85ffc08', name='foo', description='thi
 Attribute(token='f40e605870aa29b1473ca6e65255c45e', name='foo', description='this is re-generated attribute.')
 ```
 
-## Customize Schema Class
+## Customize Schema Classes
 
 ---
 
