@@ -136,11 +136,28 @@ As an example, we have the following the dataset structure:
 To run sanity check ignoring warnings, providing the path to the parent directory of the datasets:
 
 ```shell
-t4sanity <DATA_ROOT>
+$ t4sanity <DATA_ROOT>
+
+>>> Sanity checking...: 97it [00:03, 26.60it/s]
++--------------------------------------+---------+------------------------------------------------------------------------------------------------+
+|              DatasetID               | Version |                                            Message                                             |
++--------------------------------------+---------+------------------------------------------------------------------------------------------------+
+| 96200480-ae59-44cb-9e4e-dd9021e250e8 |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1671, 198, 1440, 229) |
+| ca346afb-ea1a-4c5c-8117-544bd9ff6aca |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1793, 99, 1440, 222)  |
+...
 ```
 
 To run sanity check and report any warnings, use the `-iw; --include-warning` option:
 
 ```shell
-t4sanity <DATA_ROOT> -iw
+$ t4sanity <DATA_ROOT> -iw
+
+>>> Sanity checking...: 97it [00:03, 29.31it/s]
++--------------------------------------+---------+------------------------------------------------------------------------------------------------+
+|              DatasetID               | Version |                                            Message                                             |
++--------------------------------------+---------+------------------------------------------------------------------------------------------------+
+| 96200480-ae59-44cb-9e4e-dd9021e250e8 |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1671, 198, 1440, 229) |
+| ca346afb-ea1a-4c5c-8117-544bd9ff6aca |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1793, 99, 1440, 222)  |
+| ed96b707-e7f4-4a71-9e6b-571ffd56c4c4 |    2    |        level: Not available is not supported, Visibility.UNAVAILABLE will be assigned.         |
+...
 ```
