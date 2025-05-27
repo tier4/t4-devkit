@@ -9,8 +9,11 @@ nav:
   - Tutorials:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
-      - Customization: tutorials/customize.md
-      - CLI: tutorials/cli.md
+      - Schema Customization: tutorials/customize.md
+      - CLI:
+          - Command Line Tools: tutorials/cli/index.md
+          - t4viz: tutorials/cli/t4viz.md
+          - t4sanity: tutorials/cli/t4sanity.md
   - API References:
       - t4_devkit.tier4: apis/tier4.md
       - t4_devkit.helper: apis/helper.md
