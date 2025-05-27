@@ -692,7 +692,6 @@ class Tier4:
 
     def render_scene(
         self,
-        scene_token: str,
         *,
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
@@ -701,13 +700,11 @@ class Tier4:
         """Render specified scene.
 
         Args:
-            scene_token (str): Unique identifier of scene.
             max_time_seconds (float, optional): Max time length to be rendered [s].
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
         """
         self._rendering_helper.render_scene(
-            scene_token=scene_token,
             max_time_seconds=max_time_seconds,
             future_seconds=future_seconds,
             save_dir=save_dir,
@@ -735,7 +732,6 @@ class Tier4:
 
     def render_pointcloud(
         self,
-        scene_token: str,
         *,
         max_time_seconds: float = np.inf,
         ignore_distortion: bool = True,
@@ -744,7 +740,6 @@ class Tier4:
         """Render pointcloud on 3D and 2D view.
 
         Args:
-            scene_token (str): Scene token.
             max_time_seconds (float, optional): Max time length to be rendered [s].
             save_dir (str | None, optional): Directory path to save the recording.
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
@@ -753,7 +748,6 @@ class Tier4:
             Add an option of rendering radar channels.
         """
         self._rendering_helper.render_pointcloud(
-            scene_token=scene_token,
             max_time_seconds=max_time_seconds,
             ignore_distortion=ignore_distortion,
             save_dir=save_dir,
