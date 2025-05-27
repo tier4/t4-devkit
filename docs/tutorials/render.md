@@ -5,8 +5,7 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 ### Scene
 
 ```python
->>> scene_token = t4.scene[0].token
->>> t4.render_scene(scene_token)
+>>> t4.render_scene()
 ```
 
 ![Render Scene GIF](../assets/render_scene.gif)
@@ -20,18 +19,21 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 
 ![Render Instance GIF](../assets/render_instance.gif)
 
-You can also render multiple instances at once:
+<!-- prettier-ignore-start -->
+!!! NOTE
+    You can also render multiple instances at once:
 
-```python
->>> instance_tokens = [inst.token for inst in t4.instance[:3]]
->>> t4.render_instance(instance_tokens)
-```
+    <!-- markdownlint-disable MD046 -->
+    ```python
+    >>> instance_tokens = [inst.token for inst in t4.instance[:3]]
+    >>> t4.render_instance(instance_tokens)
+    ```
+<!-- prettier-ignore-end -->
 
 ### PointCloud
 
 ```python
->>> scene_token = t4.scene[0].token
->>> t4.render_pointcloud(scene_token)
+>>> t4.render_pointcloud()
 ```
 
 ![Render PointCloud GIF](../assets/render_pointcloud.gif)
@@ -42,7 +44,7 @@ You can also render multiple instances at once:
 
     <!-- markdownlint-disable MD046 -->
     ```python
-    >>> t4.render_pointcloud(scene_token, ignore_distortion=True)
+    >>> t4.render_pointcloud(ignore_distortion=True)
     ```
 <!-- prettier-ignore-end -->
 

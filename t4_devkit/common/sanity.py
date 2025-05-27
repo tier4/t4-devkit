@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import re
 import warnings
 from pathlib import Path
 
 from attrs import define
 
-from t4_devkit import Tier4
+from t4_devkit import Tier4, load_metadata
 
 __all__ = ["DBException", "sanity_check"]
 
@@ -30,17 +29,6 @@ def sanity_check(db_root: str | Path, *, include_warning: bool = False) -> DBExc
     Returns:
         Exception or warning if exits, otherwise returns None.
     """
-    db_root_path = Path(db_root)
-
-    version_pattern = re.compile(r".*/\d+$")
-    versions = [d.name for d in db_root_path.iterdir() if version_pattern.match(str(d))]
-
-    if versions:
-        version = sorted(versions)[-1]
-        data_root = db_root_path.joinpath(version).as_posix()
-    else:
-        version = None
-        data_root = db_root_path.as_posix()
 
     with warnings.catch_warnings():
         if include_warning:
@@ -49,12 +37,14 @@ def sanity_check(db_root: str | Path, *, include_warning: bool = False) -> DBExc
             warnings.filterwarnings("ignore")
 
         try:
-            _ = Tier4("annotation", data_root=data_root, verbose=False)
+            _ = Tier4(data_root=db_root, verbose=False)
             exception = None
         except Exception as e:
+            metadata = load_metadata(db_root)
+
             exception = DBException(
-                dataset_id=db_root_path.name,
-                version=version,
+                dataset_id=metadata.dataset_id,
+                version=metadata.version,
                 message=str(e),
             )
     return exception

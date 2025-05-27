@@ -97,7 +97,6 @@ class RenderingHelper:
 
     def render_scene(
         self,
-        scene_token: str,
         *,
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
@@ -106,7 +105,6 @@ class RenderingHelper:
         """Render specified scene.
 
         Args:
-            scene_token (str): Unique identifier of scene.
             max_time_seconds (float, optional): Max time length to be rendered [s].
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
@@ -132,7 +130,7 @@ class RenderingHelper:
         render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
         render2d = len(first_camera_tokens) > 0
 
-        app_id = f"scene@{scene_token}"
+        app_id = f"scene@{self._t4.dataset_id}"
         viewer = self._init_viewer(
             app_id,
             render3d=render3d,
@@ -141,7 +139,7 @@ class RenderingHelper:
             save_dir=save_dir,
         )
 
-        scene: Scene = self._t4.get("scene", scene_token)
+        scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
         max_timestamp_us = first_sample.timestamp + sec2us(max_time_seconds)
 
@@ -212,7 +210,6 @@ class RenderingHelper:
             if last_sample is None or current_last_sample.timestamp > last_sample.timestamp:
                 last_sample = current_last_sample
 
-        scene_token = first_sample.scene_token
         max_timestamp_us = last_sample.timestamp
 
         # search first sample data tokens
@@ -235,7 +232,7 @@ class RenderingHelper:
         render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
         render2d = len(first_camera_tokens) > 0
 
-        app_id = f"instance@{scene_token}"
+        app_id = f"instance@{self._t4.dataset_id}"
         viewer = self._init_viewer(
             app_id,
             render3d=render3d,
@@ -279,7 +276,6 @@ class RenderingHelper:
 
     def render_pointcloud(
         self,
-        scene_token: str,
         *,
         max_time_seconds: float = np.inf,
         ignore_distortion: bool = True,
@@ -288,7 +284,6 @@ class RenderingHelper:
         """Render pointcloud on 3D and 2D view.
 
         Args:
-            scene_token (str): Scene token.
             max_time_seconds (float, optional): Max time length to be rendered [s].
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
             save_dir (str | None, optional): Directory path to save the recording.
@@ -298,7 +293,7 @@ class RenderingHelper:
             Add an option of rendering radar channels.
         """
         # initialize viewer
-        app_id = f"pointcloud@{scene_token}"
+        app_id = f"pointcloud@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=False, save_dir=save_dir)
 
         # search first lidar sample data token
