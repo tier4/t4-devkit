@@ -41,9 +41,8 @@ def scene(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4("annotation", data_root, verbose=False)
-    scene_token = t4.scene[0].token
-    t4.render_scene(scene_token, future_seconds=future, save_dir=output)
+    t4 = Tier4(data_root, verbose=False)
+    t4.render_scene(future_seconds=future, save_dir=output)
 
 
 @cli.command("instance", help="Visualize a particular instance in the corresponding scene.")
@@ -71,7 +70,7 @@ def instance(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4("annotation", data_root, verbose=False)
+    t4 = Tier4(data_root, verbose=False)
     t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
 
 
@@ -99,13 +98,8 @@ def pointcloud(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4("annotation", data_root, verbose=False)
-    scene_token = t4.scene[0].token
-    t4.render_pointcloud(
-        scene_token,
-        ignore_distortion=ignore_distortion,
-        save_dir=output,
-    )
+    t4 = Tier4(data_root, verbose=False)
+    t4.render_pointcloud(ignore_distortion=ignore_distortion, save_dir=output)
 
 
 def _create_dir(dir_path: str | None) -> None:
