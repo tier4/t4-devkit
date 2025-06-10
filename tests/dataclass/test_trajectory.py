@@ -55,7 +55,7 @@ def test_to_future() -> None:
     """Test `to_trajectories` function including its valid and invalid cases."""
     # valid case
     future = Future(
-        timestamps=[101, 102, 103],
+        relative_timestamps=[1, 2, 3],
         confidences=[
             1.0,  # mode0
             0.5,  # mode1
@@ -70,7 +70,7 @@ def test_to_future() -> None:
     # invalid case: different element length
     with pytest.raises(ValueError):
         _ = Future(
-            timestamps=[101, 102, 103],
+            relative_timestamps=[1, 2, 3],
             confidences=[1.0],  # mode0
             waypoints=[
                 [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]],  # mode0
