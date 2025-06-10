@@ -133,21 +133,26 @@ class Box3D(BaseBox):
 
     def with_future(
         self,
-        timestamps: ArrayLike,
+        relative_timestamps: ArrayLike,
         confidences: ArrayLike,
         waypoints: ArrayLike,
     ) -> Self:
         """Return a self instance setting `future` attribute.
 
         Args:
-            timestamps (ArrayLike): Array of future timestamps at each waypoint in the shape of (T).
+            relative_timestamps (ArrayLike): Array of future timestamps at each waypoint from the current timestamp,
+                in the shape of (T).
             confidences (ArrayLike): Array of confidences for each mode in the shape of (M).
             waypoints (ArrayLike): Array of waypoints for each mode in the shape of (M, T, D).
 
         Returns:
             Self instance after setting `future`.
         """
-        self.future = Future(timestamps=timestamps, confidences=confidences, waypoints=waypoints)
+        self.future = Future(
+            relative_timestamps=relative_timestamps,
+            confidences=confidences,
+            waypoints=waypoints,
+        )
         return self
 
     def __eq__(self, other: Box3D | None) -> bool:

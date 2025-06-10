@@ -515,13 +515,17 @@ class Tier4:
 
         if future_seconds > 0.0:
             # NOTE: Future trajectory is map coordinate frame
-            timestamps, anns = self._timeseries_helper.get_sample_annotations_until(
+            relative_timestamps, anns = self._timeseries_helper.get_sample_annotations_until(
                 ann.instance_token, ann.sample_token, future_seconds
             )
             if len(anns) == 0:
                 return box
             waypoints = [ann.translation for ann in anns]
-            return box.with_future(timestamps=timestamps, confidences=[1.0], waypoints=[waypoints])
+            return box.with_future(
+                relative_timestamps=relative_timestamps,
+                confidences=[1.0],
+                waypoints=[waypoints],
+            )
         else:
             return box
 
