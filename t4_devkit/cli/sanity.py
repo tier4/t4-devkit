@@ -18,13 +18,18 @@ cli = typer.Typer(
 )
 
 
-def _run_sanity_check(db_parent: str, *, include_warning: bool = False) -> list[DBException]:
+def _run_sanity_check(
+    db_parent: str,
+    *,
+    revision: str | None = None,
+    include_warning: bool = False,
+) -> list[DBException]:
     exceptions: list[DBException] = []
 
     db_dirs: list[Path] = Path(db_parent).glob("*")
 
     for db_root in tqdm(db_dirs, desc=">>>Sanity checking..."):
-        result = sanity_check(db_root, include_warning=include_warning)
+        result = sanity_check(db_root, revision=revision, include_warning=include_warning)
         if result:
             exceptions.append(result)
     return exceptions
@@ -41,11 +46,14 @@ def main(
         is_eager=True,
     ),
     db_parent: str = typer.Argument(..., help="Path to parent directory of the databases."),
+    revision: str | None = typer.Option(
+        None, "-rv", "--revision", help="Specify if you want to check the specific version."
+    ),
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
 ) -> None:
-    exceptions = _run_sanity_check(db_parent, include_warning=include_warning)
+    exceptions = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
 
     headers = ["DatasetID", "Version", "Message"]
     table = [[e.dataset_id, e.version, e.message] for e in exceptions]

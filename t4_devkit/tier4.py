@@ -46,33 +46,55 @@ __all__ = ["DBMetadata", "load_metadata", "Tier4"]
 
 @define
 class DBMetadata:
+    """A dataclass to represent dataset metadata.
+
+    Attributes:
+        data_root (str): Root directory path.
+        dataset_id (str): Unique dataset ID.
+        version (str | None): Dataset version.
+    """
+
     data_root: str
     dataset_id: str
     version: str | None
 
 
-def load_metadata(db_root: str) -> DBMetadata:
+def load_metadata(db_root: str, revision: str | None = None) -> DBMetadata:
     """Load metadata of T4 dataset including root directory path, dataset ID, and version.
 
     Args:
         db_root (str): Path to root directory of database.
+        revision (str | None, optional): Specify version of the dataset.
+            If None, search the latest one.
 
     Returns:
         Metadata of T4 dataset.
     """
     db_root_path = Path(db_root)
+    dataset_id = db_root_path.name
 
     version_pattern = re.compile(r".*/\d+$")
-    versions = [d.name for d in db_root_path.iterdir() if version_pattern.match(d.as_posix())]
+    version_candidates = [
+        int(d.name) for d in db_root_path.iterdir() if version_pattern.match(d.as_posix())
+    ]
 
-    if versions:
-        version = sorted(versions)[-1]
-        data_root = db_root_path.joinpath(version).as_posix()
+    if revision is None:
+        if version_candidates:  # try to load the latest one
+            version = str(max(version_candidates))
+            data_root = db_root_path.joinpath(version).as_posix()
+        else:
+            version = None
+            data_root = db_root_path.as_posix()
     else:
-        version = None
-        data_root = db_root_path.as_posix()
+        if int(revision) not in version_candidates:
+            raise ValueError(f"The version: {revision} is not included in {dataset_id}")
+        version = revision
+        data_root = db_root_path.joinpath(version).as_posix()
 
-    return DBMetadata(data_root=data_root, dataset_id=db_root_path.name, version=version)
+    if version is None:
+        warnings.warn(f"{dataset_id} does't contain any versions.", DeprecationWarning)
+
+    return DBMetadata(data_root=data_root, dataset_id=dataset_id, version=version)
 
 
 class Tier4:
@@ -80,11 +102,18 @@ class Tier4:
 
     schema_dir: str = "annotation"
 
-    def __init__(self, data_root: str, verbose: bool = True) -> None:
+    def __init__(
+        self,
+        data_root: str,
+        revision: str | None = None,
+        verbose: bool = True,
+    ) -> None:
         """Load database and creates reverse indexes and shortcuts.
 
         Args:
             data_root (str): Path to the root directory of dataset.
+            revision (str | None, optional): You can specify any specific version if you want.
+                If None, search the latest one.
             verbose (bool, optional): Whether to display status during load.
 
         Examples:
@@ -115,7 +144,7 @@ class Tier4:
             ======
 
         """
-        self._metadata = load_metadata(data_root)
+        self._metadata = load_metadata(data_root, revision)
 
         if not osp.exists(self.data_root):
             raise FileNotFoundError(f"Database directory is not found: {self.data_root}")

@@ -20,6 +20,12 @@ cli = typer.Typer(
 @cli.command("scene", help="Visualize a specific scene.")
 def scene(
     data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
+    revision: Annotated[
+        str | None,
+        typer.Option(
+            ..., "-rv", "--revision", help="Specify if you want to load the specific version."
+        ),
+    ] = None,
     future: Annotated[
         float,
         typer.Option(
@@ -41,7 +47,7 @@ def scene(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4(data_root, verbose=False)
+    t4 = Tier4(data_root, revision=revision, verbose=False)
     t4.render_scene(future_seconds=future, save_dir=output)
 
 
@@ -49,6 +55,12 @@ def scene(
 def instance(
     data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
     instance: Annotated[list[str], typer.Argument(help="Instance token(s).")],
+    revision: Annotated[
+        str | None,
+        typer.Option(
+            ..., "-rv", "--revision", help="Specify if you want to load the specific version."
+        ),
+    ] = None,
     future: Annotated[
         float,
         typer.Option(
@@ -70,13 +82,19 @@ def instance(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4(data_root, verbose=False)
+    t4 = Tier4(data_root, revision=revision, verbose=False)
     t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
 
 
 @cli.command("pointcloud", help="Visualize pointcloud in the corresponding scene.")
 def pointcloud(
     data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
+    revision: Annotated[
+        str | None,
+        typer.Option(
+            ..., "-rv", "--revision", help="Specify if you want to load the specific version."
+        ),
+    ] = None,
     ignore_distortion: Annotated[
         bool,
         typer.Option(
@@ -98,7 +116,7 @@ def pointcloud(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4(data_root, verbose=False)
+    t4 = Tier4(data_root, revision=revision, verbose=False)
     t4.render_pointcloud(ignore_distortion=ignore_distortion, save_dir=output)
 
 

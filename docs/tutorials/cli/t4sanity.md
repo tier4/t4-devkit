@@ -11,6 +11,7 @@ $ t4sanity -h
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --version             -v         Show the application version and exit.                                              │
+│ --revision            -rv   TEXT Specify if you want to load the specific version. [default: None]                   │
 │ --include-warning     -iw        Indicates whether to report any warnings.                                           │
 │ --install-completion             Install completion for the current shell.                                           │
 │ --show-completion                Show completion for the current shell, to copy it or customize the installation.    │
