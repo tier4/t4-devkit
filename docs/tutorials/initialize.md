@@ -71,6 +71,13 @@ Done loading in 0.061 seconds.
 ======
 ```
 
+Note that if you doesn't specify `revision` parameter in construction, it searches the latest version of the dataset.
+By specifying `revision=<VERSION>`, you can load the specific version of the dataset.
+
+```python
+>>> t4 = Tier4("data/tier4/", revision="2", verbose=True)
+```
+
 ## Access to Schema Fields
 
 ---

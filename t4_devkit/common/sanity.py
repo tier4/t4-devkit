@@ -19,11 +19,18 @@ class DBException:
     message: str
 
 
-def sanity_check(db_root: str | Path, *, include_warning: bool = False) -> DBException | None:
+def sanity_check(
+    db_root: str | Path,
+    *,
+    revision: str | None = None,
+    include_warning: bool = False,
+) -> DBException | None:
     """Perform sanity check and report exception or warning encountered while loading the dataset.
 
     Args:
         db_root (str | Path): Path to root directory of the dataset.
+        revision (str | None, optional): Specific version of the dataset.
+            If None, search the latest one.
         include_warning (bool, optional): Indicates whether to report warnings.
 
     Returns:
@@ -37,7 +44,7 @@ def sanity_check(db_root: str | Path, *, include_warning: bool = False) -> DBExc
             warnings.filterwarnings("ignore")
 
         try:
-            _ = Tier4(data_root=db_root, verbose=False)
+            _ = Tier4(data_root=db_root, revision=revision, verbose=False)
             exception = None
         except Exception as e:
             metadata = load_metadata(db_root)
