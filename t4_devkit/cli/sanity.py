@@ -55,7 +55,10 @@ def main(
 ) -> None:
     exceptions = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
 
-    headers = ["DatasetID", "Version", "Message"]
-    table = [[e.dataset_id, e.version, e.message] for e in exceptions]
-
-    print(tabulate(table, headers=headers, tablefmt="pretty"))
+    if not exceptions:
+        print("✅ No exceptions occurred!!")
+    else:
+        print("⚠️  Encountered some exceptions!!")
+        headers = ["DatasetID", "Version", "Message"]
+        table = [[e.dataset_id, e.version, e.message] for e in exceptions]
+        print(tabulate(table, headers=headers, tablefmt="pretty"))
