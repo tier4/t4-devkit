@@ -26,9 +26,7 @@ def _run_sanity_check(
 ) -> list[DBException]:
     exceptions: list[DBException] = []
 
-    db_dirs: list[Path] = Path(db_parent).glob("*")
-
-    for db_root in tqdm(db_dirs, desc=">>>Sanity checking..."):
+    for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking..."):
         result = sanity_check(db_root, revision=revision, include_warning=include_warning)
         if result:
             exceptions.append(result)

@@ -11,17 +11,13 @@ if TYPE_CHECKING:
 __all__ = ["to_quaternion"]
 
 
-def to_quaternion(value: ArrayLike | NDArray) -> Quaternion:
+def to_quaternion(x: ArrayLike | NDArray) -> Quaternion:
     """Convert input rotation like array to `Quaternion`.
 
     Args:
-        value (ArrayLike | NDArray): Rotation matrix or quaternion.
+        x (ArrayLike | NDArray): Rotation matrix or quaternion.
 
     Returns:
         Quaternion: Converted instance.
     """
-    return (
-        Quaternion(matrix=value)
-        if isinstance(value, np.ndarray) and value.ndim == 2
-        else Quaternion(value)
-    )
+    return Quaternion(matrix=x) if isinstance(x, np.ndarray) and x.ndim == 2 else Quaternion(x)
