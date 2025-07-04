@@ -20,8 +20,4 @@ def to_quaternion(x: ArrayLike | NDArray) -> Quaternion:
     Returns:
         Quaternion: Converted instance.
     """
-    return (
-        Quaternion(matrix=x)
-        if isinstance(x, np.ndarray) and x.ndim == 2
-        else Quaternion(x)
-    )
+    return Quaternion(matrix=x) if isinstance(x, np.ndarray) and x.ndim == 2 else Quaternion(x)
