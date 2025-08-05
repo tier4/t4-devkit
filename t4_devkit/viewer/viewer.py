@@ -30,11 +30,10 @@ if TYPE_CHECKING:
 __all__ = ["RerunViewer", "format_entity"]
 
 
-def format_entity(root: str, *entities: Sequence[str]) -> str:
+def format_entity(*entities: Sequence[str]) -> str:
     """Format entity path.
 
     Args:
-        root (str): Root entity path.
         *entities: Entity path(s).
 
     Returns:
@@ -48,15 +47,16 @@ def format_entity(root: str, *entities: Sequence[str]) -> str:
         >>> format_entity("map", "map/base_link", "camera")
         "map/base_link/camera"
     """
-    if len(entities) == 0:
-        return root
+    if not entities:
+        return ""
 
-    flattened = [s for t in entities for s in t.split("/")]
-
-    if osp.basename(root) == flattened[0]:
-        return osp.join(root, "/".join(flattened[1:])) if len(flattened) > 1 else root
-    else:
-        return osp.join(root, "/".join(entities))
+    flattened = []
+    for entity in entities:
+        for part in entity.split("/"):
+            if part and flattened and flattened[-1] == part:
+                continue
+            flattened.append(part)
+    return "/".join(flattened)
 
 
 class RerunViewer:

@@ -14,6 +14,7 @@ def test_format_entity() -> None:
     assert "map/base_link" == format_entity("map", "base_link")
     assert "map/base_link" == format_entity("map", "map/base_link")
     assert "map/base_link/camera" == format_entity("map", "map/base_link", "camera")
+    assert "map/base_link/camera" == format_entity("map", "map/base_link", "base_link/camera")
 
 
 def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
