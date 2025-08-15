@@ -24,13 +24,10 @@ def _run_sanity_check(
     revision: str | None = None,
     include_warning: bool = False,
 ) -> list[DBException]:
-    exceptions: list[DBException] = []
-
-    for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking..."):
-        result = sanity_check(db_root, revision=revision, include_warning=include_warning)
-        if result:
-            exceptions.append(result)
-    return exceptions
+    return [
+        sanity_check(db_root, revision=revision, include_warning=include_warning)
+        for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking...")
+    ]
 
 
 @cli.command()
@@ -53,10 +50,10 @@ def main(
 ) -> None:
     exceptions = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
 
-    if not exceptions:
+    if all(e.is_ok() for e in exceptions):
         print("✅ No exceptions occurred!!")
     else:
         print("⚠️  Encountered some exceptions!!")
-        headers = ["DatasetID", "Version", "Message"]
-        table = [[e.dataset_id, e.version, e.message] for e in exceptions]
+        headers = ["DatasetID", "Version", "status", "Message"]
+        table = [[e.dataset_id, e.version, e.status, e.message] for e in exceptions]
         print(tabulate(table, headers=headers, tablefmt="pretty"))
