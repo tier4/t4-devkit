@@ -86,13 +86,8 @@ def load_metadata(db_root: str, revision: str | None = None) -> DBMetadata:
             version = None
             data_root = db_root_path.as_posix()
     else:
-        if int(revision) not in version_candidates:
-            raise ValueError(f"The version: {revision} is not included in {dataset_id}")
         version = revision
         data_root = db_root_path.joinpath(version).as_posix()
-
-    if version is None:
-        warnings.warn(f"{dataset_id} does't contain any versions.", DeprecationWarning)
 
     return DBMetadata(data_root=data_root, dataset_id=dataset_id, version=version)
 
@@ -148,6 +143,11 @@ class Tier4:
 
         if not osp.exists(self.data_root):
             raise FileNotFoundError(f"Database directory is not found: {self.data_root}")
+
+        if self.version is None:
+            warnings.warn(
+                f"DatasetID: {self.dataset_id} does't contain any versions.", DeprecationWarning
+            )
 
         start_time = time.time()
         if verbose:
