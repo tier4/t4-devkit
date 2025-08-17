@@ -45,6 +45,13 @@ As an example, we have the following the dataset structure:
 ...
 ```
 
+Then, you can run sanity checks with `t4sanity <DATA_ROOT>`:
+
+```shell
+>>>Sanity checking...: 1it [00:00,  9.70it/s]
+✅ No exceptions occurred!!
+```
+
 ### Exclude Warnings
 
 To run sanity check ignoring warnings, providing the path to the parent directory of the datasets:
@@ -52,13 +59,14 @@ To run sanity check ignoring warnings, providing the path to the parent director
 ```shell
 $ t4sanity <DATA_ROOT>
 
->>> Sanity checking...: 97it [00:03, 26.60it/s]
-+--------------------------------------+---------+------------------------------------------------------------------------------------------------+
-|              DatasetID               | Version |                                            Message                                             |
-+--------------------------------------+---------+------------------------------------------------------------------------------------------------+
-| 96200480-ae59-44cb-9e4e-dd9021e250e8 |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1671, 198, 1440, 229) |
-| ca346afb-ea1a-4c5c-8117-544bd9ff6aca |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1793, 99, 1440, 222)  |
-...
+>>>Sanity checking...: 2it [00:00, 18.69it/s]
+⚠️  Encountered some exceptions!!
++-----------+---------+--------+------------------------------------------------------------------------------------------------+
+| DatasetID | Version | status |                                            Message                                             |
++-----------+---------+--------+------------------------------------------------------------------------------------------------+
+| dataset1  |    2    | ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
+| dataset2  |    1    |   OK   |                                                                                                |
++-----------+---------+--------+------------------------------------------------------------------------------------------------+
 ```
 
 ### Include Warnings
@@ -68,12 +76,12 @@ To run sanity check and report any warnings, use the `-iw; --include-warning` op
 ```shell
 $ t4sanity <DATA_ROOT> -iw
 
->>> Sanity checking...: 97it [00:03, 29.31it/s]
-+--------------------------------------+---------+------------------------------------------------------------------------------------------------+
-|              DatasetID               | Version |                                            Message                                             |
-+--------------------------------------+---------+------------------------------------------------------------------------------------------------+
-| 96200480-ae59-44cb-9e4e-dd9021e250e8 |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1671, 198, 1440, 229) |
-| ca346afb-ea1a-4c5c-8117-544bd9ff6aca |    2    | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1793, 99, 1440, 222)  |
-| ed96b707-e7f4-4a71-9e6b-571ffd56c4c4 |    2    |        level: Not available is not supported, Visibility.UNAVAILABLE will be assigned.         |
-...
+>>>Sanity checking...: 2it [00:00, 21.54it/s]
+⚠️  Encountered some exceptions!!
++-----------+---------+---------+------------------------------------------------------------------------------------------------+
+| DatasetID | Version | status  |                                            Message                                             |
++-----------+---------+---------+------------------------------------------------------------------------------------------------+
+| dataset1  |    2    |  ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
+| dataset2  |    1    | WARNING |           Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8            |
++-----------+---------+---------+------------------------------------------------------------------------------------------------+
 ```
