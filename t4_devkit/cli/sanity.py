@@ -6,7 +6,9 @@ import typer
 from tabulate import tabulate
 from tqdm import tqdm
 
+from t4_devkit.common.io import save_json
 from t4_devkit.common.sanity import DBException, sanity_check
+from t4_devkit.common.serialize import serialize_dataclasses
 
 from .version import version_callback
 
@@ -41,6 +43,7 @@ def main(
         is_eager=True,
     ),
     db_parent: str = typer.Argument(..., help="Path to parent directory of the databases."),
+    output: str | None = typer.Option(None, "-o", "--output", help="Path to output JSON file."),
     revision: str | None = typer.Option(
         None, "-rv", "--revision", help="Specify if you want to check the specific version."
     ),
@@ -57,3 +60,7 @@ def main(
         headers = ["DatasetID", "Version", "status", "Message"]
         table = [[e.dataset_id, e.version, e.status, e.message] for e in exceptions]
         print(tabulate(table, headers=headers, tablefmt="pretty"))
+
+    if output:
+        serialized = serialize_dataclasses(exceptions)
+        save_json(serialized, output)
