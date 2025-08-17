@@ -11,6 +11,7 @@ $ t4sanity -h
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --version             -v         Show the application version and exit.                                              │
+│ --output              -o    TEXT Path to output JSON file. [default: None]                                           │
 │ --revision            -rv   TEXT Specify if you want to load the specific version. [default: None]                   │
 │ --include-warning     -iw        Indicates whether to report any warnings.                                           │
 │ --install-completion             Install completion for the current shell.                                           │
@@ -84,4 +85,34 @@ $ t4sanity <DATA_ROOT> -iw
 | dataset1  |    2    |  ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
 | dataset2  |    1    | WARNING |           Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8            |
 +-----------+---------+---------+------------------------------------------------------------------------------------------------+
+```
+
+### Dump Results as JSON
+
+To dump results into JSON, use the `-o; --output` option:
+
+```shell
+$ t4sanity <DATA_ROOT> -o results.json
+
+>>>Sanity checking...: 2it [00:00, 21.54it/s]
+...
+```
+
+Then a JSON file named `results.json` will be generated:
+
+```json
+[
+  {
+    "dataset_id": "dataset1",
+    "version": 2,
+    "status": "ERROR",
+    "message": "bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265)"
+  },
+  {
+    "dataset_id": "dataset2",
+    "version": 1,
+    "status": "WARNING",
+    "message": "Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8"
+  }
+]
 ```
