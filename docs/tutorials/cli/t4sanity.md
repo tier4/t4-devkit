@@ -63,7 +63,7 @@ $ t4sanity <DATA_ROOT>
 >>>Sanity checking...: 2it [00:00, 18.69it/s]
 ⚠️  Encountered some exceptions!!
 +-----------+---------+--------+------------------------------------------------------------------------------------------------+
-| DatasetID | Version | status |                                            Message                                             |
+| DatasetID | Version | Status |                                            Message                                             |
 +-----------+---------+--------+------------------------------------------------------------------------------------------------+
 | dataset1  |    2    | ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
 | dataset2  |    1    |   OK   |                                                                                                |
@@ -80,7 +80,7 @@ $ t4sanity <DATA_ROOT> -iw
 >>>Sanity checking...: 2it [00:00, 21.54it/s]
 ⚠️  Encountered some exceptions!!
 +-----------+---------+---------+------------------------------------------------------------------------------------------------+
-| DatasetID | Version | status  |                                            Message                                             |
+| DatasetID | Version | Status  |                                            Message                                             |
 +-----------+---------+---------+------------------------------------------------------------------------------------------------+
 | dataset1  |    2    |  ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
 | dataset2  |    1    | WARNING |           Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8            |
