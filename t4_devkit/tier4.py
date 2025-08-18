@@ -238,13 +238,12 @@ class Tier4:
         if verbose:
             print("Reverse indexing...")
 
-        token2idx: dict[str, dict[str, int]] = {}
-        for schema in SchemaName:
-            token2idx[schema.value] = {}
-            for idx, table in enumerate(self.get_table(schema.value)):
-                table: SchemaTable
-                token2idx[schema.value][table.token] = idx
-        self._token2idx = token2idx
+        self._token2idx: dict[str, dict[str, int]] = {
+            schema.value: {
+                table.token: idx for idx, table in enumerate(self.get_table(schema.value))
+            }
+            for schema in SchemaName
+        }
 
         self._label2id: dict[str, int] = {
             category.name: idx for idx, category in enumerate(self.category)
