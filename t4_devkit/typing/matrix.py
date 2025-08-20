@@ -19,7 +19,7 @@ class Matrix3x3(np.ndarray):
     def __new__(cls, input_array: ArrayLike) -> Matrix3x3:
         obj = np.array(input_array).view(cls)
         if obj.shape != (3, 3):
-            raise ValueError("Input array must be of shape (3, 3)")
+            raise ValueError(f"Input array must be of shape (3, 3), got: {obj.shape}")
         return obj
 
 
@@ -36,5 +36,5 @@ class Matrix4x4(np.ndarray):
     def __new__(cls, input_array: ArrayLike) -> Matrix4x4:
         obj = np.array(input_array).view(cls)
         if obj.shape != (4, 4):
-            raise ValueError("Input array must be of shape (4, 4)")
+            raise ValueError(f"Input array must be of shape (4, 4), got: {obj.shape}")
         return obj

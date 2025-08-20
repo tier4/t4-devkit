@@ -24,7 +24,9 @@ class BaseVector(np.ndarray):
 
         # validate the shape of the array
         if obj.shape != cls._expected_shape:
-            raise ValueError(f"Input array must have exactly {cls._expected_shape[0]} elements")
+            raise ValueError(
+                f"Input array must have {cls._expected_shape[0]} elements, got {obj.shape}"
+            )
 
         return obj
 

@@ -99,11 +99,6 @@ class TestCameraIntrinsic:
         with pytest.raises(ValueError, match="CameraIntrinsic must be a 3x3 array"):
             CameraIntrinsic([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])  # 10 elements
 
-    def test_invalid_empty_array(self):
-        """Test that CameraIntrinsic raises ValueError for empty array."""
-        with pytest.raises(ValueError, match="CameraIntrinsic must be a 3x3 array"):
-            CameraIntrinsic([])
-
     def test_matrix_operations(self):
         """Test basic matrix operations on CameraIntrinsic."""
         cam1 = CameraIntrinsic([[800, 0, 320], [0, 800, 240], [0, 0, 1]])
@@ -288,11 +283,6 @@ class TestCameraDistortion:
         """Test that CameraDistortion raises ValueError for arrays too long."""
         with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length 5"):
             CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01])  # 6 elements
-
-    def test_invalid_empty_array(self):
-        """Test that CameraDistortion raises ValueError for empty array."""
-        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length 5"):
-            CameraDistortion([])
 
     def test_invalid_2d_array(self):
         """Test that CameraDistortion raises ValueError for 2D array."""

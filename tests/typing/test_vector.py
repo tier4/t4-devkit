@@ -52,22 +52,22 @@ class TestVector2:
 
     def test_invalid_length_too_short(self):
         """Test that Vector2 raises ValueError for too few elements."""
-        with pytest.raises(ValueError, match="Input array must have exactly 2 elements"):
+        with pytest.raises(ValueError, match="Input array must have 2 elements, got \(1,\)"):
             Vector2([1.0])
 
     def test_invalid_length_too_long(self):
         """Test that Vector2 raises ValueError for too many elements."""
-        with pytest.raises(ValueError, match="Input array must have exactly 2 elements"):
+        with pytest.raises(ValueError, match="Input array must have 2 elements, got \(3,\)"):
             Vector2([1.0, 2.0, 3.0])
 
     def test_invalid_empty_array(self):
         """Test that Vector2 raises ValueError for empty array."""
-        with pytest.raises(ValueError, match="Input array must have exactly 2 elements"):
+        with pytest.raises(ValueError, match="Input array must have 2 elements, got \(0,\)"):
             Vector2([])
 
     def test_invalid_2d_array(self):
         """Test that Vector2 raises ValueError for 2D array."""
-        with pytest.raises(ValueError, match="Input array must have exactly 2 elements"):
+        with pytest.raises(ValueError, match="Input array must have 2 elements, got \(2, 2\)"):
             Vector2([[1, 2], [3, 4]])
 
     def test_mathematical_operations(self):
@@ -184,22 +184,22 @@ class TestVector3:
 
     def test_invalid_length_too_short(self):
         """Test that Vector3 raises ValueError for too few elements."""
-        with pytest.raises(ValueError, match="Input array must have exactly 3 elements"):
+        with pytest.raises(ValueError, match="Input array must have 3 elements, got \(2,\)"):
             Vector3([1.0, 2.0])
 
     def test_invalid_length_too_long(self):
         """Test that Vector3 raises ValueError for too many elements."""
-        with pytest.raises(ValueError, match="Input array must have exactly 3 elements"):
+        with pytest.raises(ValueError, match="Input array must have 3 elements, got \(4,\)"):
             Vector3([1.0, 2.0, 3.0, 4.0])
 
     def test_invalid_empty_array(self):
         """Test that Vector3 raises ValueError for empty array."""
-        with pytest.raises(ValueError, match="Input array must have exactly 3 elements"):
+        with pytest.raises(ValueError, match="Input array must have 3 elements, got \(0,\)"):
             Vector3([])
 
     def test_invalid_2d_array(self):
         """Test that Vector3 raises ValueError for 2D array."""
-        with pytest.raises(ValueError, match="Input array must have exactly 3 elements"):
+        with pytest.raises(ValueError, match="Input array must have 3 elements, got \(2, 3\)"):
             Vector3([[1, 2, 3], [4, 5, 6]])
 
     def test_mathematical_operations(self):
@@ -323,22 +323,22 @@ class TestVector6:
 
     def test_invalid_length_too_short(self):
         """Test that Vector6 raises ValueError for too few elements."""
-        with pytest.raises(ValueError, match="Input array must have exactly 6 elements"):
+        with pytest.raises(ValueError, match="Input array must have 6 elements, got \(5,\)"):
             Vector6([1.0, 2.0, 3.0, 4.0, 5.0])
 
     def test_invalid_length_too_long(self):
         """Test that Vector6 raises ValueError for too many elements."""
-        with pytest.raises(ValueError, match="Input array must have exactly 6 elements"):
+        with pytest.raises(ValueError, match="Input array must have 6 elements, got \(7,\)"):
             Vector6([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
 
     def test_invalid_empty_array(self):
         """Test that Vector6 raises ValueError for empty array."""
-        with pytest.raises(ValueError, match="Input array must have exactly 6 elements"):
+        with pytest.raises(ValueError, match="Input array must have 6 elements, got \(0,\)"):
             Vector6([])
 
     def test_invalid_2d_array(self):
         """Test that Vector6 raises ValueError for 2D array."""
-        with pytest.raises(ValueError, match="Input array must have exactly 6 elements"):
+        with pytest.raises(ValueError, match="Input array must have 6 elements, got \(2, 3\)"):
             Vector6([[1, 2, 3], [4, 5, 6]])
 
     def test_mathematical_operations(self):

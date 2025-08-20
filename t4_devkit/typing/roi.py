@@ -52,13 +52,13 @@ class Roi(tuple):
 
         # validate input shape of the array
         if len(input_array) != 4:
-            raise ValueError(f"ROI must be a 4-element tuple: {input_array}")
+            raise ValueError(f"ROI must be a 4-element tuple, got: {input_array}")
 
         # validate input value order of the array
         xmin, ymin, xmax, ymax = input_array
         if xmax < xmin or ymax < ymin:
             raise ValueError(
-                f"ROI must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: {input_array}"
+                f"ROI must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax, got: {input_array}"
             )
 
         return super().__new__(cls, input_array)

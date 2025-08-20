@@ -13,7 +13,7 @@ class Trajectory(np.ndarray):
 
         # validate the shape of the array
         if obj.ndim != 3 or obj.shape[2] != 3:
-            raise ValueError(f"Trajectory must be the shape of (M, T, 3): {obj.shape}")
+            raise ValueError(f"Trajectory must be the shape of (M, T, 3), got: {obj.shape}")
 
         return obj
 
