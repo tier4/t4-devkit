@@ -21,6 +21,10 @@ class CameraIntrinsic(np.ndarray):
     def __new__(cls, input_array: ArrayLike) -> CameraIntrinsic:
         obj = np.array(input_array).view(cls)
 
+        # skip validation if the array is empty for non-camera
+        if obj.size == 0:
+            return obj
+
         if obj.ndim == 1 and obj.shape == (9,):
             obj = obj.reshape((3, 3))
 
@@ -53,6 +57,10 @@ class CameraDistortion(np.ndarray):
 
     def __new__(cls, input_array: ArrayLike) -> CameraDistortion:
         obj = np.array(input_array).view(cls)
+
+        # skip validation if the array is empty for non-camera
+        if obj.size == 0:
+            return obj
 
         # validate the shape of the array
         if obj.shape != (5,):
