@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING, Generator
 import numpy as np
 from attrs import define, field, validators
 
-from t4_devkit.typing import Quaternion, Trajectory, Vector3
+from t4_devkit.common.converter import to_quaternion
+from t4_devkit.typing import Trajectory
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import NDArrayFloat, NDArrayInt
+    from t4_devkit.typing import NDArrayFloat, NDArrayInt, RotationLike, Vector3Like
 
 __all__ = ["Past", "Future"]
 
@@ -79,21 +80,22 @@ class ObjectPath:
         """
         return self.waypoints.shape
 
-    def translate(self, x: Vector3) -> None:
+    def translate(self, x: Vector3Like) -> None:
         """Apply a translation.
 
         Args:
-            x (Vector3): 3D translation vector.
+            x (Vector3Like): 3D translation vector.
         """
         self.waypoints += x
 
-    def rotate(self, q: Quaternion) -> None:
+    def rotate(self, q: RotationLike) -> None:
         """Apply a rotation.
 
         Args:
-            q (Quaternion): Rotation quaternion.
+            q (RotationLike): Rotation quaternion.
         """
         # NOTE: R * X = X * R^T
+        q = to_quaternion(q)
         self.waypoints = np.dot(self.waypoints, q.rotation_matrix.T)
 
 

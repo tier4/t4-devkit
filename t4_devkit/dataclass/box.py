@@ -17,7 +17,7 @@ from .trajectory import Future
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import HomogeneousMatrix
-    from t4_devkit.typing import ArrayLike, NDArrayF64, ScalarLike
+    from t4_devkit.typing import ArrayLike, NDArrayF64, RotationLike, ScalarLike, Vector3Like
 
 
 __all__ = ["Box3D", "Box2D", "BoxLike", "distance_box"]
@@ -183,23 +183,24 @@ class Box3D(BaseBox):
     def volume(self) -> float:
         return self.area * self.size[2]
 
-    def translate(self, x: Vector3) -> None:
+    def translate(self, x: Vector3Like) -> None:
         """Apply a translation.
 
         Args:
-            x (Vector3): 3D translation vector in the order of (x, y, z).
+            x (Vector3Like): 3D translation vector in the order of (x, y, z).
         """
         self.position += x
 
         if self.future is not None:
             self.future.translate(x)
 
-    def rotate(self, q: Quaternion) -> None:
+    def rotate(self, q: RotationLike) -> None:
         """Apply a rotation.
 
         Args:
-            q (Quaternion): Rotation quaternion.
+            q (RotationLike): Rotation quaternion.
         """
+        q = to_quaternion(q)
         self.position = np.dot(q.rotation_matrix, self.position)
         self.rotation = q * self.rotation
 
@@ -269,11 +270,11 @@ class Box2D(BaseBox):
         converter=lambda x: None if x is None else Vector3(x),
     )
 
-    def with_position(self, position: ArrayLike) -> Self:
+    def with_position(self, position: Vector3Like) -> Self:
         """Return a self instance setting `position` attribute.
 
         Args:
-            position (ArrayLike): 3D position.
+            position (Vector3Like): 3D position.
 
         Returns:
             Self instance after setting `position`.
