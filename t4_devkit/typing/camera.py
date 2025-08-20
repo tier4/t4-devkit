@@ -32,6 +32,25 @@ class CameraIntrinsic(np.ndarray):
 
 
 class CameraDistortion(np.ndarray):
+    """A 1D array of length 5 representing the radial and tangential distortion coefficients.
+
+    This class represents the distortion parameters for a camera lens, typically
+    following the Brown-Conrady (or similar) model.
+
+    The expected input is a 1D array of length 5, corresponding to the coefficients:
+        - k1: Radial distortion coefficient.
+        - k2: Radial distortion coefficient.
+        - p1: Tangential distortion coefficient.
+        - p2: Tangential distortion coefficient.
+        - k3: Radial distortion coefficient.
+
+    Examples:
+        >>> c = CameraDistortion([0, 0, 0, 0, 0])                  # OK
+        >>> c = CameraDistortion([1, 2, 3, 4, 5])                  # OK
+        >>> c = CameraDistortion([1, 2, 3, 4])                     # ValueError
+        >>> c = CameraDistortion([1, 2, 3, 4, 5, 6])               # ValueError
+    """
+
     def __new__(cls, input_array: ArrayLike) -> CameraDistortion:
         obj = np.array(input_array).view(cls)
 

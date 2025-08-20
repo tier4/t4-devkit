@@ -8,6 +8,8 @@ __all__ = ["Quaternion"]
 class Quaternion(PyQuaternion):
     """A quaternion class that wraps the PyQuaternion class.
 
+    This wrapper exists to provide a consistent and explicit quaternion representation.
+
     Examples:
         >>> q = Quaternion(1, 2, 3, 4)
         >>> q
