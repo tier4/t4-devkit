@@ -243,7 +243,7 @@ Accepts:
 CameraIntrinsicLike = Union[
     CameraIntrinsic,  # Native CameraIntrinsic
     ArrayLike,  # NumPy array-like
-    Sequence[Sequence[float]],  # Triple-nested sequences
+    Sequence[Sequence[float]],  # Nested sequences
     list[list[float]],  # List of lists of lists
 ]
 """Type alias for camera parameter inputs.
@@ -251,13 +251,13 @@ CameraIntrinsicLike = Union[
 Accepts:
     - CameraIntrinsic instances
     - NumPy arrays with shape (3, 3)
-    - Triple-nested sequences with same structure
+    - Nested sequences of float values
 """
 
 CameraDistortionLike = Union[
     CameraDistortion,  # Native CameraDistortion
     ArrayLike,  # NumPy array-like
-    Sequence[float],  # Triple-nested sequences
+    Sequence[float],  # Sequences
     list[float],  # List of lists of lists
 ]
 """Type alias for camera distortion inputs.
@@ -265,7 +265,7 @@ CameraDistortionLike = Union[
 Accepts:
     - CameraDistortion instances
     - NumPy arrays with shape (5,)
-    - Sequences with same structure
+    - Sequence of float values
 """
 
 # =============================================================================
