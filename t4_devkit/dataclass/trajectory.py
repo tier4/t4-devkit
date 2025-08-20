@@ -14,8 +14,8 @@ __all__ = ["Past", "Future"]
 
 
 @define
-class _Trajectory:
-    """A dataclass to represent trajectory."""
+class ObjectPath:
+    """A dataclass to represent object path including timestamps, confidences, and waypoints."""
 
     timestamps: NDArrayInt = field(converter=np.array)
     confidences: NDArrayFloat = field(
@@ -98,7 +98,7 @@ class _Trajectory:
 
 
 @define
-class Past(_Trajectory):
+class Past(ObjectPath):
     """Represent the past trajectory features.
 
     Note that the expected shape of waypoints is (1, T, D).
@@ -141,7 +141,7 @@ class Past(_Trajectory):
 
 
 @define
-class Future(_Trajectory):
+class Future(ObjectPath):
     """Represent the future trajectory features.
 
     Note that the expected shape of waypoints is (M, T, D).

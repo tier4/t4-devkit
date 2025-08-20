@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from numbers import Number
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import ScalarLike
 
 __all__ = ["Roi"]
 
@@ -62,34 +64,34 @@ class Roi(tuple):
         return super().__new__(cls, input_array)
 
     @property
-    def offset(self) -> tuple[Number, Number]:
+    def offset(self) -> tuple[ScalarLike, ScalarLike]:
         """Return the xy offset from the image origin at the top left corner."""
         xmin, ymin, *_ = self
         return xmin, ymin
 
     @property
-    def size(self) -> tuple[Number, Number]:
+    def size(self) -> tuple[ScalarLike, ScalarLike]:
         """Return the width and height of the ROI."""
         xmin, ymin, xmax, ymax = self
         return xmax - xmin, ymax - ymin
 
     @property
-    def width(self) -> Number:
+    def width(self) -> ScalarLike:
         """Return the width of the ROI."""
         return self.size[0]
 
     @property
-    def height(self) -> Number:
+    def height(self) -> ScalarLike:
         """Return the height of the ROI."""
         return self.size[1]
 
     @property
-    def center(self) -> tuple[Number, Number]:
+    def center(self) -> tuple[ScalarLike, ScalarLike]:
         """Return the center position of the ROI."""
         xmin, ymin, xmax, ymax = self
         return (xmin + xmax) / 2, (ymin + ymax) / 2
 
     @property
-    def area(self) -> Number:
+    def area(self) -> ScalarLike:
         """Return the area of the ROI."""
         return self.width * self.height

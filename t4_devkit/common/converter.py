@@ -6,16 +6,16 @@ import numpy as np
 from pyquaternion import Quaternion
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import ArrayLike, NDArray
+    from t4_devkit.typing import RotationLike
 
 __all__ = ["to_quaternion"]
 
 
-def to_quaternion(x: ArrayLike | NDArray) -> Quaternion:
+def to_quaternion(x: RotationLike) -> Quaternion:
     """Convert input rotation like array to `Quaternion`.
 
     Args:
-        x (ArrayLike | NDArray): Rotation matrix or quaternion.
+        x (RotationLike): Rotation matrix or quaternion.
 
     Returns:
         Quaternion: Converted instance.

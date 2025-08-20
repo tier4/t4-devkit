@@ -11,7 +11,7 @@ from typing_extensions import Self
 from t4_devkit.typing import Vector3
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import NDArrayF64
+    pass
 
 
 __all__ = ["ShapeType", "Shape"]
@@ -75,7 +75,7 @@ def _calculate_footprint(size: Vector3) -> Polygon:
         Footprint in a clockwise order started from the top-right corner.
     """
 
-    corners: list[NDArrayF64] = [
+    corners = [
         np.array([size[1], size[0], 0.0]) / 2.0,
         np.array([-size[1], size[0], 0.0]) / 2.0,
         np.array([-size[1], -size[0], 0.0]) / 2.0,

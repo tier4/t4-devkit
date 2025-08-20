@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
-from numpy.typing import ArrayLike
 
 __all__ = ["Vector2", "Vector3", "Vector6"]
 
@@ -15,15 +16,16 @@ class Vector2(np.ndarray):
 
     Examples:
         >>> v = Vector2([1, 2])             # OK
-        >>> v = Vector2([1, 2, 3])          # ValueError
         >>> v = Vector2(np.array([1, 2]))   # OK
+        >>> v = Vector2(1, 2)               # OK
+        >>> v = Vector2([1, 2, 3])          # ValueError
     """
 
-    def __new__(cls, input_array: ArrayLike) -> Vector2:
+    def __new__(cls, *args: Any) -> Vector2:
         """Create a new Vector2 instance.
 
         Args:
-            input_array (ArrayLike): Array-like input that should represent a 2D vector.
+            *args: Either a single array-like object or 2 individual numeric values.
 
         Returns:
             Vector2 instance.
@@ -31,6 +33,12 @@ class Vector2(np.ndarray):
         Raises:
             ValueError: If the input array does not have exactly 2 elements.
         """
+        # handle different input formats
+        if len(args) == 1:
+            input_array = args[0]
+        else:
+            input_array = args
+
         # convert input to numpy array
         obj = np.array(input_array).view(cls)
 
@@ -60,15 +68,16 @@ class Vector3(np.ndarray):
 
     Examples:
         >>> v = Vector3([1, 2, 3])              # OK
-        >>> v = Vector3([1, 2])                 # ValueError
         >>> v = Vector3(np.array([1, 2, 3]))    # OK
+        >>> v = Vector3(1, 2, 3)                # OK
+        >>> v = Vector3([1, 2])                 # ValueError
     """
 
-    def __new__(cls, input_array: ArrayLike) -> Vector3:
+    def __new__(cls, *args: Any) -> Vector3:
         """Create a new Vector3 instance.
 
         Args:
-            input_array (ArrayLike): Array-like input that should represent a 3D vector.
+            *args: Either a single array-like object or 3 individual numeric values.
 
         Returns:
             Vector3 instance.
@@ -76,6 +85,12 @@ class Vector3(np.ndarray):
         Raises:
             ValueError: If the input array does not have exactly 3 elements.
         """
+        # handle different input formats
+        if len(args) == 1:
+            input_array = args[0]
+        else:
+            input_array = args
+
         # convert input to numpy array
         obj = np.array(input_array).view(cls)
 
@@ -105,15 +120,16 @@ class Vector6(np.ndarray):
 
     Examples:
         >>> v = Vector6([1, 2, 3, 4, 5, 6])             # OK
-        >>> v = Vector6([1, 2])                         # ValueError
         >>> v = Vector6(np.array([1, 2, 3, 4, 5, 6]))   # OK
+        >>> v = Vector6(1, 2, 3, 4, 5, 6)               # OK
+        >>> v = Vector6([1, 2])                         # ValueError
     """
 
-    def __new__(cls, input_array: ArrayLike) -> Vector6:
+    def __new__(cls, *args: Any) -> Vector6:
         """Create a new Vector6 instance.
 
         Args:
-            input_array (ArrayLike): Array-like input that should represent a 6D vector.
+            *args: Either a single array-like object or 6 individual numerical values.
 
         Returns:
             Vector6 instance.
@@ -121,6 +137,12 @@ class Vector6(np.ndarray):
         Raises:
             ValueError: If the input array does not have exactly 6 elements.
         """
+        # handle different input formats
+        if len(args) == 1:
+            input_array = args[0]
+        else:
+            input_array = args
+
         # convert input to numpy array
         obj = np.array(input_array).view(cls)
 

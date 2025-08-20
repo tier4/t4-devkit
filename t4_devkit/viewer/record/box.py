@@ -5,12 +5,14 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 import rerun as rr
 import rerun.components as rrc
-from attrs import define, field
+from attrs import converters, define, field
 
-from t4_devkit.typing import Quaternion, Roi, Vector3
+from t4_devkit.typing import Roi, Vector3
+from t4_devkit.typing.aliases import RoiLike
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future
+    from t4_devkit.typing import RotationLike, Vector3Like
 
 
 __all__ = ["BatchBox3D", "BatchBox2D"]
@@ -32,12 +34,12 @@ class BatchBox3D:
     class Record:
         """Inner class to represent a record of 3D box instance for rendering."""
 
-        center: Vector3
+        center: Vector3 = field(converter=Vector3)
         rotation: rr.Quaternion
-        size: Vector3
+        size: Vector3 = field(converter=Vector3)
         class_id: int
         uuid: int | None = field(default=None)
-        velocity: Vector3 | None = field(default=None)
+        velocity: Vector3 | None = field(default=None, converter=converters.optional(Vector3))
         future: Future | None = field(default=None)
 
     @overload
@@ -52,23 +54,23 @@ class BatchBox3D:
     @overload
     def append(
         self,
-        center: Vector3,
-        rotation: Quaternion,
-        size: Vector3,
+        center: Vector3Like,
+        rotation: RotationLike,
+        size: Vector3Like,
         class_id: int,
         uuid: str | None = None,
-        velocity: Vector3 | None = None,
+        velocity: Vector3Like | None = None,
         future: Future | None = None,
     ) -> None:
         """Append a 3D box data with its elements.
 
         Args:
-            center (Vector3): 3D position in the order of (x, y, z).
-            rotation (Quaternion): Quaternion.
-            size (Vector3): Box size in the order of (width, height, length).
+            center (Vector3Like): 3D position in the order of (x, y, z).
+            rotation (RotationLike): Quaternion.
+            size (Vector3Like): Box size in the order of (width, height, length).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
-            velocity (Vector3 | None, optional): Box velocity.
+            velocity (Vector3Like | None, optional): Box velocity.
             future (Future | None, optional): Future trajectory.
         """
         pass
@@ -95,11 +97,11 @@ class BatchBox3D:
 
     def _append_with_elements(
         self,
-        center: Vector3,
-        rotation: Quaternion,
-        size: Vector3,
+        center: Vector3Like,
+        rotation: RotationLike,
+        size: Vector3Like,
         class_id: int,
-        velocity: Vector3 | None = None,
+        velocity: Vector3Like | None = None,
         uuid: str | None = None,
         future: Future | None = None,
     ) -> None:
@@ -200,7 +202,7 @@ class BatchBox2D:
     class Record:
         """Inner class to represent a record of 2D box instance for rendering."""
 
-        roi: Roi
+        roi: Roi = field(converter=Roi)
         class_id: int
         uuid: str | None = field(default=None)
 
@@ -214,11 +216,11 @@ class BatchBox2D:
         pass
 
     @overload
-    def append(self, roi: Roi, class_id: int, uuid: str | None = None) -> None:
+    def append(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
         """Append a 2D box data with its elements.
 
         Args:
-            roi (Roi): ROI in the order of (xmin, ymin, xmax, ymax).
+            roi (RoiLike): ROI in the order of (xmin, ymin, xmax, ymax).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
         """
@@ -241,7 +243,7 @@ class BatchBox2D:
                 uuid=box.uuid,
             )
 
-    def _append_with_elements(self, roi: Roi, class_id: int, uuid: str | None = None) -> None:
+    def _append_with_elements(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
         self.records.append(self.Record(roi=roi, class_id=class_id, uuid=uuid))
 
     def as_boxes2d(self) -> rr.Boxes2D:

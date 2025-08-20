@@ -5,13 +5,11 @@ from typing import TYPE_CHECKING
 import matplotlib
 
 if TYPE_CHECKING:
-    from numbers import Number
-
-    from t4_devkit.typing import ArrayLike, NDArrayF64
+    from t4_devkit.typing import ArrayLike, NDArrayF64, ScalarLike
 
 
 def distance_color(
-    distances: Number | ArrayLike,
+    distances: ScalarLike | ArrayLike,
     cmap: str | None = None,
     v_min: float = 3.0,
     v_max: float = 75.0,
@@ -19,7 +17,7 @@ def distance_color(
     """Return color map depending on distance values.
 
     Args:
-        distances (Number | ArrayLike): Array of distances in the shape of (N,).
+        distances (ScalarLike | ArrayLike): Array of distances in the shape of (N,).
         cmap (str | None, optional): Color map name in matplotlib. If None, `turbo_r` will be used.
         v_min (float, optional): Min value to normalize.
         v_max (float, optional): Max value to normalize.

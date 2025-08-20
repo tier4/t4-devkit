@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
@@ -18,7 +17,7 @@ from .trajectory import Future
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import HomogeneousMatrix
-    from t4_devkit.typing import ArrayLike, NDArrayF64
+    from t4_devkit.typing import ArrayLike, NDArrayF64, ScalarLike
 
 
 __all__ = ["Box3D", "Box2D", "BoxLike", "distance_box"]
@@ -293,27 +292,27 @@ class Box2D(BaseBox):
             return eq
 
     @property
-    def offset(self) -> tuple[Number, Number] | None:
+    def offset(self) -> tuple[ScalarLike, ScalarLike] | None:
         return None if self.roi is None else self.roi.offset
 
     @property
-    def size(self) -> tuple[Number, Number] | None:
+    def size(self) -> tuple[ScalarLike, ScalarLike] | None:
         return None if self.roi is None else self.roi.size
 
     @property
-    def width(self) -> Number | None:
+    def width(self) -> ScalarLike | None:
         return None if self.roi is None else self.roi.width
 
     @property
-    def height(self) -> Number | None:
+    def height(self) -> ScalarLike | None:
         return None if self.roi is None else self.roi.height
 
     @property
-    def center(self) -> tuple[Number, Number] | None:
+    def center(self) -> tuple[ScalarLike, ScalarLike] | None:
         return None if self.roi is None else self.roi.center
 
     @property
-    def area(self) -> Number | None:
+    def area(self) -> ScalarLike | None:
         return None if self.roi is None else self.roi.area
 
 
