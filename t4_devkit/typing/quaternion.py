@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pyquaternion import Quaternion
+from pyquaternion import Quaternion as PyQuaternion
 
-__all__ = ["QuaternionLike"]
+__all__ = ["Quaternion"]
 
 
-class QuaternionLike(Quaternion):
+class Quaternion(PyQuaternion):
     pass

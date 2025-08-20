@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from t4_devkit.typing import Vector3Like
-
+from t4_devkit.typing import Vector3
 
 __all__ = ["calculate_geodetic_point"]
 
@@ -15,14 +12,11 @@ EARTH_RADIUS_METERS = 6.378137e6
 FLATTENING = 1 / 298.257223563
 
 
-def calculate_geodetic_point(
-    position: Vector3Like,
-    origin: tuple[float, float],
-) -> tuple[float, float]:
+def calculate_geodetic_point(position: Vector3, origin: tuple[float, float]) -> tuple[float, float]:
     """Transform a position in a map coordinate system to a position in a geodetic coordinate system.
 
     Args:
-        position (Vector3Like): 3D position in a map coordinate system.
+        position (Vector3): 3D position in a map coordinate system.
         origin (tuple[float, float]): Map origin position in a geodetic coordinate system,
             which is (latitude, longitude).
 

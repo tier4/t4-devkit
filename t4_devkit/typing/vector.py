@@ -3,10 +3,10 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 
-__all__ = ["Vector2Like", "Vector3Like", "Vector6Like"]
+__all__ = ["Vector2", "Vector3", "Vector6"]
 
 
-class Vector2Like(np.ndarray):
+class Vector2(np.ndarray):
     """A 2-element numpy array with validation.
 
     This class ensures that the array always has exactly 2 elements.
@@ -14,19 +14,19 @@ class Vector2Like(np.ndarray):
     to a 2-element numpy array.
 
     Examples:
-        >>> v = Vector2Like([1, 2])             # OK
-        >>> v = Vector2Like([1, 2, 3])          # ValueError
-        >>> v = Vector2Like(np.array([1, 2]))   # OK
+        >>> v = Vector2([1, 2])             # OK
+        >>> v = Vector2([1, 2, 3])          # ValueError
+        >>> v = Vector2(np.array([1, 2]))   # OK
     """
 
-    def __new__(cls, input_array: ArrayLike) -> Vector2Like:
-        """Create a new Vector2Like instance.
+    def __new__(cls, input_array: ArrayLike) -> Vector2:
+        """Create a new Vector2 instance.
 
         Args:
             input_array (ArrayLike): Array-like input that should represent a 2D vector.
 
         Returns:
-            Vector2Like instance.
+            Vector2 instance.
 
         Raises:
             ValueError: If the input array does not have exactly 2 elements.
@@ -40,7 +40,7 @@ class Vector2Like(np.ndarray):
 
         return obj
 
-    def __array_finalize__(self, obj: Vector2Like | None) -> None:
+    def __array_finalize__(self, obj: Vector2 | None) -> None:
         if obj is None:
             return
 
@@ -51,7 +51,7 @@ class Vector2Like(np.ndarray):
             pass
 
 
-class Vector3Like(np.ndarray):
+class Vector3(np.ndarray):
     """A 3-element numpy array with validation.
 
     This class ensures that the array always has exactly 3 elements.
@@ -59,19 +59,19 @@ class Vector3Like(np.ndarray):
     to a 3-element numpy array.
 
     Examples:
-        >>> v = Vector3Like([1, 2, 3])              # OK
-        >>> v = Vector3Like([1, 2])                 # ValueError
-        >>> v = Vector3Like(np.array([1, 2, 3]))    # OK
+        >>> v = Vector3([1, 2, 3])              # OK
+        >>> v = Vector3([1, 2])                 # ValueError
+        >>> v = Vector3(np.array([1, 2, 3]))    # OK
     """
 
-    def __new__(cls, input_array: ArrayLike) -> Vector3Like:
-        """Create a new Vector3Like instance.
+    def __new__(cls, input_array: ArrayLike) -> Vector3:
+        """Create a new Vector3 instance.
 
         Args:
             input_array (ArrayLike): Array-like input that should represent a 3D vector.
 
         Returns:
-            Vector3Like instance.
+            Vector3 instance.
 
         Raises:
             ValueError: If the input array does not have exactly 3 elements.
@@ -85,7 +85,7 @@ class Vector3Like(np.ndarray):
 
         return obj
 
-    def __array_finalize__(self, obj: Vector3Like | None) -> None:
+    def __array_finalize__(self, obj: Vector3 | None) -> None:
         if obj is None:
             return
 
@@ -96,7 +96,7 @@ class Vector3Like(np.ndarray):
             pass
 
 
-class Vector6Like(np.ndarray):
+class Vector6(np.ndarray):
     """A 6-element numpy array with validation.
 
     This class ensures that the array always has exactly 6 elements.
@@ -104,19 +104,19 @@ class Vector6Like(np.ndarray):
     to a 6-element numpy array.
 
     Examples:
-        >>> v = Vector6Like([1, 2, 3, 4, 5, 6])             # OK
-        >>> v = Vector6Like([1, 2])                         # ValueError
-        >>> v = Vector6Like(np.array([1, 2, 3, 4, 5, 6]))   # OK
+        >>> v = Vector6([1, 2, 3, 4, 5, 6])             # OK
+        >>> v = Vector6([1, 2])                         # ValueError
+        >>> v = Vector6(np.array([1, 2, 3, 4, 5, 6]))   # OK
     """
 
-    def __new__(cls, input_array: ArrayLike) -> Vector6Like:
-        """Create a new Vector6Like instance.
+    def __new__(cls, input_array: ArrayLike) -> Vector6:
+        """Create a new Vector6 instance.
 
         Args:
             input_array (ArrayLike): Array-like input that should represent a 6D vector.
 
         Returns:
-            Vector6Like instance.
+            Vector6 instance.
 
         Raises:
             ValueError: If the input array does not have exactly 6 elements.
@@ -130,7 +130,7 @@ class Vector6Like(np.ndarray):
 
         return obj
 
-    def __array_finalize__(self, obj: Vector6Like | None) -> None:
+    def __array_finalize__(self, obj: Vector6 | None) -> None:
         if obj is None:
             return
 

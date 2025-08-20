@@ -7,9 +7,11 @@ import rerun as rr
 import rerun.components as rrc
 from attrs import define, field
 
+from t4_devkit.typing import Quaternion, Roi, Vector3
+
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future
-    from t4_devkit.typing import QuaternionLike, RoiLike, Vector3Like
+
 
 __all__ = ["BatchBox3D", "BatchBox2D"]
 
@@ -30,12 +32,12 @@ class BatchBox3D:
     class Record:
         """Inner class to represent a record of 3D box instance for rendering."""
 
-        center: Vector3Like
+        center: Vector3
         rotation: rr.Quaternion
-        size: Vector3Like
+        size: Vector3
         class_id: int
         uuid: int | None = field(default=None)
-        velocity: Vector3Like | None = field(default=None)
+        velocity: Vector3 | None = field(default=None)
         future: Future | None = field(default=None)
 
     @overload
@@ -50,23 +52,23 @@ class BatchBox3D:
     @overload
     def append(
         self,
-        center: Vector3Like,
-        rotation: QuaternionLike,
-        size: Vector3Like,
+        center: Vector3,
+        rotation: Quaternion,
+        size: Vector3,
         class_id: int,
         uuid: str | None = None,
-        velocity: Vector3Like | None = None,
+        velocity: Vector3 | None = None,
         future: Future | None = None,
     ) -> None:
         """Append a 3D box data with its elements.
 
         Args:
-            center (Vector3Like): 3D position in the order of (x, y, z).
-            rotation (QuaternionLike): Quaternion.
-            size (Vector3Like): Box size in the order of (width, height, length).
+            center (Vector3): 3D position in the order of (x, y, z).
+            rotation (Quaternion): Quaternion.
+            size (Vector3): Box size in the order of (width, height, length).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
-            velocity (Vector3Like | None, optional): Box velocity.
+            velocity (Vector3 | None, optional): Box velocity.
             future (Future | None, optional): Future trajectory.
         """
         pass
@@ -93,11 +95,11 @@ class BatchBox3D:
 
     def _append_with_elements(
         self,
-        center: Vector3Like,
-        rotation: QuaternionLike,
-        size: Vector3Like,
+        center: Vector3,
+        rotation: Quaternion,
+        size: Vector3,
         class_id: int,
-        velocity: Vector3Like | None = None,
+        velocity: Vector3 | None = None,
         uuid: str | None = None,
         future: Future | None = None,
     ) -> None:
@@ -198,7 +200,7 @@ class BatchBox2D:
     class Record:
         """Inner class to represent a record of 2D box instance for rendering."""
 
-        roi: RoiLike
+        roi: Roi
         class_id: int
         uuid: str | None = field(default=None)
 
@@ -212,11 +214,11 @@ class BatchBox2D:
         pass
 
     @overload
-    def append(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
+    def append(self, roi: Roi, class_id: int, uuid: str | None = None) -> None:
         """Append a 2D box data with its elements.
 
         Args:
-            roi (RoiLike): ROI in the order of (xmin, ymin, xmax, ymax).
+            roi (Roi): ROI in the order of (xmin, ymin, xmax, ymax).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
         """
@@ -234,12 +236,12 @@ class BatchBox2D:
 
         if box.roi is not None:
             self._append_with_elements(
-                roi=box.roi.roi,
+                roi=box.roi,
                 class_id=self.label2id[box.semantic_label.name],
                 uuid=box.uuid,
             )
 
-    def _append_with_elements(self, roi: RoiLike, class_id: int, uuid: str | None = None) -> None:
+    def _append_with_elements(self, roi: Roi, class_id: int, uuid: str | None = None) -> None:
         self.records.append(self.Record(roi=roi, class_id=class_id, uuid=uuid))
 
     def as_boxes2d(self) -> rr.Boxes2D:

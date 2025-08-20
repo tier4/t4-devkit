@@ -5,15 +5,13 @@ from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 from attrs import define, field, validators
-from pyquaternion import Quaternion
 from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
-from t4_devkit.common.validator import is_vector3
-from t4_devkit.typing import NDArray, QuaternionLike
+from t4_devkit.typing import NDArray, Quaternion, Vector3
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import ArrayLike, Vector3Like
+    from t4_devkit.typing import ArrayLike
 
 __all__ = [
     "TransformBuffer",
@@ -109,7 +107,7 @@ class TransformBuffer:
 
 @define
 class HomogeneousMatrix:
-    position: Vector3Like = field(converter=np.array, validator=is_vector3)
+    position: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)
     src: str = field(validator=validators.instance_of(str))
     dst: str = field(validator=validators.instance_of(str))
@@ -266,11 +264,11 @@ class HomogeneousMatrix:
         pass
 
     @overload
-    def rotate(self, rotation: QuaternionLike) -> QuaternionLike:
+    def rotate(self, rotation: Quaternion) -> Quaternion:
         """Rotate a 3x3 rotation matrix or quaternion by myself.
 
         Args:
-            rotation (QuaternionLike): 3x3 rotation matrix or quaternion.
+            rotation (Quaternion): 3x3 rotation matrix or quaternion.
 
         Returns:
             Rotated quaternion.
@@ -318,11 +316,11 @@ class HomogeneousMatrix:
         pass
 
     @overload
-    def transform(self, rotation: QuaternionLike) -> QuaternionLike:
+    def transform(self, rotation: Quaternion) -> Quaternion:
         """Transform a rotation by myself.
 
         Args:
-            rotation (QuaternionLike): 3x3 rotation matrix or quaternion.
+            rotation (Quaternion): 3x3 rotation matrix or quaternion.
 
         Returns:
             Transformed quaternion.
@@ -330,16 +328,12 @@ class HomogeneousMatrix:
         pass
 
     @overload
-    def transform(
-        self,
-        position: ArrayLike,
-        rotation: QuaternionLike,
-    ) -> tuple[NDArray, Quaternion]:
+    def transform(self, position: Vector3, rotation: Quaternion) -> tuple[NDArray, Quaternion]:
         """Transform position and rotation by myself.
 
         Args:
-            position (ArrayLike): 3D position.
-            rotation (QuaternionLike): 3x3 rotation matrix or quaternion.
+            position (Vector3): 3D position.
+            rotation (Quaternion): 3x3 rotation matrix or quaternion.
 
         Returns:
             Transformed position and quaternion.
@@ -378,7 +372,7 @@ class HomogeneousMatrix:
         ret_pos, _ = _extract_position_and_rotation_from_matrix(ret_mat)
         return ret_pos
 
-    def __transform_rotation(self, rotation: QuaternionLike) -> QuaternionLike:
+    def __transform_rotation(self, rotation: Quaternion) -> Quaternion:
         position = np.zeros(3)
         matrix = _generate_homogeneous_matrix(position, rotation)
         ret_mat = self.matrix.dot(matrix)
@@ -387,8 +381,8 @@ class HomogeneousMatrix:
 
     def __transform_position_and_rotation(
         self,
-        position: ArrayLike,
-        rotation: QuaternionLike,
+        position: Vector3,
+        rotation: Quaternion,
     ) -> tuple[NDArray, Quaternion]:
         matrix = _generate_homogeneous_matrix(position, rotation)
         ret_mat = self.matrix.dot(matrix)
@@ -399,8 +393,8 @@ class HomogeneousMatrix:
 
 
 TranslateItemLike = NDArray | HomogeneousMatrix
-RotateItemLike = NDArray | QuaternionLike | HomogeneousMatrix
-TransformItemLike = NDArray | QuaternionLike | tuple[NDArray, QuaternionLike] | HomogeneousMatrix
+RotateItemLike = NDArray | Quaternion | HomogeneousMatrix
+TransformItemLike = NDArray | Quaternion | tuple[NDArray, Quaternion] | HomogeneousMatrix
 
 
 def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
@@ -485,20 +479,17 @@ def _extract_position_and_rotation_from_matrix(
         return matrix.position, matrix.rotation
 
 
-def _generate_homogeneous_matrix(
-    position: ArrayLike,
-    rotation: ArrayLike | QuaternionLike,
-) -> NDArray:
+def _generate_homogeneous_matrix(position: ArrayLike, rotation: ArrayLike | Quaternion) -> NDArray:
     """Generate a 4x4 homogeneous matrix from position and rotation.
 
     Args:
         position (ArrayLike): 3D position.
-        rotation (ArrayLike | QuaternionLike): 3x3 rotation matrix or quaternion.
+        rotation (ArrayLike | Quaternion): 3x3 rotation matrix or quaternion.
 
     Returns:
         A 4x4 homogeneous matrix.
     """
-    position = np.asarray(position)
+    position = Vector3(position)
     rotation = to_quaternion(rotation)
 
     matrix = np.eye(4)

@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 from attrs import define, field, validators
+
+from t4_devkit.typing import Roi
 
 from ..name import SchemaName
 from .base import SchemaBase
 from .object_ann import RLEMask
 from .registry import SCHEMAS
-
-if TYPE_CHECKING:
-    from t4_devkit.typing import RoiLike
 
 __all__ = ["SurfaceAnn"]
 
@@ -47,11 +44,11 @@ class SurfaceAnn(SchemaBase):
     category_name: str = field(init=False, factory=str)
 
     @property
-    def bbox(self) -> RoiLike | None:
+    def bbox(self) -> Roi | None:
         """Return a bounding box corners calculated from polygon vertices.
 
         Returns:
-            Given as [xmin, ymin, xmax, ymax].
+            Roi instance given as [xmin, ymin, xmax, ymax].
         """
         if self.mask is None:
             return None
@@ -60,4 +57,4 @@ class SurfaceAnn(SchemaBase):
         indices = np.where(mask == 1)
         xmin, ymin = np.min(indices, axis=1)
         xmax, ymax = np.max(indices, axis=1)
-        return xmin, ymin, xmax, ymax
+        return Roi(xmin, ymin, xmax, ymax)

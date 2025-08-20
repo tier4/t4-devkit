@@ -3,11 +3,11 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 
-__all__ = ["TrajectoryLike"]
+__all__ = ["Trajectory"]
 
 
-class TrajectoryLike(np.ndarray):
-    def __new__(cls, input_array: ArrayLike) -> TrajectoryLike:
+class Trajectory(np.ndarray):
+    def __new__(cls, input_array: ArrayLike) -> Trajectory:
         # convert input to numpy array
         obj = np.array(input_array).view(cls)
 
@@ -17,7 +17,7 @@ class TrajectoryLike(np.ndarray):
 
         return obj
 
-    def __array_finalize__(self, obj: TrajectoryLike | None) -> None:
+    def __array_finalize__(self, obj: Trajectory | None) -> None:
         if obj is None:
             return
 

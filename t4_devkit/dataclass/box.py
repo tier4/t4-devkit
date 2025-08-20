@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from numbers import Number
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
@@ -8,17 +9,16 @@ from shapely.geometry import Polygon
 from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
-from t4_devkit.common.validator import is_vector3
 from t4_devkit.schema import VisibilityLevel
+from t4_devkit.typing import Quaternion, Roi, Vector3
 
 from .label import SemanticLabel
-from .roi import Roi
 from .shape import Shape
 from .trajectory import Future
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import HomogeneousMatrix
-    from t4_devkit.typing import ArrayLike, NDArrayF64, QuaternionLike, Vector3Like
+    from t4_devkit.typing import ArrayLike, NDArrayF64
 
 
 __all__ = ["Box3D", "Box2D", "BoxLike", "distance_box"]
@@ -84,10 +84,10 @@ class Box3D(BaseBox):
         semantic_label (SemanticLabel): `SemanticLabel` object.
         confidence (float, optional): Confidence score of the box.
         uuid (str | None, optional): Unique box identifier.
-        position (Vector3Like): Box center position (x, y, z).
-        rotation (QuaternionLike): Box rotation quaternion.
+        position (Vector3): Box center position (x, y, z).
+        rotation (Quaternion): Box rotation quaternion.
         shape (Shape): `Shape` object.
-        velocity (Vector3Like | None, optional): Box velocity (vx, vy, vz).
+        velocity (Vector3 | None, optional): Box velocity (vx, vy, vz).
         num_points (int | None, optional): The number of points inside the box.
         visibility (VisibilityLevel, optional): Box visibility.
         future (Future | None, optional): Box trajectory in the future of each mode.
@@ -99,7 +99,7 @@ class Box3D(BaseBox):
         ...     frame_id="base_link",
         ...     semantic_label=SemanticLabel("car"),
         ...     position=(1.0, 1.0, 1.0),
-        ...     rotation=Quaternion([0.0, 0.0, 0.0, 1.0]),
+        ...     rotation=(0.0, 0.0, 0.0, 1.0),
         ...     shape=Shape(shape_type=ShapeType.BOUNDING_BOX, size=(1.0, 1.0, 1.0)),
         ...     velocity=(1.0, 1.0, 1.0),
         ...     confidence=1.0,
@@ -112,14 +112,10 @@ class Box3D(BaseBox):
         ... )
     """
 
-    position: Vector3Like = field(converter=np.array, validator=is_vector3)
-    rotation: QuaternionLike = field(converter=to_quaternion)
+    position: Vector3 = field(converter=Vector3)
+    rotation: Quaternion = field(converter=to_quaternion)
     shape: Shape = field(validator=validators.instance_of(Shape))
-    velocity: Vector3Like | None = field(
-        default=None,
-        converter=converters.optional(np.array),
-        validator=validators.optional(is_vector3),
-    )
+    velocity: Vector3 | None = field(default=None, converter=converters.optional(Vector3))
     num_points: int | None = field(
         default=None,
         validator=validators.optional((validators.instance_of(int), validators.ge(0))),
@@ -168,7 +164,7 @@ class Box3D(BaseBox):
             return eq
 
     @property
-    def size(self) -> Vector3Like:
+    def size(self) -> Vector3:
         """Return the box size in the order of (width, length, height).
 
         Returns:
@@ -188,22 +184,22 @@ class Box3D(BaseBox):
     def volume(self) -> float:
         return self.area * self.size[2]
 
-    def translate(self, x: Vector3Like) -> None:
+    def translate(self, x: Vector3) -> None:
         """Apply a translation.
 
         Args:
-            x (Vector3Like): 3D translation vector in the order of (x, y, z).
+            x (Vector3): 3D translation vector in the order of (x, y, z).
         """
         self.position += x
 
         if self.future is not None:
             self.future.translate(x)
 
-    def rotate(self, q: QuaternionLike) -> None:
+    def rotate(self, q: Quaternion) -> None:
         """Apply a rotation.
 
         Args:
-            q (QuaternionLike): Rotation quaternion.
+            q (Quaternion): Rotation quaternion.
         """
         self.position = np.dot(q.rotation_matrix, self.position)
         self.rotation = q * self.rotation
@@ -247,7 +243,7 @@ class Box2D(BaseBox):
         confidence (float, optional): Confidence score of the box.
         uuid (str | None, optional): Unique box identifier.
         roi (Roi | None, optional): `Roi` object.
-        position (Vector3Like | None, optional): 3D position (x, y, z).
+        position (Vector3 | None, optional): 3D position (x, y, z).
 
     Examples:
         >>> # without 3D position
@@ -266,22 +262,24 @@ class Box2D(BaseBox):
     roi: Roi | None = field(
         default=None,
         converter=lambda x: None if x is None else Roi(x),
-        validator=validators.optional(validators.instance_of(Roi)),
     )
 
     # additional attributes: set by `with_**`
-    position: Vector3Like | None = field(default=None, validator=validators.optional(is_vector3))
+    position: Vector3 | None = field(
+        default=None,
+        converter=lambda x: None if x is None else Vector3(x),
+    )
 
-    def with_position(self, position: Vector3Like) -> Self:
+    def with_position(self, position: ArrayLike) -> Self:
         """Return a self instance setting `position` attribute.
 
         Args:
-            position (Vector3Like): 3D position.
+            position (ArrayLike): 3D position.
 
         Returns:
             Self instance after setting `position`.
         """
-        self.position = np.asarray(position)
+        self.position = Vector3(position)
         return self
 
     def __eq__(self, other: Box2D | None) -> bool:
@@ -295,27 +293,27 @@ class Box2D(BaseBox):
             return eq
 
     @property
-    def offset(self) -> tuple[int, int] | None:
+    def offset(self) -> tuple[Number, Number] | None:
         return None if self.roi is None else self.roi.offset
 
     @property
-    def size(self) -> tuple[int, int] | None:
+    def size(self) -> tuple[Number, Number] | None:
         return None if self.roi is None else self.roi.size
 
     @property
-    def width(self) -> int | None:
+    def width(self) -> Number | None:
         return None if self.roi is None else self.roi.width
 
     @property
-    def height(self) -> int | None:
+    def height(self) -> Number | None:
         return None if self.roi is None else self.roi.height
 
     @property
-    def center(self) -> tuple[int, int] | None:
+    def center(self) -> tuple[Number, Number] | None:
         return None if self.roi is None else self.roi.center
 
     @property
-    def area(self) -> int | None:
+    def area(self) -> Number | None:
         return None if self.roi is None else self.roi.area
 
 

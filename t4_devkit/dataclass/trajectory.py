@@ -5,53 +5,24 @@ from typing import TYPE_CHECKING, Generator
 import numpy as np
 from attrs import define, field, validators
 
-from t4_devkit.common.validator import is_trajectory
+from t4_devkit.typing import Quaternion, Trajectory, Vector3
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import NDArrayFloat, NDArrayInt, QuaternionLike, Vector3Like
+    from t4_devkit.typing import NDArrayFloat, NDArrayInt
 
 __all__ = ["Past", "Future"]
 
 
 @define
-class Trajectory:
-    """A dataclass to represent trajectory.
-
-    Attributes:
-        waypoints (TrajectoryType): Waypoints matrix in the shape of (N, 3).
-        confidence (float, optional): Confidence score the trajectory.
-
-    Examples:
-        >>> trajectory = Trajectory(
-        ...     timestamps=[1.0, 2.0]
-        ...     confidences=[1.0],
-        ...     waypoints=[[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]],
-        ... )
-        # Get the number of modes.
-        >>> len(trajectory)
-        1
-        # Access the shape of waypoints matrix: (M, T, 3).
-        >>> trajectory.shape
-        (1, 2, 3)
-        # Access waypoints as subscriptable.
-        >>> trajectory[0] # for mode0
-        array([[1., 1., 1.],
-               [2., 2., 2.]])
-        >>> trajectory[0, 0] # point0 at mode0
-        array([1., 1., 1.])
-        # Access confidence and waypoints for each mode as iterable.
-        >>> for i, (confidence, waypoints) in trajectory:
-        ...     print(f"Mode{i}: {confidence}, {waypoints}")
-        ...
-        Mode0: 1.0, [[1. 1. 1.] [2. 2. 2.]]
-    """
+class _Trajectory:
+    """A dataclass to represent trajectory."""
 
     timestamps: NDArrayInt = field(converter=np.array)
     confidences: NDArrayFloat = field(
         converter=np.array,
         validator=validators.deep_iterable((validators.ge(0.0), validators.le(1.0))),
     )
-    waypoints: NDArrayFloat = field(converter=np.array, validator=is_trajectory)
+    waypoints: Trajectory = field(converter=Trajectory)
 
     def __attrs_post_init__(self) -> None:
         self._check_dims()
@@ -108,29 +79,59 @@ class Trajectory:
         """
         return self.waypoints.shape
 
-    def translate(self, x: Vector3Like) -> None:
+    def translate(self, x: Vector3) -> None:
         """Apply a translation.
 
         Args:
-            x (Vector3Like): 3D translation vector.
+            x (Vector3): 3D translation vector.
         """
         self.waypoints += x
 
-    def rotate(self, q: QuaternionLike) -> None:
+    def rotate(self, q: Quaternion) -> None:
         """Apply a rotation.
 
         Args:
-            q (QuaternionLike): Rotation quaternion.
+            q (Quaternion): Rotation quaternion.
         """
         # NOTE: R * X = X * R^T
         self.waypoints = np.dot(self.waypoints, q.rotation_matrix.T)
 
 
 @define
-class Past(Trajectory):
+class Past(_Trajectory):
     """Represent the past trajectory features.
 
-    Note that the expected shape of waypoints is (1, T, D)."""
+    Note that the expected shape of waypoints is (1, T, D).
+
+    Attributes:
+        timestamps (NDArrayInt): Sequence of timestamps (T,).
+        confidences (NDArrayFloat): Confidences array for the mode (1,).
+        waypoints (Trajectory): Waypoints matrix in the shape of (1, T, 3).
+
+    Examples:
+        >>> past = Past(
+        ...     timestamps=[1.0, 2.0]
+        ...     confidences=[1.0],
+        ...     waypoints=[[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]],
+        ... )
+        # Get the number of modes.
+        >>> len(past)
+        1
+        # Access the shape of waypoints matrix: (M, T, 3).
+        >>> past.shape
+        (1, 2, 3)
+        # Access waypoints as subscriptable.
+        >>> past[0] # for mode0
+        array([[1., 1., 1.],
+               [2., 2., 2.]])
+        >>> past[0, 0] # point0 at mode0
+        array([1., 1., 1.])
+        # Access confidence and waypoints for each mode as iterable.
+        >>> for i, (timestamp, confidence, waypoints) in past:
+        ...     print(f"Mode{i}: {timestamp}, {confidence}, {waypoints}")
+        ...
+        Mode0: 1.0, 1.0, [[1. 1. 1.] [2. 2. 2.]]
+    """
 
     def _check_dims(self) -> None:
         super()._check_dims()
@@ -140,7 +141,37 @@ class Past(Trajectory):
 
 
 @define
-class Future(Trajectory):
+class Future(_Trajectory):
     """Represent the future trajectory features.
 
-    Note that the expected shape of waypoints is (M, T, D)."""
+    Note that the expected shape of waypoints is (M, T, D).
+
+    Attributes:
+        timestamps (NDArrayInt): Sequence of timestamps (T,).
+        confidences (NDArrayFloat): Confidences array for each mode (M,).
+        waypoints (Trajectory): Waypoints matrix in the shape of (M, T, 3).
+
+    Examples:
+        >>> future = Future(
+        ...     timestamps=[1.0, 2.0]
+        ...     confidences=[1.0],
+        ...     waypoints=[[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]],
+        ... )
+        # Get the number of modes.
+        >>> len(future)
+        1
+        # Access the shape of waypoints matrix: (M, T, 3).
+        >>> future.shape
+        (1, 2, 3)
+        # Access waypoints as subscriptable.
+        >>> future[0] # for mode0
+        array([[1., 1., 1.],
+               [2., 2., 2.]])
+        >>> future[0, 0] # point0 at mode0
+        array([1., 1., 1.])
+        # Access confidence and waypoints for each mode as iterable.
+        >>> for i, (timestamp, confidence, waypoints) in future:
+        ...     print(f"Mode{i}: {timestamp}, {confidence}, {waypoints}")
+        ...
+        Mode0: 1.0, 1.0, [[1. 1. 1.] [2. 2. 2.]]
+    """

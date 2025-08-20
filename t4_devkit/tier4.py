@@ -17,7 +17,7 @@ from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import CamIntrinsicLike, Vector3Like
+    from t4_devkit.typing import CamIntrinsicLike, Vector3
 
     from .dataclass import BoxLike
     from .schema import (
@@ -658,7 +658,7 @@ class Tier4:
         sample_record: Sample = self.get("sample", sd_record.sample_token)
         return list(map(self.get_box2d, sample_record.ann_2ds))
 
-    def box_velocity(self, sample_annotation_token: str, max_time_diff: float = 1.5) -> Vector3Like:
+    def box_velocity(self, sample_annotation_token: str, max_time_diff: float = 1.5) -> Vector3:
         """Return the velocity of an annotation.
         If corresponding annotation has a true velocity, this returns it.
         Otherwise, this estimates the velocity by computing the difference
@@ -671,7 +671,7 @@ class Tier4:
                 between consecutive samples.
 
         Returns:
-            Vector3Like: Velocity in the order of (vx, vy, vz) in m/s.
+            Vector3: Velocity in the order of (vx, vy, vz) in m/s.
 
         TODO:
             Currently, velocity coordinates is with respect to map, but
