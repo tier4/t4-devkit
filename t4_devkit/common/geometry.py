@@ -8,7 +8,7 @@ from t4_devkit.schema import VisibilityLevel
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box3D
-    from t4_devkit.typing import NDArrayF64
+    from t4_devkit.typing import CameraDistortionLike, CameraIntrinsicLike, NDArrayF64
 
 
 __all__ = ("view_points", "is_box_in_image")
@@ -16,8 +16,8 @@ __all__ = ("view_points", "is_box_in_image")
 
 def view_points(
     points: NDArrayF64,
-    intrinsic: NDArrayF64,
-    distortion: NDArrayF64 | None = None,
+    intrinsic: CameraIntrinsicLike,
+    distortion: CameraDistortionLike | None = None,
     *,
     normalize: bool = True,
 ) -> NDArrayF64:
@@ -27,8 +27,8 @@ def view_points(
 
     Args:
         points (NDArrayF64): Matrix of points, which is the shape of (3, n) and (x, y, z) is along each column.
-        intrinsic (NDArrayF64): nxn camera intrinsic matrix (n <= 4).
-        distortion (NDArrayF64 | None, optional): Camera distortion coefficients, which is the shape of (n,) (n >= 5).
+        intrinsic (CameraIntrinsicLike): nxn camera intrinsic matrix (n <= 4).
+        distortion (CameraDistortionLike | None, optional): Camera distortion coefficients, which is the shape of (n,) (n >= 5).
         normalize (bool, optional): Whether to normalize the remaining coordinate (along the 3rd axis).
 
     Returns:
@@ -75,7 +75,7 @@ def view_points(
 
 def is_box_in_image(
     box: Box3D,
-    intrinsic: NDArrayF64,
+    intrinsic: CameraIntrinsicLike,
     img_size: tuple[int, int],
     visibility: VisibilityLevel = VisibilityLevel.NONE,
 ) -> bool:
@@ -83,7 +83,7 @@ def is_box_in_image(
 
     Args:
         box (Box3D): The box to be checked.
-        intrinsic (NDArrayF64): 3x3 camera intrinsic matrix.
+        intrinsic (CameraIntrinsicLike): 3x3 camera intrinsic matrix.
         img_size (tuple[int, int]): Image size in the order of (width, height).
         visibility (VisibilityLevel, optional): Enum member of VisibilityLevel.
 

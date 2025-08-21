@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from numbers import Number
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import ScalarLike
 
 __all__ = ("us2sec", "sec2us")
 
 
-def us2sec(timestamp: Number) -> float:
+def us2sec(timestamp: ScalarLike) -> float:
     """Convert timestamp from micro seconds [us] to seconds [s].
 
     Args:
-        timestamp (Number): Timestamp in [us].
+        timestamp (ScalarLike): Timestamp in [us].
 
     Returns:
         Timestamp in [s].
@@ -17,11 +20,11 @@ def us2sec(timestamp: Number) -> float:
     return 1e-6 * timestamp
 
 
-def sec2us(timestamp: Number) -> float:
+def sec2us(timestamp: ScalarLike) -> float:
     """Convert timestamp from seconds [s] to micro seconds [us].
 
     Args:
-        timestamp (Number): Timestamp in [s].
+        timestamp (ScalarLike): Timestamp in [s].
 
     Returns:
         Timestamp in [us].

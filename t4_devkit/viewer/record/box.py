@@ -5,11 +5,15 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 import rerun as rr
 import rerun.components as rrc
-from attrs import define, field
+from attrs import converters, define, field
+
+from t4_devkit.typing import Roi, Vector3
+from t4_devkit.typing.aliases import RoiLike
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future
-    from t4_devkit.typing import QuaternionLike, RoiLike, Vector3Like
+    from t4_devkit.typing import RotationLike, Vector3Like
+
 
 __all__ = ["BatchBox3D", "BatchBox2D"]
 
@@ -30,12 +34,12 @@ class BatchBox3D:
     class Record:
         """Inner class to represent a record of 3D box instance for rendering."""
 
-        center: Vector3Like
+        center: Vector3 = field(converter=Vector3)
         rotation: rr.Quaternion
-        size: Vector3Like
+        size: Vector3 = field(converter=Vector3)
         class_id: int
         uuid: int | None = field(default=None)
-        velocity: Vector3Like | None = field(default=None)
+        velocity: Vector3 | None = field(default=None, converter=converters.optional(Vector3))
         future: Future | None = field(default=None)
 
     @overload
@@ -51,7 +55,7 @@ class BatchBox3D:
     def append(
         self,
         center: Vector3Like,
-        rotation: QuaternionLike,
+        rotation: RotationLike,
         size: Vector3Like,
         class_id: int,
         uuid: str | None = None,
@@ -62,7 +66,7 @@ class BatchBox3D:
 
         Args:
             center (Vector3Like): 3D position in the order of (x, y, z).
-            rotation (QuaternionLike): Quaternion.
+            rotation (RotationLike): Quaternion.
             size (Vector3Like): Box size in the order of (width, height, length).
             class_id (int): Class ID.
             uuid (str | None, optional): Unique identifier.
@@ -94,7 +98,7 @@ class BatchBox3D:
     def _append_with_elements(
         self,
         center: Vector3Like,
-        rotation: QuaternionLike,
+        rotation: RotationLike,
         size: Vector3Like,
         class_id: int,
         velocity: Vector3Like | None = None,
@@ -198,7 +202,7 @@ class BatchBox2D:
     class Record:
         """Inner class to represent a record of 2D box instance for rendering."""
 
-        roi: RoiLike
+        roi: Roi = field(converter=Roi)
         class_id: int
         uuid: str | None = field(default=None)
 
@@ -234,7 +238,7 @@ class BatchBox2D:
 
         if box.roi is not None:
             self._append_with_elements(
-                roi=box.roi.roi,
+                roi=box.roi,
                 class_id=self.label2id[box.semantic_label.name],
                 uuid=box.uuid,
             )

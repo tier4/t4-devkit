@@ -48,7 +48,7 @@ def test_render_box2ds(dummy_viewer, dummy_box2ds) -> None:
     dummy_viewer.render_box2ds(seconds, dummy_box2ds)
 
     camera = "camera"
-    rois = [box.roi.roi for box in dummy_box2ds]
+    rois = [box.roi for box in dummy_box2ds]
     class_ids = [dummy_viewer.label2id[box.semantic_label.name] for box in dummy_box2ds]
     uuids = [box.uuid for box in dummy_box2ds]
 
