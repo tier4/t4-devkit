@@ -27,6 +27,7 @@ nav:
       - t4_devkit.dataclass: apis/dataclass.md
       - t4_devkit.filtering: apis/filtering.md
       - t4_devkit.viewer: apis/viewer.md
+      - t4_devkit.typing: apis/typing.md
       - t4_devkit.common: apis/common.md
 
 theme:
