@@ -459,12 +459,12 @@ def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
 
 
 def _extract_position_and_rotation_from_matrix(
-    matrix: NDArray | HomogeneousMatrix,
+    matrix: Matrix4x4Like | HomogeneousMatrix,
 ) -> tuple[Vector3, Quaternion]:
     """Extract position and rotation from a homogeneous matrix.
 
     Args:
-        matrix (NDArray | HomogeneousMatrix): 4x4 matrix or `HomogeneousMatrix` object.
+        matrix (Matrix4x4Like | HomogeneousMatrix): 4x4 matrix or `HomogeneousMatrix` object.
 
     Raises:
         ValueError: Matrix shape must be 4x4.

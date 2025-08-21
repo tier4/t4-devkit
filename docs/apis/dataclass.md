@@ -15,8 +15,6 @@
     options:
         show_bases: false
 
-::: t4_devkit.dataclass.roi
-
 ::: t4_devkit.dataclass.shape
 
 ::: t4_devkit.dataclass.trajectory
