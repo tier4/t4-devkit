@@ -57,8 +57,8 @@ def main(
         print("✅ No exceptions occurred!!")
     else:
         print("⚠️  Encountered some exceptions!!")
-        headers = ["DatasetID", "Version", "Status", "Message"]
-        table = [[e.dataset_id, e.version, e.status, e.message] for e in exceptions]
+        headers = ["DatasetID", "Version", "Status", "Messages"]
+        table = [[e.dataset_id, e.version, e.status, e.messages] for e in exceptions]
         print(tabulate(table, headers=headers, tablefmt="pretty"))
 
     if output:

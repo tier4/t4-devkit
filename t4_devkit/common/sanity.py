@@ -4,9 +4,10 @@ import warnings
 from enum import Enum, unique
 from pathlib import Path
 
-from attrs import define
+from attrs import define, field
 
-from t4_devkit import Tier4, load_metadata
+from t4_devkit import load_metadata, load_table
+from t4_devkit.schema import SchemaName
 
 __all__ = ["DBException", "sanity_check"]
 
@@ -18,14 +19,35 @@ class DBException:
     Attributes:
         dataset_id (str): Dataset ID.
         version (str | None): Dataset version.
-        status (DBStatus): Status of the dataset.
-        message (str): Error or warning message.
+        messages (list[ExceptionMessage]): Error or warning messages.
     """
 
     dataset_id: str
     version: str | None
+    messages: list[ExceptionMessage] = field(factory=list, init=False)
+
+    def add_message(self, message: ExceptionMessage) -> None:
+        self.messages.append(message)
+
+    def is_ok(self) -> bool:
+        """Return True if the status is OK."""
+        return all(m.is_ok() for m in self.messages)
+
+    @property
+    def status(self) -> DBStatus:
+        if self.is_ok():
+            return DBStatus.OK
+        elif any(m.status == DBStatus.ERROR for m in self.messages):
+            return DBStatus.ERROR
+        else:
+            return DBStatus.WARNING
+
+
+@define
+class ExceptionMessage:
+    name: str
     status: DBStatus
-    message: str | None = None
+    message: str
 
     def is_ok(self) -> bool:
         """Return True if the status is OK."""
@@ -63,29 +85,18 @@ def sanity_check(
         else:
             warnings.filterwarnings("ignore")
 
-        try:
-            t4 = Tier4(data_root=db_root, revision=revision, verbose=False)
-            exception = DBException(
-                dataset_id=t4.dataset_id,
-                version=t4.version,
-                status=DBStatus.OK,
-            )
-        except Warning as w:
-            metadata = load_metadata(db_root)
+        metadata = load_metadata(db_root)
+        exception = DBException(dataset_id=metadata.dataset_id, version=metadata.version)
+        for schema in SchemaName:
+            try:
+                _ = load_table(metadata, schema)
+            except Warning as w:
+                exception.add_message(
+                    ExceptionMessage(name=schema.name, status=DBStatus.WARNING, message=str(w))
+                )
+            except Exception as e:
+                exception.add_message(
+                    ExceptionMessage(name=schema.name, status=DBStatus.ERROR, message=str(e))
+                )
 
-            exception = DBException(
-                dataset_id=metadata.dataset_id,
-                version=metadata.version,
-                status=DBStatus.WARNING,
-                message=str(w),
-            )
-        except Exception as e:
-            metadata = load_metadata(db_root)
-
-            exception = DBException(
-                dataset_id=metadata.dataset_id,
-                version=metadata.version,
-                status=DBStatus.ERROR,
-                message=str(e),
-            )
     return exception
