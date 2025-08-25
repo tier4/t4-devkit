@@ -205,7 +205,7 @@ class Tier4:
 
         if verbose:
             for schema in SchemaName:
-                print(f"{len(self.get_table(schema))} {schema.value}")
+                print(f"{len(self._get_table(schema))} {schema.value}")
             elapsed_time = time.time() - start_time
             print(f"Done loading in {elapsed_time:.3f} seconds.\n======")
 
@@ -243,7 +243,7 @@ class Tier4:
 
         self._token2idx: dict[str, dict[str, int]] = {
             schema.value: {
-                table.token: idx for idx, table in enumerate(self.get_table(schema.value))
+                table.token: idx for idx, table in enumerate(self._get_table(schema.value))
             }
             for schema in SchemaName
         }
@@ -313,7 +313,7 @@ class Tier4:
             elapsed_time = time.time() - start_time
             print(f"Done reverse indexing in {elapsed_time:.3f} seconds.\n======")
 
-    def get_table(self, schema: str | SchemaName) -> list[SchemaTable]:
+    def _get_table(self, schema: str | SchemaName) -> list[SchemaTable]:
         """Return the list of dataclasses corresponding to the schema table.
 
         Args:
@@ -324,19 +324,7 @@ class Tier4:
         """
         return getattr(self, SchemaName(schema))
 
-    def get(self, schema: str | SchemaName, token: str) -> SchemaTable:
-        """Return a record identified by the associated token.
-
-        Args:
-            schema (str | SchemaName): Name of schema.
-            token (str): Token to identify the specific record.
-
-        Returns:
-            Table record of the corresponding token.
-        """
-        return self.get_table(schema)[self.get_idx(schema, token)]
-
-    def get_idx(self, schema: str | SchemaName, token: str) -> int:
+    def _get_idx(self, schema: str | SchemaName, token: str) -> int:
         """Return the index of the record in a table in constant runtime.
 
         Args:
@@ -352,6 +340,18 @@ class Tier4:
         if self._token2idx[schema].get(token) is None:
             raise KeyError(f"{token} is not registered in {schema}.")
         return self._token2idx[schema][token]
+
+    def get(self, schema: str | SchemaName, token: str) -> SchemaTable:
+        """Return a record identified by the associated token.
+
+        Args:
+            schema (str | SchemaName): Name of schema.
+            token (str): Token to identify the specific record.
+
+        Returns:
+            Table record of the corresponding token.
+        """
+        return self._get_table(schema)[self._get_idx(schema, token)]
 
     def get_sample_data_path(self, sample_data_token: str) -> str:
         """Return the file path to a raw data recorded in `sample_data`.
