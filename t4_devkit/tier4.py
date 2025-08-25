@@ -5,7 +5,7 @@ import re
 import time
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, ClassVar, Sequence
 
 import numpy as np
 from attrs import define
@@ -57,6 +57,8 @@ class DBMetadata:
     data_root: str
     dataset_id: str
     version: str | None
+
+    schema_dir: ClassVar[str] = "annotation"
 
 
 def load_metadata(db_root: str, revision: str | None = None) -> DBMetadata:
@@ -116,8 +118,6 @@ def load_table(metadata: DBMetadata, schema: SchemaName) -> list[SchemaTable]:
 
 class Tier4:
     """Database class for T4 dataset to help query and retrieve information from the database."""
-
-    schema_dir: str = "annotation"
 
     def __init__(
         self,
@@ -228,6 +228,12 @@ class Tier4:
         """Return the dataset version, or None if it is failed to lookup."""
         return self._metadata.version
 
+    @property
+    def schema_dir(self) -> str:
+        """Return the path to schema directory."""
+        return self._metadata.schema_dir
+
+    @property
     def __make_reverse_index__(self, verbose: bool) -> None:
         """De-normalize database to create reverse indices for common cases.
 
