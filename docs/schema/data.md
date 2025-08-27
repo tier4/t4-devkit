@@ -47,7 +47,7 @@ data/
 
 ## Radar Object
 
-Radar directory contains radar object track
+Radar directory contains radar object tracks
 
 ```shell
 data/
