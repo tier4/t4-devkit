@@ -86,7 +86,7 @@ ego_pose {
   "rotation":           <[float;4]> -- Rotation of the ego vehicle. Coordinate system orientation as quaternion: (w, x, y, z).
   "twist":              <option[[float;6]]> -- Linear and angular velocity in the local coordinate system of the ego vehicle. Coordinate system velocity as vector: (vx, vy, vz, yaw_rate, pitch_rate, roll_rate).
   "acceleration":       <option[[float;3]]> -- Linear acceleration in the **local** coordinate system of the ego vehicle, (ax, ay, az).
-  "geocoorinate":       <option[[float;3]]> -- Geographical coordinates of the ego vehicle. Coordinate system origin in meters: (latitude, longitude, altitude).
+  "geocoordinate":      <option[[float;3]]> -- Geographical coordinates of the ego vehicle. Coordinate system origin in meters: (latitude, longitude, altitude).
 }
 ```
 
