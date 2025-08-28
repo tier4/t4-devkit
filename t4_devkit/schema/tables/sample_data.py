@@ -104,7 +104,9 @@ class SampleData(SchemaBase):
     next: str = field(validator=validators.instance_of(str))  # noqa: A003
     prev: str = field(validator=validators.instance_of(str))
     is_valid: bool = field(default=True, validator=validators.instance_of(bool))
-    info_filename: str | None = field(default=None, validator=validators.optional(validators.instance_of(str)))
+    info_filename: str | None = field(
+        default=None, validator=validators.optional(validators.instance_of(str))
+    )
 
     # shortcuts
     modality: SensorModality | None = field(init=False, default=None)
