@@ -8,7 +8,9 @@ A toolkit to load and operate T4 dataset.
 
 ## Getting started
 
-📘 [Documentation](https://tier4.github.io/t4-devkit/) |
+<!-- TODO(ktro2828): 📝 [Dataset Schema](https://tier4.github.io/t4-devkit/schema) | -->
+
+🏠 [Documentation](https://tier4.github.io/t4-devkit/) |
 ⚙️ [Tutorial](https://tier4.github.io/t4-devkit/tutorials/initialize/) |
 🧰 [API Reference](https://tier4.github.io/t4-devkit/apis/tier4/)
 
@@ -45,10 +47,6 @@ The virtual environment can be activated with:
 ```shell
 source .venv/bin/activate
 ```
-
-## Dataset Format
-
-For details of T4 dataset format, please refer to [tier4_perception_dataset/t4_format_3d_detailed.md](https://github.com/tier4/tier4_perception_dataset/blob/main/docs/t4_format_3d_detailed.md).
 
 ## Feature supports
 

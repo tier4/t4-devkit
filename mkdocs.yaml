@@ -6,6 +6,10 @@ nav:
   - Home:
       - t4-devkit: index.md
       - Installation: install.md
+  - Dataset Schema:
+      - Home: schema/index.md
+      - Schema Tables: schema/table.md
+      - Sensor Data: schema/data.md
   - Tutorials:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
