@@ -221,6 +221,7 @@ def sample_data_dict() -> dict:
         "ego_pose_token": "d6779d73ac9c5a1f3f372aa182bc8158",
         "calibrated_sensor_token": "0c434d5a27ef0404331549435b9861e4",
         "filename": "data/camera/0.jpg",
+        "info_filename": "",
         "fileformat": "jpg",
         "width": 1440,
         "height": 1080,

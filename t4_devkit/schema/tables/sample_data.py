@@ -84,6 +84,7 @@ class SampleData(SchemaBase):
         prev (str): Foreign key pointing the sample_data that precedes this in time.
             Empty if start of scene.
         is_valid (bool): True if this data is valid, else False. Invalid data should be ignored.
+        info_filename (str): Relative path to metainfo data-blob on disk.
 
     Shortcuts:
     ---------
@@ -103,6 +104,9 @@ class SampleData(SchemaBase):
     next: str = field(validator=validators.instance_of(str))  # noqa: A003
     prev: str = field(validator=validators.instance_of(str))
     is_valid: bool = field(default=True, validator=validators.instance_of(bool))
+    info_filename: str | None = field(
+        default=None, validator=validators.optional(validators.instance_of(str))
+    )
 
     # shortcuts
     modality: SensorModality | None = field(init=False, default=None)
