@@ -95,8 +95,6 @@ def load_metadata(db_root: str, revision: str | None = None) -> DBMetadata:
 class Tier4:
     """Database class for T4 dataset to help query and retrieve information from the database."""
 
-    schema_dir: str = "annotation"
-
     def __init__(
         self,
         data_root: str,
@@ -151,7 +149,7 @@ class Tier4:
 
         start_time = time.time()
         if verbose:
-            print(f"======\nLoading T4 tables in `{self.schema_dir}`...")
+            print("======\nLoading T4 tables...")
 
         # assign tables explicitly
         self.attribute: list[Attribute] = self.__load_table__(SchemaName.ATTRIBUTE)
@@ -214,6 +212,11 @@ class Tier4:
         """Return the path to map directory."""
         return osp.join(self.data_root, "map")
 
+    @property
+    def bag_dir(self) -> str:
+        """Return the path to ROS bag directory."""
+        return osp.join(self.data_root, "input_bag")
+
     def __load_table__(self, schema: SchemaName) -> list[SchemaTable]:
         """Load schema table from a json file.
 
@@ -226,7 +229,7 @@ class Tier4:
         Returns:
             Loaded table data saved in `.json`.
         """
-        filepath = osp.join(self.data_root, self.schema_dir, schema.filename)
+        filepath = osp.join(self.annotation_dir, schema.filename)
         if not osp.exists(filepath) and schema.is_optional():
             return []
 
