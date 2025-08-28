@@ -133,3 +133,9 @@ def test_render_calibration(dummy_viewer, dummy_camera_calibration) -> None:
         camera_distortion=[0, 0, 0, 0, 0],
     )
     dummy_viewer.render_calibration(sensor, calibration)
+
+
+def test_render_map(dummy_viewer) -> None:
+    """Test rendering map with `RerunViewer`."""
+    lanelet_path = "tests/sample/map/lanelet2_map.osm"
+    dummy_viewer.render_map(lanelet_path)
