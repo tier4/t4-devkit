@@ -64,16 +64,3 @@ source .venv/bin/activate
 |         | Raw PointCloud on Image     |   ✅    |
 | Map     | Vector Map                  |         |
 |         | Ego Position on Street View |   ✅    |
-
-### Evaluation
-
-| Feature | Task                    | Support |
-| :------ | :---------------------- | :-----: |
-| 3D      | 3D Detection            |         |
-|         | 3D Tracking             |         |
-|         | 3D Motion Prediction    |         |
-|         | PointCloud Segmentation |         |
-| 2D      | 2D Detection            |         |
-|         | 2D Tracking             |         |
-|         | Image Segmentation      |         |
-|         | Classification          |         |
