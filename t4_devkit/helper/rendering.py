@@ -333,7 +333,7 @@ class RenderingHelper:
     def _render_map(self, viewer: RerunViewer) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
         if not osp.exists(lanelet_path):
-            warnings.warn("Lanelet map not found")
+            warnings.warn(f"Lanelet map not found at {lanelet_path}")
             return
 
         viewer.render_map(lanelet_path)
