@@ -103,7 +103,7 @@ For example, even if an object has the same instance in scene A and B, it should
 instance {
   "token":                  <str> -- Unique record identifier.
   "category_token":         <str> -- Foreign key to the `Category` table.
-  "instance_name":          <str> -- Consists of the dataset name and the instance ID separated by colon `:`.
+  "instance_name":          <str> -- Consists of the dataset name and the instance ID separated by colons `::`, such as `<DATASET_ID>::<INSTANCE_ID>`.
   "nbr_annotations":        <int> -- Number of annotations associated with this instance.
   "first_annotation_token": <str> -- Foreign key to the first `SampleAnnotation` table associated with this instance.
   "last_annotation_token":  <str> -- Foreign key to the last `SampleAnnotation` table associated with this instance.
