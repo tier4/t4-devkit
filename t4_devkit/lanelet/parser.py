@@ -13,7 +13,7 @@ __all__ = ["LaneletParser"]
 
 @define
 class Node:
-    """Represents an OSM node (point) with coodrinates and attributes."""
+    """Represents an OSM node (point) with coordinates and attributes."""
 
     id: str
     lat: float
@@ -168,7 +168,7 @@ class LaneletParser:
         ]
 
 
-def _parse_nodes(root: ET.Element[str]) -> dict[str, Node]:
+def _parse_nodes(root: ET.Element) -> dict[str, Node]:
     output: dict[str, Node] = {}
     for node_elem in root.findall("node"):
         node_id = node_elem.get("id")
@@ -205,7 +205,7 @@ def _parse_nodes(root: ET.Element[str]) -> dict[str, Node]:
     return output
 
 
-def _parse_ways(root: ET.Element[str]) -> dict[str, Way]:
+def _parse_ways(root: ET.Element) -> dict[str, Way]:
     output: dict[str, Way] = {}
     for way_elem in root.findall("way"):
         way_id = way_elem.get("id")
@@ -220,7 +220,7 @@ def _parse_ways(root: ET.Element[str]) -> dict[str, Way]:
     return output
 
 
-def _parse_relations(root: ET.Element[str]) -> dict[str, Relation]:
+def _parse_relations(root: ET.Element) -> dict[str, Relation]:
     output: dict[str, Relation] = {}
     for relation_elem in root.findall("relation"):
         relation_id = relation_elem.get("id")

@@ -155,7 +155,7 @@ def render_ways(parser: LaneletParser, root_entity: str) -> None:
         elif "curbstone" == way_type:
             color = LANELET_COLORS["curbstone"]
             element_type = "road_border/curbstone"
-        elif "road_border" == "subtype":
+        elif "road_border" == subtype:
             color = LANELET_COLORS["road_border"]
             element_type = "road_border/road_border"
         else:
