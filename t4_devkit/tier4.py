@@ -204,6 +204,16 @@ class Tier4:
         """Return the dataset version, or None if it is failed to lookup."""
         return self._metadata.version
 
+    @property
+    def annotation_dir(self) -> str:
+        """Return the path to annotation directory."""
+        return osp.join(self.data_root, "annotation")
+
+    @property
+    def map_dir(self) -> str:
+        """Return the path to map directory."""
+        return osp.join(self.data_root, "map")
+
     def __load_table__(self, schema: SchemaName) -> list[SchemaTable]:
         """Load schema table from a json file.
 

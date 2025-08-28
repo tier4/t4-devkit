@@ -3,6 +3,7 @@ from __future__ import annotations
 import concurrent
 import concurrent.futures
 import os.path as osp
+import warnings
 from concurrent.futures import Future
 from typing import TYPE_CHECKING, Sequence
 
@@ -139,6 +140,8 @@ class RenderingHelper:
             save_dir=save_dir,
         )
 
+        self._render_map(viewer)
+
         scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
         max_timestamp_us = first_sample.timestamp + sec2us(max_time_seconds)
@@ -241,6 +244,8 @@ class RenderingHelper:
             save_dir=save_dir,
         )
 
+        self._render_map(viewer)
+
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
@@ -296,6 +301,8 @@ class RenderingHelper:
         app_id = f"pointcloud@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=False, save_dir=save_dir)
 
+        self._render_map(viewer)
+
         # search first lidar sample data token
         first_lidar_token: str | None = None
         for sensor in self._t4.sensor:
@@ -322,6 +329,14 @@ class RenderingHelper:
                 ignore_distortion=ignore_distortion,
             ),
         )
+
+    def _render_map(self, viewer: RerunViewer) -> None:
+        lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
+        if not osp.exists(lanelet_path):
+            warnings.warn("Lanelet map not found")
+            return
+
+        viewer.render_map(lanelet_path)
 
     def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
         sample_data: SampleData = self._t4.get("sample_data", sample_data_token)
