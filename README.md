@@ -8,9 +8,8 @@ A toolkit to load and operate T4 dataset.
 
 ## Getting started
 
-<!-- TODO(ktro2828): 📝 [Dataset Schema](https://tier4.github.io/t4-devkit/schema) | -->
-
 🏠 [Documentation](https://tier4.github.io/t4-devkit/) |
+📝 [Dataset Schema](https://tier4.github.io/t4-devkit/schema) |
 ⚙️ [Tutorial](https://tier4.github.io/t4-devkit/tutorials/initialize/) |
 🧰 [API Reference](https://tier4.github.io/t4-devkit/apis/tier4/)
 
