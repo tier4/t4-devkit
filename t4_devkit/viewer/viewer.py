@@ -16,7 +16,12 @@ from t4_devkit.typing import Quaternion, Roi, Vector3
 
 from .color import distance_color
 from .geography import calculate_geodetic_point
-from .lanelet import render_lanelets, render_traffic_elements, render_ways
+from .lanelet import (
+    render_geographic_borders,
+    render_lanelets,
+    render_traffic_elements,
+    render_ways,
+)
 from .record import BatchBox2D, BatchBox3D, BatchSegmentation2D
 
 if TYPE_CHECKING:
@@ -649,7 +654,10 @@ class RerunViewer:
             filepath (str): Path to OSM file.
         """
         parser = LaneletParser(filepath, verbose=False)
+
         root_entity = format_entity(self.map_entity, "vector_map")
         render_lanelets(parser, root_entity)
         render_traffic_elements(parser, root_entity)
         render_ways(parser, root_entity)
+
+        render_geographic_borders(parser, f"{self.geocoordinate_entity}/vector_map")

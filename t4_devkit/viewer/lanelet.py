@@ -133,9 +133,9 @@ def render_ways(parser: LaneletParser, root_entity: str) -> None:
         if not (
             "line_thin" in way_type
             or "line_thick" in way_type
-            or "road_border" in way_type
             or "curbstone" in way_type
             or "virtual" == way_type
+            or "road_border" == subtype
         ):
             continue
 
@@ -149,13 +149,13 @@ def render_ways(parser: LaneletParser, root_entity: str) -> None:
         elif "dashed" in subtype:
             color = LANELET_COLORS["dashed_line"]
             element_type = "road_marking/dashed"
-        elif way_type == "virtual":
+        elif "virtual" == way_type:
             color = LANELET_COLORS["virtual_line"]
             element_type = "road_marking/virtual"
-        elif way_type == "curbstone":
+        elif "curbstone" == way_type:
             color = LANELET_COLORS["curbstone"]
             element_type = "road_border/curbstone"
-        elif subtype == "road_border":
+        elif "road_border" == "subtype":
             color = LANELET_COLORS["road_border"]
             element_type = "road_border/road_border"
         else:
@@ -171,5 +171,34 @@ def render_ways(parser: LaneletParser, root_entity: str) -> None:
                 colors=[color],
                 radii=[0.1 if "thin" in way_type else 0.2],
             ),
+            static=True,
+        )
+
+
+def render_geographic_borders(parser: LaneletParser, root_entity: str) -> None:
+    """Render road borders on geographical space.
+
+    Args:
+        parser (LaneletParser): The LaneletParser object.
+        root_entity (str): The root entity path.
+    """
+    for way in parser.ways.values():
+        way_type = way.tags.get("type", "")
+        subtype = way.tags.get("subtype", "")
+
+        if not ("curbstone" == way_type or "road_border" == subtype):
+            continue
+
+        coords = parser.way_coordinates(way, as_geographic=True)
+        lat_lon = np.array([c[:2] for c in coords])
+        if len(coords) < 2:
+            continue
+
+        color = LANELET_COLORS["road_border"]
+        entity_path = f"{root_entity}/{way.id}"
+
+        rr.log(
+            entity_path,
+            rr.GeoLineStrings(lat_lon=[lat_lon], colors=[color], radii=[2.0]),
             static=True,
         )

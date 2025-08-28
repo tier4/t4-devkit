@@ -131,22 +131,38 @@ class LaneletParser:
     def relations(self) -> dict[str, Relation]:
         return self._relations
 
-    def coordinates(self, node: Node) -> Vector3:
-        """Return coordinates of a node, preferring local coordinates if available."""
-        if node.local_x is not None and node.local_y is not None:
+    def coordinates(self, node: Node, *, as_geographic: bool = False) -> Vector3:
+        """Return coordinates of a node, preferring local coordinates if available.
+
+        Args:
+            node (Node): The node to get coordinates for.
+            as_geographic (bool): Whether to return coordinates in geographic (lat, lon, elevation) format.
+
+        Returns:
+            A Vector3 coordinate for the node.
+        """
+        if node.local_x is not None and node.local_y is not None and not as_geographic:
             x, y = node.local_x, node.local_y
         else:
             # Convert lat/lon to a simple projection (not accurate for large areas)
-            x, y = node.lon * 111320, node.lat * 110540
+            x, y = node.lat, node.lon
 
         z = node.ele * self.elevation_scale if node.ele is not None else self.default_elevation
 
         return Vector3(x, y, z)
 
-    def way_coordinates(self, way: Way) -> list[Vector3]:
-        """Return coordinates of a way, preferring local coordinates if available."""
+    def way_coordinates(self, way: Way, *, as_geographic: bool = False) -> list[Vector3]:
+        """Return coordinates of a way, preferring local coordinates if available.
+
+        Args:
+            way (Way): The way to get coordinates for.
+            as_geographic: Whether to return coordinates in geographic (lat, lon, elevation) format.
+
+        Returns:
+            A list of Vector3 coordinates for the way.
+        """
         return [
-            self.coordinates(self.nodes[node_ref])
+            self.coordinates(self.nodes[node_ref], as_geographic=as_geographic)
             for node_ref in way.node_refs
             if node_ref in self.nodes
         ]
