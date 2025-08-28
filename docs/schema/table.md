@@ -195,7 +195,7 @@ sample_data {
   "ego_pose_token":           <str> -- Foreign key to the `EgoPose` table.
   "calibrated_sensor_token":  <str> -- Foreign key to the `CalibratedSensor` table.
   "filename":                 <str> -- Relative path from a dataset root directory to the sensor data file.
-  "fileformat":               <enum[jpg, png, pcd, bin, pcd.bin]> -- File format of the sensor data file.
+  "fileformat":               <enum["jpg", "png", "pcd", "bin", "pcd.bin"]> -- File format of the sensor data file.
   "width":                    <int> -- Width of the image in pixels.
   "height":                   <int> -- Height of the image in pixels.
   "timestamp":                <int> -- unix timestamp in microseconds.
@@ -236,7 +236,7 @@ A description of sensor types.
 sensor {
   "token":                    <str> -- Unique record identifier.
   "channel":                  <str> -- Channel of the sensor.
-  "modality":                 <enum[camera, lidar, radar]> -- Modality of the sensor.
+  "modality":                 <enum["camera", "lidar", "radar"]> -- Modality of the sensor.
 }
 ```
 
@@ -256,7 +256,7 @@ Visibility level is classified into 4 bins below:
 ```json
 visibility {
   "token":                    <str> -- Unique record identifier.
-  "level":                    <enum[full, most, partial, none]> -- Level of visibility of the annotation.
+  "level":                    <enum["full", "most", "partial", "none"]> -- Level of visibility of the annotation.
   "description":              <str> -- Description of the visibility level.
 }
 ```
@@ -326,7 +326,7 @@ In vehicle state, some fields have special types as follows:
 | Type             | Definition                                                                          |
 | ---------------- | ----------------------------------------------------------------------------------- |
 | `Indicators`     | `{"left": <IndicatorState>, "right": <IndicatorState>, "hazard": <IndicatorState>}` |
-| `IndicatorState` | `enum[on, off]`                                                                     |
+| `IndicatorState` | `enum["on", "off"]`                                                                 |
 | `AdditionalInfo` | `{"speed": <option[float]>}`                                                        |
 
 ```json
@@ -338,7 +338,7 @@ vehicle_state {
   "steer_pedal":              <option[float]> -- Steering wheel position percentage.
   "steering_tire_angle":      <option[float]> -- Steering tire angle in radians.
   "steering_wheel_angle":     <option[float]> -- Steering wheel angle in radians.
-  "shift_state":              <option[enum[PARK, REVERSE, NEUTRAL, HIGH, FORWARD, LOW, NONE]]> -- Shift state of the vehicle.
+  "shift_state":              <option[enum["PARK", "REVERSE", "NEUTRAL", "HIGH", "FORWARD", "LOW", "NONE"]]> -- Shift state of the vehicle.
   "indicators":               <option[Indicators]> -- Indicator state of the vehicle.
   "additional_info":          <option[AdditionalInfo]> -- Additional information about the vehicle state.
 }
