@@ -62,5 +62,5 @@ source .venv/bin/activate
 |         | Image Segmentation          |   ✅    |
 |         | Raw Image                   |   ✅    |
 |         | Raw PointCloud on Image     |   ✅    |
-| Map     | Vector Map                  |         |
+| Map     | Vector Map                  |   ✅    |
 |         | Ego Position on Street View |   ✅    |

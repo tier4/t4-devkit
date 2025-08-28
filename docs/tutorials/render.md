@@ -60,7 +60,9 @@ When you specify `save_dir`, viewer will not be spawned on your screen.
 
 ## Rendering with `RerunViewer`
 
-If you want to visualize your components, such as boxes that your ML-model estimated, `RerunViewer` allows you to visualize these components.  
+### Rendering boxes
+
+If you want to visualize your components, such as boxes that your ML-model estimated, `RerunViewer` allows you to visualize these components.
 For details, please refer to the API references.
 
 ```python
@@ -80,4 +82,15 @@ It allows you to render boxes by specifying elements of boxes directly.
 >>> viewer.render_box3ds(seconds, centers, rotations, sizes, class_ids)
 # Rendering 2D boxes
 >>> viewer.render_box2ds(seconds, rois, class_ids)
+```
+
+### Rendering lanelet map
+
+![Render Lanelet Map](../assets/render_map.png)
+
+You can also render lanelet map by specifying `lanelet_path`:
+
+```python
+# Rendering lanelet map
+>>> viewer.render_map(lanelet_path)
 ```
