@@ -175,7 +175,7 @@ class RenderingHelper:
                     self._render_annotation2ds(
                         viewer=viewer,
                         first_sample_token=scene.first_sample_token,
-                        max_timestamp_us=max_time_seconds,
+                        max_timestamp_us=max_timestamp_us,
                     )
                 ),
             ]
