@@ -162,19 +162,23 @@ class RenderingHelper:
                 first_camera_tokens=first_camera_tokens,
                 max_timestamp_us=max_timestamp_us,
             )
-        )
-
-        # TODO(ktro2828): speed up annotation rendering
-        self._render_annotation3ds(
-            viewer=viewer,
-            first_sample_token=scene.first_sample_token,
-            max_timestamp_us=max_timestamp_us,
-            future_seconds=future_seconds,
-        )
-        self._render_annotation2ds(
-            viewer=viewer,
-            first_sample_token=scene.first_sample_token,
-            max_timestamp_us=max_time_seconds,
+            + [
+                self._executor.submit(
+                    self._render_annotation3ds(
+                        viewer=viewer,
+                        first_sample_token=scene.first_sample_token,
+                        max_timestamp_us=max_timestamp_us,
+                        future_seconds=future_seconds,
+                    )
+                ),
+                self._executor.submit(
+                    self._render_annotation2ds(
+                        viewer=viewer,
+                        first_sample_token=scene.first_sample_token,
+                        max_timestamp_us=max_time_seconds,
+                    )
+                ),
+            ]
         )
 
     def render_instance(
@@ -262,21 +266,25 @@ class RenderingHelper:
                 first_camera_tokens=first_camera_tokens,
                 max_timestamp_us=max_timestamp_us,
             ),
-        )
-
-        # TODO(ktro2828): speed up annotation rendering
-        self._render_annotation3ds(
-            viewer=viewer,
-            first_sample_token=first_sample.token,
-            max_timestamp_us=max_timestamp_us,
-            future_seconds=future_seconds,
-            instance_tokens=instance_tokens,
-        )
-        self._render_annotation2ds(
-            viewer=viewer,
-            first_sample_token=first_sample.token,
-            max_timestamp_us=max_timestamp_us,
-            instance_tokens=instance_tokens,
+            +[
+                self._executor.submit(
+                    self._render_annotation3ds(
+                        viewer=viewer,
+                        first_sample_token=first_sample.token,
+                        max_timestamp_us=max_timestamp_us,
+                        future_seconds=future_seconds,
+                        instance_tokens=instance_tokens,
+                    )
+                ),
+                self._executor.submit(
+                    self._render_annotation2ds(
+                        viewer=viewer,
+                        first_sample_token=first_sample.token,
+                        max_timestamp_us=max_timestamp_us,
+                        instance_tokens=instance_tokens,
+                    )
+                ),
+            ],
         )
 
     def render_pointcloud(
