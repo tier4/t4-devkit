@@ -266,7 +266,7 @@ class RenderingHelper:
                 first_camera_tokens=first_camera_tokens,
                 max_timestamp_us=max_timestamp_us,
             ),
-            +[
+            + [
                 self._executor.submit(
                     self._render_annotation3ds(
                         viewer=viewer,
