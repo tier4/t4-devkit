@@ -6,7 +6,7 @@ import numpy as np
 from attrs import define, field, validators
 
 from t4_devkit.common.converter import to_quaternion
-from t4_devkit.typing import Trajectory
+from t4_devkit.typing import Trajectory, Vector3
 
 if TYPE_CHECKING:
     from t4_devkit.typing import NDArrayFloat, NDArrayInt, RotationLike, Vector3Like
@@ -86,7 +86,7 @@ class ObjectPath:
         Args:
             x (Vector3Like): 3D translation vector.
         """
-        self.waypoints += x
+        self.waypoints += Vector3(x)
 
     def rotate(self, q: RotationLike) -> None:
         """Apply a rotation.
