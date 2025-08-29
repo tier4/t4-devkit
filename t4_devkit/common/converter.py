@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from pyquaternion import Quaternion
+
+from t4_devkit.typing import Quaternion
 
 if TYPE_CHECKING:
     from t4_devkit.typing import RotationLike

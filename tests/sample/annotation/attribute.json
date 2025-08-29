@@ -1,0 +1,22 @@
+[
+  {
+    "token": "33d1d37c9664a80121488037b8ac8485",
+    "name": "moving",
+    "description": "Object is in motion"
+  },
+  {
+    "token": "81adf1af78e42f129890e080c98fb920",
+    "name": "standing",
+    "description": "Object is stationary"
+  },
+  {
+    "token": "31b6e7aab1741f59529ff098b4889110",
+    "name": "stopped",
+    "description": "Vehicle is stopped"
+  },
+  {
+    "token": "a4894d9a9c50c75891179f3a8b2cc9e3",
+    "name": "parked",
+    "description": "Vehicle is parked"
+  }
+]

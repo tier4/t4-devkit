@@ -1,0 +1,56 @@
+[
+  {
+    "token": "f7ff17ab0e22cef890264b38667b8765",
+    "timestamp": 1704067200000000,
+    "accel_pedal": 30.0,
+    "brake_pedal": 0.0,
+    "steer_pedal": 0.0,
+    "steering_tire_angle": 0.0,
+    "steering_wheel_angle": 0.0,
+    "shift_state": "FORWARD",
+    "indicators": {
+      "left": "off",
+      "right": "off",
+      "hazard": "off"
+    },
+    "additional_info": {
+      "speed": 5.0
+    }
+  },
+  {
+    "token": "7108fd5e754c862eac2c6ac76f894fce",
+    "timestamp": 1704067201000000,
+    "accel_pedal": 25.0,
+    "brake_pedal": 0.0,
+    "steer_pedal": 5.0,
+    "steering_tire_angle": 0.02,
+    "steering_wheel_angle": 0.1,
+    "shift_state": "FORWARD",
+    "indicators": {
+      "left": "off",
+      "right": "off",
+      "hazard": "off"
+    },
+    "additional_info": {
+      "speed": 5.2
+    }
+  },
+  {
+    "token": "2f9abeb611c6ec8ec221b5d6366570c0",
+    "timestamp": 1704067202000000,
+    "accel_pedal": 0.0,
+    "brake_pedal": 15.0,
+    "steer_pedal": -2.0,
+    "steering_tire_angle": -0.01,
+    "steering_wheel_angle": -0.05,
+    "shift_state": "FORWARD",
+    "indicators": {
+      "left": "on",
+      "right": "off",
+      "hazard": "off"
+    },
+    "additional_info": {
+      "speed": 4.9
+    }
+  }
+]

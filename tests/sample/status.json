@@ -1,0 +1,60 @@
+{
+  "dataset_name": "minimal_t4_dataset",
+  "version": "1.0.0",
+  "created_date": "2024-01-01T00:00:00Z",
+  "description": "Minimal T4 dataset for unit testing purposes",
+  "purpose": "unit_testing",
+  "status": "ready",
+  "statistics": {
+    "scenes": 1,
+    "samples": 3,
+    "sample_data": 9,
+    "annotations_3d": 4,
+    "annotations_2d": 4,
+    "surface_annotations": 2,
+    "instances": 3,
+    "categories": 4,
+    "sensors": 3,
+    "maps": 1
+  },
+  "sensors": {
+    "LIDAR_TOP": {
+      "modality": "lidar",
+      "frequency": 10
+    },
+    "CAM_FRONT": {
+      "modality": "camera",
+      "frequency": 30,
+      "resolution": [800, 600]
+    },
+    "CAM_BACK": {
+      "modality": "camera",
+      "frequency": 30,
+      "resolution": [800, 600]
+    }
+  },
+  "timespan": {
+    "start_timestamp": 1704067200000000,
+    "end_timestamp": 1704067202000000,
+    "duration_seconds": 2.0
+  },
+  "location": {
+    "name": "test_location",
+    "coordinates": {
+      "latitude": 35.681236,
+      "longitude": 139.768125
+    }
+  },
+  "validation": {
+    "schema_valid": true,
+    "references_valid": true,
+    "files_exist": true,
+    "last_validated": "2024-01-01T00:00:00Z"
+  },
+  "notes": [
+    "This is a synthetic minimal dataset created for unit testing",
+    "All data files are placeholders and do not contain real sensor data",
+    "The dataset structure follows T4 schema requirements",
+    "Suitable for testing dataset loading, schema validation, and basic operations"
+  ]
+}

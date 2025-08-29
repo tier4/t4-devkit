@@ -1,0 +1,20 @@
+[
+  {
+    "token": "193556c46a9b5e6804de9fd28e4c6176",
+    "timestamp": 1704067200000000,
+    "translation": [0.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0]
+  },
+  {
+    "token": "0056c5bdde94168fddc1b574af03d88a",
+    "timestamp": 1704067201000000,
+    "translation": [10.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0]
+  },
+  {
+    "token": "5207dc85aa50ad74b1c8968d317ef7e3",
+    "timestamp": 1704067202000000,
+    "translation": [20.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0]
+  }
+]
