@@ -1,0 +1,34 @@
+[
+  {
+    "token": "56f822ce227d36ef726a89ef6f6911dc",
+    "sensor_token": "0132c9748dfe2777a146807f8a95a6c4",
+    "translation": [0.0, 0.0, 2.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "camera_intrinsic": [],
+    "camera_distortion": []
+  },
+  {
+    "token": "50acc3b31066c20a9af2ae9d032508a6",
+    "sensor_token": "391237c9a8cb743864cdfd764e6c8627",
+    "translation": [1.5, 0.0, 1.8],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "camera_intrinsic": [
+      [800.0, 0.0, 400.0],
+      [0.0, 800.0, 300.0],
+      [0.0, 0.0, 1.0]
+    ],
+    "camera_distortion": [0.0, 0.0, 0.0, 0.0, 0.0]
+  },
+  {
+    "token": "fc63adfe5b9bec05de27bc1d59840466",
+    "sensor_token": "99998d7e7be2bbca0f2ce80688d8a63a",
+    "translation": [-1.5, 0.0, 1.8],
+    "rotation": [0.0, 0.0, 0.0, 1.0],
+    "camera_intrinsic": [
+      [800.0, 0.0, 400.0],
+      [0.0, 800.0, 300.0],
+      [0.0, 0.0, 1.0]
+    ],
+    "camera_distortion": [0.0, 0.0, 0.0, 0.0, 0.0]
+  }
+]

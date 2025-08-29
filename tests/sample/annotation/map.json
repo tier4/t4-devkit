@@ -1,0 +1,8 @@
+[
+  {
+    "token": "a24946e32253b712307af5d3a4c29946",
+    "log_tokens": ["e2c60317a26f1b767f1d099e87335c4b"],
+    "category": "semantic_prior",
+    "filename": "map/lanelet2_map.osm"
+  }
+]

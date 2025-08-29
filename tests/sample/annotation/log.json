@@ -1,0 +1,9 @@
+[
+  {
+    "token": "e2c60317a26f1b767f1d099e87335c4b",
+    "logfile": "minimal_test_log.bag",
+    "vehicle": "test_vehicle",
+    "data_captured": "2024-01-01",
+    "location": "test_location"
+  }
+]

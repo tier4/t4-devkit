@@ -1,0 +1,26 @@
+[
+  {
+    "token": "90f0c98d1a040d5360847f576c5528f8",
+    "category_token": "1c22a023c1a214447d0bc497088c9a3d",
+    "instance_name": "car_001",
+    "nbr_annotations": 2,
+    "first_annotation_token": "4517ec89ec131157097133ce6532861b",
+    "last_annotation_token": "b573b38d867572bd0a4d8362c089e9b1"
+  },
+  {
+    "token": "90bbf29d816e58181741b05a2b662d5f",
+    "category_token": "4db2cce0862dbdf1385186fd604d477a",
+    "instance_name": "pedestrian_001",
+    "nbr_annotations": 1,
+    "first_annotation_token": "b3647a753a8eada2bd7863defe9b562c",
+    "last_annotation_token": "b3647a753a8eada2bd7863defe9b562c"
+  },
+  {
+    "token": "960f58b84920a67c690ca871f6826f58",
+    "category_token": "0531921ca79d7ca8c3815a77122de529",
+    "instance_name": "bicycle_001",
+    "nbr_annotations": 1,
+    "first_annotation_token": "fca7706953ef7d068f9f406538840eff",
+    "last_annotation_token": "fca7706953ef7d068f9f406538840eff"
+  }
+]

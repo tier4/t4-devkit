@@ -1,0 +1,22 @@
+[
+  {
+    "token": "0c181184fe14086a5f3e2dfdc1993ad4",
+    "level": "full",
+    "description": "Object is fully visible"
+  },
+  {
+    "token": "00a2a6ec154cb1f803c1328eb3feae9e",
+    "level": "most",
+    "description": "Object is mostly visible with minor occlusions"
+  },
+  {
+    "token": "da1d2bb59aa16726bc9426aa178d54be",
+    "level": "partial",
+    "description": "Object is partially visible with significant occlusions"
+  },
+  {
+    "token": "c536caa4b0ada5c9f8f996a00afaf038",
+    "level": "none",
+    "description": "Object is not visible"
+  }
+]

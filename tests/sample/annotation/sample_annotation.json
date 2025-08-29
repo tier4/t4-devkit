@@ -1,0 +1,58 @@
+[
+  {
+    "token": "4517ec89ec131157097133ce6532861b",
+    "sample_token": "9dc4405e487c08ded718359cf238df4b",
+    "instance_token": "90f0c98d1a040d5360847f576c5528f8",
+    "attribute_tokens": ["33d1d37c9664a80121488037b8ac8485"],
+    "visibility_token": "0c181184fe14086a5f3e2dfdc1993ad4",
+    "translation": [10.0, 5.0, 1.0],
+    "size": [4.5, 2.0, 1.8],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "num_lidar_pts": 250,
+    "num_radar_pts": 15,
+    "next": "b573b38d867572bd0a4d8362c089e9b1",
+    "prev": ""
+  },
+  {
+    "token": "b573b38d867572bd0a4d8362c089e9b1",
+    "sample_token": "bb9ae73c87cd8272fcf96085a0b43116",
+    "instance_token": "90f0c98d1a040d5360847f576c5528f8",
+    "attribute_tokens": ["33d1d37c9664a80121488037b8ac8485"],
+    "visibility_token": "0c181184fe14086a5f3e2dfdc1993ad4",
+    "translation": [12.0, 5.2, 1.0],
+    "size": [4.5, 2.0, 1.8],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "num_lidar_pts": 280,
+    "num_radar_pts": 18,
+    "next": "",
+    "prev": "4517ec89ec131157097133ce6532861b"
+  },
+  {
+    "token": "b3647a753a8eada2bd7863defe9b562c",
+    "sample_token": "9dc4405e487c08ded718359cf238df4b",
+    "instance_token": "90bbf29d816e58181741b05a2b662d5f",
+    "attribute_tokens": ["81adf1af78e42f129890e080c98fb920"],
+    "visibility_token": "00a2a6ec154cb1f803c1328eb3feae9e",
+    "translation": [5.0, -2.0, 0.9],
+    "size": [0.8, 0.8, 1.7],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "num_lidar_pts": 45,
+    "num_radar_pts": 2,
+    "next": "",
+    "prev": ""
+  },
+  {
+    "token": "fca7706953ef7d068f9f406538840eff",
+    "sample_token": "bb9ae73c87cd8272fcf96085a0b43116",
+    "instance_token": "960f58b84920a67c690ca871f6826f58",
+    "attribute_tokens": ["31b6e7aab1741f59529ff098b4889110"],
+    "visibility_token": "da1d2bb59aa16726bc9426aa178d54be",
+    "translation": [8.0, 3.0, 0.5],
+    "size": [1.8, 0.6, 1.2],
+    "rotation": [0.9659, 0.0, 0.0, 0.2588],
+    "num_lidar_pts": 120,
+    "num_radar_pts": 5,
+    "next": "",
+    "prev": ""
+  }
+]

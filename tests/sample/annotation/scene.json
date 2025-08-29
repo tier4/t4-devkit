@@ -1,0 +1,11 @@
+[
+  {
+    "token": "cacaf846c26bc90bca5c88a70d2bfae5",
+    "name": "minimal_test_scene",
+    "description": "Minimal T4 dataset scene for unit testing",
+    "log_token": "e2c60317a26f1b767f1d099e87335c4b",
+    "nbr_samples": 3,
+    "first_sample_token": "9dc4405e487c08ded718359cf238df4b",
+    "last_sample_token": "79999359e0719197ed3eac6a3d983940"
+  }
+]

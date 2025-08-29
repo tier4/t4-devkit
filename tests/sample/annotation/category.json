@@ -1,0 +1,22 @@
+[
+  {
+    "token": "1c22a023c1a214447d0bc497088c9a3d",
+    "name": "car",
+    "description": "Vehicle designed primarily for passenger transportation"
+  },
+  {
+    "token": "4db2cce0862dbdf1385186fd604d477a",
+    "name": "pedestrian",
+    "description": "Person walking or standing"
+  },
+  {
+    "token": "0531921ca79d7ca8c3815a77122de529",
+    "name": "bicycle",
+    "description": "Two-wheeled vehicle propelled by pedaling"
+  },
+  {
+    "token": "bdb3ce20fb731507f2ecf9387071335f",
+    "name": "traffic_cone",
+    "description": "Cone-shaped marker used to redirect traffic"
+  }
+]
