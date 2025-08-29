@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from t4_devkit.typing import Vector3
+from t4_devkit.typing import Vector2, Vector3
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import Vector2Like, Vector3Like
 
 __all__ = ["calculate_geodetic_point"]
 
@@ -12,23 +16,22 @@ EARTH_RADIUS_METERS = 6.378137e6
 FLATTENING = 1 / 298.257223563
 
 
-def calculate_geodetic_point(position: Vector3, origin: tuple[float, float]) -> tuple[float, float]:
+def calculate_geodetic_point(position: Vector3Like, origin: Vector2Like) -> Vector2:
     """Transform a position in a map coordinate system to a position in a geodetic coordinate system.
 
     Args:
-        position (Vector3): 3D position in a map coordinate system.
-        origin (tuple[float, float]): Map origin position in a geodetic coordinate system,
+        position (Vector3Like): 3D position in a map coordinate system.
+        origin (Vector2Like): Map origin position in a geodetic coordinate system,
             which is (latitude, longitude).
 
     Returns:
-        tuple[float, float]: Transformed position in a geodetic coordinate system,
-            which is (latitude, longitude).
+        Transformed position in a geodetic coordinate system, which is (latitude, longitude).
     """
-    x, y, _ = position
+    x, y, _ = Vector3(position)
     bearing = math.atan2(x, y)
     distance = math.hypot(x, y)
 
-    latitude, longitude = np.radians(origin)
+    latitude, longitude = np.radians(Vector2(origin))
     angular_distance = distance / EARTH_RADIUS_METERS
 
     target_latitude = math.asin(
@@ -40,4 +43,4 @@ def calculate_geodetic_point(position: Vector3, origin: tuple[float, float]) -> 
         math.cos(angular_distance) - math.sin(latitude) * math.sin(target_latitude),
     )
 
-    return math.degrees(target_latitude), math.degrees(target_longitude)
+    return Vector2(math.degrees(target_latitude), math.degrees(target_longitude))

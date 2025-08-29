@@ -189,7 +189,7 @@ class Box3D(BaseBox):
         Args:
             x (Vector3Like): 3D translation vector in the order of (x, y, z).
         """
-        self.position += x
+        self.position += Vector3(x)
 
         if self.future is not None:
             self.future.translate(x)

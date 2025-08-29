@@ -8,7 +8,7 @@ from attrs import define, field, validators
 from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
-from t4_devkit.typing import Matrix3x3, Matrix4x4, NDArray, Quaternion, Vector3
+from t4_devkit.typing import Matrix3x3, Matrix4x4, Quaternion, Vector3
 
 if TYPE_CHECKING:
     from t4_devkit.typing import Matrix4x4Like, RotationLike, Vector3Like
@@ -292,8 +292,7 @@ class HomogeneousMatrix:
         if {"position"} == set(inputs.keys()):
             return np.matmul(self.rotation_matrix, inputs["position"])
         elif {"rotation"} == set(inputs.keys()):
-            rotation_matrix: NDArray = inputs["rotation"].rotation_matrix
-            return np.matmul(self.rotation_matrix, rotation_matrix)
+            return np.matmul(self.rotation_matrix, inputs["rotation"].rotation_matrix)
         elif {"matrix"} == set(inputs.keys()):
             matrix: HomogeneousMatrix = deepcopy(inputs["matrix"])
             matrix.rotation = Quaternion(
@@ -413,13 +412,16 @@ def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
             if "matrix" in kwargs:
                 raise KeyError("Cannot specify `position` and `matrix` at the same time.")
             elif "rotation" in kwargs:
-                return {"position": kwargs["position"], "rotation": kwargs["rotation"]}
+                return {
+                    "position": Vector3(kwargs["position"]),
+                    "rotation": to_quaternion(kwargs["rotation"]),
+                }
             else:
-                return {"position": kwargs["position"]}
+                return {"position": Vector3(kwargs["position"])}
         elif "rotation" in kwargs:
             if "matrix" in kwargs:
                 raise KeyError("Cannot specify `rotation` and `matrix` at the same time.")
-            return {"rotation": kwargs["rotation"]}
+            return {"rotation": to_quaternion(kwargs["rotation"])}
         elif "matrix" in kwargs:
             return {"matrix": kwargs["matrix"]}
         else:
@@ -436,15 +438,15 @@ def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
                 arg0 = np.asarray(arg0)
                 if arg0.ndim == 1:
                     if len(arg0) == 3:
-                        return {"position": arg0}
+                        return {"position": Vector3(arg0)}
                     elif len(arg0) == 4:
-                        return {"rotation": arg0}
+                        return {"rotation": to_quaternion(arg0)}
                     else:
                         raise ValueError(f"Unexpected argument shape: {arg0.shape}.")
                 else:
-                    if not arg0.shape != (3, 3):
+                    if arg0.shape != (3, 3):
                         raise ValueError(f"Unexpected argument shape: {arg0.shape}.")
-                    return {"rotation": arg0}
+                    return {"rotation": to_quaternion(arg0)}
         elif num_kwargs == 1:
             if "rotation" not in kwargs:
                 raise KeyError("Expected two arguments: position and rotation.")
@@ -453,7 +455,7 @@ def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
             raise ValueError(f"Too much arguments {num_args + num_kwargs}.")
     # >>> (position, rotation)
     elif num_args == 2:
-        return {"position": args[0], "rotation": args[1]}
+        return {"position": Vector3(args[0]), "rotation": to_quaternion(args[1])}
     else:
         raise ValueError(f"Too much arguments {num_args + num_kwargs}.")
 
