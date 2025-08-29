@@ -444,7 +444,7 @@ def _format_transform_args(*args, **kwargs) -> dict[str, Any]:
                     else:
                         raise ValueError(f"Unexpected argument shape: {arg0.shape}.")
                 else:
-                    if not arg0.shape != (3, 3):
+                    if arg0.shape != (3, 3):
                         raise ValueError(f"Unexpected argument shape: {arg0.shape}.")
                     return {"rotation": to_quaternion(arg0)}
         elif num_kwargs == 1:
