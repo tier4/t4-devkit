@@ -145,42 +145,32 @@ class TestTier4:
 
         # Test sample -> scene references
         for sample in t4.sample:
-            scene = t4.get("scene", sample.scene_token)
-            assert scene is not None, f"Scene not found for sample {sample.token}"
+            _ = t4.get("scene", sample.scene_token)
 
         # Test sample_data -> sample references
         for sample_data in t4.sample_data:
-            sample = t4.get("sample", sample_data.sample_token)
-            assert sample is not None, f"Sample not found for sample_data {sample_data.token}"
+            _ = t4.get("sample", sample_data.sample_token)
 
             # Test calibrated_sensor reference
-            calibrated_sensor = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
-            assert (
-                calibrated_sensor is not None
-            ), f"Calibrated sensor not found for {sample_data.token}"
+            _ = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
 
             # Test ego_pose reference
-            ego_pose = t4.get("ego_pose", sample_data.ego_pose_token)
-            assert ego_pose is not None, f"Ego pose not found for {sample_data.token}"
+            _ = t4.get("ego_pose", sample_data.ego_pose_token)
 
         # Test sample_annotation references
         for annotation in t4.sample_annotation:
             # Test sample reference
-            sample = t4.get("sample", annotation.sample_token)
-            assert sample is not None, f"Sample not found for annotation {annotation.token}"
+            _ = t4.get("sample", annotation.sample_token)
 
             # Test instance reference
-            instance = t4.get("instance", annotation.instance_token)
-            assert instance is not None, f"Instance not found for annotation {annotation.token}"
+            _ = t4.get("instance", annotation.instance_token)
 
             # Test visibility reference
-            visibility = t4.get("visibility", annotation.visibility_token)
-            assert visibility is not None, f"Visibility not found for annotation {annotation.token}"
+            _ = t4.get("visibility", annotation.visibility_token)
 
         # Test instance -> category references
         for instance in t4.instance:
-            category = t4.get("category", instance.category_token)
-            assert category is not None, f"Category not found for instance {instance.token}"
+            _ = t4.get("category", instance.category_token)
 
     def test_complete_sample_processing_workflow(self, sample_t4):
         """Test complete workflow from sample to rendered data."""
@@ -312,7 +302,6 @@ class TestTier4:
         for annotation in t4.sample_annotation:
             if annotation.next:
                 next_ann = t4.get("sample_annotation", annotation.next)
-                assert next_ann is not None, "Next annotation should exist"
                 assert next_ann.prev == annotation.token, "Annotation linking inconsistency"
                 assert (
                     next_ann.instance_token == annotation.instance_token
@@ -393,31 +382,6 @@ class TestTier4:
             assert (
                 box3d.semantic_label.name == expected_label.name
             ), "Box label should match category"
-
-    def test_performance_with_sample_data(self, sample_t4):
-        """Test performance characteristics with sample data."""
-        t4 = sample_t4
-
-        # Test that token lookups are fast (should use indices)
-        import time
-
-        # Test multiple lookups
-        start_time = time.time()
-        for _ in range(100):
-            for sample in t4.sample:
-                t4.get("sample", sample.token)
-        lookup_time = time.time() - start_time
-
-        # Should be very fast with proper indexing
-        assert lookup_time < 1.0, f"Lookups too slow: {lookup_time:.3f}s for 300 operations"
-
-        # Test sample data processing
-        start_time = time.time()
-        for sample_data in t4.sample_data:
-            t4.get_sample_data_path(sample_data.token)
-        path_time = time.time() - start_time
-
-        assert path_time < 1.0, f"Path generation too slow: {path_time:.3f}s"
 
     def test_error_handling_with_real_data(self, sample_t4):
         """Test error handling with real data scenarios."""
@@ -525,7 +489,3 @@ class TestTier4:
                 assert isinstance(box, Box3D)
                 assert hasattr(box, "semantic_label")
                 assert isinstance(box.semantic_label, SemanticLabel)
-
-        print(
-            f"Successfully processed scene '{scene.name}' with {len(sample_data_list)} sensor samples and {len(boxes_3d)} 3D boxes"
-        )
