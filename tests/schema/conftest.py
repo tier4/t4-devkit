@@ -308,6 +308,25 @@ def visibility_json(visibility_dict) -> Generator[str, Any, None]:
         yield f.name
 
 
+# === LidarSeg ===
+@pytest.fixture(scope="session")
+def lidarseg_dict() -> dict:
+    """Return a dummy lidarseg record as dictionary."""
+    return {
+        "token": "4f79b0e9ae192558c76bd31a84bfe125",
+        "filename": "lidarseg/0.bin",
+        "sample_data_token": "df2bee5733d8607e49bf792fac3014a3",
+    }
+
+
+@pytest.fixture(scope="session")
+def lidarseg_json(lidarseg_dict) -> Generator[str, Any, None]:
+    """Return a file path of dummy lidarseg record."""
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+        save_json([lidarseg_dict], f.name)
+        yield f.name
+
+
 # === ObjectAnn ===
 @pytest.fixture(scope="session")
 def object_ann_dict() -> dict:

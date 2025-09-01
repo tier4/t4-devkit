@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from t4_devkit.schema import SchemaName, build_schema
 
 
@@ -24,6 +26,11 @@ def test_build_ego_pose(ego_pose_json) -> None:
 def test_build_instance(instance_json) -> None:
     """Test building instance."""
     _ = build_schema(SchemaName.INSTANCE, instance_json)
+
+
+def test_build_lidarseg(lidarseg_json) -> None:
+    """Test building lidarseg."""
+    _ = build_schema(SchemaName.LIDARSEG, lidarseg_json)
 
 
 def test_build_log(log_json) -> None:
