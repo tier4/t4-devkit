@@ -12,6 +12,7 @@
 | `[T;N]`         | Array of N elements of type T                                                                                  |
 | `option[T]`     | Optional value of type T                                                                                       |
 | `RLE`           | Run-length encoding given as `{"size": <[int;2]>, "counts": <str>}`, where `size` represents `(width, height)` |
+| `AutolabelModel` | Autolabel model information given as `{"name": <str>, "score": <float>, "uncertainty": <option[float]>}` |
 
 ## Mandatory Tables
 
@@ -68,6 +69,8 @@ category {
   "name":               <str> -- Name of the category.
   "description":        <str> -- Description of the category.
   "index":              <option[int]> -- Category index, this is added to support `lidarseg`, or `None` when it doesn't support `lidarseg`.
+  "has_orientation":    <option[bool]> -- Indicates whether annotations for this category may include an `orientation` field (e.g., traffic light arrows). If omitted, it is treated as `false`.
+  "has_number":         <option[bool]> -- Indicates whether annotations for this category may include a `number` field (e.g., numeric traffic lights). If omitted, it is treated as `false`.
 }
 ```
 
@@ -178,6 +181,7 @@ sample_annotation {
   "next":                   <str> -- Foreign key to the `SampleAnnotation` table associated with the next annotation in the sequence. Empty string `""` if this is the last annotation.
   "prev":                   <str> -- Foreign key to the `SampleAnnotation` table associated with the previous annotation in the sequence. Empty string `""` if this is the first annotation.
   "automatic_annotation":   <bool> -- Indicates whether the annotation was automatically generated. Defaults to `false`.
+  "autolabel_metadata":     <option[[AutolabelModel;N]]> -- List of models used for autolabeling. Required if `automatic_annotation` is `true`.
 }
 ```
 
@@ -204,6 +208,7 @@ sample_data {
   "prev":                     <str> -- Foreign key to the `SampleData` table associated with the previous data in the sequence. Empty string `""` if this is the first data.
   "is_valid":                 <bool> -- Indicates whether this data is valid. Defaults to `true`.
   "info_filename":            <option[str]> -- Relative path to metadata-blob file.
+  "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling applied to this entire sample_data item (e.g., image or scan).
 }
 ```
 
@@ -295,7 +300,10 @@ object_ann {
   "attribute_tokens":         <[str;N]> -- Foreign keys to the `Attribute` table associated with the attributes of the object.
   "bbox":                     <[int;4]> -- Bounding box coordinates in the format (xmin, ymin, xmax, ymax).
   "mask":                     <RLE> -- Run length encoding of instance mask.
+  "orientation":              <option[float]> -- Orientation of the arrow shape within the bounding box, in radians. Present only for categories where `has_orientation` is true (e.g., traffic light arrows).
+  "number":                   <option[int]> -- The digit displayed within the bounding box. Present only for categories where `has_number` is true (e.g., numeric traffic lights).
   "automatic_annotation":     <bool> -- Whether the annotation was automatically generated. Defaults to `false`.
+  "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling. Required if `automatic_annotation` is `true`.
 }
 ```
 
@@ -312,6 +320,7 @@ surface_ann {
   "category_token":           <str> -- Foreign key to the `Category` table associated with the category of the surface.
   "mask":                     <RLE> -- Run length encoding of instance mask.
   "automatic_annotation":     <bool> -- Whether the annotation was automatically generated. Defaults to `false`.
+  "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling. Required if `automatic_annotation` is `true`.
 }
 ```
 
@@ -341,5 +350,31 @@ vehicle_state {
   "shift_state":              <option[enum["PARK", "REVERSE", "NEUTRAL", "HIGH", "FORWARD", "LOW", "NONE"]]> -- Shift state of the vehicle.
   "indicators":               <option[Indicators]> -- Indicator state of the vehicle.
   "additional_info":          <option[AdditionalInfo]> -- Additional information about the vehicle state.
+}
+```
+
+### Lidarseg
+
+- Filename: `lidarseg.json`
+
+The annotation of lidarseg for a sample data. Each record represents annotations for a sample data record in T4 dataset.
+
+```json
+lidarseg {
+  "token":                    <str> -- Unique record identifier.
+  "sample_data_token":        <str> -- Foreign key to the `SampleData` table, which must be a keyframe LiDAR scan.
+  "filename":                 <str> -- The name of the .bin files containing the lidarseg labels. These are numpy arrays of uint8 stored in binary format using numpy.
+}
+```
+
+## AutolabelModel Definition
+
+The `AutolabelModel` type used in `autolabel_metadata` fields has the following structure:
+
+```json
+AutolabelModel {
+  "name":                     <str> -- Name of the model used for annotation. Can include version information.
+  "score":                    <float> -- Label score for the annotation from this model (range: 0.0–1.0).
+  "uncertainty":              <option[float]> -- Model-reported uncertainty for the annotation (range: 0.0–1.0). Lower values imply higher confidence.
 }
 ```

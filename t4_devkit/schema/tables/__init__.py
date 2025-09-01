@@ -1,10 +1,12 @@
 from .attribute import *  # noqa
+from .autolabel_metadata import *  # noqa
 from .base import *  # noqa
 from .calibrated_sensor import *  # noqa
 from .category import *  # noqa
 from .ego_pose import *  # noqa
 from .instance import *  # noqa
 from .keypoint import *  # noqa
+from .lidarseg import *  # noqa
 from .log import *  # noqa
 from .map import *  # noqa
 from .object_ann import *  # noqa
