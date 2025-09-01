@@ -353,20 +353,6 @@ vehicle_state {
 }
 ```
 
-### Lidarseg
-
-- Filename: `lidarseg.json`
-
-The annotation of lidarseg for a sample data. Each record represents annotations for a sample data record in T4 dataset.
-
-```json
-lidarseg {
-  "token":                    <str> -- Unique record identifier.
-  "sample_data_token":        <str> -- Foreign key to the `SampleData` table, which must be a keyframe LiDAR scan.
-  "filename":                 <str> -- The name of the .bin files containing the lidarseg labels. These are numpy arrays of uint8 stored in binary format using numpy.
-}
-```
-
 ## AutolabelModel Definition
 
 The `AutolabelModel` type used in `autolabel_metadata` fields has the following structure:
