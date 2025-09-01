@@ -2,17 +2,17 @@
 
 ## Type Definition
 
-| Expression      | Description                                                                                                    |
-| --------------- | -------------------------------------------------------------------------------------------------------------- |
-| `str`           | String                                                                                                         |
-| `int`           | Integer                                                                                                        |
-| `float`         | Floating point number                                                                                          |
-| `bool`          | Boolean                                                                                                        |
-| `enum[X,Y,...]` | Enumerated type with possible values X, Y, ...                                                                 |
-| `[T;N]`         | Array of N elements of type T                                                                                  |
-| `option[T]`     | Optional value of type T                                                                                       |
-| `RLE`           | Run-length encoding given as `{"size": <[int;2]>, "counts": <str>}`, where `size` represents `(width, height)` |
-| `AutolabelModel` | Autolabel model information given as `{"name": <str>, "score": <float>, "uncertainty": <option[float]>}` |
+| Expression       | Description                                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `str`            | String                                                                                                         |
+| `int`            | Integer                                                                                                        |
+| `float`          | Floating point number                                                                                          |
+| `bool`           | Boolean                                                                                                        |
+| `enum[X,Y,...]`  | Enumerated type with possible values X, Y, ...                                                                 |
+| `[T;N]`          | Array of N elements of type T                                                                                  |
+| `option[T]`      | Optional value of type T                                                                                       |
+| `RLE`            | Run-length encoding given as `{"size": <[int;2]>, "counts": <str>}`, where `size` represents `(width, height)` |
+| `AutolabelModel` | Autolabel model information given as `{"name": <str>, "score": <float>, "uncertainty": <option[float]>}`       |
 
 ## Mandatory Tables
 
