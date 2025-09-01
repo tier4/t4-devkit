@@ -33,12 +33,14 @@ LANELET_COLORS = {
 def render_lanelets(parser: LaneletParser, root_entity: str) -> None:
     """Render lanelet polygons based on relations.
 
+    Note that this function only renders lanelets of type "crosswalk".
+
     Args:
         parser (LaneletParser): The LaneletParser instance.
         root_entity (str): The root entity to render.
     """
     for relation in parser.relations.values():
-        if relation.tags.get("type") != "lanelet":
+        if relation.tags.get("type") != "lanelet" or relation.tags.get("subtype") != "crosswalk":
             continue
 
         left_bound = None
@@ -55,16 +57,9 @@ def render_lanelets(parser: LaneletParser, root_entity: str) -> None:
 
             vertices = np.array(left_coords + right_coords[::-1])
             triangles = np.array([(0, i, i + 1) for i in range(1, len(vertices) - 1)])
-            subtype = relation.tags.get("subtype", "road")
-            if subtype == "road":
-                color = LANELET_COLORS["lanelet_road"]
-                element_type = "road"
-            elif subtype == "crosswalk":
-                color = LANELET_COLORS["lanelet_crosswalk"]
-                element_type = "crosswalk"
-            else:
-                color = LANELET_COLORS["lanelet_shoulder"]
-                element_type = "shoulder"
+
+            color = LANELET_COLORS["lanelet_crosswalk"]
+            element_type = "crosswalk"
 
             entity_path = f"{root_entity}/lanelet/{element_type}/{relation.id}"
             rr.log(
