@@ -181,13 +181,7 @@ def sample_annotation_dict() -> dict:
         "next": "7b0ae1dae7531b7b917f403cb22259e6",
         "prev": "",
         "automatic_annotation": False,
-        "autolabel_metadata": [
-            {
-                "name": "centerpoint_v1.2",
-                "score": 0.95,
-                "uncertainty": 0.1
-            }
-        ],
+        "autolabel_metadata": [{"name": "centerpoint_v1.2", "score": 0.95, "uncertainty": 0.1}],
     }
 
 
@@ -240,11 +234,7 @@ def sample_data_dict() -> dict:
         "next": "efe096cc01a610af846c29aaf4decc9a",
         "prev": "",
         "autolabel_metadata": [
-            {
-                "name": "image_preprocessor_v2.1",
-                "score": 0.99,
-                "uncertainty": None
-            }
+            {"name": "image_preprocessor_v2.1", "score": 0.99, "uncertainty": None}
         ],
     }
 
@@ -332,16 +322,8 @@ def object_ann_dict() -> dict:
         "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
         "automatic_annotation": False,
         "autolabel_metadata": [
-            {
-                "name": "yolo_v8_segmentation",
-                "score": 0.87,
-                "uncertainty": 0.15
-            },
-            {
-                "name": "mask_rcnn_v3.0",
-                "score": 0.92,
-                "uncertainty": None
-            }
+            {"name": "yolo_v8_segmentation", "score": 0.87, "uncertainty": 0.15},
+            {"name": "mask_rcnn_v3.0", "score": 0.92, "uncertainty": None},
         ],
         "number": None,
         "orientation": None,
