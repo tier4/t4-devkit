@@ -46,6 +46,14 @@ jobs:
         if: ${{ steps.is-changed.outputs.changes == 'true'}}
         run: uv run pytest --cov-report xml:coverage.xml --cov=t4_devkit
 
+      - name: Run CLIs
+        if: ${{ steps.is-changed.outputs.changes == 'true'}}
+        run: |
+          uv run t4viz scene ./tests/sample/t4dataset
+          uv run t4viz instance ./tests/sample/t4dataset 90f0c98d1a040d5360847f576c5528f8
+          uv run t4viz pointcloud ./tests/sample/t4dataset
+          uv run t4sanity ./tests/sample -iw
+
       - name: Get test coverage
         if: ${{ steps.is-changed.outputs.changes == 'true'}} && ${{ matrix.python-version == '3.10' }}
         uses: orgoro/coverage@v3.1

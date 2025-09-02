@@ -308,3 +308,8 @@ def dummy_camera_calibration() -> tuple[tuple[int, int], NDArrayFloat]:
     )
 
     return img_size, intrinsic
+
+
+@pytest.fixture(scope="session")
+def dummy_lanelet_path() -> str:
+    return "tests/sample/t4dataset/map/lanelet2_map.osm"
