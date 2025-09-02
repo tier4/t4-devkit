@@ -14,7 +14,7 @@ from t4_devkit.common.timestamp import us2sec
 from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SensorModality
 
-from .color import distance_color
+from .color import pointcloud_color
 from .geography import calculate_geodetic_point
 from .lanelet import (
     render_geographic_borders,
@@ -455,7 +455,7 @@ class RerunViewer:
         # TODO(ktro2828): add support of rendering pointcloud on images
         rr.set_time_seconds(self.timeline, seconds)
 
-        colors = distance_color(np.linalg.norm(pointcloud.points[:3].T, axis=1))
+        colors = pointcloud_color(pointcloud)
         rr.log(
             format_entity(self.ego_entity, channel),
             rr.Points3D(
