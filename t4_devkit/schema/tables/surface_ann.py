@@ -43,8 +43,14 @@ class SurfaceAnn(SchemaBase):
     automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
     autolabel_metadata: list[AutolabelModel] | None = field(
         default=None,
-        converter=lambda x: [AutolabelModel(**model) if isinstance(model, dict) else model for model in x] if isinstance(x, list) else x,
-        validator=validators.optional(validators.deep_iterable(validators.instance_of(AutolabelModel)))
+        converter=lambda x: [
+            AutolabelModel(**model) if isinstance(model, dict) else model for model in x
+        ]
+        if isinstance(x, list)
+        else x,
+        validator=validators.optional(
+            validators.deep_iterable(validators.instance_of(AutolabelModel))
+        ),
     )
 
     # shortcuts
