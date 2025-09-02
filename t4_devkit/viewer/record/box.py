@@ -5,14 +5,15 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 import rerun as rr
 import rerun.components as rrc
-from attrs import converters, define, field
+from attrs import converters, define, field, validators
 
+from t4_devkit.common.converter import to_quaternion
+from t4_devkit.dataclass import Future
 from t4_devkit.typing import Roi, Vector3
-from t4_devkit.typing.aliases import RoiLike
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, Future
-    from t4_devkit.typing import RotationLike, Vector3Like
+    from t4_devkit.dataclass import Box2D, Box3D
+    from t4_devkit.typing import RoiLike, RotationLike, Vector3Like
 
 
 __all__ = ["BatchBox3D", "BatchBox2D"]
@@ -35,12 +36,16 @@ class BatchBox3D:
         """Inner class to represent a record of 3D box instance for rendering."""
 
         center: Vector3 = field(converter=Vector3)
-        rotation: rr.Quaternion
+        rotation: rr.Quaternion = field(validator=validators.instance_of(rr.Quaternion))
         size: Vector3 = field(converter=Vector3)
-        class_id: int
-        uuid: int | None = field(default=None)
+        class_id: int = field(validator=validators.instance_of(int))
+        uuid: str | None = field(
+            default=None, validator=validators.optional(validators.instance_of(str))
+        )
         velocity: Vector3 | None = field(default=None, converter=converters.optional(Vector3))
-        future: Future | None = field(default=None)
+        future: Future | None = field(
+            default=None, validator=validators.optional(validators.instance_of(Future))
+        )
 
     @overload
     def append(self, box: Box3D) -> None:
@@ -105,6 +110,7 @@ class BatchBox3D:
         uuid: str | None = None,
         future: Future | None = None,
     ) -> None:
+        rotation = to_quaternion(rotation)
         rotation_xyzw = np.roll(rotation.q, shift=-1)
 
         width, length, height = size
@@ -203,8 +209,10 @@ class BatchBox2D:
         """Inner class to represent a record of 2D box instance for rendering."""
 
         roi: Roi = field(converter=Roi)
-        class_id: int
-        uuid: str | None = field(default=None)
+        class_id: int = field(validator=validators.instance_of(int))
+        uuid: str | None = field(
+            default=None, validator=validators.optional(validators.instance_of(str))
+        )
 
     @overload
     def append(self, box: Box2D) -> None:

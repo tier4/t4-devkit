@@ -1,4 +1,4 @@
-## Install via GitHub
+## [For Users] Install via GitHub
 
 Note that the following command installs the latest `main` branch:
 
@@ -14,7 +14,7 @@ By specifying `@<TAG_OR_BRANCH>`, you can install the particular version of `t4-
 pip install git+https://github.com/tier4/t4-devkit.git@main
 ```
 
-## Install from source
+## [For Developers] Install from source
 
 You need to install `uv`. For details, please refer to [OFFICIAL DOCUMENT](https://docs.astral.sh/uv/).
 

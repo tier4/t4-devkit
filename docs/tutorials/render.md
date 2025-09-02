@@ -60,37 +60,88 @@ When you specify `save_dir`, viewer will not be spawned on your screen.
 
 ## Rendering with `RerunViewer`
 
-### Rendering boxes
-
 If you want to visualize your components, such as boxes that your ML-model estimated, `RerunViewer` allows you to visualize these components.
 For details, please refer to the API references.
 
 ```python
 >>> from t4_devkit.viewer import RerunViewer
 # You need to specify `cameras` if you want to 2D spaces
->>> viewer = RerunViewer(app_id, cameras=<CAMERA_NAMES:[str;N]>)
+>>> viewer = RerunViewer("foo", cameras=<CAMERA_NAMES:[str;N]>)
+
+# Timestamp in seconds
+>>> seconds: int | float = ...
+```
+
+### Rendering 3D boxes
+
+```python
 # Rendering 3D boxes
+>>> from t4_devkit.dataclass import Box3D
+>>> box3ds = [Box3D(...)...]
 >>> viewer.render_box3ds(seconds, box3ds)
-# Rendering 2D boxes
->>> viewer.render_box2ds(seconds, box2ds)
 ```
 
 It allows you to render boxes by specifying elements of boxes directly.
 
 ```python
 # Rendering 3D boxes
+>>> centers = [[i, i, i] for i in range(10)]
+>>> rotations = [[1, 0, 0, 0] for _ in range(10)]
+>>> sizes = [[1, 1, 1] for _ in range(10)]
+>>> class_ids = [0 for _ in range(10)]
 >>> viewer.render_box3ds(seconds, centers, rotations, sizes, class_ids)
-# Rendering 2D boxes
->>> viewer.render_box2ds(seconds, rois, class_ids)
 ```
+
+![Render Box3Ds](../assets/render_box3ds.png)
+
+### Rendering 2D boxes
+
+For 2D spaces, you need to specify camera names in the viewer constructor, and render images by specifying camera names:
+
+```python
+# RerunViewer(<APP_ID:str>, cameras=<CAMERA_NAMES:[str;N]>)
+>>> viewer = RerunViewer("foo", cameras=["camera1"])
+
+>>> import numpy as np
+>>> image = np.zeros((100, 100, 3), dtype=np.uint8)
+>>> viewer.render_image(seconds, "camera1", image)
+```
+
+```python
+# Rendering 2D boxes
+>>> from t4_devkit.dataclass import Box2D
+>>> box2ds = [Box2D(...)...]
+>>> viewer.render_box2ds(seconds, "camera1", box2ds)
+```
+
+It allows you to render boxes by specifying elements of boxes directly:
+
+```python
+# Rendering 2D boxes
+>>> rois = [[0, 0, 10 * i, 10 * i] for i in range(10)]
+>>> viewer.render_box2ds(seconds, "camera1", rois, class_ids)
+```
+
+![Render Box2Ds](../assets/render_box2ds.png)
+
+### Rendering point cloud
+
+```python
+from t4_devkit.dataclass import LidarPointCloud
+# Point cloud channel name
+>>> lidar_channel = "LIDAR_TOP"
+# Load point cloud from file
+>>> pointcloud = LidarPointCloud.from_file(<PATH_TO_POINTCLOUD.pcd.bin>)
+>>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud)
+```
+
+![Render Point Cloud](../assets/render_pointcloud.png)
 
 ### Rendering lanelet map
 
-![Render Lanelet Map](../assets/render_map.png)
-
-You can also render lanelet map by specifying `lanelet_path`:
-
 ```python
 # Rendering lanelet map
->>> viewer.render_map(lanelet_path)
+>>> viewer.render_map(<PATH_TO_LANELET.osm>)
 ```
+
+![Render Lanelet Map](../assets/render_map.png)
