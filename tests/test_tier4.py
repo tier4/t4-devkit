@@ -14,8 +14,8 @@ from t4_devkit.typing import Quaternion
 
 
 @pytest.fixture(scope="session")
-def sample_data_path() -> Path:
-    return Path(__file__).parent / "sample"
+def sample_dataset_path() -> Path:
+    return Path(__file__).parent / "sample/t4dataset"
 
 
 class TestDBMetadata:
@@ -26,26 +26,26 @@ class TestDBMetadata:
         metadata = DBMetadata(
             data_root="/path/to/data",
             dataset_id="test_dataset",
-            version="v1.0",
+            version="1",
         )
 
         assert metadata.data_root == "/path/to/data"
         assert metadata.dataset_id == "test_dataset"
-        assert metadata.version == "v1.0"
+        assert metadata.version == "1"
 
 
 class TestLoadMetadata:
     """Test cases for load_metadata function."""
 
-    def test_load_metadata_with_status_file(self, sample_data_path):
+    def test_load_metadata_with_status_file(self, sample_dataset_path):
         """Test loading metadata when status.json exists."""
-        if not sample_data_path.exists():
+        if not sample_dataset_path.exists():
             pytest.skip("Sample dataset not available")
 
-        metadata = load_metadata(sample_data_path.as_posix())
+        metadata = load_metadata(sample_dataset_path.as_posix())
 
-        assert metadata.data_root == sample_data_path.as_posix()
-        assert metadata.dataset_id == "sample"
+        assert metadata.data_root == sample_dataset_path.as_posix()
+        assert metadata.dataset_id == "t4dataset"
         assert metadata.version is None
 
     def test_load_metadata_without_status_file(self, tmp_path):
@@ -70,13 +70,13 @@ class TestLoadMetadata:
 class TestLoadTable:
     """Test cases for load_table function."""
 
-    def test_load_table_success(self, sample_data_path):
+    def test_load_table_success(self, sample_dataset_path):
         """Test successful table loading."""
-        if not sample_data_path.exists():
+        if not sample_dataset_path.exists():
             pytest.skip("Sample dataset not available")
 
         # Create a dummy annotation file
-        annotation_dir = sample_data_path.joinpath("annotation")
+        annotation_dir = sample_dataset_path.joinpath("annotation")
 
         result = load_table(annotation_dir.as_posix(), SchemaName.ATTRIBUTE)
 
@@ -109,10 +109,10 @@ class TestTier4:
     @pytest.fixture(scope="class")
     def sample_t4(self):
         """Create a Tier4 instance using the real sample dataset."""
-        sample_data_path = Path(__file__).parent / "sample"
-        if not sample_data_path.exists():
+        sample_dataset_path = Path(__file__).parent / "sample/t4dataset"
+        if not sample_dataset_path.exists():
             pytest.skip("Sample dataset not available")
-        return Tier4(sample_data_path.as_posix(), verbose=False)
+        return Tier4(sample_dataset_path.as_posix(), verbose=False)
 
     def test_dataset_structure_validation(self, sample_t4):
         """Validate the complete structure of the sample dataset."""
