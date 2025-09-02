@@ -28,9 +28,9 @@ class Category(SchemaBase):
     index: int | None = field(
         default=None, validator=validators.optional(validators.instance_of(int))
     )
-    has_orientation: bool | None = field(
-        default=None, validator=validators.optional(validators.instance_of(bool))
+    has_orientation: bool = field(
+        default=False, validator=validators.instance_of(bool)
     )
-    has_number: bool | None = field(
-        default=None, validator=validators.optional(validators.instance_of(bool))
+    has_number: bool = field(
+        default=False, validator=validators.instance_of(bool)
     )

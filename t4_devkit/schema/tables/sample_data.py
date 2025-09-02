@@ -111,11 +111,7 @@ class SampleData(SchemaBase):
     )
     autolabel_metadata: list[AutolabelModel] | None = field(
         default=None,
-        converter=lambda x: [
-            AutolabelModel(**model) if isinstance(model, dict) else model for model in x
-        ]
-        if isinstance(x, list)
-        else x,
+        converter=AutolabelModel.to_autolabel_model,
         validator=validators.optional(
             validators.deep_iterable(validators.instance_of(AutolabelModel))
         ),

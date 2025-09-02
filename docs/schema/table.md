@@ -69,8 +69,8 @@ category {
   "name":               <str> -- Name of the category.
   "description":        <str> -- Description of the category.
   "index":              <option[int]> -- Category index, this is added to support `lidarseg`, or `None` when it doesn't support `lidarseg`.
-  "has_orientation":    <option[bool]> -- Indicates whether annotations for this category may include an `orientation` field (e.g., traffic light arrows). If omitted, it is treated as `false`.
-  "has_number":         <option[bool]> -- Indicates whether annotations for this category may include a `number` field (e.g., numeric traffic lights). If omitted, it is treated as `false`.
+  "has_orientation":    <bool> -- Indicates whether annotations for this category may include an `orientation` field (e.g., traffic light arrows). If omitted, it is treated as `false`.
+  "has_number":         <bool> -- Indicates whether annotations for this category may include a `number` field (e.g., numeric traffic lights). If omitted, it is treated as `false`.
 }
 ```
 

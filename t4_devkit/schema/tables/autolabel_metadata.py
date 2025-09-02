@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from attrs import define, field, validators
 
-__all__ = ["AutolabelModel"]
+__all__ = ["AutolabelModel", "AutolabelMixin"]
 
 
 @define
@@ -29,3 +29,46 @@ class AutolabelModel:
             [validators.instance_of(float), validators.and_(validators.ge(0.0), validators.le(1.0))]
         ),
     )
+
+    @staticmethod
+    def to_autolabel_model(x) -> list[AutolabelModel] | None:
+        """Convert input to a list of AutolabelModel instances.
+        
+        Args:
+            x: Input to convert. Can be None, a list of dicts, or a list of AutolabelModel instances.
+            
+        Returns:
+            list[AutolabelModel] | None: Converted list of AutolabelModel instances or None.
+        """
+        if x is None:
+            return None
+        if isinstance(x, list):
+            return [AutolabelModel(**model) if isinstance(model, dict) else model for model in x]
+        return x
+
+
+@define
+class AutolabelMixin:
+    """Mixin class for schema tables that use autolabel metadata with automatic annotation."""
+    
+    automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
+    autolabel_metadata: list[AutolabelModel] | None = field(
+        default=None,
+        converter=AutolabelModel.to_autolabel_model,
+        validator=validators.optional(
+            validators.deep_iterable(validators.instance_of(AutolabelModel))
+        ),
+    )
+    
+    def __attrs_post_init__(self) -> None:
+        """Post-initialization validation for autolabel consistency."""
+        # if automatic_annotation=True, autolabel_metadata must exist
+        if self.automatic_annotation and self.autolabel_metadata is None:
+            raise TypeError(
+                "autolabel_metadata must be provided when automatic_annotation is True"
+            )
+        # if automatic_annotation=False, autolabel_metadata must not exist
+        if not self.automatic_annotation and self.autolabel_metadata is not None:
+            raise TypeError(
+                "autolabel_metadata must be None when automatic_annotation is False"
+            )
