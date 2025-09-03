@@ -62,8 +62,8 @@ def category_dict() -> dict:
         "name": "animal",
         "description": "",
         "index": None,
-        "has_number": None,
-        "has_orientation": None,
+        "has_number": False,
+        "has_orientation": False,
     }
 
 
@@ -180,7 +180,7 @@ def sample_annotation_dict() -> dict:
         "num_radar_pts": 0,
         "next": "7b0ae1dae7531b7b917f403cb22259e6",
         "prev": "",
-        "automatic_annotation": False,
+        "automatic_annotation": True,
         "autolabel_metadata": [{"name": "centerpoint_v1.2", "score": 0.95, "uncertainty": 0.1}],
     }
 
@@ -320,7 +320,7 @@ def object_ann_dict() -> dict:
         "attribute_tokens": [],
         "bbox": [0, 408.0529355733727, 1920, 728.1832152454293],
         "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
-        "automatic_annotation": False,
+        "automatic_annotation": True,
         "autolabel_metadata": [
             {"name": "yolo_v8_segmentation", "score": 0.87, "uncertainty": 0.15},
             {"name": "mask_rcnn_v3.0", "score": 0.92, "uncertainty": None},

@@ -26,7 +26,7 @@ class AutolabelModel:
     uncertainty: float | None = field(
         default=None,
         validator=validators.optional(
-            [validators.instance_of(float), validators.and_(validators.ge(0.0), validators.le(1.0))]
+            (validators.instance_of(float), validators.and_(validators.ge(0.0), validators.le(1.0)))
         ),
     )
 
@@ -47,7 +47,7 @@ class AutolabelModel:
         return x
 
 
-@define
+@define(slots=False)
 class AutolabelMixin:
     """Mixin class for schema tables that use autolabel metadata with automatic annotation."""
 
@@ -58,6 +58,7 @@ class AutolabelMixin:
         validator=validators.optional(
             validators.deep_iterable(validators.instance_of(AutolabelModel))
         ),
+        kw_only=True,
     )
 
     def __attrs_post_init__(self) -> None:
