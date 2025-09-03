@@ -51,7 +51,7 @@ class AutolabelModel:
 class AutolabelMixin:
     """Mixin class for schema tables that use autolabel metadata with automatic annotation."""
 
-    automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool))
+    automatic_annotation: bool = field(default=False, validator=validators.instance_of(bool), kw_only=True)
     autolabel_metadata: list[AutolabelModel] | None = field(
         default=None,
         converter=AutolabelModel.to_autolabel_model,
