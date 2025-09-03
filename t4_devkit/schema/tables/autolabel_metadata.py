@@ -44,7 +44,7 @@ class AutolabelModel:
             return None
         if isinstance(x, list):
             return [AutolabelModel(**model) if isinstance(model, dict) else model for model in x]
-        return x
+        raise TypeError("Input must be None or a list of [dicts or AutolabelModel] instances.")
 
 
 @define(slots=False)
