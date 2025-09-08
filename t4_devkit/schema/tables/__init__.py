@@ -1,4 +1,5 @@
 from .attribute import *  # noqa
+from .autolabel_metadata import *  # noqa
 from .base import *  # noqa
 from .calibrated_sensor import *  # noqa
 from .category import *  # noqa

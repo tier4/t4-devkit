@@ -19,6 +19,8 @@ class Category(SchemaBase):
         name (str): Category name.
         description (str): Category description.
         index (int | None, optional): Category index for lidar segmentation.
+        has_orientation (bool | None, optional): Indicates whether annotations for this category may include an `orientation` field (e.g., traffic light arrows). If omitted, it is treated as `false`.
+        has_number (bool | None, optional): Indicates whether annotations for this category may include a `number` field (e.g., numeric traffic lights). If omitted, it is treated as `false`.
     """
 
     name: str = field(validator=validators.instance_of(str))
@@ -26,3 +28,5 @@ class Category(SchemaBase):
     index: int | None = field(
         default=None, validator=validators.optional(validators.instance_of(int))
     )
+    has_orientation: bool = field(default=False, validator=validators.instance_of(bool))
+    has_number: bool = field(default=False, validator=validators.instance_of(bool))
