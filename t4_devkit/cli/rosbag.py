@@ -81,7 +81,7 @@ def convert(
             "--frame-id",
             help="Frame ID for ROS messages.",
         ),
-    ] = "base_link",
+    ] = "map",
 ) -> None:
     """Convert T4 dataset to ROS bag format with tracked objects."""
     _create_dir(output)
