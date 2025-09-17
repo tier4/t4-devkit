@@ -1,0 +1,3 @@
+[submodule "ros_deps/autoware_msgs"]
+	path = ros_deps/autoware_msgs
+	url = https://github.com/autowarefoundation/autoware_msgs.git

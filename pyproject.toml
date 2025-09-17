@@ -39,6 +39,7 @@ dev = [
 [project.scripts]
 t4viz = "t4_devkit.cli.visualize:cli"
 t4sanity = "t4_devkit.cli.sanity:cli"
+t4rosbag = "t4_devkit.cli.rosbag:cli"
 
 [tool.ruff]
 line-length = 100
