@@ -72,7 +72,7 @@ def convert(
             "--topic",
             help="ROS topic name for tracked objects.",
         ),
-    ] = "/perception/object_recognition/tracked_objects",
+    ] = "/annotation/object_recognition/tracked_objects",
     frame_id: Annotated[
         str,
         typer.Option(

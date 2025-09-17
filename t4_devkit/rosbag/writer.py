@@ -10,14 +10,11 @@ try:
     import rclpy
     from rclpy.serialization import serialize_message
     from rosbag2_py import SequentialWriter, SequentialReader, StorageOptions, ConverterOptions, TopicMetadata
-    from builtin_interfaces.msg import Time
-    from std_msgs.msg import Header as StdHeader
+    from autoware_perception_msgs.msg import TrackedObjects
     ROSBAG2_AVAILABLE = True
 except ImportError:
     ROSBAG2_AVAILABLE = False
-    print("Warning: rosbag2_py not available, falling back to JSON output")
-
-from .autoware_messages import TrackedObjects
+    print("Warning: rosbag2_py not available. Please source your ROS2/Autoware workspace.")
 
 
 class RosbagWriter:
@@ -42,7 +39,8 @@ class RosbagWriter:
         self.messages: List[Dict[str, Any]] = []
         self.topic_info: Dict[str, Dict[str, str]] = {}
         self.writer = None
-        self.use_rosbag2 = ROSBAG2_AVAILABLE and str(output_path).endswith(('.bag', '.mcap'))
+        self.use_rosbag2 = ROSBAG2_AVAILABLE and str(output_path).endswith(('.bag', '.mcap', '.db3'))
+        self.annotation_topics = []  # Track which topics are our annotations
 
         if self.use_rosbag2:
             self._setup_rosbag2_writer()
@@ -55,10 +53,10 @@ class RosbagWriter:
         # Ensure output directory exists
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Setup storage and converter options
+        # Setup storage and converter options for a new bag
         storage_options = StorageOptions(
             uri=str(self.output_path.with_suffix('')),  # rosbag2 adds extension
-            storage_id='mcap'  # Use MCAP format (modern rosbag format)
+            storage_id='mcap'  # Use MCAP format
         )
 
         converter_options = ConverterOptions(
@@ -68,16 +66,23 @@ class RosbagWriter:
 
         self.writer = SequentialWriter()
         self.writer.open(storage_options, converter_options)
+        
+        # If there's a source bag, we'll copy its messages in __enter__
+        if self.source_bag_path and self.source_bag_path.exists():
+            self.need_to_copy_source = True
+        else:
+            self.need_to_copy_source = False
 
     def add_topic(self, topic_name: str, message_type: str, frame_id: str = "base_link"):
         """Register a topic for publishing messages.
 
         Args:
             topic_name: Name of the ROS topic.
-            message_type: Type of ROS message (e.g., 'autoware_auto_perception_msgs/TrackedObjects').
+            message_type: Type of ROS message (e.g., 'autoware_perception_msgs/TrackedObjects').
             frame_id: Frame ID for the messages.
         """
         self.topic_info[topic_name] = {"message_type": message_type, "frame_id": frame_id}
+        self.annotation_topics.append(topic_name)  # Track this as an annotation topic
 
         if self.use_rosbag2:
             self._add_rosbag2_topic(topic_name, message_type)
@@ -94,47 +99,6 @@ class RosbagWriter:
         )
 
         self.writer.create_topic(topic_metadata)
-
-    def _copy_source_bag_topics(self):
-        """Copy all topics from source bag to output bag."""
-        if not self.source_bag_path or not self.use_rosbag2 or not self.writer:
-            return
-
-        try:
-            # Setup reader for source bag
-            storage_options = StorageOptions(
-                uri=str(self.source_bag_path.with_suffix('') if self.source_bag_path.suffix else self.source_bag_path),
-                storage_id=''
-            )
-
-            converter_options = ConverterOptions(
-                input_serialization_format='cdr',
-                output_serialization_format='cdr'
-            )
-
-            reader = SequentialReader()
-            reader.open(storage_options, converter_options)
-
-            # Get topic metadata and create topics in output bag
-            topic_types = reader.get_all_topics_and_types()
-            for topic_metadata in topic_types:
-                if topic_metadata.name not in self.topic_info:
-                    self._add_rosbag2_topic(
-                        topic_metadata.name,
-                        topic_metadata.type,
-                        topic_metadata.serialization_format
-                    )
-
-            # Copy all messages
-            while reader.has_next():
-                (topic, data, timestamp) = reader.read_next()
-                self.writer.write(topic, data, timestamp)
-
-            reader.close()
-            print(f"Copied all topics from source bag: {self.source_bag_path}")
-
-        except Exception as e:
-            print(f"Warning: Could not copy source bag topics: {e}")
 
     def write_tracked_objects(
         self,
@@ -168,20 +132,8 @@ class RosbagWriter:
             # Calculate timestamp in nanoseconds since epoch
             timestamp_ns = timestamp_sec * 1_000_000_000 + timestamp_nanosec
 
-            # Serialize the message (using JSON serialization as bytes for now)
-            message_dict = {
-                "header": {
-                    "seq": tracked_objects.header.seq,
-                    "stamp": {
-                        "sec": tracked_objects.header.stamp_sec,
-                        "nanosec": tracked_objects.header.stamp_nanosec,
-                    },
-                    "frame_id": tracked_objects.header.frame_id,
-                },
-                "objects": [self._serialize_tracked_object(obj) for obj in tracked_objects.objects],
-            }
-
-            serialized_data = json.dumps(message_dict).encode('utf-8')
+            # Use proper ROS2 serialization
+            serialized_data = serialize_message(tracked_objects)
             self.writer.write(topic_name, serialized_data, timestamp_ns)
 
         except Exception as e:
@@ -192,25 +144,31 @@ class RosbagWriter:
     def _write_tracked_objects_json(
         self,
         topic_name: str,
-        tracked_objects: TrackedObjects,
+        tracked_objects,
         timestamp_sec: int,
         timestamp_nanosec: int,
     ) -> None:
         """Write TrackedObjects to JSON format (fallback)."""
-        message_data = {
-            "topic": topic_name,
-            "timestamp": {"sec": timestamp_sec, "nanosec": timestamp_nanosec},
-            "message": {
+        # Handle both dict and message object formats
+        if isinstance(tracked_objects, dict):
+            message_content = tracked_objects
+        else:
+            # It's a real TrackedObject message
+            message_content = {
                 "header": {
-                    "seq": tracked_objects.header.seq,
                     "stamp": {
-                        "sec": tracked_objects.header.stamp_sec,
-                        "nanosec": tracked_objects.header.stamp_nanosec,
+                        "sec": tracked_objects.header.stamp.sec,
+                        "nanosec": tracked_objects.header.stamp.nanosec,
                     },
                     "frame_id": tracked_objects.header.frame_id,
                 },
                 "objects": [self._serialize_tracked_object(obj) for obj in tracked_objects.objects],
-            },
+            }
+        
+        message_data = {
+            "topic": topic_name,
+            "timestamp": {"sec": timestamp_sec, "nanosec": timestamp_nanosec},
+            "message": message_content,
         }
 
         self.messages.append(message_data)
@@ -219,11 +177,16 @@ class RosbagWriter:
         """Serialize a TrackedObject to dictionary format.
 
         Args:
-            obj: TrackedObject to serialize.
+            obj: TrackedObject to serialize (can be dict or message).
 
         Returns:
             Dictionary representation.
         """
+        # If it's already a dict, return it
+        if isinstance(obj, dict):
+            return obj
+            
+        # Otherwise serialize the message object
         return {
             "object_id": {"uuid": obj.object_id.uuid},
             "existence_probability": obj.existence_probability,
@@ -321,10 +284,6 @@ class RosbagWriter:
         if not self.writer:
             return
 
-        # Copy topics from source bag first (so they come before new topics)
-        if self.source_bag_path:
-            self._copy_source_bag_topics()
-
         # Close the writer
         self.writer.close()
 
@@ -353,8 +312,64 @@ class RosbagWriter:
             f"Metadata written to {self.output_path.parent}/{self.output_path.stem}_metadata.json"
         )
 
+    def _copy_source_bag_messages(self):
+        """Copy all messages and topics from source bag."""
+        if not self.source_bag_path or not self.use_rosbag2:
+            return
+            
+        try:
+            # Setup reader for source bag
+            if self.source_bag_path.is_dir():
+                uri = str(self.source_bag_path)
+            else:
+                # For .db3 files, use the parent directory (where metadata.yaml is)
+                uri = str(self.source_bag_path.parent)
+                
+            storage_options = StorageOptions(
+                uri=uri,
+                storage_id=''  # Auto-detect
+            )
+            
+            converter_options = ConverterOptions(
+                input_serialization_format='cdr',
+                output_serialization_format='cdr'
+            )
+            
+            reader = SequentialReader()
+            reader.open(storage_options, converter_options)
+            
+            # First, register all topics from source bag
+            topic_types = reader.get_all_topics_and_types()
+            for topic_metadata in topic_types:
+                # Skip if it's our annotation topic (we'll add it separately)
+                if topic_metadata.name not in self.annotation_topics:
+                    self._add_rosbag2_topic(
+                        topic_metadata.name,
+                        topic_metadata.type,
+                        topic_metadata.serialization_format
+                    )
+            
+            # Now copy all messages
+            message_count = 0
+            while reader.has_next():
+                (topic, data, timestamp) = reader.read_next()
+                # Skip if it's our annotation topic (in case of re-running)
+                if topic not in self.annotation_topics:
+                    self.writer.write(topic, data, timestamp)
+                    message_count += 1
+                    
+            # reader doesn't need explicit close in rosbag2_py
+            print(f"Copied {message_count} messages from source bag: {self.source_bag_path}")
+            
+        except Exception as e:
+            print(f"Error copying source bag: {e}")
+            raise
+
     def __enter__(self):
         """Context manager entry."""
+        # Copy source bag messages if needed
+        if hasattr(self, 'need_to_copy_source') and self.need_to_copy_source:
+            self._copy_source_bag_messages()
         return self
 
     def copy_message(self, topic: str, data: bytes, timestamp_ns: int) -> None:
