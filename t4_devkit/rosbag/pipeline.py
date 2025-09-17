@@ -68,14 +68,66 @@ class T4ToRosbagPipeline:
         # Create output path for this scene - use .db3 extension for ROS2 bags
         scene_output = self.output_path / f"scene_{scene.name}.db3"
 
+        # First, collect all annotation messages
+        annotation_messages = self._collect_annotation_messages(scene_token)
+        
         with RosbagWriter(scene_output, self.source_bag_path) as writer:
             # Register the topic
             writer.add_topic(
                 self.topic_name, "autoware_perception_msgs/TrackedObjects", self.frame_id
             )
 
-            # Process scene with interpolation at specified Hz
-            self._process_with_interpolation(writer, scene_token)
+            # Merge and write all messages chronologically
+            writer.merge_and_write_all_messages(annotation_messages, self.topic_name)
+
+    def _collect_annotation_messages(self, scene_token: str) -> list:
+        """Collect all annotation messages for a scene.
+        
+        Args:
+            scene_token: Token of the scene.
+            
+        Returns:
+            List of tuples (timestamp_ns, TrackedObjects message)
+        """
+        scene = self.t4.get("scene", scene_token)
+        first_sample = self.t4.get("sample", scene.first_sample_token)
+        last_sample = self.t4.get("sample", scene.last_sample_token)
+        
+        # Calculate time range in microseconds
+        scene_start_us = first_sample.timestamp
+        scene_end_us = last_sample.timestamp
+        scene_duration_s = (scene_end_us - scene_start_us) / 1_000_000.0
+        
+        # Calculate time step based on interpolation frequency
+        time_step_us = int(1_000_000 / self.interpolation_hz)
+        
+        # Calculate number of messages to generate
+        num_messages = int(scene_duration_s * self.interpolation_hz)
+        
+        print(f"Scene duration: {scene_duration_s:.2f}s")
+        print(f"Generating {num_messages} messages at {self.interpolation_hz}Hz")
+        
+        annotation_messages = []
+        
+        # Generate messages at regular intervals
+        for i in range(num_messages):
+            if i % 100 == 0 and i > 0:
+                print(f"Processing message {i}/{num_messages}")
+            
+            # Calculate timestamp for this message
+            timestamp_us = scene_start_us + (i * time_step_us)
+            
+            # Find closest sample for reference
+            closest_sample_token = self._find_closest_sample(scene_token, timestamp_us)
+            if closest_sample_token:
+                msg = self._create_tracked_objects_at_timestamp(closest_sample_token, timestamp_us)
+                if msg:
+                    # Convert to nanoseconds for ROS2
+                    timestamp_ns = timestamp_us * 1000
+                    annotation_messages.append((timestamp_ns, msg))
+        
+        print(f"Generated {len(annotation_messages)} annotation messages")
+        return annotation_messages
 
     def _process_with_interpolation(self, writer: RosbagWriter, scene_token: str) -> None:
         """Process scene with interpolation at the specified frequency.
@@ -215,6 +267,60 @@ class T4ToRosbagPipeline:
         )
 
         self.seq_counter += 1
+
+    def _create_tracked_objects_at_timestamp(self, sample_token: str, timestamp_us: int):
+        """Create TrackedObjects message at specific timestamp.
+        
+        Args:
+            sample_token: Reference sample token.
+            timestamp_us: Target timestamp in microseconds.
+            
+        Returns:
+            TrackedObjects message or None if no data.
+        """
+        sample = self.t4.get("sample", sample_token)
+        
+        # Find the LIDAR sample data
+        lidar_sample_data = None
+        for sd_token in sample.data.values():
+            sd = self.t4.get("sample_data", sd_token)
+            calibrated_sensor = self.t4.get("calibrated_sensor", sd.calibrated_sensor_token)
+            sensor = self.t4.get("sensor", calibrated_sensor.sensor_token)
+            if sensor.modality.name == "LIDAR":
+                lidar_sample_data = sd
+                break
+                
+        if lidar_sample_data is None:
+            return None
+            
+        # Get 3D boxes with interpolation
+        boxes = self.t4.get_box3ds(lidar_sample_data.token, future_seconds=0.0)
+        
+        if not boxes:
+            return None
+            
+        # Convert to TrackedObjects
+        tracked_objects_list = self.converter.convert_multiple(boxes)
+        
+        # Create header with the target timestamp
+        timestamp_sec, timestamp_nanosec = self.converter.timestamp_to_ros_time(timestamp_us)
+        
+        if AUTOWARE_AVAILABLE:
+            header = Header()
+            header.frame_id = self.frame_id
+            header.stamp = Time()
+            header.stamp.sec = timestamp_sec
+            header.stamp.nanosec = timestamp_nanosec
+            
+            # Create TrackedObjects message
+            tracked_objects_msg = TrackedObjects()
+            tracked_objects_msg.header = header
+            tracked_objects_msg.objects = tracked_objects_list
+            
+            return tracked_objects_msg
+        else:
+            # Fallback - shouldn't happen if properly sourced
+            return None
 
     def _find_closest_sample(self, scene_token: str, target_timestamp_us: int) -> Optional[str]:
         """Find the closest sample to a target timestamp.

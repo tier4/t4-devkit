@@ -312,6 +312,90 @@ class RosbagWriter:
             f"Metadata written to {self.output_path.parent}/{self.output_path.stem}_metadata.json"
         )
 
+    def merge_and_write_all_messages(self, annotation_messages: list, topic_name: str = None):
+        """Merge source bag messages with annotation messages and write chronologically.
+        
+        Args:
+            annotation_messages: List of tuples (timestamp_ns, tracked_objects_msg)
+            topic_name: Topic name for annotation messages
+        """
+        if not self.source_bag_path or not self.use_rosbag2:
+            # No source bag, just write annotations
+            for timestamp_ns, msg in annotation_messages:
+                serialized_data = serialize_message(msg)
+                # Use the topic_name from annotation_topics if not provided
+                if not topic_name and self.annotation_topics:
+                    topic_name = self.annotation_topics[0]
+                self.writer.write(topic_name, serialized_data, timestamp_ns)
+            return
+            
+        try:
+            # Setup reader for source bag
+            if self.source_bag_path.is_dir():
+                uri = str(self.source_bag_path)
+            else:
+                # For .db3 files, use the parent directory (where metadata.yaml is)
+                uri = str(self.source_bag_path.parent)
+                
+            storage_options = StorageOptions(
+                uri=uri,
+                storage_id=''  # Auto-detect
+            )
+            
+            converter_options = ConverterOptions(
+                input_serialization_format='cdr',
+                output_serialization_format='cdr'
+            )
+            
+            reader = SequentialReader()
+            reader.open(storage_options, converter_options)
+            
+            # First, register all topics
+            topic_types = reader.get_all_topics_and_types()
+            for topic_metadata in topic_types:
+                if topic_metadata.name not in self.annotation_topics:
+                    self._add_rosbag2_topic(
+                        topic_metadata.name,
+                        topic_metadata.type,
+                        topic_metadata.serialization_format
+                    )
+            
+            # Read all source messages into a list
+            source_messages = []
+            while reader.has_next():
+                (topic, data, timestamp) = reader.read_next()
+                if topic not in self.annotation_topics:
+                    source_messages.append((timestamp, topic, data))
+            
+            print(f"Read {len(source_messages)} messages from source bag")
+            
+            # Convert annotation messages to same format
+            annotation_tuples = []
+            # Use the topic_name from annotation_topics if not provided
+            if not topic_name and self.annotation_topics:
+                topic_name = self.annotation_topics[0]
+            for timestamp_ns, msg in annotation_messages:
+                serialized_data = serialize_message(msg)
+                annotation_tuples.append((timestamp_ns, topic_name, serialized_data))
+            
+            print(f"Prepared {len(annotation_tuples)} annotation messages")
+            
+            # Merge and sort all messages by timestamp
+            all_messages = source_messages + annotation_tuples
+            all_messages.sort(key=lambda x: x[0])
+            
+            print(f"Writing {len(all_messages)} total messages in chronological order...")
+            
+            # Write all messages in chronological order
+            for timestamp, topic, data in all_messages:
+                self.writer.write(topic, data, timestamp)
+            
+            print(f"Successfully wrote all messages")
+            
+        except Exception as e:
+            print(f"Error merging messages: {e}")
+            raise
+    
     def _copy_source_bag_messages(self):
         """Copy all messages and topics from source bag."""
         if not self.source_bag_path or not self.use_rosbag2:
