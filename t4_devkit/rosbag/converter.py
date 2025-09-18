@@ -44,19 +44,21 @@ class Box3DToTrackedObjectConverter:
     def __init__(self):
         """Initialize the converter."""
         if not AUTOWARE_AVAILABLE:
-            print("Warning: Running without Autoware messages. Output will be JSON format only.")
-        
+            print(
+                "Warning: Running without Autoware messages. Output will be JSON format only.")
+
         # Mapping from T4 semantic labels to Autoware classification constants
         # These constants are defined in ObjectClassification message
         self.label_mapping = {
             "car": 1,  # ObjectClassification.CAR
-            "truck": 2,  # ObjectClassification.TRUCK  
+            "truck": 2,  # ObjectClassification.TRUCK
             "bus": 3,  # ObjectClassification.BUS
             "trailer": 4,  # ObjectClassification.TRAILER
             "motorcycle": 5,  # ObjectClassification.MOTORCYCLE
             "bicycle": 6,  # ObjectClassification.BICYCLE
             "pedestrian": 7,  # ObjectClassification.PEDESTRIAN
-            "animal": 0,  # ObjectClassification.UNKNOWN (no animal class in Autoware)
+            # ObjectClassification.UNKNOWN (no animal class in Autoware)
+            "animal": 0,
         }
 
     def convert(self, box: Box3D):
@@ -108,7 +110,7 @@ class Box3DToTrackedObjectConverter:
         """
         # Hash the string to generate consistent 16 bytes
         hash_bytes = hashlib.md5(uuid_string.encode()).digest()
-        
+
         # Create UUID message
         uuid_msg = UUID()
         uuid_msg.uuid = list(hash_bytes)
@@ -196,12 +198,12 @@ class Box3DToTrackedObjectConverter:
         linear_accel.x = 0.0
         linear_accel.y = 0.0
         linear_accel.z = 0.0
-        
+
         angular_accel = Vector3()
         angular_accel.x = 0.0
         angular_accel.y = 0.0
         angular_accel.z = 0.0
-        
+
         accel = Accel()
         accel.linear = linear_accel
         accel.angular = angular_accel
@@ -240,15 +242,15 @@ class Box3DToTrackedObjectConverter:
         """
         shape = Shape()
         shape.type = 0  # Shape.BOUNDING_BOX
-        
-        # Set dimensions
-        shape.dimensions.x = float(box.shape.size[0])  # length
-        shape.dimensions.y = float(box.shape.size[1])  # width  
+
+        # Set dimensions. BB dimensions dont have the same order as T4 Box3D
+        shape.dimensions.x = float(box.shape.size[1])  # length
+        shape.dimensions.y = float(box.shape.size[0])  # width
         shape.dimensions.z = float(box.shape.size[2])  # height
-        
+
         # Footprint is typically empty for bounding boxes
         # (polygon points are used for more complex shapes)
-        
+
         return shape
 
     def convert_multiple(self, boxes: list[Box3D]) -> list[TrackedObject]:
@@ -264,10 +266,10 @@ class Box3DToTrackedObjectConverter:
 
     def _convert_to_dict(self, box: Box3D) -> dict:
         """Convert Box3D to dictionary format when ROS messages are not available.
-        
+
         Args:
             box: T4 Box3D object to convert.
-            
+
         Returns:
             Dictionary representation of TrackedObject.
         """
@@ -277,10 +279,10 @@ class Box3DToTrackedObjectConverter:
         else:
             import uuid
             uuid_bytes = uuid.uuid4().bytes
-            
+
         label_name = box.semantic_label.name.lower()
         label_id = self.label_mapping.get(label_name, 0)
-        
+
         return {
             "object_id": {"uuid": list(uuid_bytes)},
             "existence_probability": float(box.confidence),
