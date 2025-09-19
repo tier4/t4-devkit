@@ -6,6 +6,7 @@ from .category import *  # noqa
 from .ego_pose import *  # noqa
 from .instance import *  # noqa
 from .keypoint import *  # noqa
+from .lidarseg import *  # noqa
 from .log import *  # noqa
 from .map import *  # noqa
 from .object_ann import *  # noqa

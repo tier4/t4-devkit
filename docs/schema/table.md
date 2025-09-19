@@ -285,6 +285,20 @@ visibility {
 
 The following tables are optional, and skipped loading by `Tier4` class if not exists.
 
+### LidarSeg
+
+- Filename: `lidarseg.json`
+
+Mapping between LiDAR segmentation annotations and `SampleData` corresponding to the LiDAR point cloud associated with a keyframe.
+
+```json
+lidarseg {
+  "token":                    <str> -- Unique record identifier.
+  "filename":                 <str> -- Filename of the LiDAR segmentation annotation labels that is an array of unit8.
+  "sample_data_token":        <str> -- Foreign key to the `SampleData` table associated with the sample data.
+}
+```
+
 ### ObjectAnn
 
 - Filename: `object_ann.json`

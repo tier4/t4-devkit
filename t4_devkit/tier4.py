@@ -27,6 +27,7 @@ if TYPE_CHECKING:
         EgoPose,
         Instance,
         Keypoint,
+        LidarSeg,
         Log,
         Map,
         ObjectAnn,
@@ -183,6 +184,7 @@ class Tier4:
         self.ego_pose: list[EgoPose] = load_table(self.annotation_dir, SchemaName.EGO_POSE)
         self.instance: list[Instance] = load_table(self.annotation_dir, SchemaName.INSTANCE)
         self.keypoint: list[Keypoint] = load_table(self.annotation_dir, SchemaName.KEYPOINT)
+        self.lidarseg: list[LidarSeg] = load_table(self.annotation_dir, SchemaName.LIDARSEG)
         self.log: list[Log] = load_table(self.annotation_dir, SchemaName.LOG)
         self.map: list[Map] = load_table(self.annotation_dir, SchemaName.MAP)
         self.object_ann: list[ObjectAnn] = load_table(self.annotation_dir, SchemaName.OBJECT_ANN)
