@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from t4_devkit.viewer import RerunViewer
+from t4_devkit.viewer import RerunViewer, ViewerBuilder
 
 
 @pytest.fixture(scope="session")
@@ -14,8 +14,10 @@ def dummy_viewer(tmpdir_factory, spawn_viewer, label2id) -> RerunViewer:
     """
     save_dir = None if spawn_viewer else tmpdir_factory.mktemp("sample_recording")
 
-    return RerunViewer(
-        "test_viewer",
-        cameras=["camera"],
-        save_dir=save_dir,
-    ).with_labels(label2id=label2id)
+    return (
+        ViewerBuilder()
+        .with_spatial3d()
+        .with_spatial2d(["camera"])
+        .with_labels(label2id)
+        .build("test_viewer", save_dir=save_dir)
+    )

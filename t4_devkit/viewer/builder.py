@@ -1,0 +1,65 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Sequence
+
+import rerun.blueprint as rrb
+from typing_extensions import Self
+
+from .config import ViewerConfig, format_entity
+from .viewer import RerunViewer
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import Vector2Like
+
+__all__ = ["ViewerBuilder"]
+
+
+class ViewerBuilder:
+    """Builder for creating a RerunViewer instance.
+
+    Examples:
+        >>> from t4_devkit.viewer import ViewerBuilder
+        >>> viewer = (
+                ViewerBuilder()
+                .with_spatial3d()
+                .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"], projection=True)
+                .with_labels({"car": 1, "pedestrian": 2})
+                .with_streetmap([48.8566, 2.3522])
+                .build("viewer", save_dir="recording")
+            )
+    """
+
+    def __init__(self) -> None:
+        self._config = ViewerConfig()
+
+    def with_spatial3d(self) -> Self:
+        self._config.spatial3ds.append(rrb.Spatial3DView(name="3D", origin=ViewerConfig.map_entity))
+        return self
+
+    def with_spatial2d(self, cameras: Sequence[str], *, projection: bool = False) -> Self:
+        overrides = {}  # TODO(ktro2828): add support of projecting 3D elements on image
+        self._config.spatial2ds.extend(
+            [
+                rrb.Spatial2DView(
+                    name=name,
+                    origin=format_entity(ViewerConfig.ego_entity, name),
+                    overrides=overrides,
+                )
+                for name in cameras
+            ]
+        )
+        return self
+
+    def with_labels(self, label2id: dict[str, int]) -> Self:
+        self._config.label2id = label2id
+        return self
+
+    def with_streetmap(self, latlon: Vector2Like) -> Self:
+        self._config.spatial3ds.append(
+            rrb.MapView(name="Map", origin=self._config.geocoordinate_entity)
+        )
+        self._config.latlon = latlon
+        return self
+
+    def build(self, app_id: str, save_dir: str | None = None) -> RerunViewer:
+        return RerunViewer(app_id=app_id, config=self._config, save_dir=save_dir)
