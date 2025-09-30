@@ -27,7 +27,14 @@ from .record import BatchBox2D, BatchBox3D, BatchSegmentation2D
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
     from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
-    from t4_devkit.typing import CamIntrinsicLike, NDArrayU8, RoiLike, RotationLike, Vector3Like
+    from t4_devkit.typing import (
+        CamIntrinsicLike,
+        NDArrayU8,
+        RoiLike,
+        RotationLike,
+        Vector2Like,
+        Vector3Like,
+    )
 
 __all__ = ["RerunViewer", "format_entity"]
 
@@ -563,12 +570,14 @@ class RerunViewer:
         self,
         sensor: Sensor,
         calibration: CalibratedSensor,
+        resolution: Vector2Like | None = None,
     ) -> None:
         """Render a sensor calibration.
 
         Args:
             sensor (Sensor): `Sensor` object.
             calibration (CalibratedSensor): `CalibratedSensor` object.
+            resolution (Vector2Like | None, optional): Camera resolution (width, height).
         """
         pass
 
@@ -580,6 +589,7 @@ class RerunViewer:
         translation: Vector3Like,
         rotation: RotationLike,
         camera_intrinsic: CamIntrinsicLike | None = None,
+        resolution: Vector2Like | None = None,
     ) -> None:
         """Render a sensor calibration.
 
@@ -589,13 +599,13 @@ class RerunViewer:
             translation (Vector3Like): Sensor translation in ego centric coords.
             rotation (RotationLike): Sensor rotation in ego centric coords.
             camera_intrinsic (CamIntrinsicLike | None, optional): Camera intrinsic matrix.
-                Defaults to None.
+            resolution (Vector2Like | None, optional): Camera resolution (width, height).
         """
         pass
 
     def render_calibration(self, *args, **kwargs) -> None:
         """Render a sensor calibration."""
-        if len(args) + len(kwargs) == 2:
+        if len(args) + len(kwargs) <= 3:
             self._render_calibration_with_schema(*args, **kwargs)
         else:
             self._render_calibration_without_schema(*args, **kwargs)
@@ -604,6 +614,7 @@ class RerunViewer:
         self,
         sensor: Sensor,
         calibration: CalibratedSensor,
+        resolution: Vector2Like | None = None,
     ) -> None:
         self._render_calibration_without_schema(
             channel=sensor.channel,
@@ -611,6 +622,7 @@ class RerunViewer:
             translation=calibration.translation,
             rotation=calibration.rotation,
             camera_intrinsic=calibration.camera_intrinsic,
+            resolution=resolution,
         )
 
     def _render_calibration_without_schema(
@@ -620,6 +632,7 @@ class RerunViewer:
         translation: Vector3Like,
         rotation: RotationLike,
         camera_intrinsic: CamIntrinsicLike | None = None,
+        resolution: Vector2Like | None = None,
     ) -> None:
         """Render a sensor calibration.
 
@@ -629,7 +642,7 @@ class RerunViewer:
             translation (Vector3Like): Sensor translation in ego centric coords.
             rotation (RotationLike): Sensor rotation in ego centric coords.
             camera_intrinsic (CamIntrinsicLike | None, optional): Camera intrinsic matrix.
-                Defaults to None.
+            resolution (Vector2Like | None, optional): Camera resolution (width, height).
         """
         rr.log(
             format_entity(self.ego_entity, channel),
@@ -640,7 +653,7 @@ class RerunViewer:
         if modality == SensorModality.CAMERA:
             rr.log(
                 format_entity(self.ego_entity, channel),
-                rr.Pinhole(image_from_camera=camera_intrinsic),
+                rr.Pinhole(image_from_camera=camera_intrinsic, resolution=resolution),
                 static=True,
             )
 
