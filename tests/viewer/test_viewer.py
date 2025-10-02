@@ -20,6 +20,7 @@ def test_format_entity() -> None:
 def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
     """Test rendering 3D boxes with `RerunViewer`."""
     seconds = 1.0  # [sec]
+    frame_id = "map"
 
     dummy_viewer.render_box3ds(seconds, dummy_box3ds)
 
@@ -32,6 +33,7 @@ def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
 
     dummy_viewer.render_box3ds(
         seconds,
+        frame_id=frame_id,
         centers=centers,
         rotations=rotations,
         sizes=sizes,

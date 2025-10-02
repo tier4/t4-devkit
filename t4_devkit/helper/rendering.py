@@ -16,7 +16,7 @@ from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud
 from t4_devkit.schema import SensorModality
-from t4_devkit.viewer import RerunViewer, distance_color, format_entity
+from t4_devkit.viewer import RerunViewer, ViewerBuilder, distance_color, format_entity
 
 if TYPE_CHECKING:
     from t4_devkit import Tier4
@@ -57,44 +57,31 @@ class RenderingHelper:
         self,
         app_id: str,
         *,
-        render3d: bool = True,
-        render2d: bool = True,
         render_ann: bool = True,
         save_dir: str | None = None,
     ) -> RerunViewer:
-        if not (render3d or render2d):
-            raise ValueError("At least one of `render3d` or `render2d` must be True.")
+        cameras = [
+            sensor.channel for sensor in self._t4.sensor if sensor.modality == SensorModality.CAMERA
+        ]
 
-        cameras = (
-            [
-                sensor.channel
-                for sensor in self._t4.sensor
-                if sensor.modality == SensorModality.CAMERA
-            ]
-            if render2d
-            else None
-        )
-
-        viewer = RerunViewer(
-            app_id=app_id,
-            cameras=cameras,
-            with_3d=render3d,
-            save_dir=save_dir,
+        # project 3D boxes if there is no 2D annotation
+        projection = len(self._t4.object_ann) == 0 and len(self._t4.surface_ann) == 0
+        builder = (
+            ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras, projection=projection)
         )
 
         if render_ann:
-            viewer = viewer.with_labels(self._label2id)
+            builder = builder.with_labels(self._label2id)
 
         global_map_filepath = osp.join(self._t4.data_root, "map/global_map_center.pcd.yaml")
         if osp.exists(global_map_filepath):
             with open(global_map_filepath) as f:
                 map_metadata: dict = yaml.safe_load(f)
             map_origin: dict = map_metadata["/**"]["ros__parameters"]["map_origin"]
-            latitude = map_origin["latitude"]
-            longitude = map_origin["longitude"]
-            viewer = viewer.with_global_origin((latitude, longitude))
+            latitude, longitude = map_origin["latitude"], map_origin["longitude"]
+            builder = builder.with_streetmap((latitude, longitude))
 
-        return viewer
+        return builder.build(app_id, save_dir=save_dir)
 
     def render_scene(
         self,
@@ -128,17 +115,8 @@ class RenderingHelper:
             if sensor.modality == SensorModality.CAMERA
         ]
 
-        render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
-        render2d = len(first_camera_tokens) > 0
-
         app_id = f"scene@{self._t4.dataset_id}"
-        viewer = self._init_viewer(
-            app_id,
-            render3d=render3d,
-            render2d=render2d,
-            render_ann=True,
-            save_dir=save_dir,
-        )
+        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
 
         self._render_map(viewer)
 
@@ -236,17 +214,8 @@ class RenderingHelper:
             if sensor.modality == SensorModality.CAMERA
         ]
 
-        render3d = len(first_lidar_tokens) > 0 or len(first_radar_tokens) > 0
-        render2d = len(first_camera_tokens) > 0
-
         app_id = f"instance@{self._t4.dataset_id}"
-        viewer = self._init_viewer(
-            app_id,
-            render3d=render3d,
-            render2d=render2d,
-            render_ann=True,
-            save_dir=save_dir,
-        )
+        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
 
         self._render_map(viewer)
 

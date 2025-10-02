@@ -63,10 +63,18 @@ When you specify `save_dir`, viewer will not be spawned on your screen.
 If you want to visualize your components, such as boxes that your ML-model estimated, `RerunViewer` allows you to visualize these components.
 For details, please refer to the API references.
 
+To initialize `RerunViewer`, you can use the `ViewerBuilder` class:
+
 ```python
->>> from t4_devkit.viewer import RerunViewer
+>>> from t4_devkit.viewer import ViewerBuilder
 # You need to specify `cameras` if you want to 2D spaces
->>> viewer = RerunViewer("foo", cameras=<CAMERA_NAMES:[str;N]>)
+>>> viewer = (
+        ViewerBuilder()
+        .with_spatial3d()
+        .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"], projection=True)
+        .with_labels({"car": 1, "pedestrian": 2})
+        .build("foo")
+    )
 
 # Timestamp in seconds
 >>> seconds: int | float = ...
@@ -86,10 +94,11 @@ It allows you to render boxes by specifying elements of boxes directly.
 ```python
 # Rendering 3D boxes
 >>> centers = [[i, i, i] for i in range(10)]
+>>> frame_id = "base_link"
 >>> rotations = [[1, 0, 0, 0] for _ in range(10)]
 >>> sizes = [[1, 1, 1] for _ in range(10)]
 >>> class_ids = [0 for _ in range(10)]
->>> viewer.render_box3ds(seconds, centers, rotations, sizes, class_ids)
+>>> viewer.render_box3ds(seconds, frame_id, centers, rotations, sizes, class_ids)
 ```
 
 ![Render Box3Ds](../assets/render_box3ds.png)
@@ -100,7 +109,13 @@ For 2D spaces, you need to specify camera names in the viewer constructor, and r
 
 ```python
 # RerunViewer(<APP_ID:str>, cameras=<CAMERA_NAMES:[str;N]>)
->>> viewer = RerunViewer("foo", cameras=["camera1"])
+>>> viewer = (
+        ViewerBuilder()
+        .with_spatial3d()
+        .with_spatial2d(cameras=["camera1"])
+        .with_labels({"car": 1, "pedestrian": 2})
+        .build("foo")
+    )
 
 >>> import numpy as np
 >>> image = np.zeros((100, 100, 3), dtype=np.uint8)

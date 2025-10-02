@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import os.path as osp
 import warnings
-from typing import TYPE_CHECKING, Sequence, overload
+from typing import TYPE_CHECKING, Callable, Sequence, overload
 
 import numpy as np
 import rerun as rr
-import rerun.blueprint as rrb
-from typing_extensions import Self
 
 from t4_devkit.common.converter import to_quaternion
 from t4_devkit.common.timestamp import us2sec
@@ -15,6 +13,7 @@ from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SensorModality
 
 from .color import distance_color
+from .config import ViewerConfig, format_entity
 from .geography import calculate_geodetic_point
 from .lanelet import (
     render_geographic_borders,
@@ -36,104 +35,74 @@ if TYPE_CHECKING:
         Vector3Like,
     )
 
-__all__ = ["RerunViewer", "format_entity"]
+__all__ = ["RerunViewer"]
 
 
-def format_entity(*entities: Sequence[str]) -> str:
-    """Format entity path.
+def _check_spatial3d(function: Callable) -> Callable:
+    """Check if the viewer has the 3D view space.
 
-    Args:
-        *entities: Entity path(s).
-
-    Returns:
-        Formatted entity path.
-
-    Examples:
-        >>> format_entity("map")
-        "map"
-        >>> format_entity("map", "map/base_link")
-        "map/base_link"
-        >>> format_entity("map", "map/base_link", "camera")
-        "map/base_link/camera"
+    Note:
+        This function is supposed to be used as a decorator for methods of RerunViewer.
     """
-    if not entities:
-        return ""
 
-    flattened = []
-    for entity in entities:
-        for part in entity.split("/"):
-            if part and flattened and flattened[-1] == part:
-                continue
-            flattened.append(part)
-    return "/".join(flattened)
+    def checker(viewer: RerunViewer, *args, **kwargs):
+        if not viewer.config.has_spatial3d():
+            warnings.warn("There is no 3D view space")
+            return
+        else:
+            return function(viewer, *args, **kwargs)
+
+    return checker
+
+
+def _check_spatial2d(function: Callable) -> Callable:
+    """Check if the viewer has the 2D view space.
+
+    Note:
+        This function is supposed to be used as a decorator for methods of RerunViewer.
+    """
+
+    def checker(viewer: RerunViewer, *args, **kwargs):
+        if not viewer.config.has_spatial2d():
+            warnings.warn("There is no 2D view space")
+            return
+        else:
+            return function(viewer, *args, **kwargs)
+
+    return checker
 
 
 class RerunViewer:
     """A viewer class that renders some components powered by rerun."""
 
-    # entity paths
-    map_entity = "map"
-    ego_entity = "map/base_link"
-    geocoordinate_entity = "geocoordinate"
-    timeline = "timestamp"
-
     def __init__(
         self,
         app_id: str,
-        *,
-        cameras: Sequence[str] | None = None,
-        with_3d: bool = True,
+        config: ViewerConfig = ViewerConfig(),
         save_dir: str | None = None,
     ) -> None:
         """Construct a new object.
 
         Args:
             app_id (str): Application ID.
-            cameras (Sequence[str] | None, optional): Sequence of camera names.
-                If `None`, any 2D spaces will not be visualized.
-            with_3d (bool, optional): Whether to render objects with the 3D space.
+            config (ViewerConfig): Configuration of the viewer.
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
 
         Examples:
-            >>> from t4_devkit.viewer import RerunViewer
-            # Rendering both 3D/2D spaces
-            >>> viewer = RerunViewer("myapp", cameras=["camera0", "camera1"])
-            # Rendering 3D space only
-            >>> viewer = RerunViewer("myapp")
-            # Rendering 2D space only
-            >>> viewer = RerunViewer("myapp", cameras=["camera0", "camera1"], with_3d=False)
+            >>> from t4_devkit.viewer import ViewerBuilder
+            >>> viewer = (
+                    ViewerBuilder()
+                    .with_spatial3d()
+                    .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"])
+                    .with_labels(label2id={"car": 1, "pedestrian": 2})
+                    .with_streetmap(latlon=[48.8566, 2.3522])
+                    .build(app_id="my_viewer")
+                )
         """
         self.app_id = app_id
-        self.cameras = cameras
-        self.with_3d = with_3d
-        self.with_2d = self.cameras is not None
-        self.label2id: dict[str, int] | None = None
-        self.global_origin: tuple[float, float] | None = None
-
-        if not (self.with_3d or self.with_2d):
-            raise ValueError("At least one of 3D or 2D spaces must be rendered.")
-
-        view_container: list[rrb.Container | rrb.SpaceView] = []
-        if self.with_3d:
-            view_container.extend(
-                [
-                    rrb.Horizontal(
-                        rrb.Spatial3DView(name="3D", origin=self.map_entity),
-                        rrb.Horizontal(rrb.MapView(name="Map", origin=self.geocoordinate_entity)),
-                        column_shares=[3, 1],
-                    ),
-                ]
-            )
-
-        if self.with_2d:
-            camera_space_views = [
-                rrb.Spatial2DView(name=name, origin=format_entity(self.ego_entity, name))
-                for name in self.cameras
-            ]
-            view_container.append(rrb.Grid(*camera_space_views))
-
-        self.blueprint = rrb.Vertical(*view_container, row_shares=[4, 2])
+        self.config = config
+        self.blueprint = self.config.to_blueprint()
 
         rr.init(
             application_id=self.app_id,
@@ -148,25 +117,10 @@ class RerunViewer:
         if save_dir is not None:
             self._start_saving(save_dir=save_dir)
 
-        rr.log(self.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
-
-    def with_labels(self, label2id: dict[str, int]) -> Self:
-        """Return myself after creating `rr.AnnotationContext` on the recording.
-
-        Args:
-            label2id (dict[str, int]): Key-value mapping which maps label name to its class ID.
-
-        Returns:
-            Self instance.
-
-        Examples:
-            >>> label2id = {"car": 0, "pedestrian": 1}
-            >>> viewer = RerunViewer("myapp").with_labels(label2id)
-        """
-        self.label2id = label2id
+        rr.log(self.config.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
 
         rr.log(
-            self.map_entity,
+            self.config.map_entity,
             rr.AnnotationContext(
                 [
                     rr.AnnotationInfo(id=label_id, label=label)
@@ -176,23 +130,13 @@ class RerunViewer:
             static=True,
         )
 
-        return self
+    @property
+    def label2id(self) -> dict[str, int]:
+        return self.config.label2id
 
-    def with_global_origin(self, lat_lon: tuple[float, float]) -> Self:
-        """Return myself after setting global origin.
-
-        Args:
-            lat_lon (tuple[float, float]): Global origin of map (latitude, longitude).
-
-        Returns:
-            Self instance.
-
-        Examples:
-            >>> lat_lon = (42.336849169438615, -71.05785369873047)
-            >>> viewer = RerunViewer("myapp").with_global_origin(lat_lon)
-        """
-        self.global_origin = lat_lon
-        return self
+    @property
+    def latlon(self) -> Vector2Like | None:
+        return self.config.latlon
 
     def _start_saving(self, save_dir: str) -> None:
         """Save recording result as `save_dir/{app_id}.rrd`.
@@ -208,8 +152,7 @@ class RerunViewer:
 
     @overload
     def render_box3ds(self, seconds: float, boxes: Sequence[Box3D]) -> None:
-        """Render 3D boxes. Note that if the viewer initialized with `with_3d=False`,
-        no 3D box will be rendered.
+        """Render 3D boxes.
 
         Args:
             seconds (float): Timestamp in [sec].
@@ -221,6 +164,7 @@ class RerunViewer:
     def render_box3ds(
         self,
         seconds: float,
+        frame_id: str,
         centers: Sequence[Vector3Like],
         rotations: Sequence[RotationLike],
         sizes: Sequence[Vector3Like],
@@ -233,6 +177,7 @@ class RerunViewer:
 
         Args:
             seconds (float): Timestamp in [sec].
+            frame_id (str): Frame ID.
             centers (Sequence[Vector3Like]): Sequence of 3D positions in the order of (x, y, z).
             rotations (Sequence[RotationLike]): Sequence of rotations.
             sizes (Sequence[Vector3Like]): Sequence of box sizes in the order of (width, length, height).
@@ -243,6 +188,7 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial3d
     def render_box3ds(self, *args, **kwargs) -> None:
         """Render 3D boxes."""
         if len(args) + len(kwargs) == 2:
@@ -251,11 +197,7 @@ class RerunViewer:
             self._render_box3ds_with_elements(*args, **kwargs)
 
     def _render_box3ds_with_boxes(self, seconds: float, boxes: Sequence[Box3D]) -> None:
-        if not self.with_3d:
-            warnings.warn("There is no camera space.")
-            return
-
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
         batches: dict[str, BatchBox3D] = {}
         for box in boxes:
@@ -266,23 +208,24 @@ class RerunViewer:
         for frame_id, batch in batches.items():
             # record boxes 3d
             rr.log(
-                format_entity(self.map_entity, frame_id, "box"),
+                format_entity(self.config.map_entity, frame_id, "box"),
                 batch.as_boxes3d(),
             )
             # record velocities
             rr.log(
-                format_entity(self.map_entity, frame_id, "velocity"),
+                format_entity(self.config.map_entity, frame_id, "velocity"),
                 batch.as_arrows3d(),
             )
             # record futures
             rr.log(
-                format_entity(self.map_entity, frame_id, "future"),
+                format_entity(self.config.map_entity, frame_id, "future"),
                 batch.as_linestrips3d(),
             )
 
     def _render_box3ds_with_elements(
         self,
         seconds: float,
+        frame_id: str,
         centers: Sequence[Vector3Like],
         rotations: Sequence[RotationLike],
         sizes: Sequence[Vector3Like],
@@ -327,15 +270,21 @@ class RerunViewer:
                 future=future,
             )
 
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
-        rr.log(format_entity(self.ego_entity, "box"), batch.as_boxes3d())
+        rr.log(format_entity(self.config.map_entity, frame_id, "box"), batch.as_boxes3d())
 
         if show_arrows:
-            rr.log(format_entity(self.ego_entity, "velocity"), batch.as_arrows3d())
+            rr.log(
+                format_entity(self.config.map_entity, frame_id, "velocity"),
+                batch.as_arrows3d(),
+            )
 
         if show_futures:
-            rr.log(format_entity(self.ego_entity, "future"), batch.as_linestrips3d())
+            rr.log(
+                format_entity(self.config.map_entity, frame_id, "future"),
+                batch.as_linestrips3d(),
+            )
 
     @overload
     def render_box2ds(self, seconds: float, boxes: Sequence[Box2D]) -> None:
@@ -368,6 +317,7 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial2d
     def render_box2ds(self, *args, **kwargs) -> None:
         """Render 2D boxes."""
         if len(args) + len(kwargs) == 2:
@@ -376,11 +326,7 @@ class RerunViewer:
             self._render_box2ds_with_elements(*args, **kwargs)
 
     def _render_box2ds_with_boxes(self, seconds: float, boxes: Sequence[Box2D]) -> None:
-        if not self.with_2d:
-            warnings.warn("There is no camera space.")
-            return
-
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
         batches: dict[str, BatchBox2D] = {}
         for box in boxes:
@@ -390,7 +336,7 @@ class RerunViewer:
 
         for frame_id, batch in batches.items():
             rr.log(
-                format_entity(self.ego_entity, frame_id, "box"),
+                format_entity(self.config.ego_entity, frame_id, "box"),
                 batch.as_boxes2d(),
             )
 
@@ -402,10 +348,6 @@ class RerunViewer:
         class_ids: Sequence[int],
         uuids: Sequence[str] | None = None,
     ) -> None:
-        if not self.with_2d:
-            warnings.warn("There is no camera space.")
-            return
-
         if uuids is None:
             uuids = [None] * len(rois)
 
@@ -413,9 +355,10 @@ class RerunViewer:
         for roi, class_id, uuid in zip(rois, class_ids, uuids, strict=True):
             batch.append(roi=roi, class_id=class_id, uuid=uuid)
 
-        rr.set_time_seconds(self.timeline, seconds)
-        rr.log(format_entity(self.ego_entity, camera, "box"), batch.as_boxes2d())
+        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.log(format_entity(self.config.ego_entity, camera, "box"), batch.as_boxes2d())
 
+    @_check_spatial2d
     def render_segmentation2d(
         self,
         seconds: float,
@@ -434,11 +377,7 @@ class RerunViewer:
             class_ids (Sequence[int]): Sequence of label ids.
             uuids (Sequence[str | None] | None, optional): Sequence of each instance ID.
         """
-        if not self.with_2d or camera not in self.cameras:
-            warnings.warn(f"There is no camera space: {camera}")
-            return
-
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
         batch = BatchSegmentation2D()
         if uuids is None:
@@ -447,10 +386,11 @@ class RerunViewer:
             batch.append(mask, class_id, uuid)
 
         rr.log(
-            format_entity(self.ego_entity, camera, "segmentation"),
+            format_entity(self.config.ego_entity, camera, "segmentation"),
             batch.as_segmentation_image(),
         )
 
+    @_check_spatial3d
     def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloudLike) -> None:
         """Render pointcloud.
 
@@ -460,17 +400,15 @@ class RerunViewer:
             pointcloud (PointCloudLike): Inherence object of `PointCloud`.
         """
         # TODO(ktro2828): add support of rendering pointcloud on images
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
         colors = distance_color(np.linalg.norm(pointcloud.points[:3].T, axis=1))
         rr.log(
-            format_entity(self.ego_entity, channel),
-            rr.Points3D(
-                pointcloud.points[:3].T,
-                colors=colors,
-            ),
+            format_entity(self.config.ego_entity, channel),
+            rr.Points3D(pointcloud.points[:3].T, colors=colors),
         )
 
+    @_check_spatial2d
     def render_image(self, seconds: float, camera: str, image: str | NDArrayU8) -> None:
         """Render an image.
 
@@ -479,16 +417,12 @@ class RerunViewer:
             camera (str): Name of the camera channel.
             image (str | NDArrayU8): Image tensor or path of the image file.
         """
-        if not self.with_2d or camera not in self.cameras:
-            warnings.warn(f"There is no camera space: {camera}")
-            return
-
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
         if isinstance(image, str):
-            rr.log(format_entity(self.ego_entity, camera), rr.ImageEncoded(path=image))
+            rr.log(format_entity(self.config.ego_entity, camera), rr.ImageEncoded(path=image))
         else:
-            rr.log(format_entity(self.ego_entity, camera), rr.Image(image))
+            rr.log(format_entity(self.config.ego_entity, camera), rr.Image(image))
 
     @overload
     def render_ego(self, ego_pose: EgoPose) -> None:
@@ -519,6 +453,7 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial3d
     def render_ego(self, *args, **kwargs) -> None:
         """Render an ego pose."""
         if len(args) + len(kwargs) == 1:
@@ -541,10 +476,10 @@ class RerunViewer:
         rotation: RotationLike,
         geocoordinate: Vector3Like | None = None,
     ) -> None:
-        rr.set_time_seconds(self.timeline, seconds)
+        rr.set_time_seconds(self.config.timeline, seconds)
 
         rr.log(
-            self.ego_entity,
+            self.config.ego_entity,
             rr.Transform3D(
                 translation=translation,
                 rotation=_to_rerun_quaternion(rotation),
@@ -555,13 +490,13 @@ class RerunViewer:
         if geocoordinate is not None:
             latitude, longitude, _ = geocoordinate
             rr.log(
-                self.geocoordinate_entity,
+                self.config.geocoordinate_entity,
                 rr.GeoPoints(lat_lon=(latitude, longitude)),
             )
-        elif self.global_origin is not None:
-            latitude, longitude = calculate_geodetic_point(translation, self.global_origin)
+        elif self.latlon is not None:
+            latitude, longitude = calculate_geodetic_point(translation, self.latlon)
             rr.log(
-                self.geocoordinate_entity,
+                self.config.geocoordinate_entity,
                 rr.GeoPoints(lat_lon=(latitude, longitude)),
             )
 
@@ -603,6 +538,7 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial3d
     def render_calibration(self, *args, **kwargs) -> None:
         """Render a sensor calibration."""
         if len(args) + len(kwargs) <= 3:
@@ -645,18 +581,19 @@ class RerunViewer:
             resolution (Vector2Like | None, optional): Camera resolution (width, height).
         """
         rr.log(
-            format_entity(self.ego_entity, channel),
+            format_entity(self.config.ego_entity, channel),
             rr.Transform3D(translation=translation, rotation=_to_rerun_quaternion(rotation)),
             static=True,
         )
 
         if modality == SensorModality.CAMERA:
             rr.log(
-                format_entity(self.ego_entity, channel),
+                format_entity(self.config.ego_entity, channel),
                 rr.Pinhole(image_from_camera=camera_intrinsic, resolution=resolution),
                 static=True,
             )
 
+    @_check_spatial3d
     def render_map(self, filepath: str) -> None:
         """Render vector map.
 
@@ -665,12 +602,12 @@ class RerunViewer:
         """
         parser = LaneletParser(filepath, verbose=False)
 
-        root_entity = format_entity(self.map_entity, "vector_map")
+        root_entity = format_entity(self.config.map_entity, "vector_map")
         render_lanelets(parser, root_entity)
         render_traffic_elements(parser, root_entity)
         render_ways(parser, root_entity)
 
-        render_geographic_borders(parser, f"{self.geocoordinate_entity}/vector_map")
+        render_geographic_borders(parser, f"{self.config.geocoordinate_entity}/vector_map")
 
 
 def _to_rerun_quaternion(rotation: RotationLike) -> rr.Quaternion:
