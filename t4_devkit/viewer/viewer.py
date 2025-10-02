@@ -72,6 +72,23 @@ def _check_spatial2d(function: Callable) -> Callable:
     return checker
 
 
+def _check_filepath(function: Callable) -> Callable:
+    """Check if the input filepath exists.
+
+    Note:
+        This function is supposed to be used as a decorator for methods of RerunViewer.
+    """
+
+    def checker(viewer: RerunViewer, filepath: str):
+        if not osp.exists(filepath):
+            warnings.warn(f"File not found: {filepath}")
+            return
+        else:
+            return function(viewer, filepath)
+
+    return checker
+
+
 class RerunViewer:
     """A viewer class that renders some components powered by rerun."""
 
@@ -593,6 +610,7 @@ class RerunViewer:
                 static=True,
             )
 
+    @_check_filepath
     @_check_spatial3d
     def render_map(self, filepath: str) -> None:
         """Render vector map.

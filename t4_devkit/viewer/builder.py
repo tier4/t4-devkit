@@ -54,11 +54,12 @@ class ViewerBuilder:
         self._config.label2id = label2id
         return self
 
-    def with_streetmap(self, latlon: Vector2Like) -> Self:
+    def with_streetmap(self, latlon: Vector2Like | None = None) -> Self:
         self._config.spatial3ds.append(
             rrb.MapView(name="Map", origin=self._config.geocoordinate_entity)
         )
-        self._config.latlon = latlon
+        if latlon is not None:
+            self._config.latlon = latlon
         return self
 
     def build(self, app_id: str, save_dir: str | None = None) -> RerunViewer:
