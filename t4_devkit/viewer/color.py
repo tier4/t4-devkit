@@ -24,13 +24,13 @@ class PointCloudColorMode(str, Enum):
 
 def pointcloud_color(
     pointcloud: PointCloudLike,
-    color_mode: PointCloudColorMode = PointCloudColorMode.INTENSITY,
+    color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
 ) -> NDArrayF64:
     """Return color map depending on the specified color mode.
 
     Args:
         pointcloud (PointCloudLike): Any inheritance of `PointCloud` class.
-        color_mode (PointCloudColorMode): Color mode of point cloud.
+        color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
     """
     match color_mode:
         case PointCloudColorMode.DISTANCE:

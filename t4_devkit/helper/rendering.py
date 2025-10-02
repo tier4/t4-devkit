@@ -21,7 +21,7 @@ from t4_devkit.viewer import (
     ViewerBuilder,
     ViewerConfig,
     format_entity,
-    normalize_color,
+    pointcloud_color,
 )
 
 if TYPE_CHECKING:
@@ -339,6 +339,7 @@ class RenderingHelper:
         viewer: RerunViewer,
         first_lidar_tokens: list[str],
         max_timestamp_us: float,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> list[Future]:
         def _render_single_lidar(first_lidar_token: str) -> None:
             self._render_sensor_calibration(viewer=viewer, sample_data_token=first_lidar_token)
@@ -360,6 +361,7 @@ class RenderingHelper:
                     seconds=us2sec(sample_data.timestamp),
                     channel=sample_data.channel,
                     pointcloud=pointcloud,
+                    color_mode=color_mode,
                 )
 
                 current_lidar_token = sample_data.next
@@ -430,6 +432,7 @@ class RenderingHelper:
         *,
         min_dist: float = 1.0,
         ignore_distortion: bool = True,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> list[Future]:
         def _render_points_on_single_camera(camera: str) -> None:
             current_point_sample_data_token = first_point_sample_data_token
@@ -453,6 +456,7 @@ class RenderingHelper:
                     camera_sample_data_token=camera_sample_data_token,
                     min_dist=min_dist,
                     ignore_distortion=ignore_distortion,
+                    color_mode=color_mode,
                 )
 
                 rr.set_time_seconds(ViewerConfig.timeline, us2sec(sample.timestamp))
@@ -478,7 +482,7 @@ class RenderingHelper:
         min_dist: float = 1.0,
         *,
         ignore_distortion: bool = True,
-        color_mode: PointCloudColorMode = PointCloudColorMode.INTENSITY,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> tuple[NDArrayF64, NDArrayF64, NDArrayU8]:
         """Project pointcloud on image plane.
 
@@ -540,11 +544,7 @@ class RenderingHelper:
             normalize=True,
         )[:2]
 
-        match color_mode:
-            case PointCloudColorMode.DISTANCE:
-                colors = normalize_color(pointcloud.points[2, :])
-            case _:
-                colors = normalize_color(pointcloud.points[3, :])
+        colors = pointcloud_color(pointcloud, color_mode)
         depths = pointcloud.points[2, :]
 
         mask = np.ones(colors.shape[0], dtype=bool)
