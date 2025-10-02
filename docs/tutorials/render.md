@@ -38,16 +38,6 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 
 ![Render PointCloud GIF](../assets/render_pointcloud.gif)
 
-<!-- prettier-ignore-start -->
-!!! NOTE
-    In case of you want to ignore camera distortion, please specify `ignore_distortion=True`.
-
-    <!-- markdownlint-disable MD046 -->
-    ```python
-    >>> t4.render_pointcloud(ignore_distortion=True)
-    ```
-<!-- prettier-ignore-end -->
-
 ### Save Recording
 
 You can save the rendering result as follows:
