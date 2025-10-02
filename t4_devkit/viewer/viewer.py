@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os.path as osp
 import warnings
-from typing import TYPE_CHECKING, Sequence, overload
+from typing import TYPE_CHECKING, Callable, Sequence, overload
 
 import numpy as np
 import rerun as rr
@@ -36,6 +36,40 @@ if TYPE_CHECKING:
     )
 
 __all__ = ["RerunViewer"]
+
+
+def _check_spatial3d(function: Callable) -> Callable:
+    """Check if the viewer has the 3D view space.
+
+    Note:
+        This function is supposed to be used as a decorator for methods of RerunViewer.
+    """
+
+    def checker(viewer: RerunViewer, *args, **kwargs):
+        if not viewer.config.has_spatial3d():
+            warnings.warn("There is no 3D view space")
+            return
+        else:
+            return function(viewer, *args, **kwargs)
+
+    return checker
+
+
+def _check_spatial2d(function: Callable) -> Callable:
+    """Check if the viewer has the 2D view space.
+
+    Note:
+        This function is supposed to be used as a decorator for methods of RerunViewer.
+    """
+
+    def checker(viewer: RerunViewer, *args, **kwargs):
+        if not viewer.config.has_spatial2d():
+            warnings.warn("There is no 2D view space")
+            return
+        else:
+            return function(viewer, *args, **kwargs)
+
+    return checker
 
 
 class RerunViewer:
@@ -154,12 +188,9 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial3d
     def render_box3ds(self, *args, **kwargs) -> None:
         """Render 3D boxes."""
-        if not self.config.has_spatial3d():
-            warnings.warn("There is no 3D view space")
-            return
-
         if len(args) + len(kwargs) == 2:
             self._render_box3ds_with_boxes(*args, **kwargs)
         else:
@@ -286,12 +317,9 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial2d
     def render_box2ds(self, *args, **kwargs) -> None:
         """Render 2D boxes."""
-        if not self.config.has_spatial2d():
-            warnings.warn("There is no 2D view space")
-            return
-
         if len(args) + len(kwargs) == 2:
             self._render_box2ds_with_boxes(*args, **kwargs)
         else:
@@ -330,6 +358,7 @@ class RerunViewer:
         rr.set_time_seconds(self.config.timeline, seconds)
         rr.log(format_entity(self.config.ego_entity, camera, "box"), batch.as_boxes2d())
 
+    @_check_spatial2d
     def render_segmentation2d(
         self,
         seconds: float,
@@ -348,10 +377,6 @@ class RerunViewer:
             class_ids (Sequence[int]): Sequence of label ids.
             uuids (Sequence[str | None] | None, optional): Sequence of each instance ID.
         """
-        if not self.config.has_spatial2d():
-            warnings.warn("There is no 2D view space")
-            return
-
         rr.set_time_seconds(self.config.timeline, seconds)
 
         batch = BatchSegmentation2D()
@@ -365,6 +390,7 @@ class RerunViewer:
             batch.as_segmentation_image(),
         )
 
+    @_check_spatial3d
     def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloudLike) -> None:
         """Render pointcloud.
 
@@ -373,10 +399,6 @@ class RerunViewer:
             channel (str): Name of the pointcloud sensor channel.
             pointcloud (PointCloudLike): Inherence object of `PointCloud`.
         """
-        if not self.config.has_spatial3d():
-            warnings.warn("There is no 3D view space")
-            return
-
         # TODO(ktro2828): add support of rendering pointcloud on images
         rr.set_time_seconds(self.config.timeline, seconds)
 
@@ -386,6 +408,7 @@ class RerunViewer:
             rr.Points3D(pointcloud.points[:3].T, colors=colors),
         )
 
+    @_check_spatial2d
     def render_image(self, seconds: float, camera: str, image: str | NDArrayU8) -> None:
         """Render an image.
 
@@ -394,10 +417,6 @@ class RerunViewer:
             camera (str): Name of the camera channel.
             image (str | NDArrayU8): Image tensor or path of the image file.
         """
-        if not self.config.has_spatial3d():
-            warnings.warn("There is no 3D view space")
-            return
-
         rr.set_time_seconds(self.config.timeline, seconds)
 
         if isinstance(image, str):
@@ -434,12 +453,9 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial3d
     def render_ego(self, *args, **kwargs) -> None:
         """Render an ego pose."""
-        if not self.config.has_spatial3d():
-            warnings.warn("There is no 3D view space")
-            return
-
         if len(args) + len(kwargs) == 1:
             self._render_ego_with_schema(*args, **kwargs)
         else:
@@ -522,12 +538,9 @@ class RerunViewer:
         """
         pass
 
+    @_check_spatial3d
     def render_calibration(self, *args, **kwargs) -> None:
         """Render a sensor calibration."""
-        if not self.config.has_spatial3d():
-            warnings.warn("There is no 3D view space")
-            return
-
         if len(args) + len(kwargs) <= 3:
             self._render_calibration_with_schema(*args, **kwargs)
         else:
@@ -580,16 +593,13 @@ class RerunViewer:
                 static=True,
             )
 
+    @_check_spatial3d
     def render_map(self, filepath: str) -> None:
         """Render vector map.
 
         Args:
             filepath (str): Path to OSM file.
         """
-        if not self.config.has_spatial3d():
-            warnings.warn("There is no 3D view space")
-            return
-
         parser = LaneletParser(filepath, verbose=False)
 
         root_entity = format_entity(self.config.map_entity, "vector_map")
