@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from t4_devkit.typing import ArrayLike, NDArrayF64
 
 
-__all__ = ["PointCloudColorMode", "pointcloud_color", "normalize_color"]
+__all__ = ["PointCloudColorMode", "pointcloud_color"]
 
 
 @unique
@@ -38,10 +38,10 @@ def pointcloud_color(
         case _:
             values = pointcloud.points[3]
 
-    return normalize_color(values)
+    return _normalize_color(values)
 
 
-def normalize_color(values: ArrayLike, cmap: str | None = None, alpha: float = 1.0) -> NDArrayF64:
+def _normalize_color(values: ArrayLike, cmap: str | None = None, alpha: float = 1.0) -> NDArrayF64:
     """Return color map normalizing values.
 
     Args:
