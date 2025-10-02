@@ -31,11 +31,11 @@ class AutolabelModel:
     )
 
     @staticmethod
-    def to_autolabel_model(x) -> list[AutolabelModel] | None:
+    def to_autolabel_model(x: list[dict | AutolabelModel] | None) -> list[AutolabelModel] | None:
         """Convert input to a list of AutolabelModel instances.
 
         Args:
-            x: Input to convert. Can be None, a list of dicts, or a list of AutolabelModel instances.
+            x (list[dict | AutolabelModel] | None): Input to convert. Can be None, a list of dicts, or a list of AutolabelModel instances.
 
         Returns:
             list[AutolabelModel] | None: Converted list of AutolabelModel instances or None.
