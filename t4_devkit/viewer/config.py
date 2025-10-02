@@ -35,11 +35,11 @@ class ViewerConfig:
         return rrb.Vertical(*views, row_shares=[4, 2])
 
     def has_spatial3d(self) -> bool:
-        """Return True if the configuration contains 3D view space."""
+        """Return `True` if the configuration contains 3D view space."""
         return len(self.spatial3ds) > 0
 
     def has_spatial2d(self) -> bool:
-        """Return True if the configuration contains 2D view space."""
+        """Return `True` if the configuration contains 2D view space."""
         return len(self.spatial2ds) > 0
 
 

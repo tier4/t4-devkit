@@ -22,10 +22,10 @@ class ViewerBuilder:
         >>> viewer = (
                 ViewerBuilder()
                 .with_spatial3d()
-                .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"], projection=True)
-                .with_labels({"car": 1, "pedestrian": 2})
-                .with_streetmap([48.8566, 2.3522])
-                .build("viewer", save_dir="recording")
+                .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"])
+                .with_labels(label2id={"car": 1, "pedestrian": 2})
+                .with_streetmap(latlon=[48.8566, 2.3522])
+                .build(app_id="my_viewer")
             )
     """
 

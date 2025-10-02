@@ -85,7 +85,7 @@ class RerunViewer:
 
         Args:
             app_id (str): Application ID.
-            config (ViewerConfig): config for the viewer.
+            config (ViewerConfig): Configuration of the viewer.
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
 
@@ -94,10 +94,10 @@ class RerunViewer:
             >>> viewer = (
                     ViewerBuilder()
                     .with_spatial3d()
-                    .with_spatial2d(["CAM_FRONT", "CAM_BACK"], projection=True)
-                    .with_labels({"car": 1, "pedestrian": 2})
-                    .with_latlon([48.8566, 2.3522])
-                    .build("viewer", save_dir="recording")
+                    .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"])
+                    .with_labels(label2id={"car": 1, "pedestrian": 2})
+                    .with_streetmap(latlon=[48.8566, 2.3522])
+                    .build(app_id="my_viewer")
                 )
         """
         self.app_id = app_id
