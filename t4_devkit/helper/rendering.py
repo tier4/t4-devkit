@@ -4,12 +4,11 @@ import concurrent
 import concurrent.futures
 import os.path as osp
 from concurrent.futures import Future
+from enum import Enum
 from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
-import rerun as rr
 import yaml
-from PIL import Image
 
 from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import microseconds2seconds, seconds2microseconds
@@ -21,7 +20,6 @@ from t4_devkit.viewer import (
     ViewerBuilder,
     ViewerConfig,
     format_entity,
-    pointcloud_color,
 )
 
 if TYPE_CHECKING:
@@ -38,9 +36,14 @@ if TYPE_CHECKING:
         Sensor,
         SurfaceAnn,
     )
-    from t4_devkit.typing import NDArrayF64, NDArrayU8
 
 __all__ = ["RenderingHelper"]
+
+
+class RenderingMode(Enum):
+    SCENE = "scene"
+    INSTANCE = "instance"
+    POINTCLOUD = "pointcloud"
 
 
 class RenderingHelper:
@@ -71,6 +74,7 @@ class RenderingHelper:
         self,
         app_id: str,
         *,
+        contents: list[str] | None = None,
         render_ann: bool = True,
         save_dir: str | None = None,
     ) -> RerunViewer:
@@ -78,7 +82,9 @@ class RenderingHelper:
             sensor.channel for sensor in self._t4.sensor if sensor.modality == SensorModality.CAMERA
         ]
 
-        builder = ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras)
+        builder = (
+            ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras, contents=contents)
+        )
 
         if render_ann:
             builder = builder.with_labels(self._label2id)
@@ -94,6 +100,24 @@ class RenderingHelper:
             builder = builder.with_streetmap()
 
         return builder.build(app_id, save_dir=save_dir)
+
+    def _load_contents(self, mode: RenderingMode, entity_child: str = "") -> list[str] | None:
+        match mode:
+            case RenderingMode.SCENE | RenderingMode.INSTANCE:
+                # project 3D boxes/velocities/futures on image if there is no 2D annotation
+                entity_root = format_entity(ViewerConfig.map_entity, entity_child)
+                if len(self._t4.object_ann) == 0 and len(self._t4.surface_ann) == 0:
+                    contents = [
+                        format_entity(entity_root, "box"),
+                        format_entity(entity_root, "velocity"),
+                        format_entity(entity_root, "future"),
+                    ]
+                else:
+                    contents = None
+            case RenderingMode.POINTCLOUD:
+                contents = [format_entity(ViewerConfig.ego_entity, entity_child)]
+
+        return contents
 
     def render_scene(
         self,
@@ -128,8 +152,8 @@ class RenderingHelper:
         ]
 
         app_id = f"scene@{self._t4.dataset_id}"
-        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
-
+        contents = self._load_contents(RenderingMode.SCENE)
+        viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
         self._try_render_map(viewer)
 
         scene: Scene = self._t4.scene[0]
@@ -234,7 +258,8 @@ class RenderingHelper:
         ]
 
         app_id = f"instance@{self._t4.dataset_id}"
-        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
+        contents = self._load_contents(RenderingMode.INSTANCE)
+        viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
         self._try_render_map(viewer)
 
@@ -286,14 +311,12 @@ class RenderingHelper:
         self,
         *,
         max_time_seconds: float = np.inf,
-        ignore_distortion: bool = True,
         save_dir: str | None = None,
     ) -> None:
         """Render pointcloud on 3D and 2D view.
 
         Args:
             max_time_seconds (float, optional): Max time length to be rendered [s].
-            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
 
@@ -308,10 +331,12 @@ class RenderingHelper:
 
         # search first lidar sample data token
         first_lidar_token: str | None = None
+        first_camera_tokens: list[str] = []
         for sensor in self._t4.sensor:
-            if sensor.modality != SensorModality.LIDAR:
-                continue
-            first_lidar_token = sensor.first_sd_token
+            if sensor.modality == SensorModality.LIDAR:
+                first_lidar_token = sensor.first_sd_token
+            elif sensor.modality == SensorModality.CAMERA:
+                first_camera_tokens.append(sensor.first_sd_token)
 
         if first_lidar_token is None:
             raise ValueError("There is no 3D pointcloud data.")
