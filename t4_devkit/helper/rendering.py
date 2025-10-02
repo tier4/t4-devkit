@@ -16,7 +16,7 @@ from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud
 from t4_devkit.schema import SensorModality
-from t4_devkit.viewer import RerunViewer, ViewerBuilder, distance_color, format_entity
+from t4_devkit.viewer import RerunViewer, ViewerBuilder, ViewerConfig, distance_color, format_entity
 
 if TYPE_CHECKING:
     from t4_devkit import Tier4
@@ -451,11 +451,11 @@ class RenderingHelper:
                     ignore_distortion=ignore_distortion,
                 )
 
-                rr.set_time_seconds(RerunViewer.timeline, us2sec(sample.timestamp))
+                rr.set_time_seconds(ViewerConfig.timeline, us2sec(sample.timestamp))
 
-                rr.log(format_entity(RerunViewer.ego_entity, camera), rr.Image(image))
+                rr.log(format_entity(ViewerConfig.ego_entity, camera), rr.Image(image))
                 rr.log(
-                    format_entity(RerunViewer.ego_entity, camera, "pointcloud"),
+                    format_entity(ViewerConfig.ego_entity, camera, "pointcloud"),
                     rr.Points2D(positions=points_on_image.T, colors=distance_color(depths)),
                 )
 
