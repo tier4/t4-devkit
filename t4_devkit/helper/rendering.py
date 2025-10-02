@@ -494,7 +494,7 @@ class RenderingHelper:
             color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
 
         Returns:
-            Projected points [2, n], their normalized features [n] and an image.
+            Projected points [2, n], their color values [n, 3], and an image.
         """
         point_sample_data: SampleData = self._t4.get("sample_data", point_sample_data_token)
         pc_filepath = osp.join(self._t4.data_root, point_sample_data.filename)
