@@ -35,8 +35,10 @@ def pointcloud_color(
     match color_mode:
         case PointCloudColorMode.DISTANCE:
             values = np.linalg.norm(pointcloud.points[:3].T, axis=1)
-        case _:
+        case PointCloudColorMode.INTENSITY:
             values = pointcloud.points[3]
+        case _:
+            raise ValueError(f"Unsupported color mode: {color_mode}")
 
     return _normalize_color(values)
 
