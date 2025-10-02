@@ -3,7 +3,6 @@ from __future__ import annotations
 import concurrent
 import concurrent.futures
 import os.path as osp
-import warnings
 from concurrent.futures import Future
 from typing import TYPE_CHECKING, Sequence
 
@@ -80,6 +79,8 @@ class RenderingHelper:
             map_origin: dict = map_metadata["/**"]["ros__parameters"]["map_origin"]
             latitude, longitude = map_origin["latitude"], map_origin["longitude"]
             builder = builder.with_streetmap((latitude, longitude))
+        elif osp.exists(osp.join(self._t4.map_dir, "lanelet2_map.osm")):
+            builder = builder.with_streetmap()
 
         return builder.build(app_id, save_dir=save_dir)
 
@@ -309,10 +310,6 @@ class RenderingHelper:
 
     def _render_map(self, viewer: RerunViewer) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
-        if not osp.exists(lanelet_path):
-            warnings.warn(f"Lanelet map not found at {lanelet_path}")
-            return
-
         viewer.render_map(lanelet_path)
 
     def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
