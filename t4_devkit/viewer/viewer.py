@@ -12,7 +12,7 @@ from t4_devkit.common.timestamp import us2sec
 from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SensorModality
 
-from .color import distance_color
+from .color import PointCloudColorMode, pointcloud_color
 from .config import ViewerConfig, format_entity
 from .geography import calculate_geodetic_point
 from .lanelet import (
@@ -408,18 +408,25 @@ class RerunViewer:
         )
 
     @_check_spatial3d
-    def render_pointcloud(self, seconds: float, channel: str, pointcloud: PointCloudLike) -> None:
+    def render_pointcloud(
+        self,
+        seconds: float,
+        channel: str,
+        pointcloud: PointCloudLike,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
+    ) -> None:
         """Render pointcloud.
 
         Args:
             seconds (float): Timestamp in [sec].
             channel (str): Name of the pointcloud sensor channel.
             pointcloud (PointCloudLike): Inherence object of `PointCloud`.
+            color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
         """
         # TODO(ktro2828): add support of rendering pointcloud on images
         rr.set_time_seconds(self.config.timeline, seconds)
 
-        colors = distance_color(np.linalg.norm(pointcloud.points[:3].T, axis=1))
+        colors = pointcloud_color(pointcloud, color_mode=color_mode)
         rr.log(
             format_entity(self.config.ego_entity, channel),
             rr.Points3D(pointcloud.points[:3].T, colors=colors),

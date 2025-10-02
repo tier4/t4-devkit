@@ -15,7 +15,14 @@ from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import sec2us, us2sec
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud
 from t4_devkit.schema import SensorModality
-from t4_devkit.viewer import RerunViewer, ViewerBuilder, ViewerConfig, distance_color, format_entity
+from t4_devkit.viewer import (
+    PointCloudColorMode,
+    RerunViewer,
+    ViewerBuilder,
+    ViewerConfig,
+    format_entity,
+    pointcloud_color,
+)
 
 if TYPE_CHECKING:
     from t4_devkit import Tier4
@@ -332,6 +339,7 @@ class RenderingHelper:
         viewer: RerunViewer,
         first_lidar_tokens: list[str],
         max_timestamp_us: float,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> list[Future]:
         def _render_single_lidar(first_lidar_token: str) -> None:
             self._render_sensor_calibration(viewer=viewer, sample_data_token=first_lidar_token)
@@ -353,6 +361,7 @@ class RenderingHelper:
                     seconds=us2sec(sample_data.timestamp),
                     channel=sample_data.channel,
                     pointcloud=pointcloud,
+                    color_mode=color_mode,
                 )
 
                 current_lidar_token = sample_data.next
@@ -423,6 +432,7 @@ class RenderingHelper:
         *,
         min_dist: float = 1.0,
         ignore_distortion: bool = True,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> list[Future]:
         def _render_points_on_single_camera(camera: str) -> None:
             current_point_sample_data_token = first_point_sample_data_token
@@ -441,11 +451,12 @@ class RenderingHelper:
                 if max_timestamp_us < sample.timestamp:
                     break
 
-                points_on_image, depths, image = self._project_pointcloud(
+                points_on_image, colors, image = self._project_pointcloud(
                     point_sample_data_token=current_point_sample_data_token,
                     camera_sample_data_token=camera_sample_data_token,
                     min_dist=min_dist,
                     ignore_distortion=ignore_distortion,
+                    color_mode=color_mode,
                 )
 
                 rr.set_time_seconds(ViewerConfig.timeline, us2sec(sample.timestamp))
@@ -453,7 +464,7 @@ class RenderingHelper:
                 rr.log(format_entity(ViewerConfig.ego_entity, camera), rr.Image(image))
                 rr.log(
                     format_entity(ViewerConfig.ego_entity, camera, "pointcloud"),
-                    rr.Points2D(positions=points_on_image.T, colors=distance_color(depths)),
+                    rr.Points2D(positions=points_on_image.T, colors=colors),
                 )
 
                 current_point_sample_data_token = sample_data.next
@@ -471,6 +482,7 @@ class RenderingHelper:
         min_dist: float = 1.0,
         *,
         ignore_distortion: bool = True,
+        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> tuple[NDArrayF64, NDArrayF64, NDArrayU8]:
         """Project pointcloud on image plane.
 
@@ -479,9 +491,10 @@ class RenderingHelper:
             camera_sample_data_token (str): Sample data token of camera.
             min_dist (float, optional): Distance from the camera below which points are discarded.
             ignore_distortion (bool, optional): Whether to ignore distortion parameters.
+            color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
 
         Returns:
-            Projected points [2, n], their normalized depths [n] and an image.
+            Projected points [2, n], their color values [n, 3], and an image.
         """
         point_sample_data: SampleData = self._t4.get("sample_data", point_sample_data_token)
         pc_filepath = osp.join(self._t4.data_root, point_sample_data.filename)
@@ -522,8 +535,6 @@ class RenderingHelper:
         pointcloud.translate(-camera_cs_record.translation)
         pointcloud.rotate(camera_cs_record.rotation.rotation_matrix.T)
 
-        depths = pointcloud.points[2, :]
-
         distortion = None if ignore_distortion else camera_cs_record.camera_distortion
 
         points_on_img = view_points(
@@ -533,16 +544,20 @@ class RenderingHelper:
             normalize=True,
         )[:2]
 
-        mask = np.ones(depths.shape[0], dtype=bool)
-        mask = np.logical_and(mask, depths > min_dist)
+        colors = pointcloud_color(pointcloud, color_mode)
+        depths = pointcloud.points[2, :]
+
+        mask = np.ones(colors.shape[0], dtype=bool)
+        mask = np.logical_and(mask, depths > min_dist)  # mask by depths
+        # mask by size of points on image
         mask = np.logical_and(mask, 1 < points_on_img[0])
         mask = np.logical_and(mask, points_on_img[0] < img.size[0] - 1)
         mask = np.logical_and(mask, 1 < points_on_img[1])
         mask = np.logical_and(mask, points_on_img[1] < img.size[1] - 1)
         points_on_img = points_on_img[:, mask]
-        depths = depths[mask]
+        colors = colors[mask]
 
-        return points_on_img, depths, np.array(img, dtype=np.uint8)
+        return points_on_img, colors, np.array(img, dtype=np.uint8)
 
     def _render_annotation3ds(
         self,

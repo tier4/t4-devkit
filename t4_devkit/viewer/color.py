@@ -1,31 +1,61 @@
 from __future__ import annotations
 
+from enum import Enum, unique
 from typing import TYPE_CHECKING
 
 import matplotlib
+import numpy as np
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import ArrayLike, NDArrayF64, ScalarLike
+    from t4_devkit.dataclass import PointCloudLike
+    from t4_devkit.typing import ArrayLike, NDArrayF64
 
 
-def distance_color(
-    distances: ScalarLike | ArrayLike,
-    cmap: str | None = None,
-    v_min: float = 3.0,
-    v_max: float = 75.0,
-) -> tuple[float, float, float] | NDArrayF64:
-    """Return color map depending on distance values.
+__all__ = ["PointCloudColorMode", "pointcloud_color"]
+
+
+@unique
+class PointCloudColorMode(str, Enum):
+    """Color mode of point cloud."""
+
+    DISTANCE = "distance"
+    INTENSITY = "intensity"
+
+
+def pointcloud_color(
+    pointcloud: PointCloudLike,
+    color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
+) -> NDArrayF64:
+    """Return color map depending on the specified color mode.
 
     Args:
-        distances (ScalarLike | ArrayLike): Array of distances in the shape of (N,).
+        pointcloud (PointCloudLike): Any inheritance of `PointCloud` class.
+        color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
+    """
+    match color_mode:
+        case PointCloudColorMode.DISTANCE:
+            values = np.linalg.norm(pointcloud.points[:3].T, axis=1)
+        case PointCloudColorMode.INTENSITY:
+            values = pointcloud.points[3]
+        case _:
+            raise ValueError(f"Unsupported color mode: {color_mode}")
+
+    return _normalize_color(values)
+
+
+def _normalize_color(values: ArrayLike, cmap: str | None = None, alpha: float = 1.0) -> NDArrayF64:
+    """Return color map normalizing values.
+
+    Args:
+        values (ArrayLike): Array of values in the shape of (N,).
         cmap (str | None, optional): Color map name in matplotlib. If None, `turbo_r` will be used.
-        v_min (float, optional): Min value to normalize.
-        v_max (float, optional): Max value to normalize.
+        alpha (float, optional): Alpha value of color map.
 
     Returns:
-        Color map in the shape of (N,). If input type is any number, returns a color as
-            `tuple[float, float, float]`. Otherwise, returns colors as `NDArrayF64`.
+        Color map in the shape of (N,).
     """
     color_map = matplotlib.colormaps["turbo_r"] if cmap is None else matplotlib.colormaps[cmap]
+    v_min = np.min(values)
+    v_max = np.max(values)
     norm = matplotlib.colors.Normalize(v_min, v_max)
-    return color_map(norm(distances))
+    return color_map(norm(values), alpha=alpha)
