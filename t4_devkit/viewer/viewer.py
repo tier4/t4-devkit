@@ -119,7 +119,8 @@ class RerunViewer:
         """
         self.app_id = app_id
         self.config = config
-        self.blueprint = self.config.to_blueprint()
+
+        blueprint = self.config.to_blueprint()
 
         rr.init(
             application_id=self.app_id,
@@ -127,12 +128,12 @@ class RerunViewer:
             spawn=save_dir is None,
             default_enabled=True,
             strict=True,
-            default_blueprint=self.blueprint,
+            default_blueprint=blueprint,
         )
 
         # NOTE: rr.save() must be invoked before logging
         if save_dir is not None:
-            self._start_saving(save_dir=save_dir)
+            rr.save(osp.join(save_dir, f"{self.app_id}.rrd"), default_blueprint=blueprint)
 
         rr.log(self.config.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
 
@@ -154,18 +155,6 @@ class RerunViewer:
     @property
     def latlon(self) -> Vector2Like | None:
         return self.config.latlon
-
-    def _start_saving(self, save_dir: str) -> None:
-        """Save recording result as `save_dir/{app_id}.rrd`.
-
-        Note:
-            This method must be called before any logging started.
-
-        Args:
-            save_dir (str): Directory path to save the result.
-        """
-        filepath = osp.join(save_dir, f"{self.app_id}.rrd")
-        rr.save(filepath, default_blueprint=self.blueprint)
 
     @overload
     def render_box3ds(self, seconds: float, boxes: Sequence[Box3D]) -> None:
