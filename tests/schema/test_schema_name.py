@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from t4_devkit.schema import SchemaName
 
 
@@ -19,6 +21,7 @@ def test_schema_name() -> None:
         "visibility": False,
         "sensor": False,
         "scene": False,
+        "lidarseg": True,
         "object_ann": True,
         "surface_ann": True,
         "keypoint": True,

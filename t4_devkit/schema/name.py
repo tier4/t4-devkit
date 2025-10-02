@@ -23,6 +23,7 @@ class SchemaName(str, Enum):
         SCENE: A scene is a specific long sequence of consecutive frames extracted from a log.
         SENSOR: A specific sensor type.
         VISIBILITY: The visibility of instance is the fraction of annotation visible in all images.
+        LIDARSEG (optional): The annotation of 3D point cloud segmentation.
         OBJECT_ANN (optional): The annotation of a foreground object in an image.
         SURFACE_ANN (optional): The annotation of a background object in an image.
         KEYPOINT (optional): The annotation of pose keypoints of an object in an image.
@@ -42,6 +43,7 @@ class SchemaName(str, Enum):
     VISIBILITY = "visibility"
     SENSOR = "sensor"
     SCENE = "scene"
+    LIDARSEG = "lidarseg"  # optional
     OBJECT_ANN = "object_ann"  # optional
     SURFACE_ANN = "surface_ann"  # optional
     KEYPOINT = "keypoint"  # optional
@@ -63,6 +65,7 @@ class SchemaName(str, Enum):
             Return True if this schema is optional.
         """
         return self in (
+            SchemaName.LIDARSEG,
             SchemaName.OBJECT_ANN,
             SchemaName.SURFACE_ANN,
             SchemaName.KEYPOINT,
