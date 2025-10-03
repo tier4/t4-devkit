@@ -503,19 +503,17 @@ class RenderingHelper:
                 obj_ann: ObjectAnn = self._t4.get("object_ann", obj_ann_token)
                 box = self._t4.get_box2d(obj_ann_token)
                 if instance_tokens is not None:
-                    if obj_ann.instance_token in instance_tokens:
-                        boxes.append(box)
-                        sample_data: SampleData = self._t4.get(
-                            "sample_data",
-                            obj_ann.sample_data_token,
-                        )
-                        camera_masks = _append_mask(
-                            camera_masks,
-                            camera=sample_data.channel,
-                            ann=obj_ann,
-                            class_id=self._label2id[obj_ann.category_name],
-                            uuid=box.uuid,
-                        )
+                    if obj_ann.instance_token not in instance_tokens:
+                        continue
+                    boxes.append(box)
+                    sample_data: SampleData = self._t4.get("sample_data", obj_ann.sample_data_token)
+                    camera_masks = _append_mask(
+                        camera_masks,
+                        camera=sample_data.channel,
+                        ann=obj_ann,
+                        class_id=self._label2id[obj_ann.category_name],
+                        uuid=box.uuid,
+                    )
                 else:
                     boxes.append(box)
                     sample_data: SampleData = self._t4.get("sample_data", obj_ann.sample_data_token)
