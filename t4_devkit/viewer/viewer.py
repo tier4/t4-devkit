@@ -516,7 +516,7 @@ class RerunViewer:
             rr.Transform3D(
                 translation=translation,
                 rotation=_to_rerun_quaternion(rotation),
-                relation=rr.TransformRelation.ParentFromChild,
+                from_parent=False,
             ),
         )
 
@@ -615,7 +615,11 @@ class RerunViewer:
         """
         rr.log(
             format_entity(self.config.ego_entity, channel),
-            rr.Transform3D(translation=translation, rotation=_to_rerun_quaternion(rotation)),
+            rr.Transform3D(
+                translation=translation,
+                rotation=_to_rerun_quaternion(rotation),
+                from_parent=False,
+            ),
             static=True,
         )
 
