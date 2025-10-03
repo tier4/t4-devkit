@@ -443,10 +443,11 @@ class RerunViewer:
         """
         rr.set_time_seconds(self.config.timeline, seconds)
 
+        entity_path = format_entity(self.config.ego_entity, camera)
         if isinstance(image, str):
-            rr.log(format_entity(self.config.ego_entity, camera), rr.ImageEncoded(path=image))
+            rr.log(entity_path, rr.ImageEncoded(path=image))
         else:
-            rr.log(format_entity(self.config.ego_entity, camera), rr.Image(image))
+            rr.log(entity_path, rr.Image(image))
 
     @overload
     def render_ego(self, ego_pose: EgoPose) -> None:
@@ -507,7 +508,7 @@ class RerunViewer:
             rr.Transform3D(
                 translation=translation,
                 rotation=_to_rerun_quaternion(rotation),
-                relation=rr.TransformRelation.ParentFromChild,
+                from_parent=False,
             ),
         )
 
@@ -606,7 +607,11 @@ class RerunViewer:
         """
         rr.log(
             format_entity(self.config.ego_entity, channel),
-            rr.Transform3D(translation=translation, rotation=_to_rerun_quaternion(rotation)),
+            rr.Transform3D(
+                translation=translation,
+                rotation=_to_rerun_quaternion(rotation),
+                from_parent=False,
+            ),
             static=True,
         )
 
