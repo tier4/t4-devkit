@@ -372,14 +372,12 @@ class RenderingHelper:
             "calibrated_sensor", sample_data.calibrated_sensor_token
         )
         sensor: Sensor = self._t4.get("sensor", calibration.sensor_token)
-        if sensor.modality == SensorModality.CAMERA:
-            viewer.render_calibration(
-                sensor=sensor,
-                calibration=calibration,
-                resolution=(sample_data.width, sample_data.height),
-            )
-        else:
-            viewer.render_calibration(sensor=sensor, calibration=calibration)
+        resolution = (
+            (sample_data.width, sample_data.height)
+            if sensor.modality == SensorModality.CAMERA
+            else None
+        )
+        viewer.render_calibration(sensor=sensor, calibration=calibration, resolution=resolution)
 
     def _render_lidar_and_ego(
         self,
