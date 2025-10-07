@@ -58,20 +58,19 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "alias=$ALIAS" >> $GITHUB_OUTPUT
-          echo "Deploying version: $VERSION with alias: $ALIAS"
+
 
       - name: Deploy documentation
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           ALIAS="${{ steps.version.outputs.alias }}"
 
-          echo "Deploying documentation for version: $VERSION"
           if [[ -n "$ALIAS" ]]; then
-            echo "Setting alias: $ALIAS"
+            echo "Deploying documentation for version: $VERSION with alias: $ALIAS"
             uv run mike deploy --push --update-aliases $VERSION $ALIAS
             uv run mike set-default --push $ALIAS
           else
-            echo "No alias set"
+            echo "Deploying documentation for version: $VERSION (no alias set)"
             uv run mike deploy --push $VERSION
           fi
         env:
