@@ -27,7 +27,7 @@ jobs:
       - name: Configure Git for deployment
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "githu-actions[bot]@users.noreply.github.com"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Define a cache dependency glob
         uses: astral-sh/setup-uv@v5
