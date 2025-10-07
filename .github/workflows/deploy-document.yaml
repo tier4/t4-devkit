@@ -3,7 +3,18 @@ name: deploy-document
 on:
   push:
     branches: [main]
+    tags:
+      - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g., v1.0.0, latest, dev)"
+        required: true
+        default: "latest"
+      alias:
+        description: "Version alias (e.g., latest, stable)"
+        required: false
+        default: ""
 
 jobs:
   deploy-document:
@@ -20,5 +31,34 @@ jobs:
       - name: Install the project
         run: uv sync --only-dev
 
-      - name: Create the document
-        run: uv run mkdocs gh-deploy --force
+      - name: Determine version and alias
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            ALIAS="${{ github.event.inputs.alias }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            ALIAS="latest"
+          else
+            VERSION="develop"
+            ALIAS=""
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Deploy documentation
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ALIAS="${{ steps.version.outputs.alias }}"
+
+          if [[ -n "$ALIAS" ]]; then
+            uv run mike deploy --push --update-aliases $VERSION $ALIAS
+            uv run mike set-default --push $ALIAS
+          else
+            uv run mike deploy --push $VERSION
+          fi
+
+      - name: List versions
+        run: uv run mike list
