@@ -8,13 +8,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to deploy (e.g., v1.0.0, latest, dev)"
+        description: "Version to deploy (e.g., v1.0.0, latest, develop)"
         required: true
-        default: "latest"
+        default: "develop"
       alias:
         description: "Version alias (e.g., latest, stable)"
         required: false
         default: ""
+
+permissions:
+  contents: write # Required for mike to push to gh-pages branch
 
 jobs:
   deploy-document:
@@ -45,27 +48,38 @@ jobs:
             VERSION="${{ github.event.inputs.version }}"
             ALIAS="${{ github.event.inputs.alias }}"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            # For version tags (e.g., v1.0.0), use the tag name and set latest alias
             VERSION="${{ github.ref_name }}"
             ALIAS="latest"
           else
+            # For main branch pushes (non-tag), deploy as develop
             VERSION="develop"
             ALIAS=""
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "alias=$ALIAS" >> $GITHUB_OUTPUT
-          echo "Deploying version: $VERSION"
+          echo "Deploying version: $VERSION with alias: $ALIAS"
 
       - name: Deploy documentation
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           ALIAS="${{ steps.version.outputs.alias }}"
 
+          echo "Deploying documentation for version: $VERSION"
           if [[ -n "$ALIAS" ]]; then
+            echo "Setting alias: $ALIAS"
             uv run mike deploy --push --update-aliases $VERSION $ALIAS
             uv run mike set-default --push $ALIAS
           else
+            echo "No alias set"
             uv run mike deploy --push $VERSION
           fi
+        env:
+          # Ensure GitHub Pages deployment works correctly
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List versions
-        run: uv run mike list
+      - name: List deployed versions
+        run: |
+          echo "Currently deployed versions:"
+          uv run mike list
+          echo "Documentation deployment completed successfully!"
