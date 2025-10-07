@@ -50,6 +50,7 @@ plugins:
   - search
   - mike:
       version_selector: true
+      canonical_version: latest
   - mkdocstrings:
       handlers:
         python:
