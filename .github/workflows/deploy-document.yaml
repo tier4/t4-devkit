@@ -21,6 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git for deployment
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "githu-actions[bot]@users.noreply.github.com"
 
       - name: Define a cache dependency glob
         uses: astral-sh/setup-uv@v5
