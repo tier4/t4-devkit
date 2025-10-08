@@ -48,7 +48,7 @@ def view_points(
     if distortion is not None:
         assert distortion.shape[0] >= 4
         D = distortion
-        # distortion is [k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, τx, τy]. 
+        # distortion is [k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, τx, τy].
         # Undistortion implementation from: https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga7dfb72c9cf9780a347fbe3d1c47e5d5a
         while len(D) < 14:
             D = np.insert(D, len(D), 0)
@@ -61,25 +61,23 @@ def view_points(
         f2 = x_ * y_
         x__ = x_ * f1 + 2 * p1 * f2 + p2 * (r2 + 2 * x_**2) + s1 * r2 + s2 * r2**2
         y__ = y_ * f1 + p1 * (r2 + 2 * y_**2) + 2 * p2 * f2 + s3 * r2 + s4 * r2**2
-        
+
         # Apply tilted sensor distortion (τx, τy)
         if tau_x != 0 or tau_y != 0:
             # Rotation matrix R(tau_x, tau_y)
-            R = np.array([
-                [np.cos(tau_y), 0, -np.sin(tau_y)],
-                [np.sin(tau_x) * np.sin(tau_y), np.cos(tau_x), np.sin(tau_x) * np.cos(tau_y)],
-                [np.cos(tau_x) * np.sin(tau_y), -np.sin(tau_x), np.cos(tau_x) * np.cos(tau_y)]
-            ])
+            R = np.array(
+                [
+                    [np.cos(tau_y), 0, -np.sin(tau_y)],
+                    [np.sin(tau_x) * np.sin(tau_y), np.cos(tau_x), np.sin(tau_x) * np.cos(tau_y)],
+                    [np.cos(tau_x) * np.sin(tau_y), -np.sin(tau_x), np.cos(tau_x) * np.cos(tau_y)],
+                ]
+            )
 
             # Extract required elements
             R13, R23, R33 = R[0, 2], R[1, 2], R[2, 2]
 
             # Build M matrix
-            M = np.array([
-                [R33, 0, -R13],
-                [0, R33, -R23],
-                [0, 0, 1]
-            ])
+            M = np.array([[R33, 0, -R13], [0, R33, -R23], [0, 0, 1]])
 
             # Homogeneous coordinates
             points_3d = np.vstack([x__, y__, np.ones_like(x__)])
@@ -90,7 +88,7 @@ def view_points(
             # Normalize
             x__ = tilted[0] / tilted[2]
             y__ = tilted[1] / tilted[2]
-        
+
         u = viewpad[0, 0] * x__ + viewpad[0, 2]
         v = viewpad[1, 1] * y__ + viewpad[1, 2]
         points = np.stack([u, v, points[2, :]], axis=0)

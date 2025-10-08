@@ -3,14 +3,14 @@
 ## Type Definition
 
 | Expression       | Description                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- | ----- | ---------------------------------------------------------------- |
 | `str`            | String                                                                                                         |
 | `int`            | Integer                                                                                                        |
 | `float`          | Floating point number                                                                                          |
 | `bool`           | Boolean                                                                                                        |
 | `enum[X,Y,...]`  | Enumerated type with possible values X, Y, ...                                                                 |
 | `[T;N]`          | Array of N elements of type T                                                                                  |
-| `[T;N|M|...]`    | Array of type T with N, M, or other specified number of elements                                               |
+| `[T;N            | M                                                                                                              | ...]` | Array of type T with N, M, or other specified number of elements |
 | `option[T]`      | Optional value of type T                                                                                       |
 | `RLE`            | Run-length encoding given as `{"size": <[int;2]>, "counts": <str>}`, where `size` represents `(width, height)` |
 | `AutolabelModel` | Autolabel model information given as `{"name": <str>, "score": <float>, "uncertainty": <option[float]>}`       |
@@ -20,19 +20,19 @@
 The `camera_distortion` field in the `CalibratedSensor` table supports multiple distortion models following the OpenCV convention. The distortion coefficients are provided as `(k1, k2, p1, p2[, k3[, k4, k5, k6[, s1, s2, s3, s4[, τx, τy]]]])` where:
 
 - **k1, k2, k3, k4, k5, k6**: Radial distortion coefficients
-- **p1, p2**: Tangential distortion coefficients  
+- **p1, p2**: Tangential distortion coefficients
 - **s1, s2, s3, s4**: Thin prism distortion coefficients
 - **τx, τy**: Tilted sensor distortion coefficients
 
 ### Supported Distortion Models
 
-| Array Length | Model Description | Coefficients |
-| ------------ | ----------------- | ------------ |
-| 4 elements   | Basic radial and tangential | `(k1, k2, p1, p2)` |
-| 5 elements   | Extended radial distortion | `(k1, k2, p1, p2, k3)` |
-| 8 elements   | Rational model | `(k1, k2, p1, p2, k3, k4, k5, k6)` |
-| 12 elements  | With thin prism distortion | `(k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4)` |
-| 14 elements  | Full distortion model | `(k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, τx, τy)` |
+| Array Length | Model Description           | Coefficients                                               |
+| ------------ | --------------------------- | ---------------------------------------------------------- |
+| 4 elements   | Basic radial and tangential | `(k1, k2, p1, p2)`                                         |
+| 5 elements   | Extended radial distortion  | `(k1, k2, p1, p2, k3)`                                     |
+| 8 elements   | Rational model              | `(k1, k2, p1, p2, k3, k4, k5, k6)`                         |
+| 12 elements  | With thin prism distortion  | `(k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4)`         |
+| 14 elements  | Full distortion model       | `(k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, τx, τy)` |
 
 ## Mandatory Tables
 

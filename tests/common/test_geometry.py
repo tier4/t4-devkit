@@ -156,7 +156,9 @@ def test_view_points_with_distortion_12_params() -> None:
         ]
     )
     # 12-parameter model: [k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4]
-    distortion = np.array([0.1, 0.01, 0.01, 0.01, 0.001, 0.001, 0.001, 0.001, 0.0001, 0.0001, 0.0001, 0.0001])
+    distortion = np.array(
+        [0.1, 0.01, 0.01, 0.01, 0.001, 0.001, 0.001, 0.001, 0.0001, 0.0001, 0.0001, 0.0001]
+    )
 
     project = view_points(points, intrinsic, distortion)
 
@@ -182,7 +184,24 @@ def test_view_points_with_distortion_14_params() -> None:
         ]
     )
     # 14-parameter full model: [k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, τx, τy]
-    distortion = np.array([0.1, 0.01, 0.01, 0.01, 0.001, 0.001, 0.001, 0.001, 0.0001, 0.0001, 0.0001, 0.0001, 0.01, 0.02])
+    distortion = np.array(
+        [
+            0.1,
+            0.01,
+            0.01,
+            0.01,
+            0.001,
+            0.001,
+            0.001,
+            0.001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.01,
+            0.02,
+        ]
+    )
 
     project = view_points(points, intrinsic, distortion)
 
@@ -208,7 +227,9 @@ def test_view_points_with_zero_distortion_all_models() -> None:
         np.array([0.0, 0.0, 0.0, 0.0, 0.0]),  # 5 parameters
         np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),  # 8 parameters
         np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),  # 12 parameters
-        np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),  # 14 parameters
+        np.array(
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ),  # 14 parameters
     ]
 
     # Expected result without distortion

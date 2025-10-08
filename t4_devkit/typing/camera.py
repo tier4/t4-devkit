@@ -50,7 +50,7 @@ class CameraDistortion(np.ndarray):
 
     Coefficient meanings:
         - k1, k2, k3, k4, k5, k6: Radial distortion coefficients
-        - p1, p2: Tangential distortion coefficients  
+        - p1, p2: Tangential distortion coefficients
         - s1, s2, s3, s4: Thin prism distortion coefficients
         - τx, τy: Tilted sensor distortion coefficients
 
@@ -86,6 +86,8 @@ class CameraDistortion(np.ndarray):
         # OpenCV supports distortion coefficient arrays of length 4, 5, 8, 12, or 14
         valid_lengths = (4, 5, 8, 12, 14)
         if obj.ndim != 1 or obj.shape[0] not in valid_lengths:
-            raise ValueError(f"CameraDistortion must be a 1D array of length {valid_lengths}, got: {obj.shape}")
+            raise ValueError(
+                f"CameraDistortion must be a 1D array of length {valid_lengths}, got: {obj.shape}"
+            )
 
         return obj
