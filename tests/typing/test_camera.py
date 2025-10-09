@@ -209,12 +209,72 @@ class TestCameraIntrinsic:
 class TestCameraDistortion:
     """Test cases for CameraDistortion class."""
 
+    def test_creation_from_4_element_array(self):
+        """Test CameraDistortion creation from 4-element array (basic model)."""
+        distortion_data = [0.1, -0.2, 0.001, 0.002]
+        dist = CameraDistortion(distortion_data)
+        assert isinstance(dist, CameraDistortion)
+        assert dist.shape == (4,)
+        assert np.array_equal(dist, distortion_data)
+
     def test_creation_from_5_element_array(self):
-        """Test CameraDistortion creation from 5-element array."""
+        """Test CameraDistortion creation from 5-element array (extended radial)."""
         distortion_data = [0.1, -0.2, 0.001, 0.002, 0.05]
         dist = CameraDistortion(distortion_data)
         assert isinstance(dist, CameraDistortion)
         assert dist.shape == (5,)
+        assert np.array_equal(dist, distortion_data)
+
+    def test_creation_from_8_element_array(self):
+        """Test CameraDistortion creation from 8-element array (rational model)."""
+        distortion_data = [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02]
+        dist = CameraDistortion(distortion_data)
+        assert isinstance(dist, CameraDistortion)
+        assert dist.shape == (8,)
+        assert np.array_equal(dist, distortion_data)
+
+    def test_creation_from_12_element_array(self):
+        """Test CameraDistortion creation from 12-element array (with thin prism)."""
+        distortion_data = [
+            0.1,
+            -0.2,
+            0.001,
+            0.002,
+            0.05,
+            0.01,
+            -0.01,
+            0.02,
+            0.0001,
+            0.0002,
+            0.0003,
+            0.0004,
+        ]
+        dist = CameraDistortion(distortion_data)
+        assert isinstance(dist, CameraDistortion)
+        assert dist.shape == (12,)
+        assert np.array_equal(dist, distortion_data)
+
+    def test_creation_from_14_element_array(self):
+        """Test CameraDistortion creation from 14-element array (full model)."""
+        distortion_data = [
+            0.1,
+            -0.2,
+            0.001,
+            0.002,
+            0.05,
+            0.01,
+            -0.01,
+            0.02,
+            0.0001,
+            0.0002,
+            0.0003,
+            0.0004,
+            0.01,
+            0.02,
+        ]
+        dist = CameraDistortion(distortion_data)
+        assert isinstance(dist, CameraDistortion)
+        assert dist.shape == (14,)
         assert np.array_equal(dist, distortion_data)
 
     def test_creation_from_numpy_array(self):
@@ -241,6 +301,47 @@ class TestCameraDistortion:
         assert dist.shape == (5,)
         assert np.array_equal(dist, distortion_data)
 
+    def test_different_distortion_models(self):
+        """Test different OpenCV distortion models."""
+        # 4-parameter basic model: (k1, k2, p1, p2)
+        basic_dist = CameraDistortion([0.1, -0.2, 0.001, 0.002])
+        assert basic_dist.shape == (4,)
+
+        # 5-parameter extended model: (k1, k2, p1, p2, k3)
+        extended_dist = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05])
+        assert extended_dist.shape == (5,)
+
+        # 8-parameter rational model: (k1, k2, p1, p2, k3, k4, k5, k6)
+        rational_dist = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02])
+        assert rational_dist.shape == (8,)
+
+        # 12-parameter with thin prism: (k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4)
+        thin_prism_dist = CameraDistortion(
+            [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003, 0.0004]
+        )
+        assert thin_prism_dist.shape == (12,)
+
+        # 14-parameter full model: (k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, τx, τy)
+        full_dist = CameraDistortion(
+            [
+                0.1,
+                -0.2,
+                0.001,
+                0.002,
+                0.05,
+                0.01,
+                -0.01,
+                0.02,
+                0.0001,
+                0.0002,
+                0.0003,
+                0.0004,
+                0.01,
+                0.02,
+            ]
+        )
+        assert full_dist.shape == (14,)
+
     def test_typical_distortion_parameters(self):
         """Test CameraDistortion with typical distortion parameters."""
         # Brown-Conrady model: [k1, k2, p1, p2, k3]
@@ -255,13 +356,16 @@ class TestCameraDistortion:
         assert dist[3] == p2  # p2
         assert dist[4] == k3  # k3
 
-    def test_zero_distortion(self):
-        """Test CameraDistortion with zero distortion (undistorted camera)."""
-        zero_distortion = [0.0, 0.0, 0.0, 0.0, 0.0]
-        dist = CameraDistortion(zero_distortion)
-        assert isinstance(dist, CameraDistortion)
-        assert np.allclose(dist, zero_distortion)
-        assert np.sum(dist) == 0.0
+    def test_zero_distortion_all_models(self):
+        """Test CameraDistortion with zero distortion for all supported models."""
+        # Test all supported lengths with zero distortion
+        for length in [4, 5, 8, 12, 14]:
+            zero_distortion = [0.0] * length
+            dist = CameraDistortion(zero_distortion)
+            assert isinstance(dist, CameraDistortion)
+            assert dist.shape == (length,)
+            assert np.allclose(dist, zero_distortion)
+            assert np.sum(dist) == 0.0
 
     def test_creation_with_mixed_types(self):
         """Test CameraDistortion creation with mixed numeric types."""
@@ -276,13 +380,19 @@ class TestCameraDistortion:
 
     def test_invalid_length_too_short(self):
         """Test that CameraDistortion raises ValueError for arrays too short."""
-        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length 5"):
-            CameraDistortion([0.1, -0.2, 0.001, 0.002])  # 4 elements
+        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length"):
+            CameraDistortion([0.1, -0.2, 0.001])  # 3 elements
 
-    def test_invalid_length_too_long(self):
-        """Test that CameraDistortion raises ValueError for arrays too long."""
-        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length 5"):
+    def test_invalid_length_unsupported(self):
+        """Test that CameraDistortion raises ValueError for unsupported lengths."""
+        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length"):
             CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01])  # 6 elements
+
+        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length"):
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, 0.02, 0.03, 0.04])  # 9 elements
+
+        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length"):
+            CameraDistortion([0.1] * 15)  # 15 elements
 
     def test_invalid_2d_array(self):
         """Test that CameraDistortion raises ValueError for 2D array."""
@@ -291,7 +401,7 @@ class TestCameraDistortion:
 
     def test_invalid_single_element(self):
         """Test that CameraDistortion raises ValueError for single element."""
-        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length 5"):
+        with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length"):
             CameraDistortion([0.1])
 
     def test_arithmetic_operations(self):
@@ -314,6 +424,20 @@ class TestCameraDistortion:
         expected = np.array([0.2, -0.4, 0.002, 0.004, 0.1])
         assert np.allclose(result, expected)
 
+    def test_arithmetic_operations_different_lengths(self):
+        """Test arithmetic operations on CameraDistortion with different lengths."""
+        # Test with 4-parameter model
+        dist4 = CameraDistortion([0.1, -0.2, 0.001, 0.002])
+        result = dist4 * 2
+        expected = np.array([0.2, -0.4, 0.002, 0.004])
+        assert np.allclose(result, expected)
+
+        # Test with 8-parameter model
+        dist8 = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02])
+        result = dist8 * 0.5
+        expected = np.array([0.05, -0.1, 0.0005, 0.001, 0.025, 0.005, -0.005, 0.01])
+        assert np.allclose(result, expected)
+
     def test_indexing_and_access(self):
         """Test indexing and element access."""
         dist = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05])
@@ -333,6 +457,52 @@ class TestCameraDistortion:
         assert np.array_equal(dist[:2], [0.1, -0.2])  # Radial k1, k2
         assert np.array_equal(dist[2:4], [0.001, 0.002])  # Tangential p1, p2
         assert dist[4] == 0.05  # Radial k3
+
+    def test_indexing_different_models(self):
+        """Test indexing for different distortion models."""
+        # Test 14-parameter model
+        dist14 = CameraDistortion(
+            [
+                0.1,
+                -0.2,
+                0.001,
+                0.002,
+                0.05,
+                0.01,
+                -0.01,
+                0.02,
+                0.0001,
+                0.0002,
+                0.0003,
+                0.0004,
+                0.01,
+                0.02,
+            ]
+        )
+
+        # Test basic parameters (k1, k2, p1, p2)
+        assert dist14[0] == 0.1  # k1
+        assert dist14[1] == -0.2  # k2
+        assert dist14[2] == 0.001  # p1
+        assert dist14[3] == 0.002  # p2
+
+        # Test extended radial (k3)
+        assert dist14[4] == 0.05  # k3
+
+        # Test rational model (k4, k5, k6)
+        assert dist14[5] == 0.01  # k4
+        assert dist14[6] == -0.01  # k5
+        assert dist14[7] == 0.02  # k6
+
+        # Test thin prism (s1, s2, s3, s4)
+        assert dist14[8] == 0.0001  # s1
+        assert dist14[9] == 0.0002  # s2
+        assert dist14[10] == 0.0003  # s3
+        assert dist14[11] == 0.0004  # s4
+
+        # Test tilted sensor (τx, τy)
+        assert dist14[12] == 0.01  # τx
+        assert dist14[13] == 0.02  # τy
 
     def test_distortion_parameter_extraction(self):
         """Test extracting specific distortion parameters."""
@@ -364,6 +534,44 @@ class TestCameraDistortion:
         assert dist.size == 5
         assert dist.ndim == 1
 
+    def test_numpy_compatibility_all_models(self):
+        """Test numpy compatibility for all distortion models."""
+        test_cases = [
+            ([0.1, -0.2, 0.001, 0.002], 4),
+            ([0.1, -0.2, 0.001, 0.002, 0.05], 5),
+            ([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02], 8),
+            (
+                [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003, 0.0004],
+                12,
+            ),
+            (
+                [
+                    0.1,
+                    -0.2,
+                    0.001,
+                    0.002,
+                    0.05,
+                    0.01,
+                    -0.01,
+                    0.02,
+                    0.0001,
+                    0.0002,
+                    0.0003,
+                    0.0004,
+                    0.01,
+                    0.02,
+                ],
+                14,
+            ),
+        ]
+
+        for data, expected_size in test_cases:
+            dist = CameraDistortion(data)
+            assert dist.shape == (expected_size,)
+            assert dist.size == expected_size
+            assert dist.ndim == 1
+            assert np.linalg.norm(dist) > 0
+
     def test_distortion_magnitude(self):
         """Test measuring distortion magnitude."""
         # High distortion
@@ -392,20 +600,49 @@ class TestCameraInteroperability:
         # Camera intrinsic parameters
         intrinsic = CameraIntrinsic([[800, 0, 320], [0, 800, 240], [0, 0, 1]])
 
-        # Camera distortion parameters
-        distortion = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05])
+        # Test with different distortion models
+        distortion_models = [
+            CameraDistortion([0.1, -0.2, 0.001, 0.002]),  # 4 parameters
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05]),  # 5 parameters
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02]),  # 8 parameters
+            CameraDistortion(
+                [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003, 0.0004]
+            ),  # 12 parameters
+            CameraDistortion(
+                [
+                    0.1,
+                    -0.2,
+                    0.001,
+                    0.002,
+                    0.05,
+                    0.01,
+                    -0.01,
+                    0.02,
+                    0.0001,
+                    0.0002,
+                    0.0003,
+                    0.0004,
+                    0.01,
+                    0.02,
+                ]
+            ),  # 14 parameters
+        ]
 
-        # Both should be compatible for camera modeling
+        # All should be compatible for camera modeling
         assert isinstance(intrinsic, CameraIntrinsic)
-        assert isinstance(distortion, CameraDistortion)
         assert intrinsic.shape == (3, 3)
-        assert distortion.shape == (5,)
+
+        for distortion in distortion_models:
+            assert isinstance(distortion, CameraDistortion)
+            assert distortion.shape[0] in [4, 5, 8, 12, 14]
 
     def test_camera_projection_pipeline(self):
         """Test complete camera projection pipeline."""
         # Set up camera model
         intrinsic = CameraIntrinsic([[800, 0, 320], [0, 800, 240], [0, 0, 1]])
-        _ = CameraDistortion([0.0, 0.0, 0.0, 0.0, 0.0])  # No distortion for simplicity
+        _ = CameraDistortion(
+            [0.0, 0.0, 0.0, 0.0]
+        )  # No distortion for simplicity (4-parameter model)
 
         # 3D point
         point_3d = np.array([1.0, 2.0, 5.0])
@@ -428,7 +665,34 @@ class TestCameraInteroperability:
         """Test that camera parameters are physically reasonable."""
         # Valid camera parameters
         intrinsic = CameraIntrinsic([[800, 0, 320], [0, 800, 240], [0, 0, 1]])
-        distortion = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05])
+
+        # Test with different distortion models
+        distortion_models = [
+            CameraDistortion([0.1, -0.2, 0.001, 0.002]),
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05]),
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02]),
+            CameraDistortion(
+                [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003, 0.0004]
+            ),
+            CameraDistortion(
+                [
+                    0.1,
+                    -0.2,
+                    0.001,
+                    0.002,
+                    0.05,
+                    0.01,
+                    -0.01,
+                    0.02,
+                    0.0001,
+                    0.0002,
+                    0.0003,
+                    0.0004,
+                    0.01,
+                    0.02,
+                ]
+            ),
+        ]
 
         # Check that focal lengths are positive
         fx, fy = intrinsic[0, 0], intrinsic[1, 1]
@@ -440,9 +704,10 @@ class TestCameraInteroperability:
         assert cx > 0
         assert cy > 0
 
-        # Check that distortion parameters are reasonable (not extremely large)
-        max_distortion = np.max(np.abs(distortion))
-        assert max_distortion < 10  # Reasonable upper bound for distortion coefficients
+        # Check that distortion parameters are reasonable for all models
+        for distortion in distortion_models:
+            max_distortion = np.max(np.abs(distortion))
+            assert max_distortion < 10  # Reasonable upper bound for distortion coefficients
 
     def test_camera_calibration_matrix_properties(self):
         """Test properties that should hold for camera calibration matrices."""
@@ -464,12 +729,142 @@ class TestCameraInteroperability:
     def test_type_consistency(self):
         """Test that types are maintained through operations."""
         intrinsic = CameraIntrinsic([[800, 0, 320], [0, 800, 240], [0, 0, 1]])
-        distortion = CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05])
+
+        # Test different distortion models
+        distortion_models = [
+            CameraDistortion([0.1, -0.2, 0.001, 0.002]),
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05]),
+            CameraDistortion([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02]),
+            CameraDistortion(
+                [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003, 0.0004]
+            ),
+            CameraDistortion(
+                [
+                    0.1,
+                    -0.2,
+                    0.001,
+                    0.002,
+                    0.05,
+                    0.01,
+                    -0.01,
+                    0.02,
+                    0.0001,
+                    0.0002,
+                    0.0003,
+                    0.0004,
+                    0.01,
+                    0.02,
+                ]
+            ),
+        ]
 
         # Test that they remain the correct types after creation
         assert type(intrinsic).__name__ == "CameraIntrinsic"
-        assert type(distortion).__name__ == "CameraDistortion"
-
-        # Test shapes are maintained
         assert intrinsic.shape == (3, 3)
-        assert distortion.shape == (5,)
+
+        for i, distortion in enumerate(distortion_models):
+            assert type(distortion).__name__ == "CameraDistortion"
+            expected_shapes = [4, 5, 8, 12, 14]
+            assert distortion.shape == (expected_shapes[i],)
+
+    def test_distortion_model_validation(self):
+        """Test comprehensive validation of all supported distortion models."""
+        # Test valid models
+        valid_models = [
+            ([0.1, -0.2, 0.001, 0.002], "4-parameter basic model"),
+            ([0.1, -0.2, 0.001, 0.002, 0.05], "5-parameter extended model"),
+            ([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02], "8-parameter rational model"),
+            (
+                [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003, 0.0004],
+                "12-parameter thin prism model",
+            ),
+            (
+                [
+                    0.1,
+                    -0.2,
+                    0.001,
+                    0.002,
+                    0.05,
+                    0.01,
+                    -0.01,
+                    0.02,
+                    0.0001,
+                    0.0002,
+                    0.0003,
+                    0.0004,
+                    0.01,
+                    0.02,
+                ],
+                "14-parameter full model",
+            ),
+        ]
+
+        for params, description in valid_models:
+            dist = CameraDistortion(params)
+            assert isinstance(dist, CameraDistortion), f"Failed for {description}"
+            assert dist.shape == (len(params),), f"Shape mismatch for {description}"
+            assert np.array_equal(dist, params), f"Value mismatch for {description}"
+
+        # Test invalid models
+        invalid_models = [
+            ([0.1], "1-parameter"),
+            ([0.1, -0.2], "2-parameter"),
+            ([0.1, -0.2, 0.001], "3-parameter"),
+            ([0.1, -0.2, 0.001, 0.002, 0.05, 0.01], "6-parameter"),
+            ([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01], "7-parameter"),
+            ([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001], "9-parameter"),
+            ([0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002], "10-parameter"),
+            (
+                [0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02, 0.0001, 0.0002, 0.0003],
+                "11-parameter",
+            ),
+            (
+                [
+                    0.1,
+                    -0.2,
+                    0.001,
+                    0.002,
+                    0.05,
+                    0.01,
+                    -0.01,
+                    0.02,
+                    0.0001,
+                    0.0002,
+                    0.0003,
+                    0.0004,
+                    0.01,
+                ],
+                "13-parameter",
+            ),
+            ([0.1] * 15, "15-parameter"),
+            ([0.1] * 20, "20-parameter"),
+        ]
+
+        for params, description in invalid_models:
+            with pytest.raises(ValueError, match="CameraDistortion must be a 1D array of length"):
+                CameraDistortion(params), f"Should have failed for {description}"
+
+    def test_opencv_distortion_coefficient_mapping(self):
+        """Test that distortion coefficients map correctly to OpenCV convention."""
+        # Test 14-parameter full model mapping
+        k1, k2, p1, p2, k3, k4, k5, k6 = 0.1, -0.2, 0.001, 0.002, 0.05, 0.01, -0.01, 0.02
+        s1, s2, s3, s4 = 0.0001, 0.0002, 0.0003, 0.0004
+        tau_x, tau_y = 0.01, 0.02
+
+        full_dist = CameraDistortion([k1, k2, p1, p2, k3, k4, k5, k6, s1, s2, s3, s4, tau_x, tau_y])
+
+        # Verify coefficient positions match OpenCV convention
+        assert full_dist[0] == k1, "k1 position incorrect"
+        assert full_dist[1] == k2, "k2 position incorrect"
+        assert full_dist[2] == p1, "p1 position incorrect"
+        assert full_dist[3] == p2, "p2 position incorrect"
+        assert full_dist[4] == k3, "k3 position incorrect"
+        assert full_dist[5] == k4, "k4 position incorrect"
+        assert full_dist[6] == k5, "k5 position incorrect"
+        assert full_dist[7] == k6, "k6 position incorrect"
+        assert full_dist[8] == s1, "s1 position incorrect"
+        assert full_dist[9] == s2, "s2 position incorrect"
+        assert full_dist[10] == s3, "s3 position incorrect"
+        assert full_dist[11] == s4, "s4 position incorrect"
+        assert full_dist[12] == tau_x, "τx position incorrect"
+        assert full_dist[13] == tau_y, "τy position incorrect"

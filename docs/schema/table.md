@@ -10,6 +10,7 @@
 | `bool`           | Boolean                                                                                                        |
 | `enum[X,Y,...]`  | Enumerated type with possible values X, Y, ...                                                                 |
 | `[T;N]`          | Array of N elements of type T                                                                                  |
+| `[T;N,M,...]`    | Array of type T with N, M, or other specified number of elements                                               |
 | `option[T]`      | Optional value of type T                                                                                       |
 | `RLE`            | Run-length encoding given as `{"size": <[int;2]>, "counts": <str>}`, where `size` represents `(width, height)` |
 | `AutolabelModel` | Autolabel model information given as `{"name": <str>, "score": <float>, "uncertainty": <option[float]>}`       |
@@ -53,7 +54,7 @@ calibrated_sensor {
   "translation":        <[float;3]> -- Extrinsic translation of the sensor. Coordinate system origin in meters: (x, y, z).
   "rotation":           <[float;4]> -- Extrinsic rotation of the sensor. Coordinate system orientation as quaternion: (w, x, y, z).
   "camera_intrinsic":   <[[float;3];3]> -- Intrinsic camera calibration matrix. Empty list `[]` for sensors other than cameras.
-  "camera_distortion":  <[float;5]> -- Distortion coefficients of the camera. Empty list `[]` for sensors other than cameras.
+  "camera_distortion":  <[float;4,5,8,12,14]> -- Distortion coefficients of the camera following OpenCV convention. Supports 4, 5, 8, 12, or 14 elements for different distortion models. Empty list `[]` for sensors other than cameras.
 }
 ```
 
