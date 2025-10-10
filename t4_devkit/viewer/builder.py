@@ -36,15 +36,10 @@ class ViewerBuilder:
         self._config.spatial3ds.append(rrb.Spatial3DView(name="3D", origin=ViewerConfig.map_entity))
         return self
 
-    def with_spatial2d(self, cameras: Sequence[str], *, projection: bool = False) -> Self:
-        overrides = {}  # TODO(ktro2828): add support of projecting 3D elements on image
+    def with_spatial2d(self, cameras: Sequence[str]) -> Self:
         self._config.spatial2ds.extend(
             [
-                rrb.Spatial2DView(
-                    name=name,
-                    origin=format_entity(ViewerConfig.ego_entity, name),
-                    overrides=overrides,
-                )
+                rrb.Spatial2DView(name=name, origin=format_entity(ViewerConfig.ego_entity, name))
                 for name in cameras
             ]
         )

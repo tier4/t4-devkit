@@ -71,7 +71,7 @@ To initialize `RerunViewer`, you can use the `ViewerBuilder` class:
 >>> viewer = (
         ViewerBuilder()
         .with_spatial3d()
-        .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"], projection=True)
+        .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"])
         .with_labels({"car": 1, "pedestrian": 2})
         .build("foo")
     )
