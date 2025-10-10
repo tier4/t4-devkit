@@ -2,18 +2,67 @@
 
 ## Type Definition
 
-| Expression       | Description                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| `str`            | String                                                                                                         |
-| `int`            | Integer                                                                                                        |
-| `float`          | Floating point number                                                                                          |
-| `bool`           | Boolean                                                                                                        |
-| `enum[X,Y,...]`  | Enumerated type with possible values X, Y, ...                                                                 |
-| `[T;N]`          | Array of N elements of type T                                                                                  |
-| `[T;N,M,...]`    | Array of type T with N, M, or other specified number of elements                                               |
-| `option[T]`      | Optional value of type T                                                                                       |
-| `RLE`            | Run-length encoding given as `{"size": <[int;2]>, "counts": <str>}`, where `size` represents `(width, height)` |
-| `AutolabelModel` | Autolabel model information given as `{"name": <str>, "score": <float>, "uncertainty": <option[float]>}`       |
+### Primitive Types
+
+| Expression      | Description                                                      |
+| --------------- | ---------------------------------------------------------------- |
+| `str`           | String                                                           |
+| `int`           | Integer                                                          |
+| `float`         | Floating point number                                            |
+| `bool`          | Boolean                                                          |
+| `enum[X,Y,...]` | Enumerated type with possible values X, Y, ...                   |
+| `[T;N]`         | Array of N elements of type T                                    |
+| `[T;N,M,...]`   | Array of type T with N, M, or other specified number of elements |
+| `option[T]`     | Optional value of type T                                         |
+
+### Special Types
+
+Some schema contains special types as follows, which are written in key-value pairs in JSON format.
+
+#### `RLE`
+
+The `RLE` type is used to represent run-length encoding of a 2D semantic mask:
+
+```json
+RLE {
+  "size":                   <[int;2]> -- Mask size [width, height].
+  "counts":                 <str> -- Encoded counts, where each count is represented as a pair of integers separated by a comma.
+}
+```
+
+#### `AutolabelModel`
+
+The `AutolabelModel` type used in `autolabel_metadata` fields has the following structure:
+
+```json
+AutolabelModel {
+  "name":                     <str> -- Name of the model used for annotation. Can include version information.
+  "score":                    <float> -- Label score for the annotation from this model (range: 0.0–1.0).
+  "uncertainty":              <option[float]> -- Model-reported uncertainty for the annotation (range: 0.0–1.0). Lower values imply higher confidence.
+}
+```
+
+#### `Indicators`
+
+The `Indicators` represents the status of vehicle indicators:
+
+```json
+Indicators {
+  "left":                   <enum["on", "off"]> -- Left indicator status.
+  "right":                  <enum["on", "off"]> -- Right indicator status.
+  "hazard":                 <enum["on", "off"]> -- Hazard indicator status.
+}
+```
+
+#### `AdditionalInfo`
+
+The `AdditionalInfo` represents additional information about the vehicle:
+
+```json
+AdditionalInfo {
+  "speed":                  <option[float]> -- Vehicle speed in meters per second.
+}
+```
 
 ## Mandatory Tables
 
@@ -345,14 +394,6 @@ surface_ann {
 
 This table provides comprehensive information about the vehicle's state at a given timestamp, including the status of doors, indicators, steering, and other relevant information.
 
-In vehicle state, some fields have special types as follows:
-
-| Type             | Definition                                                                          |
-| ---------------- | ----------------------------------------------------------------------------------- |
-| `Indicators`     | `{"left": <IndicatorState>, "right": <IndicatorState>, "hazard": <IndicatorState>}` |
-| `IndicatorState` | `enum["on", "off"]`                                                                 |
-| `AdditionalInfo` | `{"speed": <option[float]>}`                                                        |
-
 ```json
 vehicle_state {
   "token":                    <str> -- Unique record identifier.
@@ -365,17 +406,5 @@ vehicle_state {
   "shift_state":              <option[enum["PARK", "REVERSE", "NEUTRAL", "HIGH", "FORWARD", "LOW", "NONE"]]> -- Shift state of the vehicle.
   "indicators":               <option[Indicators]> -- Indicator state of the vehicle.
   "additional_info":          <option[AdditionalInfo]> -- Additional information about the vehicle state.
-}
-```
-
-## AutolabelModel Definition
-
-The `AutolabelModel` type used in `autolabel_metadata` fields has the following structure:
-
-```json
-AutolabelModel {
-  "name":                     <str> -- Name of the model used for annotation. Can include version information.
-  "score":                    <float> -- Label score for the annotation from this model (range: 0.0–1.0).
-  "uncertainty":              <option[float]> -- Model-reported uncertainty for the annotation (range: 0.0–1.0). Lower values imply higher confidence.
 }
 ```
