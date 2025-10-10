@@ -7,8 +7,8 @@ from tabulate import tabulate
 from tqdm import tqdm
 
 from t4_devkit.common.io import save_json
-from t4_devkit.common.sanity import DBException, sanity_check
 from t4_devkit.common.serialize import serialize_dataclasses
+from t4_devkit.sanity import sanity_check, SanityResult
 
 from .version import version_callback
 
@@ -25,11 +25,42 @@ def _run_sanity_check(
     *,
     revision: str | None = None,
     include_warning: bool = False,
-) -> list[DBException]:
+) -> list[SanityResult]:
     return [
         sanity_check(db_root, revision=revision, include_warning=include_warning)
         for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking...")
     ]
+
+
+def _pretty_print(results: list[SanityResult], *, detail: bool = False) -> str:
+    summary_rows = []
+    for result in results:
+        success = sum(1 for rp in result.reports.values() if rp.is_success())
+        failures = sum(1 for rp in result.reports.values() if rp.is_failure())
+        skips = sum(1 for rp in result.reports.values() if rp.is_skipped())
+        summary_rows.append(
+            [
+                result.dataset_id,
+                result.version,
+                "FAILURE" if failures > 0 else "SUCCESS",
+                len(result.reports),
+                success,
+                failures,
+                skips,
+            ]
+        )
+
+        if detail:
+            print(result)
+
+    print(f"\n{'=' * 20} Summary {'=' * 20}")
+    print(
+        tabulate(
+            summary_rows,
+            headers=["DatasetID", "Version", "Overall", "Rules", "Success", "Failures", "Skips"],
+            tablefmt="pretty",
+        ),
+    )
 
 
 @cli.command()
@@ -50,17 +81,14 @@ def main(
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
+    detail: bool = typer.Option(
+        False, "-d", "--detail", help="Indicates whether to display detailed reports."
+    ),
 ) -> None:
-    exceptions = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
+    results = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
 
-    if all(e.is_ok() for e in exceptions):
-        print("✅ No exceptions occurred!!")
-    else:
-        print("⚠️  Encountered some exceptions!!")
-        headers = ["DatasetID", "Version", "Status", "Message"]
-        table = [[e.dataset_id, e.version, e.status, e.message] for e in exceptions]
-        print(tabulate(table, headers=headers, tablefmt="pretty"))
+    _pretty_print(results, detail=detail)
 
     if output:
-        serialized = serialize_dataclasses(exceptions)
+        serialized = serialize_dataclasses(results)
         save_json(serialized, output)
