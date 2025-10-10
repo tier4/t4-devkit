@@ -70,11 +70,7 @@ class RenderingHelper:
             sensor.channel for sensor in self._t4.sensor if sensor.modality == SensorModality.CAMERA
         ]
 
-        # project 3D boxes if there is no 2D annotation
-        projection = len(self._t4.object_ann) == 0 and len(self._t4.surface_ann) == 0
-        builder = (
-            ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras, projection=projection)
-        )
+        builder = ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras)
 
         if render_ann:
             builder = builder.with_labels(self._label2id)
