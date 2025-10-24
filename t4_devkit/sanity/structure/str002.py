@@ -31,4 +31,4 @@ class STR002(Checker):
                     else [Reason(f"Path to 'annotation' not found: {x.as_posix()}")]
                 )
             case _:
-                return [Reason("dataset directory does't contain 'annotation' directory")]
+                return [Reason("dataset directory doesn't contain 'annotation' directory")]

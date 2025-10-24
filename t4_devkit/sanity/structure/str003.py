@@ -31,4 +31,4 @@ class STR003(Checker):
                     else [Reason(f"Path to 'data' directory not found: {x.as_posix()}")]
                 )
             case _:
-                return [Reason("dataset directory does't contain 'data' directory")]
+                return [Reason("dataset directory doesn't contain 'data' directory")]
