@@ -30,6 +30,8 @@ class FMT018(Checker):
         schema = SchemaName.VEHICLE_STATE
         match context.to_schema_file(schema):
             case Some(x):
+                if not x.exists() and schema.is_optional():
+                    return []
                 records = load_json_safe(x.as_posix())
                 if not is_successful(records):
                     return [Reason("Invalid `VehicleState` file")]

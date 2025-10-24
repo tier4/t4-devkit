@@ -30,6 +30,8 @@ class FMT016(Checker):
         schema = SchemaName.SURFACE_ANN
         match context.to_schema_file(schema):
             case Some(x):
+                if not x.exists() and schema.is_optional():
+                    return []
                 records = load_json_safe(x.as_posix())
                 if not is_successful(records):
                     return [Reason("Invalid `SurfaceAnn` file")]
