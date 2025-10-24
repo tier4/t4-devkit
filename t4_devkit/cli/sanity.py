@@ -32,7 +32,7 @@ def _run_sanity_check(
     ]
 
 
-def _pretty_print(results: list[SanityResult], *, detail: bool = False) -> str:
+def _print_table(results: list[SanityResult], *, detail: bool = False) -> str:
     summary_rows = []
     for result in results:
         success = sum(1 for rp in result.reports.values() if rp.is_success())
@@ -42,7 +42,7 @@ def _pretty_print(results: list[SanityResult], *, detail: bool = False) -> str:
             [
                 result.dataset_id,
                 result.version,
-                "FAILURE" if failures > 0 else "SUCCESS",
+                "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
                 len(result.reports),
                 success,
                 failures,
@@ -53,11 +53,11 @@ def _pretty_print(results: list[SanityResult], *, detail: bool = False) -> str:
         if detail:
             print(result)
 
-    print(f"\n{'=' * 20} Summary {'=' * 20}")
+    print(f"\n{'=' * 40} Summary {'=' * 40}")
     print(
         tabulate(
             summary_rows,
-            headers=["DatasetID", "Version", "Overall", "Rules", "Success", "Failures", "Skips"],
+            headers=["DatasetID", "Version", "Status", "Rules", "Success", "Failures", "Skips"],
             tablefmt="pretty",
         ),
     )
@@ -87,7 +87,7 @@ def main(
 ) -> None:
     results = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
 
-    _pretty_print(results, detail=detail)
+    _print_table(results, detail=detail)
 
     if output:
         serialized = serialize_dataclasses(results)
