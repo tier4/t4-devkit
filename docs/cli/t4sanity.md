@@ -6,18 +6,20 @@ $ t4sanity -h
 
  Usage: t4sanity [OPTIONS] DB_PARENT
 
-╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ *    db_parent      TEXT  Path to parent directory of the databases [default: None] [required]                       │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --version             -v         Show the application version and exit.                                              │
-│ --output              -o    TEXT Path to output JSON file. [default: None]                                           │
-│ --revision            -rv   TEXT Specify if you want to load the specific version. [default: None]                   │
-│ --include-warning     -iw        Indicates whether to report any warnings.                                           │
-│ --install-completion             Install completion for the current shell.                                           │
-│ --show-completion                Show completion for the current shell, to copy it or customize the installation.    │
-│ --help                -h         Show this message and exit.                                                         │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Arguments ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    db_parent      TEXT  Path to parent directory of the databases. [required]                                       │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --version             -v             Show the application version and exit.                                           │
+│ --output              -o       TEXT  Path to output JSON file.                                                        │
+│ --revision            -rv      TEXT  Specify if you want to check the specific version.                               │
+│ --exclude             -e       TEXT  Exclude specific rules or rule groups.                                           │
+│ --include-warning     -iw            Indicates whether to report any warnings.                                        │
+│ --detail              -d             Indicates whether to display detailed reports.                                   │
+│ --install-completion                 Install completion for the current shell.                                        │
+│ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
+│ --help                -h             Show this message and exit.                                                      │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Shell Completion
@@ -33,7 +35,7 @@ t4sanity --install-completion
 As an example, we have the following the dataset structure:
 
 ```shell
-<DATA_ROOT>
+<DB_PARENT>
 ├── dataset1
 │   └── <VERSION>
 │       ├── annotation
@@ -46,45 +48,49 @@ As an example, we have the following the dataset structure:
 ...
 ```
 
-Then, you can run sanity checks with `t4sanity <DATA_ROOT>`:
+Then, you can run sanity checks with `t4sanity <DB_PARENT>`:
 
 ```shell
+$ t4sanity <DB_PARENT>
+
 >>>Sanity checking...: 1it [00:00,  9.70it/s]
-✅ No exceptions occurred!!
+
+============================= Summary =============================
++-----------+---------+---------+-------+---------+----------+-------+
+| DatasetID | Version | Status  | Rules | Success | Failures | Skips |
++-----------+---------+---------+-------+---------+----------+-------+
+| dataset1  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
++-----------+---------+---------+-------+---------+----------+-------+
+| dataset2  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
++-----------+---------+---------+-------+---------+----------+-------+
 ```
 
-### Exclude Warnings
-
-To run sanity check ignoring warnings, providing the path to the parent directory of the datasets:
+Also, `-d; --detail` option helps us to display detailed information about each check:
 
 ```shell
-$ t4sanity <DATA_ROOT>
+$ t4sanity <DB_PARENT> -d
 
->>>Sanity checking...: 2it [00:00, 18.69it/s]
-⚠️  Encountered some exceptions!!
-+-----------+---------+--------+------------------------------------------------------------------------------------------------+
-| DatasetID | Version | Status |                                            Message                                             |
-+-----------+---------+--------+------------------------------------------------------------------------------------------------+
-| dataset1  |    2    | ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
-| dataset2  |    1    |   OK   |                                                                                                |
-+-----------+---------+--------+------------------------------------------------------------------------------------------------+
-```
+>>>Sanity checking...: 1it [00:00,  9.70it/s]
 
-### Include Warnings
+=== DatasetID: dataset1 ===
+  STR001: ✅
+  STR002: ✅
+  STR003: ✅
+  STR004: ✅
+  STR005: ✅
+  STR006: ✅
+  STR007: ✅
+  STR008: ✅
+  ...
 
-To run sanity check and report any warnings, use the `-iw; --include-warning` option:
-
-```shell
-$ t4sanity <DATA_ROOT> -iw
-
->>>Sanity checking...: 2it [00:00, 21.54it/s]
-⚠️  Encountered some exceptions!!
-+-----------+---------+---------+------------------------------------------------------------------------------------------------+
-| DatasetID | Version | Status  |                                            Message                                             |
-+-----------+---------+---------+------------------------------------------------------------------------------------------------+
-| dataset1  |    2    |  ERROR  | bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265) |
-| dataset2  |    1    | WARNING |           Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8            |
-+-----------+---------+---------+------------------------------------------------------------------------------------------------+
+============================= Summary =============================
++-----------+---------+---------+-------+---------+----------+-------+
+| DatasetID | Version | Status  | Rules | Success | Failures | Skips |
++-----------+---------+---------+-------+---------+----------+-------+
+| dataset1  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
++-----------+---------+---------+-------+---------+----------+-------+
+| dataset2  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
++-----------+---------+---------+-------+---------+----------+-------+
 ```
 
 ### Dump Results as JSON
@@ -92,27 +98,33 @@ $ t4sanity <DATA_ROOT> -iw
 To dump results into JSON, use the `-o; --output` option:
 
 ```shell
-$ t4sanity <DATA_ROOT> -o results.json
-
->>>Sanity checking...: 2it [00:00, 21.54it/s]
-...
+t4sanity <DB_PARENT> -o results.json
 ```
 
-Then a JSON file named `results.json` will be generated:
+Then a JSON file named `results.json` will be generated as follows:
 
 ```json
 [
   {
-    "dataset_id": "dataset1",
-    "version": 2,
-    "status": "ERROR",
-    "message": "bbox must be (xmin, ymin, xmax, ymax) and xmin <= xmax && ymin <= ymax: (1532, 198, 1440, 265)"
-  },
-  {
-    "dataset_id": "dataset2",
-    "version": 1,
-    "status": "WARNING",
-    "message": "Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8"
+    "dataset_id": "<DatasetID: str>",
+    "version": <Version: int>,
+    "reports": {
+      "<RuleID: str>": {
+          "id": "<RuleID: str>",
+          "name": "<RuleName: str>",
+          "description": "<Description: str>",
+          "status": "<SUCCESS/FAILURE/SKIPPED: str>",
+          "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failure or skipped reasons, null if success
+      },
+    }
   }
 ]
+```
+
+### Exclude Checks
+
+With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
+
+```shell
+t4sanity <DB_PARENT> -e STR001 -e FMT
 ```
