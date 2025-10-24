@@ -14,16 +14,16 @@
 | `STR008` | `lanelet-file-presence`       | `Warn`   | `lanelet2_map.osm` file exists under the `map/` directory.           |
 | `STR009` | `pointcloud-map-dir-presence` | `Warn`   | `pointcloud_map.pcd` directory exists under the `map/` directory.    |
 
-## Schema (`SCH`)
+## Schema Record (`REC`)
 
 | ID       | Name                          | Severity | Description                             |
 | -------- | ----------------------------- | -------- | --------------------------------------- |
-| `SCH001` | `scene-single`                | `Error`  | `Scene` record is a single.             |
-| `SCH002` | `sample-not-empty`            | `Error`  | `Sample` record is not empty.           |
-| `SCH003` | `sample-data-not-empty`       | `Error`  | `SampleData` record is not empty.       |
-| `SCH004` | `ego-pose-not-empty`          | `Error`  | `EgoPose` record is not empty.          |
-| `SCH005` | `calibrated-sensor-non-empty` | `Error`  | `CalibratedSensor` record is not empty. |
-| `SCH006` | `instance-not-empty`          | `Error`  | `Instance` record is not empty.         |
+| `REC001` | `scene-single`                | `Error`  | `Scene` record is a single.             |
+| `REC002` | `sample-not-empty`            | `Error`  | `Sample` record is not empty.           |
+| `REC003` | `sample-data-not-empty`       | `Error`  | `SampleData` record is not empty.       |
+| `REC004` | `ego-pose-not-empty`          | `Error`  | `EgoPose` record is not empty.          |
+| `REC005` | `calibrated-sensor-non-empty` | `Error`  | `CalibratedSensor` record is not empty. |
+| `REC006` | `instance-not-empty`          | `Error`  | `Instance` record is not empty.         |
 
 ## Reference (`REF`)
 

@@ -10,7 +10,7 @@ from .checker import Checker, RuleID
 @unique
 class RuleGroup(Enum):
     STRUCTURE = "STR"
-    SCHEMA = "SCH"
+    RECORD = "REC"
     REFERENCE = "REF"
     FORMAT = "FMT"
 
