@@ -2,39 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from returns.maybe import Some
-
 from t4_devkit.schema import SchemaName
 
-from ..checker import Checker, RuleID, RuleName
+from ..checker import RuleID, RuleName
 from ..registry import CHECKERS
-from ..result import Reason
-from ..safety import load_json_safe
+from .base import ReferenceChecker
 
 if TYPE_CHECKING:
-    from ..context import SanityContext
+    pass
 
 __all__ = ["REF002"]
 
 
 @CHECKERS.register(RuleID("REF002"))
-class REF002(Checker):
+class REF002(ReferenceChecker):
     """A checker of REF002."""
 
     name = RuleName("scene-to-first-sample")
     description = "'Scene.first_sample_token' refers to 'Sample' record."
-
-    def check(self, context: SanityContext) -> list[Reason]:
-        scene_file = context.to_schema_file(SchemaName.SCENE)
-        sample_file = context.to_schema_file(SchemaName.SAMPLE)
-        match (scene_file, sample_file):
-            case Some(x), Some(y):
-                scene = load_json_safe(x).unwrap()
-                sample_tokens = [item["token"] for item in load_json_safe(y).unwrap()]
-                return [
-                    Reason(f"No reference to `Scene.first_sample_token`: {s['first_sample_token']}")
-                    for s in scene
-                    if s["first_sample_token"] not in sample_tokens
-                ]
-            case _:
-                return [Reason("Missing `Scene` or `Sample` file")]
+    source = SchemaName.SCENE
+    target = SchemaName.SAMPLE
+    reference = "first_sample_token"
