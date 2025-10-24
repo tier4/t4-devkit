@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from t4_devkit.common.io import save_json
 from t4_devkit.common.serialize import serialize_dataclasses
-from t4_devkit.sanity import sanity_check, SanityResult
+from t4_devkit.sanity import SanityResult, sanity_check
 
 from .version import version_callback
 
@@ -24,10 +24,11 @@ def _run_sanity_check(
     db_parent: str,
     *,
     revision: str | None = None,
+    excludes: list[str] | None = None,
     include_warning: bool = False,
 ) -> list[SanityResult]:
     return [
-        sanity_check(db_root, revision=revision, include_warning=include_warning)
+        sanity_check(db_root, revision=revision, excludes=excludes, include_warning=include_warning)
         for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking...")
     ]
 
@@ -78,6 +79,9 @@ def main(
     revision: str | None = typer.Option(
         None, "-rv", "--revision", help="Specify if you want to check the specific version."
     ),
+    excludes: list[str] | None = typer.Option(
+        None, "-e", "--exclude", help="Exclude specific rules or rule groups."
+    ),
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
@@ -85,7 +89,12 @@ def main(
         False, "-d", "--detail", help="Indicates whether to display detailed reports."
     ),
 ) -> None:
-    results = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
+    results = _run_sanity_check(
+        db_parent,
+        revision=revision,
+        excludes=excludes,
+        include_warning=include_warning,
+    )
 
     _print_table(results, detail=detail)
 
