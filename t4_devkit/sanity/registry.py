@@ -13,6 +13,7 @@ class RuleGroup(Enum):
     RECORD = "REC"
     REFERENCE = "REF"
     FORMAT = "FMT"
+    TIER4 = "TIV"
 
     @classmethod
     def values(cls) -> list[str]:

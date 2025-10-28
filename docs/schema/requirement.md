@@ -66,6 +66,6 @@
 
 ## Tier4 Instance (`TIV`)
 
-| ID       | Name         | Severity | Description                             |
-| -------- | ------------ | -------- | --------------------------------------- |
-| `TIV001` | `load-tier4` | `Error`  | Success to initialize `Tier4` instance. |
+| ID       | Name         | Severity | Description                                     |
+| -------- | ------------ | -------- | ----------------------------------------------- |
+| `TIV001` | `load-tier4` | `Error`  | Ensure `Tier4` instance is loaded successfully. |

@@ -7,3 +7,4 @@ from .registry import *  # noqa
 from .result import *  # noqa
 from .run import *  # noqa
 from .structure import *  # noqa
+from .tier4 import *  # noqa
