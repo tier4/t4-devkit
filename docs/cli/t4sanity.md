@@ -108,15 +108,15 @@ Then a JSON file named `results.json` will be generated as follows:
   {
     "dataset_id": "<DatasetID: str>",
     "version": <Version: int>,
-    "reports": {
-      "<RuleID: str>": {
+    "reports": [
+      {
           "id": "<RuleID: str>",
           "name": "<RuleName: str>",
           "description": "<Description: str>",
           "status": "<SUCCESS/FAILURE/SKIPPED: str>",
           "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failure or skipped reasons, null if success
       },
-    }
+    ]
   }
 ]
 ```
@@ -126,5 +126,6 @@ Then a JSON file named `results.json` will be generated as follows:
 With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
 
 ```shell
+# Exclude STR001 and all FMT-relevant rules
 t4sanity <DB_PARENT> -e STR001 -e FMT
 ```

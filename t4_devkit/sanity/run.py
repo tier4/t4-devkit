@@ -26,6 +26,6 @@ def sanity_check(
         context = SanityContext.from_path(data_root, revision=revision)
 
         checkers = CHECKERS.build(excludes=excludes)
-        reports = {checker.id: checker(context) for checker in checkers}
+        reports = [checker(context) for checker in checkers]
 
         return SanityResult.from_context(context, reports)

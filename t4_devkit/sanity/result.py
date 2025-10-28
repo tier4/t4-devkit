@@ -39,6 +39,12 @@ class Report:
     status: Status
     reasons: list[Reason] | None = field(default=None)
 
+    def __attrs_post_init__(self) -> None:
+        if self.is_success():
+            assert self.reasons is None, "Success report cannot have reasons"
+        else:
+            assert self.reasons is not None, "Failure report must have reasons"
+
     def is_success(self) -> bool:
         return self.status == Status.SUCCESS
 
@@ -68,10 +74,10 @@ def make_failure(id: RuleID, name: RuleName, description: str, reasons: list[Rea
 class SanityResult:
     dataset_id: str
     version: str | None
-    reports: dict[str, Report]
+    reports: list[Report]
 
     @classmethod
-    def from_context(cls, context: SanityContext, reports: dict[RuleID, Report]) -> Self:
+    def from_context(cls, context: SanityContext, reports: list[Report]) -> Self:
         return cls(
             dataset_id=context.dataset_id.value_or("UNKNOWN"),
             version=context.version.value_or(None),
@@ -80,15 +86,15 @@ class SanityResult:
 
     def __repr__(self) -> str:
         string = f"=== DatasetID: {self.dataset_id} ===\n"
-        for id, report in self.reports.items():
+        for report in self.reports:
             if report.is_failure():
-                string += f"\033[31m  {id}:\033[0m\n"
+                string += f"\033[31m  {report.id}:\033[0m\n"
                 for reason in report.reasons or []:
                     string += f"\033[31m     - {reason}\033[0m\n"
             elif report.is_skipped():
-                string += f"\033[33m  {id}:\033[0m\n"
+                string += f"\033[33m  {report.id}:\033[0m\n"
                 for reason in report.reasons or []:
                     string += f"\033[33m     - {reason}\033[0m\n"
             else:
-                string += f"\033[32m  {id}: ✅\033[0m\n"
+                string += f"\033[32m  {report.id}: ✅\033[0m\n"
         return string

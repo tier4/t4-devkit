@@ -36,9 +36,9 @@ def _run_sanity_check(
 def _print_table(results: list[SanityResult], *, detail: bool = False) -> str:
     summary_rows = []
     for result in results:
-        success = sum(1 for rp in result.reports.values() if rp.is_success())
-        failures = sum(1 for rp in result.reports.values() if rp.is_failure())
-        skips = sum(1 for rp in result.reports.values() if rp.is_skipped())
+        success = sum(1 for rp in result.reports if rp.is_success())
+        failures = sum(1 for rp in result.reports if rp.is_failure())
+        skips = sum(1 for rp in result.reports if rp.is_skipped())
         summary_rows.append(
             [
                 result.dataset_id,
