@@ -76,7 +76,7 @@ class T4ToRosbagPipeline:
         with RosbagWriter(scene_output, self.source_bag_path) as writer:
             # Register the topic
             writer.add_topic(
-                self.topic_name, "autoware_perception_msgs/TrackedObjects", self.frame_id
+                self.topic_name, "autoware_perception_msgs/msg/TrackedObjects", self.frame_id
             )
 
             # Merge and write all messages chronologically
