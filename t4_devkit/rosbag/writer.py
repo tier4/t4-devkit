@@ -451,9 +451,8 @@ class RosbagWriter:
 
     def __enter__(self):
         """Context manager entry."""
-        # Copy source bag messages if needed
-        if hasattr(self, 'need_to_copy_source') and self.need_to_copy_source:
-            self._copy_source_bag_messages()
+        # Don't copy source bag messages here - we'll do it in merge_and_write_all_messages
+        # to ensure proper chronological ordering with annotation messages
         return self
 
     def copy_message(self, topic: str, data: bytes, timestamp_ns: int) -> None:
