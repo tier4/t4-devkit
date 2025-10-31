@@ -37,4 +37,12 @@ class RecordCountChecker(Checker):
 
     @abstractmethod
     def check_count(self, records: list[dict]) -> list[Reason]:
+        """Check the count of records.
+
+        Args:
+            records (list[dict]): The list of records to check.
+
+        Returns:
+            A list of reasons for any issues found, otherwise an empty list.
+        """
         pass

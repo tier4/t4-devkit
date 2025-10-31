@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from t4_devkit.schema import SchemaName
 
 from ..checker import RuleID, RuleName
@@ -9,8 +7,6 @@ from ..registry import CHECKERS
 from ..result import Reason
 from .base import RecordCountChecker
 
-if TYPE_CHECKING:
-    pass
 
 __all__ = ["REC005"]
 

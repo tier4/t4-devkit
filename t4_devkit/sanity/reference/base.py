@@ -56,4 +56,12 @@ class ReferenceChecker(Checker):
         ]
 
     def is_additional_condition_ok(self, record: dict[str, Any]) -> bool:
+        """Return True if the additional condition is met.
+
+        Args:
+            record: The record to check.
+
+        Returns:
+            True if the additional condition is met, False otherwise.
+        """
         return True

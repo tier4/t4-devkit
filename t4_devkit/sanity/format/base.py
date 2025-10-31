@@ -37,10 +37,10 @@ class FieldTypeChecker(Checker):
             return []
 
         records = load_json_safe(filepath)
-        return build_records(self.schema, records.unwrap())
+        return _build_records(self.schema, records.unwrap())
 
 
-def build_records(schema: SchemaName, records: list[dict]) -> list[Reason]:
+def _build_records(schema: SchemaName, records: list[dict]) -> list[Reason]:
     module = SCHEMAS.get(schema)
     failures = []
     for record in records:
