@@ -4,14 +4,14 @@ from t4_devkit.schema import SchemaName
 
 from ..checker import RuleID, RuleName
 from ..registry import CHECKERS
-from .base import ReferenceChecker
+from .base import RecordReferenceChecker
 
 
 __all__ = ["REF011"]
 
 
 @CHECKERS.register(RuleID("REF011"))
-class REF011(ReferenceChecker):
+class REF011(RecordReferenceChecker):
     """A checker of REF011."""
 
     name = RuleName("instance-to-last-sample-annotation")

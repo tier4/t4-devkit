@@ -4,14 +4,14 @@ from t4_devkit.schema import SchemaName
 
 from ..checker import RuleID, RuleName
 from ..registry import CHECKERS
-from .base import ReferenceChecker
+from .base import RecordReferenceChecker
 
 
 __all__ = ["REF001"]
 
 
 @CHECKERS.register(RuleID("REF001"))
-class REF001(ReferenceChecker):
+class REF001(RecordReferenceChecker):
     """A checker of REF001."""
 
     name = RuleName("scene-to-log")

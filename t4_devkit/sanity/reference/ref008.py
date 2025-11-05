@@ -4,14 +4,14 @@ from t4_devkit.schema import SchemaName
 
 from ..checker import RuleID, RuleName
 from ..registry import CHECKERS
-from .base import ReferenceChecker
+from .base import RecordReferenceChecker
 
 
 __all__ = ["REF008"]
 
 
 @CHECKERS.register(RuleID("REF008"))
-class REF008(ReferenceChecker):
+class REF008(RecordReferenceChecker):
     """A checker of REF008."""
 
     name = RuleName("calibrated-sensor-to-sensor")

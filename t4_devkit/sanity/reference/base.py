@@ -14,13 +14,13 @@ if TYPE_CHECKING:
     from ..context import SanityContext
 
 
-class ReferenceChecker(Checker):
-    """Base class for reference checkers.
+class RecordReferenceChecker(Checker):
+    """Base class for record reference checkers.
 
     Attributes:
         source (SchemaName): The source schema name.
         target (SchemaName): The target schema name.
-        reference (str): The reference key in the source record.
+        reference (str): The reference token name in the source record.
     """
 
     source: SchemaName

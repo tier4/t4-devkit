@@ -4,14 +4,14 @@ from t4_devkit.schema import SchemaName
 
 from ..checker import RuleID, RuleName
 from ..registry import CHECKERS
-from .base import ReferenceChecker
+from .base import RecordReferenceChecker
 
 
 __all__ = ["REF009"]
 
 
 @CHECKERS.register(RuleID("REF009"))
-class REF009(ReferenceChecker):
+class REF009(RecordReferenceChecker):
     """A checker of REF009."""
 
     name = RuleName("instance-to-category")
