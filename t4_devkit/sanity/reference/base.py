@@ -65,3 +65,20 @@ class ReferenceChecker(Checker):
             True if the additional condition is met, False otherwise.
         """
         return True
+
+
+class FileReferenceChecker(Checker):
+    """Base class for file reference checkers.
+
+    Attributes:
+    """
+
+    schema: SchemaName
+
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        filepath = context.to_schema_file(self.schema)
+        match filepath:
+            case Some(x):
+                return Nothing if x.exists() else Maybe.from_value(Reason(f"Missing {x}"))
+            case _:
+                return Maybe.from_value(Reason("Missing 'annotation' directory path"))

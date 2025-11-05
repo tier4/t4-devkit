@@ -40,6 +40,8 @@
 | `REF009` | `instance-to-category`                | `Error`  | `Instance.category_token` refers to `Category` record.                    |
 | `REF010` | `instance-to-first-sample-annotation` | `Error`  | `Instance.first_annotation_token` refers to `SampleAnnotation` record.    |
 | `REF011` | `instance-to-last-sample-annotation`  | `Error`  | `Instance.last_annotation_token` refers to `SampleAnnotation` record.     |
+| `REF012` | `sample-data-filename-presence`       | `Error`  | `SampleData.filename` exists.                                             |
+| `REF013` | `sample-data-info-filename-presence`  | `Error`  | `SampleData.info_filename` exists if it is not `None`.                    |
 
 ## Format (`FMT`)
 
