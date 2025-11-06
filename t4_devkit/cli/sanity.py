@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import typer
 from tabulate import tabulate
-from tqdm import tqdm
 
 from t4_devkit.common.io import save_json
-from t4_devkit.common.serialize import serialize_dataclasses
+from t4_devkit.common.serialize import serialize_dataclass
 from t4_devkit.sanity import SanityResult, sanity_check
 
 from .version import version_callback
@@ -20,39 +17,24 @@ cli = typer.Typer(
 )
 
 
-def _run_sanity_check(
-    db_parent: str,
-    *,
-    revision: str | None = None,
-    excludes: list[str] | None = None,
-    include_warning: bool = False,
-) -> list[SanityResult]:
-    return [
-        sanity_check(db_root, revision=revision, excludes=excludes, include_warning=include_warning)
-        for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking...")
+def _print_table(result: SanityResult, *, detail: bool = False) -> str:
+    success = sum(1 for rp in result.reports if rp.is_success())
+    failures = sum(1 for rp in result.reports if rp.is_failure())
+    skips = sum(1 for rp in result.reports if rp.is_skipped())
+    summary_rows = [
+        [
+            result.dataset_id,
+            result.version,
+            "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
+            len(result.reports),
+            success,
+            failures,
+            skips,
+        ]
     ]
 
-
-def _print_table(results: list[SanityResult], *, detail: bool = False) -> str:
-    summary_rows = []
-    for result in results:
-        success = sum(1 for rp in result.reports if rp.is_success())
-        failures = sum(1 for rp in result.reports if rp.is_failure())
-        skips = sum(1 for rp in result.reports if rp.is_skipped())
-        summary_rows.append(
-            [
-                result.dataset_id,
-                result.version,
-                "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
-                len(result.reports),
-                success,
-                failures,
-                skips,
-            ]
-        )
-
-        if detail:
-            print(result)
+    if detail:
+        print(result)
 
     print(f"\n{'=' * 40} Summary {'=' * 40}")
     print(
@@ -74,7 +56,7 @@ def main(
         callback=version_callback,
         is_eager=True,
     ),
-    db_parent: str = typer.Argument(..., help="Path to parent directory of the databases."),
+    data_root: str = typer.Argument(..., help="Path to root directory of a dataset."),
     output: str | None = typer.Option(None, "-o", "--output", help="Path to output JSON file."),
     revision: str | None = typer.Option(
         None, "-rv", "--revision", help="Specify if you want to check the specific version."
@@ -89,15 +71,15 @@ def main(
         False, "-d", "--detail", help="Indicates whether to display detailed reports."
     ),
 ) -> None:
-    results = _run_sanity_check(
-        db_parent,
+    result = sanity_check(
+        data_root=data_root,
         revision=revision,
         excludes=excludes,
         include_warning=include_warning,
     )
 
-    _print_table(results, detail=detail)
+    _print_table(result, detail=detail)
 
     if output:
-        serialized = serialize_dataclasses(results)
+        serialized = serialize_dataclass(result)
         save_json(serialized, output)

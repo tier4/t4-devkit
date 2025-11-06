@@ -1,5 +1,4 @@
-`t4sanity` performs sanity checks on T4 datasets, reporting any issues in a structured format.
-It checks the dataset directories and versions, tries to load them using the `Tier4` library, and reports any exceptions or warnings.
+`t4sanity` performs sanity checks on T4 datasets, reporting any issues regarding the [dataset requirements](../../schema/requirement.md).
 
 ```shell
 $ t4sanity -h
@@ -7,7 +6,7 @@ $ t4sanity -h
  Usage: t4sanity [OPTIONS] DB_PARENT
 
 ╭─ Arguments ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ *    db_parent      TEXT  Path to parent directory of the databases. [required]                                       │
+│ *    data_root      TEXT  Path to root directory of a dataset. [default: None] [required]                             │
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --version             -v             Show the application version and exit.                                           │
@@ -35,23 +34,17 @@ t4sanity --install-completion
 As an example, we have the following the dataset structure:
 
 ```shell
-<DB_PARENT>
-├── dataset1
-│   └── <VERSION>
-│       ├── annotation
-│       ├── data
-|       ...
-├── dataset2
-│   ├── annotation
-│   ├── data
-|   ...
-...
+<DATA_ROOT; (DATASET ID)>
+├── <VERSION>
+│    ├── annotation
+│    ├── data
+|    ...
 ```
 
-Then, you can run sanity checks with `t4sanity <DB_PARENT>`:
+Then, you can run sanity checks with `t4sanity <DATA_ROOT>`:
 
 ```shell
-$ t4sanity <DB_PARENT>
+$ t4sanity <DATA_ROOT>
 
 >>>Sanity checking...: 1it [00:00,  9.70it/s]
 
@@ -61,14 +54,12 @@ $ t4sanity <DB_PARENT>
 +-----------+---------+---------+-------+---------+----------+-------+
 | dataset1  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
 +-----------+---------+---------+-------+---------+----------+-------+
-| dataset2  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
-+-----------+---------+---------+-------+---------+----------+-------+
 ```
 
 Also, `-d; --detail` option helps us to display detailed information about each check:
 
 ```shell
-$ t4sanity <DB_PARENT> -d
+$ t4sanity <DATA_ROOT> -d
 
 >>>Sanity checking...: 1it [00:00,  9.70it/s]
 
@@ -89,8 +80,6 @@ $ t4sanity <DB_PARENT> -d
 +-----------+---------+---------+-------+---------+----------+-------+
 | dataset1  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
 +-----------+---------+---------+-------+---------+----------+-------+
-| dataset2  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
-+-----------+---------+---------+-------+---------+----------+-------+
 ```
 
 ### Dump Results as JSON
@@ -98,27 +87,25 @@ $ t4sanity <DB_PARENT> -d
 To dump results into JSON, use the `-o; --output` option:
 
 ```shell
-t4sanity <DB_PARENT> -o results.json
+t4sanity <DATA_ROOT> -o result.json
 ```
 
-Then a JSON file named `results.json` will be generated as follows:
+Then a JSON file named `result.json` will be generated as follows:
 
 ```json
-[
-  {
-    "dataset_id": "<DatasetID: str>",
-    "version": <Version: int>,
-    "reports": [
-      {
-          "id": "<RuleID: str>",
-          "name": "<RuleName: str>",
-          "description": "<Description: str>",
-          "status": "<SUCCESS/FAILURE/SKIPPED: str>",
-          "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failure or skipped reasons, null if success
-      },
-    ]
-  }
-]
+{
+  "dataset_id": "<DatasetID: str>",
+  "version": <Version: int>,
+  "reports": [
+    {
+        "id": "<RuleID: str>",
+        "name": "<RuleName: str>",
+        "description": "<Description: str>",
+        "status": "<SUCCESS/FAILURE/SKIPPED: str>",
+        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failure or skipped reasons, null if success
+    },
+  ]
+}
 ```
 
 ### Exclude Checks
@@ -127,5 +114,5 @@ With `-e; --excludes` option enables us to exclude specific checks by specifying
 
 ```shell
 # Exclude STR001 and all FMT-relevant rules
-t4sanity <DB_PARENT> -e STR001 -e FMT
+t4sanity <DATA_ROOT> -e STR001 -e FMT
 ```
