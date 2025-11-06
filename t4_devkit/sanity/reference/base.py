@@ -18,6 +18,8 @@ class RecordReferenceChecker(Checker):
     """Base class for record reference checkers.
 
     Attributes:
+        name (RuleName): The name of the rule.
+        description (str): The description of the rule.
         source (SchemaName): The source schema name.
         target (SchemaName): The target schema name.
         reference (str): The reference token name in the source record.
@@ -71,6 +73,9 @@ class FileReferenceChecker(Checker):
     """Base class for file reference checkers.
 
     Attributes:
+        name (RuleName): The name of the rule.
+        description (str): The description of the rule.
+        schema (SchemaName): The schema name to check.
     """
 
     schema: SchemaName

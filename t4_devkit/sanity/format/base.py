@@ -17,7 +17,13 @@ if TYPE_CHECKING:
 
 
 class FieldTypeChecker(Checker):
-    """Base class for format checkers."""
+    """Base class for format checkers.
+
+    Attributes:
+        name (RuleName): The name of the rule.
+        description (str): The description of the rule.
+        schema (SchemaName): The schema name to check.
+    """
 
     schema: SchemaName
 

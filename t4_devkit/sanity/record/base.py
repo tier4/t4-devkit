@@ -16,7 +16,13 @@ if TYPE_CHECKING:
 
 
 class RecordCountChecker(Checker):
-    """Base class for record count checkers."""
+    """Base class for record count checkers.
+
+    Attributes:
+        name (RuleName): The name of the rule.
+        description (str): The description of the rule.
+        schema (SchemaName): The schema name to check.
+    """
 
     schema: SchemaName
 
