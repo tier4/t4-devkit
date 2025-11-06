@@ -13,7 +13,7 @@ from PIL import Image
 
 from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import microseconds2seconds, seconds2microseconds
-from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud
+from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud, SegmentationPointCloud
 from t4_devkit.schema import SensorModality
 from t4_devkit.viewer import (
     PointCloudColorMode,
@@ -56,6 +56,11 @@ class RenderingHelper:
         self._label2id: dict[str, int] = {
             category.name: category.index for category in self._t4.category
         }
+        self._sample_data_to_lidarseg_filename: dict[str, str] | None = (
+            {lidarseg.sample_data_token: lidarseg.filename for lidarseg in self._t4.lidarseg}
+            if self._t4.lidarseg
+            else None
+        )
 
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
@@ -122,7 +127,7 @@ class RenderingHelper:
         app_id = f"scene@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
 
-        self._render_map(viewer)
+        # self._render_map(viewer)
 
         scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
@@ -352,9 +357,21 @@ class RenderingHelper:
                 ego_pose: EgoPose = self._t4.get("ego_pose", sample_data.ego_pose_token)
                 viewer.render_ego(ego_pose=ego_pose)
 
-                pointcloud = LidarPointCloud.from_file(
-                    osp.join(self._t4.data_root, sample_data.filename)
-                )
+                # render segmentation pointcloud if available, otherwise render raw pointcloud
+                if (
+                    self._sample_data_to_lidarseg_filename
+                    and sample_data.token in self._sample_data_to_lidarseg_filename
+                ):
+                    label_filename = self._sample_data_to_lidarseg_filename[sample_data.token]
+                    pointcloud = SegmentationPointCloud.from_file(
+                        point_filepath=osp.join(self._t4.data_root, sample_data.filename),
+                        label_filepath=osp.join(self._t4.data_root, label_filename),
+                    )
+                else:
+                    pointcloud = LidarPointCloud.from_file(
+                        osp.join(self._t4.data_root, sample_data.filename)
+                    )
+
                 viewer.render_pointcloud(
                     seconds=microseconds2seconds(sample_data.timestamp),
                     channel=sample_data.channel,
