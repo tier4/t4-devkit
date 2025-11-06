@@ -14,12 +14,12 @@ if TYPE_CHECKING:
     from ..context import SanityContext
 
 
-__all__ = ["REF013"]
+__all__ = ["REF014"]
 
 
-@CHECKERS.register(RuleID("REF013"))
-class REF013(FileReferenceChecker):
-    """A checker of REF013."""
+@CHECKERS.register(RuleID("REF014"))
+class REF014(FileReferenceChecker):
+    """A checker of REF014."""
 
     name = RuleName("sample-data-filename-presence")
     description = "'SampleData.filename' exists."
@@ -30,7 +30,8 @@ class REF013(FileReferenceChecker):
         records = load_json_safe(filepath).unwrap()
         data_root = context.data_root.unwrap()
         return [
-            Reason(f"File not found: {record['filename']}")
+            Reason(f"File not found: {record['info_filename']}")
             for record in records
-            if not data_root.joinpath(record["filename"]).exists()
+            if record.get("info_filename") is not None
+            and not data_root.joinpath(record["info_filename"]).exists()
         ]

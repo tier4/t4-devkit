@@ -14,16 +14,16 @@ if TYPE_CHECKING:
     from ..context import SanityContext
 
 
-__all__ = ["REF013"]
+__all__ = ["REF015"]
 
 
-@CHECKERS.register(RuleID("REF013"))
-class REF013(FileReferenceChecker):
-    """A checker of REF013."""
+@CHECKERS.register(RuleID("REF015"))
+class REF015(FileReferenceChecker):
+    """A checker of REF015."""
 
-    name = RuleName("sample-data-filename-presence")
-    description = "'SampleData.filename' exists."
-    schema = SchemaName.SAMPLE_DATA
+    name = RuleName("lidarseg-filename-presence")
+    description = "'LidarSeg.filename' exists."
+    schema = SchemaName.LIDARSEG
 
     def check(self, context: SanityContext) -> list[Reason]:
         filepath = context.to_schema_file(self.schema).unwrap()
