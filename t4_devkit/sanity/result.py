@@ -4,13 +4,14 @@ from enum import Enum
 from typing import TYPE_CHECKING, NewType
 
 from attrs import define, field
+from tabulate import tabulate
 from typing_extensions import Self
 
 if TYPE_CHECKING:
     from .checker import RuleID, RuleName
     from .context import SanityContext
 
-__all__ = ["Status", "Report", "SanityResult"]
+__all__ = ["Status", "Report", "SanityResult", "print_sanity_result"]
 
 
 class Status(str, Enum):
@@ -98,3 +99,37 @@ class SanityResult:
             else:
                 string += f"\033[32m  {report.id}: ✅\033[0m\n"
         return string
+
+
+def print_sanity_result(result: SanityResult) -> None:
+    """Print detailed and summary results of a sanity check.
+
+    Args:
+        result (SanityResult): The result of a sanity check.
+    """
+    # print detailed result
+    print(result)
+
+    # print summary result
+    success = sum(1 for rp in result.reports if rp.is_success())
+    failures = sum(1 for rp in result.reports if rp.is_failure())
+    skips = sum(1 for rp in result.reports if rp.is_skipped())
+    summary_rows = [
+        [
+            result.dataset_id,
+            result.version,
+            "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
+            len(result.reports),
+            success,
+            failures,
+            skips,
+        ]
+    ]
+
+    print(
+        tabulate(
+            summary_rows,
+            headers=["DatasetID", "Version", "Status", "Rules", "Success", "Failures", "Skips"],
+            tablefmt="pretty",
+        ),
+    )

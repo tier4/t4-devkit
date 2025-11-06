@@ -14,7 +14,6 @@ $ t4sanity -h
 │ --revision            -rv      TEXT  Specify if you want to check the specific version.                               │
 │ --exclude             -e       TEXT  Exclude specific rules or rule groups.                                           │
 │ --include-warning     -iw            Indicates whether to report any warnings.                                        │
-│ --detail              -d             Indicates whether to display detailed reports.                                   │
 │ --install-completion                 Install completion for the current shell.                                        │
 │ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
 │ --help                -h             Show this message and exit.                                                      │
@@ -48,21 +47,6 @@ $ t4sanity <DATA_ROOT>
 
 >>>Sanity checking...: 1it [00:00,  9.70it/s]
 
-============================= Summary =============================
-+-----------+---------+---------+-------+---------+----------+-------+
-| DatasetID | Version | Status  | Rules | Success | Failures | Skips |
-+-----------+---------+---------+-------+---------+----------+-------+
-| dataset1  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
-+-----------+---------+---------+-------+---------+----------+-------+
-```
-
-Also, `-d; --detail` option helps us to display detailed information about each check:
-
-```shell
-$ t4sanity <DATA_ROOT> -d
-
->>>Sanity checking...: 1it [00:00,  9.70it/s]
-
 === DatasetID: dataset1 ===
   STR001: ✅
   STR002: ✅
@@ -74,7 +58,6 @@ $ t4sanity <DATA_ROOT> -d
   STR008: ✅
   ...
 
-============================= Summary =============================
 +-----------+---------+---------+-------+---------+----------+-------+
 | DatasetID | Version | Status  | Rules | Success | Failures | Skips |
 +-----------+---------+---------+-------+---------+----------+-------+

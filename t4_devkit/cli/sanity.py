@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import typer
-from tabulate import tabulate
 
 from t4_devkit.common.io import save_json
 from t4_devkit.common.serialize import serialize_dataclass
-from t4_devkit.sanity import SanityResult, sanity_check
+from t4_devkit.sanity import print_sanity_result, sanity_check
 
 from .version import version_callback
 
@@ -15,35 +14,6 @@ cli = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     pretty_exceptions_enable=False,
 )
-
-
-def _print_table(result: SanityResult, *, detail: bool = False) -> str:
-    success = sum(1 for rp in result.reports if rp.is_success())
-    failures = sum(1 for rp in result.reports if rp.is_failure())
-    skips = sum(1 for rp in result.reports if rp.is_skipped())
-    summary_rows = [
-        [
-            result.dataset_id,
-            result.version,
-            "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
-            len(result.reports),
-            success,
-            failures,
-            skips,
-        ]
-    ]
-
-    if detail:
-        print(result)
-
-    print(f"\n{'=' * 40} Summary {'=' * 40}")
-    print(
-        tabulate(
-            summary_rows,
-            headers=["DatasetID", "Version", "Status", "Rules", "Success", "Failures", "Skips"],
-            tablefmt="pretty",
-        ),
-    )
 
 
 @cli.command()
@@ -67,9 +37,6 @@ def main(
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
-    detail: bool = typer.Option(
-        False, "-d", "--detail", help="Indicates whether to display detailed reports."
-    ),
 ) -> None:
     result = sanity_check(
         data_root=data_root,
@@ -78,7 +45,7 @@ def main(
         include_warning=include_warning,
     )
 
-    _print_table(result, detail=detail)
+    print_sanity_result(result)
 
     if output:
         serialized = serialize_dataclass(result)
