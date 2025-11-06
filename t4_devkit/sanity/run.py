@@ -17,6 +17,17 @@ def sanity_check(
     include_warning: bool = False,
     excludes: Sequence[str] | None = None,
 ) -> SanityResult:
+    """Run sanity checks on the given data root.
+
+    Args:
+        data_root (str): The root directory of the data.
+        revision (str | None, optional): The revision to check. If None, the latest revision is used.
+        include_warning (bool, optional): Whether to include warning checks.
+        excludes (Sequence[str] | None, optional): A list of rule names or groups to exclude.
+
+    Returns:
+        A SanityResult object.
+    """
     with warnings.catch_warnings():
         if include_warning:
             warnings.simplefilter("error")

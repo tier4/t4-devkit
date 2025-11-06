@@ -15,17 +15,22 @@ __all__ = ["Status", "Report", "SanityResult", "print_sanity_result"]
 
 
 class Status(str, Enum):
+    """Status of a report."""
+
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
     SKIPPED = "SKIPPED"
 
     def is_success(self) -> bool:
+        """Check if the status is success."""
         return self == Status.SUCCESS
 
     def is_failure(self) -> bool:
+        """Check if the status is failure."""
         return self == Status.FAILURE
 
     def is_skipped(self) -> bool:
+        """Check if the status is skipped."""
         return self == Status.SKIPPED
 
 
@@ -34,6 +39,16 @@ Reason = NewType("Reason", str)
 
 @define
 class Report:
+    """A report for a rule.
+
+    Attributes:
+        id (RuleID): The ID of the rule.
+        name (RuleName): The name of the rule.
+        description (str): The description of the rule.
+        status (Status): The status of the report.
+        reasons (list[Reason] | None): The list of reasons for the report if the report is a failure or skipped.
+    """
+
     id: RuleID
     name: RuleName
     description: str
@@ -73,12 +88,29 @@ def make_failure(id: RuleID, name: RuleName, description: str, reasons: list[Rea
 
 @define
 class SanityResult:
+    """The result of a Sanity check.
+
+    Attributes:
+        dataset_id (str): The ID of the dataset.
+        version (str | None): The version of the dataset.
+        reports (list[Report]): The list of reports.
+    """
+
     dataset_id: str
     version: str | None
     reports: list[Report]
 
     @classmethod
     def from_context(cls, context: SanityContext, reports: list[Report]) -> Self:
+        """Create a SanityResult from a SanityContext and a list of reports.
+
+        Args:
+            context (SanityContext): The SanityContext to use.
+            reports (list[Report]): The list of reports to include in the result.
+
+        Returns:
+            The created SanityResult.
+        """
         return cls(
             dataset_id=context.dataset_id.value_or("UNKNOWN"),
             version=context.version.value_or(None),
