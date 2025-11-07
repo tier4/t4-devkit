@@ -73,7 +73,7 @@ To initialize `RerunViewer`, you can use the `ViewerBuilder` class:
         .with_spatial3d()
         .with_spatial2d(cameras=["CAM_FRONT", "CAM_BACK"])
         .with_labels({"car": 1, "pedestrian": 2})
-        .build("foo")
+        .build(app_id="foo")
     )
 
 # Timestamp in seconds
@@ -92,7 +92,7 @@ To initialize `RerunViewer`, you can use the `ViewerBuilder` class:
 It allows you to render boxes by specifying elements of boxes directly.
 
 ```python
-# Rendering 3D boxes
+# Rendering 3D boxes by specifying elements of boxes directly
 >>> centers = [[i, i, i] for i in range(10)]
 >>> frame_id = "base_link"
 >>> rotations = [[1, 0, 0, 0] for _ in range(10)]
@@ -108,23 +108,14 @@ It allows you to render boxes by specifying elements of boxes directly.
 For 2D spaces, you need to specify camera names in the viewer constructor, and render images by specifying camera names:
 
 ```python
-# RerunViewer(<APP_ID:str>, cameras=<CAMERA_NAMES:[str;N]>)
->>> viewer = (
-        ViewerBuilder()
-        .with_spatial3d()
-        .with_spatial2d(cameras=["camera1"])
-        .with_labels({"car": 1, "pedestrian": 2})
-        .build("foo")
-    )
-
 >>> import numpy as np
+>>> from t4_devkit.dataclass import Box2D
+
+# Rendering an image
 >>> image = np.zeros((100, 100, 3), dtype=np.uint8)
 >>> viewer.render_image(seconds, "camera1", image)
-```
 
-```python
 # Rendering 2D boxes
->>> from t4_devkit.dataclass import Box2D
 >>> box2ds = [Box2D(...)...]
 >>> viewer.render_box2ds(seconds, "camera1", box2ds)
 ```
@@ -132,7 +123,7 @@ For 2D spaces, you need to specify camera names in the viewer constructor, and r
 It allows you to render boxes by specifying elements of boxes directly:
 
 ```python
-# Rendering 2D boxes
+# Rendering 2D boxes by specifying elements of boxes directly
 >>> rois = [[0, 0, 10 * i, 10 * i] for i in range(10)]
 >>> viewer.render_box2ds(seconds, "camera1", rois, class_ids)
 ```
