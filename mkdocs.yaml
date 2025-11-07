@@ -14,10 +14,10 @@ nav:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
       - Schema Customization: tutorials/customize.md
-      - CLI:
-          - Command Line Tools: tutorials/cli/index.md
-          - t4viz: tutorials/cli/t4viz.md
-          - t4sanity: tutorials/cli/t4sanity.md
+  - CLI:
+      - Home: cli/index.md
+      - t4viz: cli/t4viz.md
+      - t4sanity: cli/t4sanity.md
   - API References:
       - t4_devkit.tier4: apis/tier4.md
       - t4_devkit.helper: apis/helper.md

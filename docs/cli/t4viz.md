@@ -30,7 +30,7 @@ t4viz --install-completion
 
 ### Scene
 
-This command performs the same behavior with [`Tier4.render_scene(...)`](../render.md#rendering-scene).
+This command performs the same behavior with [`Tier4.render_scene(...)`](../tutorials/render.md#rendering-scene).
 
 For options, run `t4viz scene -h`.
 
@@ -40,7 +40,7 @@ t4viz scene <DATA_ROOT> [OPTIONS]
 
 ### Specific Instance(s)
 
-This command performs the same behavior with [`Tier4.render_instance(...)`](../render.md#rendering-instances).
+This command performs the same behavior with [`Tier4.render_instance(...)`](../tutorials/render.md#rendering-instances).
 
 For options, run `t4viz instance -h`.
 
@@ -56,7 +56,7 @@ t4viz instance <DATA_ROOT> <INSTANCE_TOKEN1> <INSTANCE_TOKEN2> ... [OPTIONS]
 
 ### PointCloud
 
-This command performs the same behavior with [`Tier4.render_pointcloud(...)`](../render.md#rendering-pointcloud).
+This command performs the same behavior with [`Tier4.render_pointcloud(...)`](../tutorials/render.md#rendering-pointcloud).
 
 For options, run `t4viz pointcloud -h`.
 
