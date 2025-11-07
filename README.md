@@ -8,11 +8,11 @@ A toolkit to load and operate T4 dataset.
 
 ## Getting started
 
-🏠 [Documentation](https://tier4.github.io/t4-devkit/) |
-📝 [Dataset Schema](https://tier4.github.io/t4-devkit/schema) |
-⚙️ [Tutorial](https://tier4.github.io/t4-devkit/tutorials/initialize/) |
-💻 [CLI](https://tier4.github.io/t4-devkit/cli/) |
-🧰 [API Reference](https://tier4.github.io/t4-devkit/apis/tier4/)
+🏠 [Documentation](https://tier4.github.io/t4-devkit/latest/) |
+📝 [Dataset Schema](https://tier4.github.io/t4-devkit/latest/schema) |
+⚙️ [Tutorial](https://tier4.github.io/t4-devkit/latest/tutorials/initialize/) |
+💻 [CLI](https://tier4.github.io/t4-devkit/latest/cli/) |
+🧰 [API Reference](https://tier4.github.io/t4-devkit/latest/apis/tier4/)
 
 ### Installation
 
