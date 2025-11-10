@@ -1,4 +1,4 @@
-`t4sanity` performs sanity checks on T4 datasets, reporting any issues regarding the [dataset requirements](../../schema/requirement.md).
+`t4sanity` performs sanity checks on T4 datasets, reporting any issues regarding the [dataset requirements](../schema/requirement.md).
 
 ```shell
 $ t4sanity -h
