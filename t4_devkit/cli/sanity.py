@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import typer
-from tabulate import tabulate
-from tqdm import tqdm
 
 from t4_devkit.common.io import save_json
-from t4_devkit.common.sanity import DBException, sanity_check
-from t4_devkit.common.serialize import serialize_dataclasses
+from t4_devkit.common.serialize import serialize_dataclass
+from t4_devkit.sanity import print_sanity_result, sanity_check
 
 from .version import version_callback
 
@@ -18,18 +14,6 @@ cli = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     pretty_exceptions_enable=False,
 )
-
-
-def _run_sanity_check(
-    db_parent: str,
-    *,
-    revision: str | None = None,
-    include_warning: bool = False,
-) -> list[DBException]:
-    return [
-        sanity_check(db_root, revision=revision, include_warning=include_warning)
-        for db_root in tqdm(Path(db_parent).glob("*"), desc=">>>Sanity checking...")
-    ]
 
 
 @cli.command()
@@ -42,25 +26,27 @@ def main(
         callback=version_callback,
         is_eager=True,
     ),
-    db_parent: str = typer.Argument(..., help="Path to parent directory of the databases."),
+    data_root: str = typer.Argument(..., help="Path to root directory of a dataset."),
     output: str | None = typer.Option(None, "-o", "--output", help="Path to output JSON file."),
     revision: str | None = typer.Option(
         None, "-rv", "--revision", help="Specify if you want to check the specific version."
+    ),
+    excludes: list[str] | None = typer.Option(
+        None, "-e", "--exclude", help="Exclude specific rules or rule groups."
     ),
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
 ) -> None:
-    exceptions = _run_sanity_check(db_parent, revision=revision, include_warning=include_warning)
+    result = sanity_check(
+        data_root=data_root,
+        revision=revision,
+        excludes=excludes,
+        include_warning=include_warning,
+    )
 
-    if all(e.is_ok() for e in exceptions):
-        print("✅ No exceptions occurred!!")
-    else:
-        print("⚠️  Encountered some exceptions!!")
-        headers = ["DatasetID", "Version", "Status", "Message"]
-        table = [[e.dataset_id, e.version, e.status, e.message] for e in exceptions]
-        print(tabulate(table, headers=headers, tablefmt="pretty"))
+    print_sanity_result(result)
 
     if output:
-        serialized = serialize_dataclasses(exceptions)
+        serialized = serialize_dataclass(result)
         save_json(serialized, output)

@@ -1,0 +1,36 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from t4_devkit.schema import SchemaName
+
+from ..checker import RuleID, RuleName
+from ..registry import CHECKERS
+from ..result import Reason
+from ..safety import load_json_safe
+from .base import FileReferenceChecker
+
+if TYPE_CHECKING:
+    from ..context import SanityContext
+
+
+__all__ = ["REF015"]
+
+
+@CHECKERS.register(RuleID("REF015"))
+class REF015(FileReferenceChecker):
+    """A checker of REF015."""
+
+    name = RuleName("lidarseg-filename-presence")
+    description = "'LidarSeg.filename' exists."
+    schema = SchemaName.LIDARSEG
+
+    def check(self, context: SanityContext) -> list[Reason]:
+        filepath = context.to_schema_file(self.schema).unwrap()
+        records = load_json_safe(filepath).unwrap()
+        data_root = context.data_root.unwrap()
+        return [
+            Reason(f"File not found: {record['filename']}")
+            for record in records
+            if not data_root.joinpath(record["filename"]).exists()
+        ]
