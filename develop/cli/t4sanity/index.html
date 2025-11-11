@@ -453,6 +453,8 @@
       
         
       
+        
+      
     
     
     
@@ -532,6 +534,29 @@
   
   <span class="md-ellipsis">
     Sensor Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../schema/requirement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Requirements
     
   </span>
   
@@ -834,27 +859,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#exclude-warnings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exclude Warnings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#include-warnings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Include Warnings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#dump-results-as-json" class="md-nav__link">
     <span class="md-ellipsis">
       Dump Results as JSON
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exclude-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exclude Checks
     </span>
   </a>
   
@@ -1341,27 +1357,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#exclude-warnings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exclude Warnings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#include-warnings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Include Warnings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#dump-results-as-json" class="md-nav__link">
     <span class="md-ellipsis">
       Dump Results as JSON
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exclude-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exclude Checks
     </span>
   </a>
   
@@ -1393,24 +1400,24 @@
 
   <h1>t4sanity</h1>
 
-<p><code>t4sanity</code> performs sanity checks on T4 datasets, reporting any issues in a structured format.
-It checks the dataset directories and versions, tries to load them using the <code>Tier4</code> library, and reports any exceptions or warnings.</p>
+<p><code>t4sanity</code> performs sanity checks on T4 datasets, reporting any issues regarding the <a href="../../schema/requirement/">dataset requirements</a>.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$<span class="w"> </span>t4sanity<span class="w"> </span>-h
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w"> </span>Usage:<span class="w"> </span>t4sanity<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>DB_PARENT
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>╭─<span class="w"> </span>Arguments<span class="w"> </span>──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│<span class="w"> </span>*<span class="w">    </span>db_parent<span class="w">      </span>TEXT<span class="w">  </span>Path<span class="w"> </span>to<span class="w"> </span>parent<span class="w"> </span>directory<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>databases<span class="w"> </span><span class="o">[</span>default:<span class="w"> </span>None<span class="o">]</span><span class="w"> </span><span class="o">[</span>required<span class="o">]</span><span class="w">                       </span>│
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>╭─<span class="w"> </span>Options<span class="w"> </span>────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│<span class="w"> </span>--version<span class="w">             </span>-v<span class="w">         </span>Show<span class="w"> </span>the<span class="w"> </span>application<span class="w"> </span>version<span class="w"> </span>and<span class="w"> </span>exit.<span class="w">                                              </span>│
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│<span class="w"> </span>--output<span class="w">              </span>-o<span class="w">    </span>TEXT<span class="w"> </span>Path<span class="w"> </span>to<span class="w"> </span>output<span class="w"> </span>JSON<span class="w"> </span>file.<span class="w"> </span><span class="o">[</span>default:<span class="w"> </span>None<span class="o">]</span><span class="w">                                           </span>│
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│<span class="w"> </span>--revision<span class="w">            </span>-rv<span class="w">   </span>TEXT<span class="w"> </span>Specify<span class="w"> </span><span class="k">if</span><span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span>load<span class="w"> </span>the<span class="w"> </span>specific<span class="w"> </span>version.<span class="w"> </span><span class="o">[</span>default:<span class="w"> </span>None<span class="o">]</span><span class="w">                   </span>│
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│<span class="w"> </span>--include-warning<span class="w">     </span>-iw<span class="w">        </span>Indicates<span class="w"> </span>whether<span class="w"> </span>to<span class="w"> </span>report<span class="w"> </span>any<span class="w"> </span>warnings.<span class="w">                                           </span>│
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│<span class="w"> </span>--install-completion<span class="w">             </span>Install<span class="w"> </span>completion<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>shell.<span class="w">                                           </span>│
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│<span class="w"> </span>--show-completion<span class="w">                </span>Show<span class="w"> </span>completion<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>shell,<span class="w"> </span>to<span class="w"> </span>copy<span class="w"> </span>it<span class="w"> </span>or<span class="w"> </span>customize<span class="w"> </span>the<span class="w"> </span>installation.<span class="w">    </span>│
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│<span class="w"> </span>--help<span class="w">                </span>-h<span class="w">         </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.<span class="w">                                                         </span>│
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>╭─<span class="w"> </span>Arguments<span class="w"> </span>───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│<span class="w"> </span>*<span class="w">    </span>data_root<span class="w">      </span>TEXT<span class="w">  </span>Path<span class="w"> </span>to<span class="w"> </span>root<span class="w"> </span>directory<span class="w"> </span>of<span class="w"> </span>a<span class="w"> </span>dataset.<span class="w"> </span><span class="o">[</span>default:<span class="w"> </span>None<span class="o">]</span><span class="w"> </span><span class="o">[</span>required<span class="o">]</span><span class="w">                             </span>│
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>╭─<span class="w"> </span>Options<span class="w"> </span>─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│<span class="w"> </span>--version<span class="w">             </span>-v<span class="w">             </span>Show<span class="w"> </span>the<span class="w"> </span>application<span class="w"> </span>version<span class="w"> </span>and<span class="w"> </span>exit.<span class="w">                                           </span>│
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│<span class="w"> </span>--output<span class="w">              </span>-o<span class="w">       </span>TEXT<span class="w">  </span>Path<span class="w"> </span>to<span class="w"> </span>output<span class="w"> </span>JSON<span class="w"> </span>file.<span class="w">                                                        </span>│
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│<span class="w"> </span>--revision<span class="w">            </span>-rv<span class="w">      </span>TEXT<span class="w">  </span>Specify<span class="w"> </span><span class="k">if</span><span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span>check<span class="w"> </span>the<span class="w"> </span>specific<span class="w"> </span>version.<span class="w">                               </span>│
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│<span class="w"> </span>--exclude<span class="w">             </span>-e<span class="w">       </span>TEXT<span class="w">  </span>Exclude<span class="w"> </span>specific<span class="w"> </span>rules<span class="w"> </span>or<span class="w"> </span>rule<span class="w"> </span>groups.<span class="w">                                           </span>│
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│<span class="w"> </span>--include-warning<span class="w">     </span>-iw<span class="w">            </span>Indicates<span class="w"> </span>whether<span class="w"> </span>to<span class="w"> </span>report<span class="w"> </span>any<span class="w"> </span>warnings.<span class="w">                                        </span>│
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│<span class="w"> </span>--install-completion<span class="w">                 </span>Install<span class="w"> </span>completion<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>shell.<span class="w">                                        </span>│
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│<span class="w"> </span>--show-completion<span class="w">                    </span>Show<span class="w"> </span>completion<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>shell,<span class="w"> </span>to<span class="w"> </span>copy<span class="w"> </span>it<span class="w"> </span>or<span class="w"> </span>customize<span class="w"> </span>the<span class="w"> </span>installation.<span class="w"> </span>│
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│<span class="w"> </span>--help<span class="w">                </span>-h<span class="w">             </span>Show<span class="w"> </span>this<span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span>exit.<span class="w">                                                      </span>│
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 </span></code></pre></div>
 <h2 id="shell-completion">Shell Completion</h2>
 <p>Run the following command to install completion, and reload shell.</p>
@@ -1418,70 +1425,57 @@ It checks the dataset directories and versions, tries to load them using the <co
 </span></code></pre></div>
 <h2 id="usages">Usages</h2>
 <p>As an example, we have the following the dataset structure:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&lt;DATA_ROOT&gt;
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├──<span class="w"> </span>dataset1
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>│<span class="w">   </span>└──<span class="w"> </span>&lt;VERSION&gt;
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│<span class="w">       </span>├──<span class="w"> </span>annotation
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│<span class="w">       </span>├──<span class="w"> </span>data
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">|</span><span class="w">       </span>...
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>├──<span class="w"> </span>dataset2
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│<span class="w">   </span>├──<span class="w"> </span>annotation
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>│<span class="w">   </span>├──<span class="w"> </span>data
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">|</span><span class="w">   </span>...
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>...
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&lt;DATA_ROOT<span class="p">;</span><span class="w"> </span><span class="o">(</span>DATASET<span class="w"> </span>ID<span class="o">)</span>&gt;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├──<span class="w"> </span>&lt;VERSION&gt;
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>│<span class="w">    </span>├──<span class="w"> </span>annotation
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│<span class="w">    </span>├──<span class="w"> </span>data
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">|</span><span class="w">    </span>...
 </span></code></pre></div>
 <p>Then, you can run sanity checks with <code>t4sanity &lt;DATA_ROOT&gt;</code>:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>&gt;&gt;&gt;Sanity<span class="w"> </span>checking...:<span class="w"> </span>1it<span class="w"> </span><span class="o">[</span><span class="m">00</span>:00,<span class="w">  </span><span class="m">9</span>.70it/s<span class="o">]</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>✅<span class="w"> </span>No<span class="w"> </span>exceptions<span class="w"> </span>occurred!!
-</span></code></pre></div>
-<h3 id="exclude-warnings">Exclude Warnings</h3>
-<p>To run sanity check ignoring warnings, providing the path to the parent directory of the datasets:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>$<span class="w"> </span>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>&gt;&gt;&gt;Sanity<span class="w"> </span>checking...:<span class="w"> </span>2it<span class="w"> </span><span class="o">[</span><span class="m">00</span>:00,<span class="w"> </span><span class="m">18</span>.69it/s<span class="o">]</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>⚠️<span class="w">  </span>Encountered<span class="w"> </span>some<span class="w"> </span>exceptions!!
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>+-----------+---------+--------+------------------------------------------------------------------------------------------------+
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">|</span><span class="w"> </span>DatasetID<span class="w"> </span><span class="p">|</span><span class="w"> </span>Version<span class="w"> </span><span class="p">|</span><span class="w"> </span>Status<span class="w"> </span><span class="p">|</span><span class="w">                                            </span>Message<span class="w">                                             </span><span class="p">|</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>+-----------+---------+--------+------------------------------------------------------------------------------------------------+
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">|</span><span class="w"> </span>dataset1<span class="w">  </span><span class="p">|</span><span class="w">    </span><span class="m">2</span><span class="w">    </span><span class="p">|</span><span class="w"> </span>ERROR<span class="w">  </span><span class="p">|</span><span class="w"> </span>bbox<span class="w"> </span>must<span class="w"> </span>be<span class="w"> </span><span class="o">(</span>xmin,<span class="w"> </span>ymin,<span class="w"> </span>xmax,<span class="w"> </span>ymax<span class="o">)</span><span class="w"> </span>and<span class="w"> </span>xmin<span class="w"> </span>&lt;<span class="o">=</span><span class="w"> </span>xmax<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>ymin<span class="w"> </span>&lt;<span class="o">=</span><span class="w"> </span>ymax:<span class="w"> </span><span class="o">(</span><span class="m">1532</span>,<span class="w"> </span><span class="m">198</span>,<span class="w"> </span><span class="m">1440</span>,<span class="w"> </span><span class="m">265</span><span class="o">)</span><span class="w"> </span><span class="p">|</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="p">|</span><span class="w"> </span>dataset2<span class="w">  </span><span class="p">|</span><span class="w">    </span><span class="m">1</span><span class="w">    </span><span class="p">|</span><span class="w">   </span>OK<span class="w">   </span><span class="p">|</span><span class="w">                                                                                                </span><span class="p">|</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>+-----------+---------+--------+------------------------------------------------------------------------------------------------+
-</span></code></pre></div>
-<h3 id="include-warnings">Include Warnings</h3>
-<p>To run sanity check and report any warnings, use the <code>-iw; --include-warning</code> option:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>$<span class="w"> </span>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-iw
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>&gt;&gt;&gt;Sanity<span class="w"> </span>checking...:<span class="w"> </span>2it<span class="w"> </span><span class="o">[</span><span class="m">00</span>:00,<span class="w"> </span><span class="m">21</span>.54it/s<span class="o">]</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>⚠️<span class="w">  </span>Encountered<span class="w"> </span>some<span class="w"> </span>exceptions!!
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>+-----------+---------+---------+------------------------------------------------------------------------------------------------+
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">|</span><span class="w"> </span>DatasetID<span class="w"> </span><span class="p">|</span><span class="w"> </span>Version<span class="w"> </span><span class="p">|</span><span class="w"> </span>Status<span class="w">  </span><span class="p">|</span><span class="w">                                            </span>Message<span class="w">                                             </span><span class="p">|</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>+-----------+---------+---------+------------------------------------------------------------------------------------------------+
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">|</span><span class="w"> </span>dataset1<span class="w">  </span><span class="p">|</span><span class="w">    </span><span class="m">2</span><span class="w">    </span><span class="p">|</span><span class="w">  </span>ERROR<span class="w">  </span><span class="p">|</span><span class="w"> </span>bbox<span class="w"> </span>must<span class="w"> </span>be<span class="w"> </span><span class="o">(</span>xmin,<span class="w"> </span>ymin,<span class="w"> </span>xmax,<span class="w"> </span>ymax<span class="o">)</span><span class="w"> </span>and<span class="w"> </span>xmin<span class="w"> </span>&lt;<span class="o">=</span><span class="w"> </span>xmax<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>ymin<span class="w"> </span>&lt;<span class="o">=</span><span class="w"> </span>ymax:<span class="w"> </span><span class="o">(</span><span class="m">1532</span>,<span class="w"> </span><span class="m">198</span>,<span class="w"> </span><span class="m">1440</span>,<span class="w"> </span><span class="m">265</span><span class="o">)</span><span class="w"> </span><span class="p">|</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">|</span><span class="w"> </span>dataset2<span class="w">  </span><span class="p">|</span><span class="w">    </span><span class="m">1</span><span class="w">    </span><span class="p">|</span><span class="w"> </span>WARNING<span class="w"> </span><span class="p">|</span><span class="w">           </span>Category<span class="w"> </span>token<span class="w"> </span>is<span class="w"> </span>empty<span class="w"> </span><span class="k">for</span><span class="w"> </span>surface<span class="w"> </span>ann:<span class="w"> </span>0c15d9c143fb2723c16ac7e0c735b0a8<span class="w">            </span><span class="p">|</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>+-----------+---------+---------+------------------------------------------------------------------------------------------------+
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>$<span class="w"> </span>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>&gt;&gt;&gt;Sanity<span class="w"> </span>checking...:<span class="w"> </span>1it<span class="w"> </span><span class="o">[</span><span class="m">00</span>:00,<span class="w">  </span><span class="m">9</span>.70it/s<span class="o">]</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="o">===</span><span class="w"> </span>DatasetID:<span class="w"> </span><span class="nv">dataset1</span><span class="w"> </span><span class="o">===</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>STR001:<span class="w"> </span>✅
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span>STR002:<span class="w"> </span>✅
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span>STR003:<span class="w"> </span>✅
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span>STR004:<span class="w"> </span>✅
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span>STR005:<span class="w"> </span>✅
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span>STR006:<span class="w"> </span>✅
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span>STR007:<span class="w"> </span>✅
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span>STR008:<span class="w"> </span>✅
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span>...
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>+-----------+---------+---------+-------+---------+----------+-------+
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="p">|</span><span class="w"> </span>DatasetID<span class="w"> </span><span class="p">|</span><span class="w"> </span>Version<span class="w"> </span><span class="p">|</span><span class="w"> </span>Status<span class="w">  </span><span class="p">|</span><span class="w"> </span>Rules<span class="w"> </span><span class="p">|</span><span class="w"> </span>Success<span class="w"> </span><span class="p">|</span><span class="w"> </span>Failures<span class="w"> </span><span class="p">|</span><span class="w"> </span>Skips<span class="w"> </span><span class="p">|</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>+-----------+---------+---------+-------+---------+----------+-------+
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="p">|</span><span class="w"> </span>dataset1<span class="w">  </span><span class="p">|</span><span class="w">    </span><span class="m">0</span><span class="w">    </span><span class="p">|</span><span class="w"> </span>SUCCESS<span class="w"> </span><span class="p">|</span><span class="w">  </span><span class="m">44</span><span class="w">   </span><span class="p">|</span><span class="w">   </span><span class="m">44</span><span class="w">    </span><span class="p">|</span><span class="w">    </span><span class="m">0</span><span class="w">     </span><span class="p">|</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="p">|</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>+-----------+---------+---------+-------+---------+----------+-------+
 </span></code></pre></div>
 <h3 id="dump-results-as-json">Dump Results as JSON</h3>
 <p>To dump results into JSON, use the <code>-o; --output</code> option:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>$<span class="w"> </span>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-o<span class="w"> </span>results.json
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>&gt;&gt;&gt;Sanity<span class="w"> </span>checking...:<span class="w"> </span>2it<span class="w"> </span><span class="o">[</span><span class="m">00</span>:00,<span class="w"> </span><span class="m">21</span>.54it/s<span class="o">]</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>...
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-o<span class="w"> </span>result.json
 </span></code></pre></div>
-<p>Then a JSON file named <code>results.json</code> will be generated:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">[</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="p">{</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">&quot;dataset_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dataset1&quot;</span><span class="p">,</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bbox must be (xmin, ymin, xmax, ymax) and xmin &lt;= xmax &amp;&amp; ymin &lt;= ymax: (1532, 198, 1440, 265)&quot;</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="p">{</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">&quot;dataset_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dataset2&quot;</span><span class="p">,</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Category token is empty for surface ann: 0c15d9c143fb2723c16ac7e0c735b0a8&quot;</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="p">]</span>
+<p>Then a JSON file named <code>result.json</code> will be generated as follows:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;dataset_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;DatasetID: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;Versio</span><span class="kc">n</span><span class="p">:</span><span class="w"> </span><span class="err">i</span><span class="kc">nt</span><span class="err">&gt;</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">&quot;reports&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;RuleID: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;RuleName: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;Description: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;SUCCESS/FAILURE/SKIPPED: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="nt">&quot;reasons&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;[&lt;Reason1&gt;, &lt;Reason2&gt;, ...]: [str; N] | null&gt;&quot;</span><span class="w"> </span><span class="c1">// Failure or skipped reasons, null if success</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="exclude-checks">Exclude Checks</h3>
+<p>With <code>-e; --excludes</code> option enables us to exclude specific checks by specifying the <strong>rule IDs or groups</strong>:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Exclude STR001 and all FMT-relevant rules</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-e<span class="w"> </span>STR001<span class="w"> </span>-e<span class="w"> </span>FMT
 </span></code></pre></div>
 
 

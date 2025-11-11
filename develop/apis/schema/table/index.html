@@ -453,6 +453,8 @@
       
         
       
+        
+      
     
     
     
@@ -532,6 +534,29 @@
   
   <span class="md-ellipsis">
     Sensor Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../schema/requirement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Requirements
     
   </span>
   
@@ -2017,6 +2042,7 @@
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>attribute.json</code>.</p>
 
 
@@ -2089,6 +2115,7 @@
 
 
     <div class="doc doc-contents ">
+
 
 
         <p>A dataclass to represent a model used in autolabeling.</p>
@@ -2215,6 +2242,7 @@ Lower values imply higher confidence.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>Mixin class for schema tables that use autolabel metadata with automatic annotation.</p>
 
 
@@ -2280,6 +2308,7 @@ Lower values imply higher confidence.</p>
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>calibrated_sensor.json</code>.</p>
@@ -2382,6 +2411,7 @@ Lower values imply higher confidence.</p>
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>category.json</code>.</p>
 
 
@@ -2480,6 +2510,7 @@ Lower values imply higher confidence.</p>
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>ego_pose.json</code>.</p>
@@ -2594,6 +2625,7 @@ the ego vehicle (in m/s2), in the order of (ax, ay, az).</p>
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>instance.json</code>.</p>
 
 
@@ -2692,6 +2724,7 @@ the ego vehicle (in m/s2), in the order of (ax, ay, az).</p>
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>keypoint.json</code>.</p>
@@ -2794,6 +2827,7 @@ the ego vehicle (in m/s2), in the order of (ax, ay, az).</p>
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent lidar point cloud segmentation data.</p>
 
 
@@ -2868,6 +2902,7 @@ the ego vehicle (in m/s2), in the order of (ax, ay, az).</p>
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>log.json</code>.</p>
@@ -2966,6 +3001,7 @@ the ego vehicle (in m/s2), in the order of (ax, ay, az).</p>
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>map.json</code>.</p>
 
 
@@ -3048,6 +3084,7 @@ the ego vehicle (in m/s2), in the order of (ax, ay, az).</p>
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code>, <code><a class="autorefs autorefs-internal" title="            AutolabelMixin (t4_devkit.schema.tables.autolabel_metadata.AutolabelMixin)" href="#t4_devkit.schema.tables.AutolabelMixin">AutolabelMixin</a></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>object_ann.json</code>.</p>
@@ -3184,6 +3221,7 @@ autolabel_metadata (list[AutolabelModel] | None, optional): List of models used 
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>sample.json</code>.</p>
 
 
@@ -3284,6 +3322,7 @@ surface_anns (list[str]): List of foreign keys pointing the surface annotations.
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code>, <code><a class="autorefs autorefs-internal" title="            AutolabelMixin (t4_devkit.schema.tables.autolabel_metadata.AutolabelMixin)" href="#t4_devkit.schema.tables.AutolabelMixin">AutolabelMixin</a></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>sample_annotation.json</code>.</p>
@@ -3464,6 +3503,7 @@ autolabel_metadata (list[AutolabelModel] | None, optional): List of models used 
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A class to represent schema table of <code>sample_data.json</code>.</p>
 
 
@@ -3642,6 +3682,7 @@ channel (str): Sensor channel. This should be set after instantiated.
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>scene.json</code>.</p>
 
 
@@ -3750,6 +3791,7 @@ channel (str): Sensor channel. This should be set after instantiated.
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>sensor.json</code>.</p>
 
 
@@ -3827,6 +3869,7 @@ channel (str): Sensor channel. This should be set after instantiated.
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code>, <code><a class="autorefs autorefs-internal" title="            AutolabelMixin (t4_devkit.schema.tables.autolabel_metadata.AutolabelMixin)" href="#t4_devkit.schema.tables.AutolabelMixin">AutolabelMixin</a></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>surface_ann.json</code>.</p>
@@ -3959,6 +4002,7 @@ autolabel_metadata (list[AutolabelModel] | None, optional): List of models used 
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
 
 
+
         <p>A dataclass to represent schema table of <code>vehicle_state.json</code>.</p>
 
 
@@ -4089,6 +4133,7 @@ autolabel_metadata (list[AutolabelModel] | None, optional): List of models used 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><span title="t4_devkit.schema.tables.base.SchemaBase">SchemaBase</span></code></p>
+
 
 
         <p>A dataclass to represent schema table of <code>visibility.json</code>.</p>
