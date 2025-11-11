@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
 from returns.result import Result, safe
-from returns.maybe import Maybe, Nothing, Some
 
-from ..checker import Checker, RuleID, RuleName
-from ..result import Reason
-from ..registry import CHECKERS
 from t4_devkit import Tier4
+
+from ..checker import Checker, RuleID, RuleName, Severity
+from ..registry import CHECKERS
+from ..result import Reason
 
 if TYPE_CHECKING:
     from ..context import SanityContext
@@ -22,6 +23,7 @@ class TIV001(Checker):
     """A checker for TIV001."""
 
     name = RuleName("load-tier4")
+    severity = Severity.ERROR
     description = "Ensure 'Tier4' instance is loaded successfully."
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:

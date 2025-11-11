@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from .base import RecordCountChecker
-
 
 __all__ = ["REC006"]
 
@@ -16,6 +15,7 @@ class REC006(RecordCountChecker):
     """A checker of REC006."""
 
     name = RuleName("instance-not-empty")
+    severity = Severity.ERROR
     description = "'Instance' record is not empty."
     schema = SchemaName.INSTANCE
 

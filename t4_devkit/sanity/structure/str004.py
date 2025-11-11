@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from returns.maybe import Some
 
-from ..checker import Checker, RuleID, RuleName
+from ..checker import Checker, RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -20,6 +20,7 @@ class STR004(Checker):
     """A checker of STR004."""
 
     name = RuleName("map-dir-presence")
+    severity = Severity.WARNING
     description = "'map/' directory exists under the dataset root directory."
 
     def check(self, context: SanityContext) -> list[Reason]:

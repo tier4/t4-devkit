@@ -8,30 +8,19 @@ from tabulate import tabulate
 from typing_extensions import Self
 
 if TYPE_CHECKING:
-    from .checker import RuleID, RuleName
+    from .checker import RuleID, RuleName, Severity
     from .context import SanityContext
 
 __all__ = ["Status", "Report", "SanityResult", "print_sanity_result"]
 
 
 class Status(str, Enum):
-    """Status of a report."""
+    """Runtime outcome per checker."""
 
     SUCCESS = "SUCCESS"
+    WARNING = "WARNING"
     FAILURE = "FAILURE"
     SKIPPED = "SKIPPED"
-
-    def is_success(self) -> bool:
-        """Check if the status is success."""
-        return self == Status.SUCCESS
-
-    def is_failure(self) -> bool:
-        """Check if the status is failure."""
-        return self == Status.FAILURE
-
-    def is_skipped(self) -> bool:
-        """Check if the status is skipped."""
-        return self == Status.SKIPPED
 
 
 Reason = NewType("Reason", str)
@@ -44,6 +33,7 @@ class Report:
     Attributes:
         id (RuleID): The ID of the rule.
         name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         status (Status): The status of the report.
         reasons (list[Reason] | None): The list of reasons for the report if the report is a failure or skipped.
@@ -51,6 +41,7 @@ class Report:
 
     id: RuleID
     name: RuleName
+    severity: Severity
     description: str
     status: Status
     reasons: list[Reason] | None = field(default=None)
@@ -62,28 +53,58 @@ class Report:
             assert self.reasons is not None, "Failure report must have reasons"
 
     def is_success(self) -> bool:
+        """Check if the status is success."""
         return self.status == Status.SUCCESS
 
+    def is_warning(self) -> bool:
+        """Check if the status is warning."""
+        return self.status == Status.WARNING
+
     def is_failure(self) -> bool:
+        """Check if the status is failure."""
         return self.status == Status.FAILURE
 
     def is_skipped(self) -> bool:
+        """Check if the status is skipped."""
         return self.status == Status.SKIPPED
 
 
-def make_success(id: RuleID, name: RuleName, description: str) -> Report:
+def make_success(id: RuleID, name: RuleName, severity: Severity, description: str) -> Report:
     """Make a success report for the given rule."""
-    return Report(id, name, description, Status.SUCCESS)
+    return Report(id, name, severity, description, Status.SUCCESS)
 
 
-def make_skipped(id: RuleID, name: RuleName, description: str, reason: Reason) -> Report:
+def make_warning(
+    id: RuleID,
+    name: RuleName,
+    severity: Severity,
+    description: str,
+    reasons: list[Reason],
+) -> Report:
+    """Make a warning report for the given rule."""
+    return Report(id, name, severity, description, Status.WARNING, reasons)
+
+
+def make_skipped(
+    id: RuleID,
+    name: RuleName,
+    severity: Severity,
+    description: str,
+    reason: Reason,
+) -> Report:
     """Make a skipped report for the given rule."""
-    return Report(id, name, description, Status.SKIPPED, [reason])
+    return Report(id, name, severity, description, Status.SKIPPED, [reason])
 
 
-def make_failure(id: RuleID, name: RuleName, description: str, reasons: list[Reason]) -> Report:
+def make_failure(
+    id: RuleID,
+    name: RuleName,
+    severity: Severity,
+    description: str,
+    reasons: list[Reason],
+) -> Report:
     """Make a failure report for the given rule."""
-    return Report(id, name, description, Status.FAILURE, reasons)
+    return Report(id, name, severity, description, Status.FAILURE, reasons)
 
 
 @define
@@ -124,10 +145,14 @@ class SanityResult:
                 string += f"\033[31m  {report.id}:\033[0m\n"
                 for reason in report.reasons or []:
                     string += f"\033[31m     - {reason}\033[0m\n"
-            elif report.is_skipped():
+            elif report.is_warning():
                 string += f"\033[33m  {report.id}:\033[0m\n"
                 for reason in report.reasons or []:
                     string += f"\033[33m     - {reason}\033[0m\n"
+            elif report.is_skipped():
+                string += f"\033[36m  {report.id}: [SKIPPED]\033[0m\n"
+                for reason in report.reasons or []:
+                    string += f"\033[36m     - {reason}\033[0m\n"
             else:
                 string += f"\033[32m  {report.id}: ✅\033[0m\n"
         return string
@@ -144,6 +169,7 @@ def print_sanity_result(result: SanityResult) -> None:
 
     # print summary result
     success = sum(1 for rp in result.reports if rp.is_success())
+    warnings = sum(1 for rp in result.reports if rp.is_warning())
     failures = sum(1 for rp in result.reports if rp.is_failure())
     skips = sum(1 for rp in result.reports if rp.is_skipped())
     summary_rows = [
@@ -153,6 +179,7 @@ def print_sanity_result(result: SanityResult) -> None:
             "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
             len(result.reports),
             success,
+            warnings,
             failures,
             skips,
         ]
@@ -161,7 +188,16 @@ def print_sanity_result(result: SanityResult) -> None:
     print(
         tabulate(
             summary_rows,
-            headers=["DatasetID", "Version", "Status", "Rules", "Success", "Failures", "Skips"],
+            headers=[
+                "DatasetID",
+                "Version",
+                "Status",
+                "Rules",
+                "Success",
+                "Warnings",
+                "Failures",
+                "Skips",
+            ],
             tablefmt="pretty",
         ),
     )

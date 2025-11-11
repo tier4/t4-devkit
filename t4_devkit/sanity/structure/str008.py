@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from returns.maybe import Some
 
-from ..checker import Checker, RuleID, RuleName
+from ..checker import Checker, RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -19,6 +19,7 @@ class STR008(Checker):
     """A checker of STR008."""
 
     name = RuleName("lanelet-file-presence")
+    severity = Severity.WARNING
     description = "'lanelet2_map.osm' file exists under the 'map/' directory."
 
     def check(self, context: SanityContext) -> list[Reason]:

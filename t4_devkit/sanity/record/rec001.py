@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from .base import RecordCountChecker
-
 
 __all__ = ["REC001"]
 
@@ -16,6 +15,7 @@ class REC001(RecordCountChecker):
     """A checker of REC001."""
 
     name = RuleName("scene-single")
+    severity = Severity.ERROR
     description = "'Scene' record is a single."
     schema = SchemaName.SCENE
 

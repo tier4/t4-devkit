@@ -20,6 +20,7 @@ class RecordCountChecker(Checker):
 
     Attributes:
         name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         schema (SchemaName): The schema name to check.
     """

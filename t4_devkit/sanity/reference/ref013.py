@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_json_safe
@@ -22,6 +22,7 @@ class REF013(FileReferenceChecker):
     """A checker of REF013."""
 
     name = RuleName("sample-data-filename-presence")
+    severity = Severity.ERROR
     description = "'SampleData.filename' exists."
     schema = SchemaName.SAMPLE_DATA
 

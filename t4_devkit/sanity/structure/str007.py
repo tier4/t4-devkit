@@ -6,7 +6,7 @@ from returns.maybe import Some
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import Checker, RuleID, RuleName
+from ..checker import Checker, RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -22,6 +22,7 @@ class STR007(Checker):
     """A checker of STR007."""
 
     name = RuleName("schema-file-presence")
+    severity = Severity.ERROR
     description = "Mandatory schema JSON files exist under the `annotation/` directory."
 
     def check(self, context: SanityContext) -> list[Reason]:
