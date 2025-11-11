@@ -50,7 +50,7 @@ class Report:
         if self.is_success():
             assert self.reasons is None, "Success report cannot have reasons"
         else:
-            assert self.reasons is not None, "Failure report must have reasons"
+            assert self.reasons is not None, "Non-success report must have reasons"
 
     def is_success(self) -> bool:
         """Check if the status is success."""
