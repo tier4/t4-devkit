@@ -19,10 +19,10 @@ class REC005(RecordCountChecker):
     description = "'CalibratedSensor' record is not empty."
     schema = SchemaName.CALIBRATED_SENSOR
 
-    def check_count(self, records: list[dict]) -> list[Reason]:
+    def check_count(self, records: list[dict]) -> list[Reason] | None:
         num_calibrated_sensor = len(records)
         return (
             [Reason("'CalibratedSensor' record must not be empty")]
             if num_calibrated_sensor == 0
-            else []
+            else None
         )

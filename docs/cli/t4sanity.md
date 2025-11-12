@@ -10,10 +10,11 @@ $ t4sanity -h
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --version             -v             Show the application version and exit.                                           │
-│ --output              -o       TEXT  Path to output JSON file.                                                        │
-│ --revision            -rv      TEXT  Specify if you want to check the specific version.                               │
-│ --exclude             -e       TEXT  Exclude specific rules or rule groups.                                           │
+│ --output              -o       TEXT  Path to output JSON file. [default: None]                                        │
+│ --revision            -rv      TEXT  Specify if you want to check the specific version. [default: None]               │
+│ --exclude             -e       TEXT  Exclude specific rules or rule groups. [default: None]                           │
 │ --include-warning     -iw            Indicates whether to report any warnings.                                        │
+│ --strict              -s             Indicates whether warnings are treated as failures.                              │
 │ --install-completion                 Install completion for the current shell.                                        │
 │ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
 │ --help                -h             Show this message and exit.                                                      │
@@ -99,4 +100,15 @@ With `-e; --excludes` option enables us to exclude specific checks by specifying
 ```shell
 # Exclude STR001 and all FMT-relevant rules
 t4sanity <DATA_ROOT> -e STR001 -e FMT
+```
+
+### Strict Mode
+
+Basically, rules whose **severity is WARNING** will be treated as success.
+
+With `-s; --strict` option enables us to treat warnings as failures:
+
+```shell
+# Run strict mode
+t4sanity <DATA_ROOT> -s
 ```

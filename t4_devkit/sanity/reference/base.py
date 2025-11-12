@@ -44,7 +44,7 @@ class RecordReferenceChecker(Checker):
             case _:
                 return Maybe.from_value(Reason("Missing 'annotation' directory path"))
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         source_file = context.to_schema_file(self.source).unwrap()
         target_file = context.to_schema_file(self.target).unwrap()
         source_records = load_json_safe(source_file).unwrap()
@@ -56,7 +56,7 @@ class RecordReferenceChecker(Checker):
             for record in source_records
             if record[self.reference] not in target_tokens
             and self.is_additional_condition_ok(record)
-        ]
+        ] or None
 
     def is_additional_condition_ok(self, record: dict[str, Any]) -> bool:
         """Return True if the additional condition is met.

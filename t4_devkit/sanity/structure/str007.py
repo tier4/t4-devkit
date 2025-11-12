@@ -25,7 +25,7 @@ class STR007(Checker):
     severity = Severity.ERROR
     description = "Mandatory schema JSON files exist under the `annotation/` directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         failures = []
         for schema in SchemaName:
             match context.to_schema_file(schema):
@@ -34,4 +34,4 @@ class STR007(Checker):
                         failures.append(Reason(f"schema file '{schema.filename}' not found"))
                 case _:
                     failures.append(Reason(f"schema file '{schema.filename}' not found"))
-        return failures
+        return failures if failures else None

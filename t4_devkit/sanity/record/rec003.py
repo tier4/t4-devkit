@@ -19,6 +19,6 @@ class REC003(RecordCountChecker):
     description = "'SampleData' record is not empty."
     schema = SchemaName.SAMPLE_DATA
 
-    def check_count(self, records: list[dict]) -> list[Reason]:
+    def check_count(self, records: list[dict]) -> list[Reason] | None:
         num_sample_data = len(records)
-        return [Reason("'SampleData' record must not be empty")] if num_sample_data == 0 else []
+        return [Reason("'SampleData' record must not be empty")] if num_sample_data == 0 else None

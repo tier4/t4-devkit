@@ -19,10 +19,10 @@ class REC001(RecordCountChecker):
     description = "'Scene' record is a single."
     schema = SchemaName.SCENE
 
-    def check_count(self, records: list[dict]) -> list[Reason]:
+    def check_count(self, records: list[dict]) -> list[Reason] | None:
         num_scene = len(records)
         return (
-            []
+            None
             if num_scene == 1
             else [Reason(f"'Scene' must contain exactly one element: {num_scene}")]
         )

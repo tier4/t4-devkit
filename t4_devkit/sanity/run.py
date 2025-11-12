@@ -16,6 +16,7 @@ def sanity_check(
     *,
     include_warning: bool = False,
     excludes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> SanityResult:
     """Run sanity checks on the given data root.
 
@@ -24,6 +25,7 @@ def sanity_check(
         revision (str | None, optional): The revision to check. If None, the latest revision is used.
         include_warning (bool, optional): Whether to include warning checks.
         excludes (Sequence[str] | None, optional): A list of rule names or groups to exclude.
+        strict (bool, optional): Indicate whether checkers whose severity is set to "WARNING" should fail.
 
     Returns:
         A SanityResult object.
@@ -34,7 +36,7 @@ def sanity_check(
         else:
             warnings.simplefilter("ignore")
 
-        context = SanityContext.from_path(data_root, revision=revision)
+        context = SanityContext.from_path(data_root, revision=revision, strict=strict)
 
         checkers = CHECKERS.build(excludes=excludes)
         reports = [checker(context) for checker in checkers]

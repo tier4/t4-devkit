@@ -26,7 +26,7 @@ class REF013(FileReferenceChecker):
     description = "'SampleData.filename' exists."
     schema = SchemaName.SAMPLE_DATA
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         filepath = context.to_schema_file(self.schema).unwrap()
         records = load_json_safe(filepath).unwrap()
         data_root = context.data_root.unwrap()
@@ -34,4 +34,4 @@ class REF013(FileReferenceChecker):
             Reason(f"File not found: {record['filename']}")
             for record in records
             if not data_root.joinpath(record["filename"]).exists()
-        ]
+        ] or None

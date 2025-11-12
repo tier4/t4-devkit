@@ -23,11 +23,13 @@ class STR005(Checker):
     severity = Severity.WARNING
     description = "'input_bag/' directory exists under the dataset root directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.bag_dir:
             case Some(x):
                 return (
-                    [] if x.exists() else [Reason(f"Path to 'input_bag' not found: {x.as_posix()}")]
+                    None
+                    if x.exists()
+                    else [Reason(f"Path to 'input_bag' not found: {x.as_posix()}")]
                 )
             case _:
                 return [Reason("dataset directory doesn't contain 'input_bag' directory")]

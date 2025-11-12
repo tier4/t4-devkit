@@ -19,6 +19,6 @@ class REC006(RecordCountChecker):
     description = "'Instance' record is not empty."
     schema = SchemaName.INSTANCE
 
-    def check_count(self, records: list[dict]) -> list[Reason]:
+    def check_count(self, records: list[dict]) -> list[Reason] | None:
         num_instance = len(records)
-        return [Reason("'Instance' record must not be empty")] if num_instance == 0 else []
+        return [Reason("'Instance' record must not be empty")] if num_instance == 0 else None

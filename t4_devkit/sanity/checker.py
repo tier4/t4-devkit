@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, NewType
 
 from returns.maybe import Maybe, Nothing, Some
 
-from .result import make_failure, make_skipped, make_success
+from .result import make_report, make_skipped
 
 if TYPE_CHECKING:
     from .context import SanityContext
@@ -48,15 +48,22 @@ class Checker(ABC):
                 return make_skipped(self.id, self.name, self.severity, self.description, skip)
 
         reasons = self.check(context)
-        if reasons:
-            return make_failure(self.id, self.name, self.severity, self.description, reasons)
-        else:
-            return make_success(self.id, self.name, self.severity, self.description)
+        return make_report(
+            self.id, self.name, self.severity, self.description, reasons, strict=context.strict
+        )
 
     def can_skip(self, _: SanityContext) -> Maybe[Reason]:
         """Return a skip reason if the checker should be skipped."""
         return Nothing
 
     @abstractmethod
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
+        """Return a list of reasons if the checker fails, or None if it passes.
+
+        Args:
+            context (SanityContext): The sanity context.
+
+        Returns:
+            A list of reasons if the checker fails, or None if it passes.
+        """
         pass

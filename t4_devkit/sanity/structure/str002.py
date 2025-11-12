@@ -23,11 +23,11 @@ class STR002(Checker):
     severity = Severity.ERROR
     description = "'annotation/' directory exists under the dataset root directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.annotation_dir:
             case Some(x):
                 return (
-                    []
+                    None
                     if x.exists()
                     else [Reason(f"Path to 'annotation' not found: {x.as_posix()}")]
                 )

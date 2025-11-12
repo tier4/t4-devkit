@@ -37,24 +37,24 @@ class FieldTypeChecker(Checker):
             case _:
                 return Nothing
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         filepath = context.to_schema_file(self.schema).unwrap()
 
         if self.schema.is_optional() and not filepath.exists():
-            return []
+            return None
 
         records = load_json_safe(filepath)
         return _build_records(self.schema, records.unwrap())
 
 
-def _build_records(schema: SchemaName, records: list[dict]) -> list[Reason]:
+def _build_records(schema: SchemaName, records: list[dict]) -> list[Reason] | None:
     module = SCHEMAS.get(schema)
     failures = []
     for record in records:
         conversion = _safe_from_dict(module, record)
         if not is_successful(conversion):
             failures.append(Reason(f"[{schema.name}] {record['token']}: {conversion.failure()}"))
-    return failures
+    return failures if failures else None
 
 
 @safe

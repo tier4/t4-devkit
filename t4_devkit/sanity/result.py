@@ -46,9 +46,9 @@ class Report:
     reasons: list[Reason] | None = field(default=None)
 
     def __attrs_post_init__(self) -> None:
-        if self.is_success():
-            assert self.reasons is None, "Success report cannot have reasons"
-        else:
+        if self.is_success() and self.severity.is_error():
+            assert self.reasons is None, "Success report for error rule cannot have reasons"
+        elif self.is_failure():
             assert self.reasons is not None, "Non-success report must have reasons"
 
     def is_success(self) -> bool:
@@ -64,9 +64,27 @@ class Report:
         return self.status == Status.SKIPPED
 
 
-def make_success(id: RuleID, name: RuleName, severity: Severity, description: str) -> Report:
-    """Make a success report for the given rule."""
-    return Report(id, name, severity, description, Status.SUCCESS)
+def make_report(
+    id: RuleID,
+    name: RuleName,
+    severity: Severity,
+    description: str,
+    reasons: list[Reason] | None = None,
+    *,
+    strict: bool = False,
+) -> Report:
+    """Make a report for the given rule."""
+    if reasons:
+        if severity.is_warning():
+            return (
+                Report(id, name, severity, description, Status.FAILURE, reasons)
+                if strict
+                else Report(id, name, severity, description, Status.SUCCESS, reasons)
+            )
+        else:
+            return Report(id, name, severity, description, Status.FAILURE, reasons)
+    else:
+        return Report(id, name, severity, description, Status.SUCCESS)
 
 
 def make_skipped(
@@ -74,13 +92,6 @@ def make_skipped(
 ) -> Report:
     """Make a skipped report for the given rule."""
     return Report(id, name, severity, description, Status.SKIPPED, [reason])
-
-
-def make_failure(
-    id: RuleID, name: RuleName, severity: Severity, description: str, reasons: list[Reason]
-) -> Report:
-    """Make a failure report for the given rule."""
-    return Report(id, name, severity, description, Status.FAILURE, reasons)
 
 
 @define
@@ -141,9 +152,11 @@ def print_sanity_result(result: SanityResult) -> None:
 
     # print summary result
     success = sum(1 for rp in result.reports if rp.is_success())
-    failures = sum(1 for rp in result.reports if rp.severity.is_error() and rp.is_failure())
+    failures = sum(1 for rp in result.reports if rp.is_failure())
     skips = sum(1 for rp in result.reports if rp.is_skipped())
-    warnings = sum(1 for rp in result.reports if rp.severity.is_warning() and rp.is_failure())
+
+    # just count the number of warnings
+    warnings = sum(1 for rp in result.reports if rp.severity.is_warning() and rp.reasons)
 
     summary_rows = [
         [

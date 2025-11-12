@@ -37,12 +37,16 @@ def main(
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
+    strict: bool = typer.Option(
+        False, "-s", "--strict", help="Indicates whether warnings are treated as failures."
+    ),
 ) -> None:
     result = sanity_check(
         data_root=data_root,
         revision=revision,
         excludes=excludes,
         include_warning=include_warning,
+        strict=strict,
     )
 
     print_sanity_result(result)

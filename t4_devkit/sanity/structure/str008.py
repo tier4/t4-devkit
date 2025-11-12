@@ -22,7 +22,7 @@ class STR008(Checker):
     severity = Severity.WARNING
     description = "'lanelet2_map.osm' file exists under the 'map/' directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.map_dir:
             case Some(x):
                 if not x.exists():
@@ -31,7 +31,7 @@ class STR008(Checker):
                 return (
                     [Reason(f"Lanelet2 map file not found: {lanelet_file.as_posix()}")]
                     if not lanelet_file.exists()
-                    else []
+                    else None
                 )
             case _:
                 return [Reason("dataset directory doesn't contain 'map' directory")]

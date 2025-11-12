@@ -35,10 +35,10 @@ class TIV001(Checker):
             case _:
                 return Nothing
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         result = _load_tier4_safe(context)
         return (
-            [] if is_successful(result) else [Reason(f"Failed to load Tier4: {result.failure()}")]
+            None if is_successful(result) else [Reason(f"Failed to load Tier4: {result.failure()}")]
         )
 
 

@@ -23,11 +23,11 @@ class STR006(Checker):
     severity = Severity.WARNING
     description = "'status.json' file exists under the dataset root directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.status_json:
             case Some(x):
                 return (
-                    []
+                    None
                     if x.exists()
                     else [Reason(f"Path to 'status.json' not found: {x.as_posix()}")]
                 )

@@ -22,7 +22,7 @@ class STR009(Checker):
     severity = Severity.WARNING
     description = "'pointcloud_map.pcd' directory exists under the 'map/' directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.map_dir:
             case Some(x):
                 if not x.exists():
@@ -31,7 +31,7 @@ class STR009(Checker):
                 return (
                     [Reason(f"PCD map directory not found: {pointcloud_map_dir.as_posix()}")]
                     if not pointcloud_map_dir.exists()
-                    else []
+                    else None
                 )
             case _:
                 return [Reason("dataset directory doesn't contain 'map' directory")]

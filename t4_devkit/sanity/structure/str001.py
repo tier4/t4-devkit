@@ -23,9 +23,9 @@ class STR001(Checker):
     severity = Severity.WARNING
     description = "'version/' directory exists under the dataset root directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.version:
             case Some(_):
-                return []
+                return None
             case _:
                 return [Reason("'version' directory doesn't exist")]

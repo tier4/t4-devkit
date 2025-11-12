@@ -15,12 +15,13 @@ from t4_devkit.schema.name import SchemaName
 @define
 class SanityContext:
     metadata: Maybe[DBMetadata]
+    strict: bool
 
     @classmethod
-    def from_path(cls, data_root: str, revision: str | None = None) -> Self:
+    def from_path(cls, data_root: str, revision: str | None = None, strict: bool = False) -> Self:
         metadata_result = _load_metadata_safe(data_root, revision=revision)
         metadata = metadata_result.unwrap() if is_successful(metadata_result) else None
-        return cls(Maybe.from_optional(metadata))
+        return cls(Maybe.from_optional(metadata), strict)
 
     @property
     def data_root(self) -> Maybe[Path]:

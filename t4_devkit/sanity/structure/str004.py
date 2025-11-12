@@ -23,9 +23,9 @@ class STR004(Checker):
     severity = Severity.WARNING
     description = "'map/' directory exists under the dataset root directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.map_dir:
             case Some(x):
-                return [] if x.exists() else [Reason(f"Path to 'map' not found: {x.as_posix()}")]
+                return None if x.exists() else [Reason(f"Path to 'map' not found: {x.as_posix()}")]
             case _:
                 return [Reason("dataset directory doesn't contain 'map' directory")]
