@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 import typer
 
 from t4_devkit.common.io import save_json
@@ -46,11 +48,15 @@ def main(
         revision=revision,
         excludes=excludes,
         include_warning=include_warning,
-        strict=strict,
     )
 
-    print_sanity_result(result)
+    print_sanity_result(result, strict=strict)
 
     if output:
         serialized = serialize_dataclass(result)
         save_json(serialized, output)
+
+    if result.is_success(strict=strict):
+        sys.exit(0)
+    else:
+        sys.exit(1)

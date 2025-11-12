@@ -48,9 +48,7 @@ class Checker(ABC):
                 return make_skipped(self.id, self.name, self.severity, self.description, skip)
 
         reasons = self.check(context)
-        return make_report(
-            self.id, self.name, self.severity, self.description, reasons, strict=context.strict
-        )
+        return make_report(self.id, self.name, self.severity, self.description, reasons)
 
     def can_skip(self, _: SanityContext) -> Maybe[Reason]:
         """Return a skip reason if the checker should be skipped."""
