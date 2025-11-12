@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, NewType
 
 from returns.maybe import Maybe, Nothing, Some
 
-from .result import make_failure, make_skipped, make_success, make_warning
+from .result import make_failure, make_skipped, make_success
 
 if TYPE_CHECKING:
     from .context import SanityContext
@@ -20,8 +20,16 @@ RuleName = NewType("RuleName", str)
 class Severity(str, Enum):
     """Severity levels for sanity checkers."""
 
-    ERROR = "ERROR"
     WARNING = "WARNING"
+    ERROR = "ERROR"
+
+    def is_warning(self) -> bool:
+        """Return `True` if the severity is WARNING."""
+        return self == Severity.WARNING
+
+    def is_error(self) -> bool:
+        """Return `True` if the severity is ERROR."""
+        return self == Severity.ERROR
 
 
 class Checker(ABC):
@@ -41,11 +49,7 @@ class Checker(ABC):
 
         reasons = self.check(context)
         if reasons:
-            return (
-                make_failure(self.id, self.name, self.severity, self.description, reasons)
-                if self.severity == Severity.ERROR
-                else make_warning(self.id, self.name, self.severity, self.description, reasons)
-            )
+            return make_failure(self.id, self.name, self.severity, self.description, reasons)
         else:
             return make_success(self.id, self.name, self.severity, self.description)
 
