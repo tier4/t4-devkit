@@ -37,7 +37,7 @@ def main(
         None, "-e", "--exclude", help="Exclude specific rules or rule groups."
     ),
     strict: bool = typer.Option(
-        False, "-s", "--strict", help="Indicates whether warnings are treated as failures."
+        False, "-s", "--strict", help="By default, warnings do not cause failure. If set, warnings are treated as failures."
     ),
 ) -> None:
     result = sanity_check(data_root=data_root, revision=revision, excludes=excludes)
