@@ -736,6 +736,8 @@
       
         
       
+        
+      
     
     
     
@@ -850,6 +852,34 @@
     
   
     Schema Customization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/sanity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sanity Check
   
 
     
@@ -1027,6 +1057,8 @@
       
         
       
+        
+      
     
     
     
@@ -1132,6 +1164,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../apis/sanity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    t4_devkit.sanity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1160,7 +1220,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1182,14 +1242,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1612,55 +1672,55 @@
 <tr>
 <td><code>STR001</code></td>
 <td><code>version-dir-presence</code></td>
-<td><code>Warn</code></td>
+<td><code>WARNING</code></td>
 <td><code>version/</code> directory exists under the dataset root directory.</td>
 </tr>
 <tr>
 <td><code>STR002</code></td>
 <td><code>annotation-dir-presence</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>annotation/</code> directory exists under the dataset root directory.</td>
 </tr>
 <tr>
 <td><code>STR003</code></td>
 <td><code>data-dir-presence</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>data/</code> directory exists under the dataset root directory.</td>
 </tr>
 <tr>
 <td><code>STR004</code></td>
 <td><code>map-dir-presence</code></td>
-<td><code>Warn</code></td>
+<td><code>WARNING</code></td>
 <td><code>map/</code> directory exists under the dataset root directory.</td>
 </tr>
 <tr>
 <td><code>STR005</code></td>
 <td><code>bag-dir-presence</code></td>
-<td><code>Warn</code></td>
+<td><code>WARNING</code></td>
 <td><code>input_bag/</code> directory exists under the dataset root directory.</td>
 </tr>
 <tr>
 <td><code>STR006</code></td>
 <td><code>status-file-presence</code></td>
-<td><code>Warn</code></td>
+<td><code>WARNING</code></td>
 <td><code>status.json</code> file exists under the dataset root directory.</td>
 </tr>
 <tr>
 <td><code>STR007</code></td>
 <td><code>schema-files-presence</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>Mandatory schema JSON files exist under the <code>annotation/</code> directory.</td>
 </tr>
 <tr>
 <td><code>STR008</code></td>
 <td><code>lanelet-file-presence</code></td>
-<td><code>Warn</code></td>
+<td><code>WARNING</code></td>
 <td><code>lanelet2_map.osm</code> file exists under the <code>map/</code> directory.</td>
 </tr>
 <tr>
 <td><code>STR009</code></td>
 <td><code>pointcloud-map-dir-presence</code></td>
-<td><code>Warn</code></td>
+<td><code>WARNING</code></td>
 <td><code>pointcloud_map.pcd</code> directory exists under the <code>map/</code> directory.</td>
 </tr>
 </tbody>
@@ -1679,37 +1739,37 @@
 <tr>
 <td><code>REC001</code></td>
 <td><code>scene-single</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Scene</code> record is a single.</td>
 </tr>
 <tr>
 <td><code>REC002</code></td>
 <td><code>sample-not-empty</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Sample</code> record is not empty.</td>
 </tr>
 <tr>
 <td><code>REC003</code></td>
 <td><code>sample-data-not-empty</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>SampleData</code> record is not empty.</td>
 </tr>
 <tr>
 <td><code>REC004</code></td>
 <td><code>ego-pose-not-empty</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>EgoPose</code> record is not empty.</td>
 </tr>
 <tr>
 <td><code>REC005</code></td>
 <td><code>calibrated-sensor-non-empty</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>CalibratedSensor</code> record is not empty.</td>
 </tr>
 <tr>
 <td><code>REC006</code></td>
 <td><code>instance-not-empty</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Instance</code> record is not empty.</td>
 </tr>
 </tbody>
@@ -1728,91 +1788,91 @@
 <tr>
 <td><code>REF001</code></td>
 <td><code>scene-to-log</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Scene.log_token</code> refers to <code>Log</code> record.</td>
 </tr>
 <tr>
 <td><code>REF002</code></td>
 <td><code>scene-to-first-sample</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Scene.first_sample_token</code> refers to <code>Sample</code> record.</td>
 </tr>
 <tr>
 <td><code>REF003</code></td>
 <td><code>scene-to-last-sample</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Scene.last_sample_token</code> refers to <code>Sample</code> record.</td>
 </tr>
 <tr>
 <td><code>REF004</code></td>
 <td><code>sample-to-scene</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Sample.scene_token</code> refers to <code>Scene</code> record.</td>
 </tr>
 <tr>
 <td><code>REF005</code></td>
 <td><code>sample-data-to-sample</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>SampleData.sample_token</code> refers to <code>Sample</code> record.</td>
 </tr>
 <tr>
 <td><code>REF006</code></td>
 <td><code>sample-data-to-ego-pose</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>SampleData.ego_pose_token</code> refers to <code>EgoPose</code> record.</td>
 </tr>
 <tr>
 <td><code>REF007</code></td>
 <td><code>sample-data-to-calibrated-sensor</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>SampleData.calibrated_sensor_token</code> refers to <code>CalibratedSensor</code> record.</td>
 </tr>
 <tr>
 <td><code>REF008</code></td>
 <td><code>calibrated-sensor-to-sensor</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>CalibratedSensor.sensor_token</code> refers to <code>Sensor</code> record.</td>
 </tr>
 <tr>
 <td><code>REF009</code></td>
 <td><code>instance-to-category</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Instance.category_token</code> refers to <code>Category</code> record.</td>
 </tr>
 <tr>
 <td><code>REF010</code></td>
 <td><code>instance-to-first-sample-annotation</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Instance.first_annotation_token</code> refers to <code>SampleAnnotation</code> record.</td>
 </tr>
 <tr>
 <td><code>REF011</code></td>
 <td><code>instance-to-last-sample-annotation</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>Instance.last_annotation_token</code> refers to <code>SampleAnnotation</code> record.</td>
 </tr>
 <tr>
 <td><code>REF012</code></td>
 <td><code>lidarseg-to-sample-data</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>LidarSeg.sample_data_token</code> refers to <code>SampleData</code> record.</td>
 </tr>
 <tr>
 <td><code>REF013</code></td>
 <td><code>sample-data-filename-presence</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>SampleData.filename</code> exists.</td>
 </tr>
 <tr>
 <td><code>REF014</code></td>
 <td><code>sample-data-info-filename-presence</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>SampleData.info_filename</code> exists if it is not <code>None</code>.</td>
 </tr>
 <tr>
 <td><code>REF015</code></td>
 <td><code>lidarseg-filename-presence</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td><code>LidarSeg.filename</code> exists if <code>lidarseg.json</code> exists.</td>
 </tr>
 </tbody>
@@ -1831,109 +1891,109 @@
 <tr>
 <td><code>FMT001</code></td>
 <td><code>attribute-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Attribute</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT002</code></td>
 <td><code>calibrated-sensor-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>CalibratedSensor</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT003</code></td>
 <td><code>category-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Category</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT004</code></td>
 <td><code>ego-pose-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>EgoPose</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT005</code></td>
 <td><code>instance-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Instance</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT006</code></td>
 <td><code>log-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Log</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT007</code></td>
 <td><code>map-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Map</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT008</code></td>
 <td><code>sample-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Sample</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT009</code></td>
 <td><code>sample-annotation-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>SampleAnnotation</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT010</code></td>
 <td><code>sample-data-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>SampleData</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT011</code></td>
 <td><code>scene-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Scene</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT012</code></td>
 <td><code>sensor-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Sensor</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT013</code></td>
 <td><code>visibility-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Visibility</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT014</code></td>
 <td><code>lidarseg-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Lidarseg</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT015</code></td>
 <td><code>object-ann-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>ObjectAnn</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT016</code></td>
 <td><code>surface-ann-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>SurfaceAnn</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT017</code></td>
 <td><code>keypoint-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>Keypoint</code> fields are valid.</td>
 </tr>
 <tr>
 <td><code>FMT018</code></td>
 <td><code>vehicle-state-field</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>All types of <code>VehicleState</code> fields are valid.</td>
 </tr>
 </tbody>
@@ -1952,7 +2012,7 @@
 <tr>
 <td><code>TIV001</code></td>
 <td><code>load-tier4</code></td>
-<td><code>Error</code></td>
+<td><code>ERROR</code></td>
 <td>Ensure <code>Tier4</code> instance is loaded successfully.</td>
 </tr>
 </tbody>
