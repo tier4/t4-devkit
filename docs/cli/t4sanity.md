@@ -13,7 +13,6 @@ $ t4sanity -h
 │ --output              -o       TEXT  Path to output JSON file. [default: None]                                        │
 │ --revision            -rv      TEXT  Specify if you want to check the specific version. [default: None]               │
 │ --exclude             -e       TEXT  Exclude specific rules or rule groups. [default: None]                           │
-│ --include-warning     -iw            Indicates whether to report any warnings.                                        │
 │ --strict              -s             Indicates whether warnings are treated as failures.                              │
 │ --install-completion                 Install completion for the current shell.                                        │
 │ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
