@@ -36,19 +36,14 @@ def main(
     excludes: list[str] | None = typer.Option(
         None, "-e", "--exclude", help="Exclude specific rules or rule groups."
     ),
-    include_warning: bool = typer.Option(
-        False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
-    ),
     strict: bool = typer.Option(
-        False, "-s", "--strict", help="Indicates whether warnings are treated as failures."
+        False,
+        "-s",
+        "--strict",
+        help="By default, warnings do not cause failure. If set, warnings are treated as failures.",
     ),
 ) -> None:
-    result = sanity_check(
-        data_root=data_root,
-        revision=revision,
-        excludes=excludes,
-        include_warning=include_warning,
-    )
+    result = sanity_check(data_root=data_root, revision=revision, excludes=excludes)
 
     print_sanity_result(result, strict=strict)
 
