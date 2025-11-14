@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
-
 
 __all__ = ["REF012"]
 
@@ -15,6 +14,7 @@ class REF012(RecordReferenceChecker):
     """A checker of REF012."""
 
     name = RuleName("lidarset-to-sample-data")
+    severity = Severity.ERROR
     description = "'LidarSeg.sample_data_token' refers to 'SampleData' record."
     source = SchemaName.LIDARSEG
     target = SchemaName.SAMPLE_DATA

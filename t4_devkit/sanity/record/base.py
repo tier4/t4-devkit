@@ -20,6 +20,7 @@ class RecordCountChecker(Checker):
 
     Attributes:
         name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         schema (SchemaName): The schema name to check.
     """
@@ -36,19 +37,19 @@ class RecordCountChecker(Checker):
             case _:
                 return Maybe.from_value(Reason("Missing 'annotation' directory path"))
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         filepath = context.to_schema_file(self.schema).unwrap()
         records = load_json_safe(filepath).unwrap()
         return self.check_count(records)
 
     @abstractmethod
-    def check_count(self, records: list[dict]) -> list[Reason]:
+    def check_count(self, records: list[dict]) -> list[Reason] | None:
         """Check the count of records.
 
         Args:
             records (list[dict]): The list of records to check.
 
         Returns:
-            A list of reasons for any issues found, otherwise an empty list.
+            A list of reasons for any issues found, otherwise None.
         """
         pass

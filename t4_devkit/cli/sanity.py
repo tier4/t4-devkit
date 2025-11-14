@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 import typer
 
 from t4_devkit.common.io import save_json
@@ -37,6 +39,9 @@ def main(
     include_warning: bool = typer.Option(
         False, "-iw", "--include-warning", help="Indicates whether to report any warnings."
     ),
+    strict: bool = typer.Option(
+        False, "-s", "--strict", help="Indicates whether warnings are treated as failures."
+    ),
 ) -> None:
     result = sanity_check(
         data_root=data_root,
@@ -45,8 +50,13 @@ def main(
         include_warning=include_warning,
     )
 
-    print_sanity_result(result)
+    print_sanity_result(result, strict=strict)
 
     if output:
         serialized = serialize_dataclass(result)
         save_json(serialized, output)
+
+    if result.is_success(strict=strict):
+        sys.exit(0)
+    else:
+        sys.exit(1)

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from returns.maybe import Some
 
-from ..checker import Checker, RuleID, RuleName
+from ..checker import Checker, RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -19,9 +19,10 @@ class STR009(Checker):
     """A checker of STR009."""
 
     name = RuleName("pointcloud-map-dir-presence")
+    severity = Severity.WARNING
     description = "'pointcloud_map.pcd' directory exists under the 'map/' directory."
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         match context.map_dir:
             case Some(x):
                 if not x.exists():
@@ -30,7 +31,7 @@ class STR009(Checker):
                 return (
                     [Reason(f"PCD map directory not found: {pointcloud_map_dir.as_posix()}")]
                     if not pointcloud_map_dir.exists()
-                    else []
+                    else None
                 )
             case _:
                 return [Reason("dataset directory doesn't contain 'map' directory")]

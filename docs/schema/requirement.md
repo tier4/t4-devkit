@@ -7,9 +7,9 @@
 | `STR001` | `version-dir-presence`        | `Warn`   | `version/` directory exists under the dataset root directory.        |
 | `STR002` | `annotation-dir-presence`     | `Error`  | `annotation/` directory exists under the dataset root directory.     |
 | `STR003` | `data-dir-presence`           | `Error`  | `data/` directory exists under the dataset root directory.           |
-| `STR004` | `map-dir-presence`            | `Error`  | `map/` directory exists under the dataset root directory.            |
-| `STR005` | `bag-dir-presence`            | `Error`  | `input_bag/` directory exists under the dataset root directory.      |
-| `STR006` | `status-file-presence`        | `Error`  | `status.json` file exists under the dataset root directory.          |
+| `STR004` | `map-dir-presence`            | `Warn`   | `map/` directory exists under the dataset root directory.            |
+| `STR005` | `bag-dir-presence`            | `Warn`   | `input_bag/` directory exists under the dataset root directory.      |
+| `STR006` | `status-file-presence`        | `Warn`   | `status.json` file exists under the dataset root directory.          |
 | `STR007` | `schema-files-presence`       | `Error`  | Mandatory schema JSON files exist under the `annotation/` directory. |
 | `STR008` | `lanelet-file-presence`       | `Warn`   | `lanelet2_map.osm` file exists under the `map/` directory.           |
 | `STR009` | `pointcloud-map-dir-presence` | `Warn`   | `pointcloud_map.pcd` directory exists under the `map/` directory.    |

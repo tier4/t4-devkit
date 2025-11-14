@@ -8,30 +8,18 @@ from tabulate import tabulate
 from typing_extensions import Self
 
 if TYPE_CHECKING:
-    from .checker import RuleID, RuleName
+    from .checker import RuleID, RuleName, Severity
     from .context import SanityContext
 
 __all__ = ["Status", "Report", "SanityResult", "print_sanity_result"]
 
 
 class Status(str, Enum):
-    """Status of a report."""
+    """Runtime outcome per checker."""
 
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
     SKIPPED = "SKIPPED"
-
-    def is_success(self) -> bool:
-        """Check if the status is success."""
-        return self == Status.SUCCESS
-
-    def is_failure(self) -> bool:
-        """Check if the status is failure."""
-        return self == Status.FAILURE
-
-    def is_skipped(self) -> bool:
-        """Check if the status is skipped."""
-        return self == Status.SKIPPED
 
 
 Reason = NewType("Reason", str)
@@ -44,6 +32,7 @@ class Report:
     Attributes:
         id (RuleID): The ID of the rule.
         name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         status (Status): The status of the report.
         reasons (list[Reason] | None): The list of reasons for the report if the report is a failure or skipped.
@@ -51,39 +40,55 @@ class Report:
 
     id: RuleID
     name: RuleName
+    severity: Severity
     description: str
     status: Status
     reasons: list[Reason] | None = field(default=None)
 
     def __attrs_post_init__(self) -> None:
-        if self.is_success():
+        if self.status == Status.SUCCESS:
             assert self.reasons is None, "Success report cannot have reasons"
         else:
-            assert self.reasons is not None, "Failure report must have reasons"
+            assert self.reasons is not None, "Non-success report must have reasons"
 
-    def is_success(self) -> bool:
-        return self.status == Status.SUCCESS
+    def is_success(self, *, strict: bool = False) -> bool:
+        """Check if the status is success."""
+        return (
+            self.status == Status.SUCCESS
+            or self.is_skipped()
+            or (not strict and self.severity.is_warning())
+        )
 
-    def is_failure(self) -> bool:
-        return self.status == Status.FAILURE
+    def is_failure(self, *, strict: bool = False) -> bool:
+        """Check if the status is failure."""
+        return (self.status == Status.FAILURE and self.severity.is_error()) or not (
+            self.is_success(strict=strict) or self.is_skipped()
+        )
 
     def is_skipped(self) -> bool:
+        """Check if the status is skipped."""
         return self.status == Status.SKIPPED
 
 
-def make_success(id: RuleID, name: RuleName, description: str) -> Report:
-    """Make a success report for the given rule."""
-    return Report(id, name, description, Status.SUCCESS)
+def make_report(
+    id: RuleID,
+    name: RuleName,
+    severity: Severity,
+    description: str,
+    reasons: list[Reason] | None = None,
+) -> Report:
+    """Make a report for the given rule."""
+    if reasons:
+        return Report(id, name, severity, description, Status.FAILURE, reasons)
+    else:
+        return Report(id, name, severity, description, Status.SUCCESS)
 
 
-def make_skipped(id: RuleID, name: RuleName, description: str, reason: Reason) -> Report:
+def make_skipped(
+    id: RuleID, name: RuleName, severity: Severity, description: str, reason: Reason
+) -> Report:
     """Make a skipped report for the given rule."""
-    return Report(id, name, description, Status.SKIPPED, [reason])
-
-
-def make_failure(id: RuleID, name: RuleName, description: str, reasons: list[Reason]) -> Report:
-    """Make a failure report for the given rule."""
-    return Report(id, name, description, Status.FAILURE, reasons)
+    return Report(id, name, severity, description, Status.SKIPPED, [reason])
 
 
 @define
@@ -117,14 +122,37 @@ class SanityResult:
             reports=reports,
         )
 
-    def __repr__(self) -> str:
+    def is_success(self, *, strict: bool = False) -> bool:
+        """Return True if all reports are successful, False otherwise.
+
+        Args:
+            strict (bool): Whether to consider warnings as failures.
+
+        Returns:
+            True if all reports are successful, False otherwise.
+        """
+        return all(report.is_success(strict=strict) for report in self.reports)
+
+    def to_str(self, *, strict: bool = False) -> str:
+        """Return a string representation of the result.
+
+        Args:
+            strict (bool): Whether to consider warnings as failures.
+
+        Returns:
+            A string representation of the result.
+        """
         string = f"=== DatasetID: {self.dataset_id} ===\n"
         for report in self.reports:
-            if report.is_failure():
+            if not report.is_success(strict=strict):
                 string += f"\033[31m  {report.id}:\033[0m\n"
                 for reason in report.reasons or []:
                     string += f"\033[31m     - {reason}\033[0m\n"
             elif report.is_skipped():
+                string += f"\033[36m  {report.id}: [SKIPPED]\033[0m\n"
+                for reason in report.reasons or []:
+                    string += f"\033[36m     - {reason}\033[0m\n"
+            elif report.severity.is_warning() and report.reasons:
                 string += f"\033[33m  {report.id}:\033[0m\n"
                 for reason in report.reasons or []:
                     string += f"\033[33m     - {reason}\033[0m\n"
@@ -133,35 +161,51 @@ class SanityResult:
         return string
 
 
-def print_sanity_result(result: SanityResult) -> None:
+def print_sanity_result(result: SanityResult, *, strict: bool = False) -> None:
     """Print detailed and summary results of a sanity check.
 
     Args:
         result (SanityResult): The result of a sanity check.
     """
     # print detailed result
-    print(result)
+    print(result.to_str(strict=strict))
 
     # print summary result
-    success = sum(1 for rp in result.reports if rp.is_success())
-    failures = sum(1 for rp in result.reports if rp.is_failure())
+    success = sum(1 for rp in result.reports if rp.is_success(strict=strict))
+    failures = sum(1 for rp in result.reports if not rp.is_success(strict=strict))
     skips = sum(1 for rp in result.reports if rp.is_skipped())
+
+    # just count the number of warnings
+    warnings = sum(1 for rp in result.reports if rp.severity.is_warning() and rp.reasons)
+
     summary_rows = [
         [
             result.dataset_id,
             result.version,
-            "\033[31mFAILURE\033[0m" if failures > 0 else "\033[32mSUCCESS\033[0m",
+            "\033[32mSUCCESS\033[0m"
+            if result.is_success(strict=strict)
+            else "\033[31mFAILURE\033[0m",
             len(result.reports),
             success,
             failures,
             skips,
+            warnings,
         ]
     ]
 
     print(
         tabulate(
             summary_rows,
-            headers=["DatasetID", "Version", "Status", "Rules", "Success", "Failures", "Skips"],
+            headers=[
+                "DatasetID",
+                "Version",
+                "Status",
+                "Rules",
+                "Success",
+                "Failures",
+                "Skips",
+                "Warnings",
+            ],
             tablefmt="pretty",
         ),
     )

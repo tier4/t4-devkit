@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_json_safe
@@ -22,10 +22,11 @@ class REF015(FileReferenceChecker):
     """A checker of REF015."""
 
     name = RuleName("lidarseg-filename-presence")
+    severity = Severity.ERROR
     description = "'LidarSeg.filename' exists."
     schema = SchemaName.LIDARSEG
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         filepath = context.to_schema_file(self.schema).unwrap()
         records = load_json_safe(filepath).unwrap()
         data_root = context.data_root.unwrap()
@@ -33,4 +34,4 @@ class REF015(FileReferenceChecker):
             Reason(f"File not found: {record['filename']}")
             for record in records
             if not data_root.joinpath(record["filename"]).exists()
-        ]
+        ] or None

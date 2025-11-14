@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
@@ -14,6 +14,7 @@ class REF007(RecordReferenceChecker):
     """A checker of REF007."""
 
     name = RuleName("sample-data-to-calibrated-sensor")
+    severity = Severity.ERROR
     description = "'SampleData.calibrated_sensor_token' refers to 'CalibratedSensor' record."
     source = SchemaName.SAMPLE_DATA
     target = SchemaName.CALIBRATED_SENSOR
