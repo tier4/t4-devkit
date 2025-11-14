@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 __all__ = ["STR002"]
 
 
-@CHECKERS.register(RuleID("STR002"))
+@CHECKERS.register()
 class STR002(Checker):
     """A checker of STR002."""
 
+    id = RuleID("STR002")
     name = RuleName("annotation-dir-presence")
     severity = Severity.ERROR
     description = "'annotation/' directory exists under the dataset root directory."

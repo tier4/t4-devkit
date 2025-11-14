@@ -18,10 +18,11 @@ if TYPE_CHECKING:
 __all__ = ["TIV001"]
 
 
-@CHECKERS.register(RuleID("TIV001"))
+@CHECKERS.register()
 class TIV001(Checker):
     """A checker for TIV001."""
 
+    id = RuleID("TIV001")
     name = RuleName("load-tier4")
     severity = Severity.ERROR
     description = "Ensure 'Tier4' instance is loaded successfully."

@@ -17,10 +17,11 @@ if TYPE_CHECKING:
 __all__ = ["REF013"]
 
 
-@CHECKERS.register(RuleID("REF013"))
+@CHECKERS.register()
 class REF013(FileReferenceChecker):
     """A checker of REF013."""
 
+    id = RuleID("REF013")
     name = RuleName("sample-data-filename-presence")
     severity = Severity.ERROR
     description = "'SampleData.filename' exists."

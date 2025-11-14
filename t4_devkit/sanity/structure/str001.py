@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 __all__ = ["STR001"]
 
 
-@CHECKERS.register(RuleID("STR001"))
+@CHECKERS.register()
 class STR001(Checker):
     """A checker of STR001."""
 
+    id = RuleID("STR001")
     name = RuleName("version-dir-presence")
     severity = Severity.WARNING
     description = "'version/' directory exists under the dataset root directory."

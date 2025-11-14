@@ -19,6 +19,7 @@ class RecordCountChecker(Checker):
     """Base class for record count checkers.
 
     Attributes:
+        id (RuleID): The ID of the rule.
         name (RuleName): The name of the rule.
         severity (Severity): The severity of the rule.
         description (str): The description of the rule.

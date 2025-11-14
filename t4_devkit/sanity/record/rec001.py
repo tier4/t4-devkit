@@ -10,10 +10,11 @@ from .base import RecordCountChecker
 __all__ = ["REC001"]
 
 
-@CHECKERS.register(RuleID("REC001"))
+@CHECKERS.register()
 class REC001(RecordCountChecker):
     """A checker of REC001."""
 
+    id = RuleID("REC001")
     name = RuleName("scene-single")
     severity = Severity.ERROR
     description = "'Scene' record is a single."

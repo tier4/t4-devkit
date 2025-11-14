@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 __all__ = ["STR003"]
 
 
-@CHECKERS.register(RuleID("STR003"))
+@CHECKERS.register()
 class STR003(Checker):
     """A checker of STR003."""
 
+    id = RuleID("STR003")
     name = RuleName("data-dir-presence")
     severity = Severity.ERROR
     description = "'data/' directory exists under the dataset root directory."

@@ -10,10 +10,11 @@ from .base import RecordCountChecker
 __all__ = ["REC005"]
 
 
-@CHECKERS.register(RuleID("REC005"))
+@CHECKERS.register()
 class REC005(RecordCountChecker):
     """A checker of REC005."""
 
+    id = RuleID("REC005")
     name = RuleName("calibrated-sensor-not-empty")
     severity = Severity.ERROR
     description = "'CalibratedSensor' record is not empty."

@@ -9,10 +9,11 @@ from .base import RecordReferenceChecker
 __all__ = ["REF012"]
 
 
-@CHECKERS.register(RuleID("REF012"))
+@CHECKERS.register()
 class REF012(RecordReferenceChecker):
     """A checker of REF012."""
 
+    id = RuleID("REF012")
     name = RuleName("lidarset-to-sample-data")
     severity = Severity.ERROR
     description = "'LidarSeg.sample_data_token' refers to 'SampleData' record."

@@ -9,10 +9,11 @@ from .base import FieldTypeChecker
 __all__ = ["FMT004"]
 
 
-@CHECKERS.register(RuleID("FMT004"))
+@CHECKERS.register()
 class FMT004(FieldTypeChecker):
     """A checker of FMT004."""
 
+    id = RuleID("FMT004")
     name = RuleName("ego-pose-field")
     severity = Severity.ERROR
     description = "All types of 'EgoPose' fields are valid."
