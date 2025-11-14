@@ -15,6 +15,7 @@ nav:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
       - Schema Customization: tutorials/customize.md
+      - Sanity Check: tutorials/sanity.md
   - CLI:
       - Home: cli/index.md
       - t4viz: cli/t4viz.md
@@ -22,6 +23,7 @@ nav:
   - API References:
       - t4_devkit.tier4: apis/tier4.md
       - t4_devkit.helper: apis/helper.md
+      - t4_devkit.sanity: apis/sanity.md
       - t4_devkit.schema:
           - Home: apis/schema/index.md
           - Schema Names: apis/schema/name.md

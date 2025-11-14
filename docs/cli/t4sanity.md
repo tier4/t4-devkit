@@ -61,9 +61,20 @@ $ t4sanity <DATA_ROOT>
 +-----------+---------+--------+--------+---------+----------+
 | DatasetID | Version | Passed | Failed | Skipped | Warnings |
 +-----------+---------+--------+--------+---------+----------+
-| dataset1  |         |   49   |   0    |    2    |    3     |
+| dataset1  |    0    |   49   |   0    |    2    |    3     |
 +-----------+---------+--------+--------+---------+----------+
 ```
+
+### Exit Status Logic
+
+`t4sanity` CLI returns the exit code based on the following conditions:
+
+| Condition                                                               | `--strict`        | Exit Code | Notes                                               |
+| ----------------------------------------------------------------------- | ----------------- | --------- | --------------------------------------------------- |
+| At least one `Severity.ERROR` rule failed                               | N/A               | 1         | Always fails the run                                |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed | `False` (default) | 0         | Run is considered successful, warnings are reported |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed | `True`            | 1         | Treat warnings as failures; exit with failure       |
+| All rules passed or skipped                                             | N/A               | 0         | Run is considered successful                        |
 
 ### Dump Results as JSON
 
@@ -91,6 +102,18 @@ Then a JSON file named `result.json` will be generated as follows:
   ]
 }
 ```
+
+Here is the description of the JSON format:
+
+- `dataset_id`: The ID of the dataset.
+- `version`: The version of the dataset.
+- `reports`: An array of rule reports.
+- `id`: The ID of the rule.
+- `name`: The name of the rule.
+- `severity`: How important a rule is.
+- `description`: A description of the rule.
+- `status`: What happened when it ran.
+- `reasons`: An array of reasons for failure or skipped rules, null if passed.
 
 ### Exclude Checks
 

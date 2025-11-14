@@ -7,8 +7,6 @@
 
 ::: t4_devkit.common.io
 
-::: t4_devkit.common.sanity
-
 ::: t4_devkit.common.serialize
 
 ::: t4_devkit.common.timestamp
