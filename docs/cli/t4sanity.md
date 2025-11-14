@@ -65,6 +65,26 @@ $ t4sanity <DATA_ROOT>
 +-----------+---------+--------+--------+---------+----------+
 ```
 
+### Strict Mode
+
+Basically, rules whose **severity is WARNING** will be treated as success.
+
+With `-s; --strict` option enables us to treat warnings as failures:
+
+```shell
+# Run strict mode
+t4sanity <DATA_ROOT> -s
+```
+
+### Exclude Checks
+
+With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
+
+```shell
+# Exclude STR001 and all FMT-relevant rules
+t4sanity <DATA_ROOT> -e STR001 -e FMT
+```
+
 ### Exit Status Logic
 
 `t4sanity` CLI returns the exit code based on the following conditions:
@@ -108,29 +128,9 @@ Here is the description of the JSON format:
 - `dataset_id`: The ID of the dataset.
 - `version`: The version of the dataset.
 - `reports`: An array of rule reports.
-- `id`: The ID of the rule.
-- `name`: The name of the rule.
-- `severity`: How important a rule is.
-- `description`: A description of the rule.
-- `status`: What happened when it ran.
-- `reasons`: An array of reasons for failure or skipped rules, null if passed.
-
-### Exclude Checks
-
-With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
-
-```shell
-# Exclude STR001 and all FMT-relevant rules
-t4sanity <DATA_ROOT> -e STR001 -e FMT
-```
-
-### Strict Mode
-
-Basically, rules whose **severity is WARNING** will be treated as success.
-
-With `-s; --strict` option enables us to treat warnings as failures:
-
-```shell
-# Run strict mode
-t4sanity <DATA_ROOT> -s
-```
+  - `id`: The ID of the rule.
+  - `name`: The name of the rule.
+  - `severity`: How important a rule is.
+  - `description`: A description of the rule.
+  - `status`: What happened when it ran.
+  - `reasons`: An array of reasons for failure or skipped rules, null if passed.
