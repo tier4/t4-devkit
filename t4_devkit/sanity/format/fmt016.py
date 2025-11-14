@@ -9,10 +9,11 @@ from .base import FieldTypeChecker
 __all__ = ["FMT016"]
 
 
-@CHECKERS.register(RuleID("FMT016"))
+@CHECKERS.register()
 class FMT016(FieldTypeChecker):
     """A checker of FMT016."""
 
+    id = RuleID("FMT016")
     name = RuleName("surface-ann-field")
     severity = Severity.ERROR
     description = "All types of 'SurfaceAnn' fields are valid."

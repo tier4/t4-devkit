@@ -11,10 +11,11 @@ from .base import RecordReferenceChecker
 __all__ = ["REF005"]
 
 
-@CHECKERS.register(RuleID("REF005"))
+@CHECKERS.register()
 class REF005(RecordReferenceChecker):
     """A checker of REF005."""
 
+    id = RuleID("REF005")
     name = RuleName("sample-data-to-sample")
     severity = Severity.ERROR
     description = "'SampleData.sample_token' refers to 'Sample' record."

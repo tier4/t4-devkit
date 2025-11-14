@@ -10,10 +10,11 @@ from .base import RecordCountChecker
 __all__ = ["REC004"]
 
 
-@CHECKERS.register(RuleID("REC004"))
+@CHECKERS.register()
 class REC004(RecordCountChecker):
     """A checker of REC004."""
 
+    id = RuleID("REC004")
     name = RuleName("ego-pose-not-empty")
     severity = Severity.ERROR
     description = "'EgoPose' record is not empty."

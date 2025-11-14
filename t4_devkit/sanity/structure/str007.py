@@ -17,10 +17,11 @@ if TYPE_CHECKING:
 __all__ = ["STR007"]
 
 
-@CHECKERS.register(RuleID("STR007"))
+@CHECKERS.register()
 class STR007(Checker):
     """A checker of STR007."""
 
+    id = RuleID("STR007")
     name = RuleName("schema-file-presence")
     severity = Severity.ERROR
     description = "Mandatory schema JSON files exist under the `annotation/` directory."

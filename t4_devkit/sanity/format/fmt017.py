@@ -9,10 +9,11 @@ from .base import FieldTypeChecker
 __all__ = ["FMT017"]
 
 
-@CHECKERS.register(RuleID("FMT017"))
+@CHECKERS.register()
 class FMT017(FieldTypeChecker):
     """A checker of FMT017."""
 
+    id = RuleID("FMT017")
     name = RuleName("keypoint-field")
     severity = Severity.ERROR
     description = "All types of 'Keypoint' fields are valid."

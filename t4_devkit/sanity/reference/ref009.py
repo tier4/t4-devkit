@@ -9,10 +9,11 @@ from .base import RecordReferenceChecker
 __all__ = ["REF009"]
 
 
-@CHECKERS.register(RuleID("REF009"))
+@CHECKERS.register()
 class REF009(RecordReferenceChecker):
     """A checker of REF009."""
 
+    id = RuleID("REF009")
     name = RuleName("instance-to-category")
     severity = Severity.ERROR
     description = "'Instance.category_token' refers to 'Category' record."

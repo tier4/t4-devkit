@@ -14,10 +14,11 @@ if TYPE_CHECKING:
 __all__ = ["STR008"]
 
 
-@CHECKERS.register(RuleID("STR008"))
+@CHECKERS.register()
 class STR008(Checker):
     """A checker of STR008."""
 
+    id = RuleID("STR008")
     name = RuleName("lanelet-file-presence")
     severity = Severity.WARNING
     description = "'lanelet2_map.osm' file exists under the 'map/' directory."

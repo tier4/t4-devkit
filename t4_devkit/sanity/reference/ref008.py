@@ -9,10 +9,11 @@ from .base import RecordReferenceChecker
 __all__ = ["REF008"]
 
 
-@CHECKERS.register(RuleID("REF008"))
+@CHECKERS.register()
 class REF008(RecordReferenceChecker):
     """A checker of REF008."""
 
+    id = RuleID("REF008")
     name = RuleName("calibrated-sensor-to-sensor")
     severity = Severity.ERROR
     description = "'CalibratedSensor.sensor_token' refers to 'Sensor' record."

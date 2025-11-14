@@ -14,10 +14,11 @@ if TYPE_CHECKING:
 __all__ = ["STR009"]
 
 
-@CHECKERS.register(RuleID("STR009"))
+@CHECKERS.register()
 class STR009(Checker):
     """A checker of STR009."""
 
+    id = RuleID("STR009")
     name = RuleName("pointcloud-map-dir-presence")
     severity = Severity.WARNING
     description = "'pointcloud_map.pcd' directory exists under the 'map/' directory."

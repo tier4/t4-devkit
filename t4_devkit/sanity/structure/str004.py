@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 __all__ = ["STR004"]
 
 
-@CHECKERS.register(RuleID("STR004"))
+@CHECKERS.register()
 class STR004(Checker):
     """A checker of STR004."""
 
+    id = RuleID("STR004")
     name = RuleName("map-dir-presence")
     severity = Severity.WARNING
     description = "'map/' directory exists under the dataset root directory."

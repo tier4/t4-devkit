@@ -35,12 +35,10 @@ class Severity(str, Enum):
 class Checker(ABC):
     """Base class for sanity checkers."""
 
+    id: RuleID
     name: RuleName
     description: str
     severity: Severity
-
-    def __init__(self, id: RuleID) -> None:
-        self.id = id
 
     def __call__(self, context: SanityContext) -> Report:
         match self.can_skip(context):

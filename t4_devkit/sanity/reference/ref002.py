@@ -9,10 +9,11 @@ from .base import RecordReferenceChecker
 __all__ = ["REF002"]
 
 
-@CHECKERS.register(RuleID("REF002"))
+@CHECKERS.register()
 class REF002(RecordReferenceChecker):
     """A checker of REF002."""
 
+    id = RuleID("REF002")
     name = RuleName("scene-to-first-sample")
     severity = Severity.ERROR
     description = "'Scene.first_sample_token' refers to 'Sample' record."

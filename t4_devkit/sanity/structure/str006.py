@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 __all__ = ["STR006"]
 
 
-@CHECKERS.register(RuleID("STR006"))
+@CHECKERS.register()
 class STR006(Checker):
     """A checker of STR006."""
 
+    id = RuleID("STR006")
     name = RuleName("status-json-presence")
     severity = Severity.WARNING
     description = "'status.json' file exists under the dataset root directory."

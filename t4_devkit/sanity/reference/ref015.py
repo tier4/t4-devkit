@@ -17,10 +17,11 @@ if TYPE_CHECKING:
 __all__ = ["REF015"]
 
 
-@CHECKERS.register(RuleID("REF015"))
+@CHECKERS.register()
 class REF015(FileReferenceChecker):
     """A checker of REF015."""
 
+    id = RuleID("REF015")
     name = RuleName("lidarseg-filename-presence")
     severity = Severity.ERROR
     description = "'LidarSeg.filename' exists."

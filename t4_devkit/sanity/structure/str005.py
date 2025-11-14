@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 __all__ = ["STR005"]
 
 
-@CHECKERS.register(RuleID("STR005"))
+@CHECKERS.register()
 class STR005(Checker):
     """A checker of STR005."""
 
+    id = RuleID("STR005")
     name = RuleName("bag-dir-presence")
     severity = Severity.WARNING
     description = "'input_bag/' directory exists under the dataset root directory."
