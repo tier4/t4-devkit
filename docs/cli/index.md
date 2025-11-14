@@ -1,4 +1,4 @@
-## CLI Support
+# CLI Support
 
 Following command line tools are supported:
 

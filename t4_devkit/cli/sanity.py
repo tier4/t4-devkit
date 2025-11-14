@@ -56,7 +56,7 @@ def main(
         serialized = serialize_dataclass(result)
         save_json(serialized, output)
 
-    if result.is_success(strict=strict):
+    if result.is_passed(strict=strict):
         sys.exit(0)
     else:
         sys.exit(1)

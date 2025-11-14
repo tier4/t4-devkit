@@ -59,11 +59,11 @@ $ t4sanity <DATA_ROOT>
   STR008: ✅
   ...
 
-+-----------+---------+---------+-------+---------+----------+-------+----------+
-| DatasetID | Version | Status  | Rules | Success | Failures | Skips | Warnings |
-+-----------+---------+---------+-------+---------+----------+-------+----------+
-| dataset1  |         | SUCCESS |  49   |   43    |    0     |   2   |    4     |
-+-----------+---------+---------+-------+---------+----------+-------+----------+
++-----------+---------+--------+--------+---------+----------+
+| DatasetID | Version | Passed | Failed | Skipped | Warnings |
++-----------+---------+--------+--------+---------+----------+
+| dataset1  |         |   49   |   0    |    2    |    3     |
++-----------+---------+--------+--------+---------+----------+
 ```
 
 ### Dump Results as JSON
@@ -86,8 +86,8 @@ Then a JSON file named `result.json` will be generated as follows:
         "name": "<RuleName: str>",
         "severity": "<WARNING/ERROR: str>",
         "description": "<Description: str>",
-        "status": "<SUCCESS/FAILURE/SKIPPED: str>",
-        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failure or skipped reasons, null if success
+        "status": "<PASSED/FAILED/SKIPPED: str>",
+        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failed or skipped reasons, null if passed
     },
   ]
 }
