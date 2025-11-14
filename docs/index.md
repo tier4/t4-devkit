@@ -10,6 +10,10 @@
 
 ### Visualization
 
+`t4-devkit` provides a set of visualization tools to help you understand the data.
+
+More details, please refer to [`t4viz` CLI](./cli/t4viz.md) or [API usage](./tutorials/render.md).
+
 | Feature | Task                        | Support |
 | :------ | :-------------------------- | :-----: |
 | 3D      | 3D Boxes                    |   ✅    |
@@ -23,3 +27,9 @@
 |         | Raw PointCloud on Image     |   ✅    |
 | Map     | Vector Map                  |   ✅    |
 |         | Ego Position on Street View |   ✅    |
+
+### Sanity Checks
+
+`t4-devkit` provides a set of sanity checks to ensure the correctness of the data.
+
+More details, please refer to [`t4sanity` CLI](./cli/t4sanity.md) or [API usage](./tutorials/sanity.md).

@@ -1,4 +1,4 @@
-# T4 devkit
+# t4-devkit
 
 A toolkit to load and operate T4 dataset.
 
@@ -52,6 +52,10 @@ source .venv/bin/activate
 
 ### Visualization
 
+`t4-devkit` provides a set of visualization tools to help you understand the data.
+
+More details, please refer to [`t4viz` CLI](./docs/cli/t4viz.md) or [API usage](./docs/tutorials/render.md).
+
 | Feature | Task                        | Support |
 | :------ | :-------------------------- | :-----: |
 | 3D      | 3D Boxes                    |   ✅    |
@@ -65,3 +69,9 @@ source .venv/bin/activate
 |         | Raw PointCloud on Image     |   ✅    |
 | Map     | Vector Map                  |   ✅    |
 |         | Ego Position on Street View |   ✅    |
+
+### Sanity Checks
+
+`t4-devkit` provides a set of sanity checks to ensure the correctness of the data.
+
+More details, please refer to [`t4sanity` CLI](./docs/cli/t4sanity.md) or [API usage](./docs/tutorials/sanity.md).
