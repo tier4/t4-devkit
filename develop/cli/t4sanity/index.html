@@ -981,21 +981,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#exit-status-logic" class="md-nav__link">
+  <a href="#strict-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exit Status Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dump-results-as-json" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dump Results as JSON
+        Strict Mode
       
     </span>
   </a>
@@ -1014,10 +1003,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#strict-mode" class="md-nav__link">
+  <a href="#exit-status-logic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Strict Mode
+        Exit Status Logic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dump-results-as-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dump Results as JSON
       
     </span>
   </a>
@@ -1617,21 +1617,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#exit-status-logic" class="md-nav__link">
+  <a href="#strict-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exit Status Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dump-results-as-json" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dump Results as JSON
+        Strict Mode
       
     </span>
   </a>
@@ -1650,10 +1639,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#strict-mode" class="md-nav__link">
+  <a href="#exit-status-logic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Strict Mode
+        Exit Status Logic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dump-results-as-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dump Results as JSON
       
     </span>
   </a>
@@ -1740,6 +1740,17 @@
 </span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="p">|</span><span class="w"> </span>dataset1<span class="w">  </span><span class="p">|</span><span class="w">    </span><span class="m">0</span><span class="w">    </span><span class="p">|</span><span class="w">   </span><span class="m">49</span><span class="w">   </span><span class="p">|</span><span class="w">   </span><span class="m">0</span><span class="w">    </span><span class="p">|</span><span class="w">    </span><span class="m">2</span><span class="w">    </span><span class="p">|</span><span class="w">    </span><span class="m">3</span><span class="w">     </span><span class="p">|</span>
 </span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>+-----------+---------+--------+--------+---------+----------+
 </span></code></pre></div>
+<h3 id="strict-mode">Strict Mode</h3>
+<p>Basically, rules whose <strong>severity is WARNING</strong> will be treated as success.</p>
+<p>With <code>-s; --strict</code> option enables us to treat warnings as failures:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Run strict mode</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-s
+</span></code></pre></div>
+<h3 id="exclude-checks">Exclude Checks</h3>
+<p>With <code>-e; --excludes</code> option enables us to exclude specific checks by specifying the <strong>rule IDs or groups</strong>:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Exclude STR001 and all FMT-relevant rules</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-e<span class="w"> </span>STR001<span class="w"> </span>-e<span class="w"> </span>FMT
+</span></code></pre></div>
 <h3 id="exit-status-logic">Exit Status Logic</h3>
 <p><code>t4sanity</code> CLI returns the exit code based on the following conditions:</p>
 <table>
@@ -1780,23 +1791,23 @@
 </table>
 <h3 id="dump-results-as-json">Dump Results as JSON</h3>
 <p>To dump results into JSON, use the <code>-o; --output</code> option:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-o<span class="w"> </span>result.json
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-o<span class="w"> </span>result.json
 </span></code></pre></div>
 <p>Then a JSON file named <code>result.json</code> will be generated as follows:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;dataset_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;DatasetID: str&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;Versio</span><span class="kc">n</span><span class="p">:</span><span class="w"> </span><span class="err">i</span><span class="kc">nt</span><span class="err">&gt;</span><span class="p">,</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">&quot;reports&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;RuleID: str&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;RuleName: str&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;WARNING/ERROR: str&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;Description: str&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;PASSED/FAILED/SKIPPED: str&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="nt">&quot;reasons&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;[&lt;Reason1&gt;, &lt;Reason2&gt;, ...]: [str; N] | null&gt;&quot;</span><span class="w"> </span><span class="c1">// Failed or skipped reasons, null if passed</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">  </span><span class="p">]</span>
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="p">}</span>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;dataset_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;DatasetID: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;Versio</span><span class="kc">n</span><span class="p">:</span><span class="w"> </span><span class="err">i</span><span class="kc">nt</span><span class="err">&gt;</span><span class="p">,</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">&quot;reports&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;RuleID: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;RuleName: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;WARNING/ERROR: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">        </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;Description: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">        </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;PASSED/FAILED/SKIPPED: str&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">        </span><span class="nt">&quot;reasons&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;[&lt;Reason1&gt;, &lt;Reason2&gt;, ...]: [str; N] | null&gt;&quot;</span><span class="w"> </span><span class="c1">// Failed or skipped reasons, null if passed</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Here is the description of the JSON format:</p>
 <ul>
@@ -1810,17 +1821,6 @@
 <li><code>status</code>: What happened when it ran.</li>
 <li><code>reasons</code>: An array of reasons for failure or skipped rules, null if passed.</li>
 </ul>
-<h3 id="exclude-checks">Exclude Checks</h3>
-<p>With <code>-e; --excludes</code> option enables us to exclude specific checks by specifying the <strong>rule IDs or groups</strong>:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Exclude STR001 and all FMT-relevant rules</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-e<span class="w"> </span>STR001<span class="w"> </span>-e<span class="w"> </span>FMT
-</span></code></pre></div>
-<h3 id="strict-mode">Strict Mode</h3>
-<p>Basically, rules whose <strong>severity is WARNING</strong> will be treated as success.</p>
-<p>With <code>-s; --strict</code> option enables us to treat warnings as failures:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Run strict mode</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>t4sanity<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>-s
-</span></code></pre></div>
 
 
 
