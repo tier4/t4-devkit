@@ -34,7 +34,7 @@ class TIV001(Checker):
                     return Maybe.from_value(Reason(f"'{x.as_posix()}' not found"))
                 return Nothing
             case _:
-                return Nothing
+                return Maybe.from_value(Reason("Data root not found"))
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         result = _load_tier4_safe(context)
