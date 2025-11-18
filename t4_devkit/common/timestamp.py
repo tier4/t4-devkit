@@ -13,7 +13,7 @@ def us2sec(timestamp: ScalarLike) -> float:
     """Convert timestamp from micro seconds [us] to seconds [s].
 
     Deprecated:
-        This function is depracated. Please use `microseconds2seconds(...)` instead.
+        This function is deprecated. Please use `microseconds2seconds(...)` instead.
 
     Args:
         timestamp (ScalarLike): Timestamp in [us].
@@ -29,7 +29,7 @@ def sec2us(timestamp: ScalarLike) -> float:
     """Convert timestamp from seconds [s] to micro seconds [us].
 
     Deprecated:
-        This function is depracated. Please use `seconds2microseconds(...)` instead.
+        This function is deprecated. Please use `seconds2microseconds(...)` instead.
 
     Args:
         timestamp (ScalarLike): Timestamp in [s].
