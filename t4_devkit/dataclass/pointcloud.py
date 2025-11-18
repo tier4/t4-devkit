@@ -80,7 +80,7 @@ class PointCloudMetainfo:
         assert filepath.endswith(".json"), f"Unexpected filetype: {filepath}"
         with open(filepath, "r") as f:
             data = json.load(f)
-        
+
         stamp = Stamp(**data["stamp"])
         sources = []
         for source_data in data.get("sources", []):
@@ -113,19 +113,19 @@ class PointCloud:
     @metainfo.validator
     def _validate_metainfo(self, attribute, value) -> None:
         """Validate that sources in metainfo form non-overlapping parts covering all points.
-        
+
         This validator ensures backward compatibility by allowing None metainfo.
         """
         if value is None:
             # Backward compatibility: metainfo is optional
             return
-        
+
         if not value.sources:
             # No sources to validate
             return
-        
+
         num_points = self.num_points()
-        
+
         # Collect all intervals defined by sources
         intervals = []
         for source_info in value.sources:
@@ -133,27 +133,23 @@ class PointCloud:
             idx_begin = source_info.idx_begin
             length = source_info.length
             idx_end = idx_begin + length
-            
+
             # Check bounds
             if idx_begin < 0:
-                raise ValueError(
-                    f"Source '{source_id}' has negative idx_begin: {idx_begin}"
-                )
+                raise ValueError(f"Source '{source_id}' has negative idx_begin: {idx_begin}")
             if length < 0:
-                raise ValueError(
-                    f"Source '{source_id}' has negative length: {length}"
-                )
+                raise ValueError(f"Source '{source_id}' has negative length: {length}")
             if idx_end > num_points:
                 raise ValueError(
                     f"Source '{source_id}' exceeds point cloud size: "
                     f"idx_begin={idx_begin}, length={length}, but num_points={num_points}"
                 )
-            
+
             intervals.append((idx_begin, idx_end, source_id))
-        
+
         # Sort intervals by start index
         intervals.sort(key=lambda x: x[0])
-        
+
         # Check for non-overlapping and complete coverage
         expected_start = 0
         for idx_begin, idx_end, source_id in intervals:
@@ -168,7 +164,7 @@ class PointCloud:
                         f"but previous source ends at {expected_start}"
                     )
             expected_start = idx_end
-        
+
         # Check if all points are covered
         if expected_start != num_points:
             raise ValueError(
@@ -238,11 +234,11 @@ class LidarPointCloud(PointCloud):
 
         scan = np.fromfile(filepath, dtype=np.float32)
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
-        
+
         metainfo = None
         if metainfo_filepath is not None:
             metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
-        
+
         return cls(points.T, metainfo=metainfo)
 
 
@@ -373,15 +369,17 @@ class SegmentationPointCloud(PointCloud):
         return 4
 
     @classmethod
-    def from_file(cls, point_filepath: str, label_filepath: str, metainfo_filepath: str | None = None) -> Self:
+    def from_file(
+        cls, point_filepath: str, label_filepath: str, metainfo_filepath: str | None = None
+    ) -> Self:
         scan = np.fromfile(point_filepath, dtype=np.float32)
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
         labels = np.fromfile(label_filepath, dtype=np.uint8)
-        
+
         metainfo = None
         if metainfo_filepath is not None:
             metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
-        
+
         return cls(points.T, labels, metainfo=metainfo)
 
 
