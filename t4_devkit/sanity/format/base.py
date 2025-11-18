@@ -4,13 +4,12 @@ from typing import TYPE_CHECKING
 
 from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
-from returns.result import Result, safe
 
-from t4_devkit.schema import SCHEMAS, SchemaBase, SchemaName
+from t4_devkit.schema import SCHEMAS, SchemaName
 
 from ..checker import Checker
 from ..result import Reason
-from ..safety import load_json_safe
+from ..safety import load_json_safe, load_schema_safe
 
 if TYPE_CHECKING:
     from ..context import SanityContext
@@ -52,12 +51,7 @@ def _build_records(schema: SchemaName, records: list[dict]) -> list[Reason] | No
     module = SCHEMAS.get(schema)
     failures = []
     for record in records:
-        conversion = _safe_from_dict(module, record)
+        conversion = load_schema_safe(module, record)
         if not is_successful(conversion):
             failures.append(Reason(f"[{schema.name}] {record['token']}: {conversion.failure()}"))
     return failures if failures else None
-
-
-@safe
-def _safe_from_dict(module: type[SchemaBase], record: dict) -> Result[SchemaBase, Exception]:
-    return module.from_dict(record)
