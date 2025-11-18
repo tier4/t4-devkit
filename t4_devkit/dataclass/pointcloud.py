@@ -232,7 +232,11 @@ class LidarPointCloud(PointCloud):
         scan = np.fromfile(filepath, dtype=np.float32)
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
 
-        metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
+        metainfo = (
+            PointCloudMetainfo.from_file(metainfo_filepath)
+            if metainfo_filepath is not None
+            else None
+        )
 
         return cls(points.T, metainfo=metainfo)
 
@@ -316,7 +320,11 @@ class RadarPointCloud(PointCloud):
         # A NaN in the first point indicates an empty pointcloud.
         point = np.array(points[0])
         if np.any(np.isnan(point)):
-            metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
+            metainfo = (
+                PointCloudMetainfo.from_file(metainfo_filepath)
+                if metainfo_filepath is not None
+                else None
+            )
             return cls(np.zeros((feature_count, 0)), metainfo=metainfo)
 
         # Convert to numpy matrix.
@@ -339,7 +347,11 @@ class RadarPointCloud(PointCloud):
         valid = [p in ambig_states for p in points[11, :]]
         points = points[:, valid]
 
-        metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
+        metainfo = (
+            PointCloudMetainfo.from_file(metainfo_filepath)
+            if metainfo_filepath is not None
+            else None
+        )
         return cls(points, metainfo=metainfo)
 
 
@@ -365,7 +377,11 @@ class SegmentationPointCloud(PointCloud):
         scan = np.fromfile(point_filepath, dtype=np.float32)
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
         labels = np.fromfile(label_filepath, dtype=np.uint8)
-        metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
+        metainfo = (
+            PointCloudMetainfo.from_file(metainfo_filepath)
+            if metainfo_filepath is not None
+            else None
+        )
         return cls(points.T, labels=labels, metainfo=metainfo)
 
 
