@@ -5,11 +5,12 @@ from pathlib import Path
 from attrs import define
 from returns.maybe import Maybe
 from returns.pipeline import is_successful
-from returns.result import Result, safe
 from typing_extensions import Self
 
-from t4_devkit import DBMetadata, load_metadata
+from t4_devkit import DBMetadata
 from t4_devkit.schema.name import SchemaName
+
+from .safety import load_metadata_safe
 
 
 @define
@@ -18,7 +19,7 @@ class SanityContext:
 
     @classmethod
     def from_path(cls, data_root: str, revision: str | None = None) -> Self:
-        metadata_result = _load_metadata_safe(data_root, revision=revision)
+        metadata_result = load_metadata_safe(data_root, revision=revision)
         metadata = metadata_result.unwrap() if is_successful(metadata_result) else None
         return cls(Maybe.from_optional(metadata))
 
@@ -65,11 +66,3 @@ class SanityContext:
     def to_schema_file(self, schema: SchemaName) -> Maybe[Path]:
         """Convert schema name to file path, which is <data_root>/annotation/<schema_name>.json."""
         return self.annotation_dir.map(lambda ann: ann.joinpath(schema.filename))
-
-
-@safe
-def _load_metadata_safe(
-    data_root: str,
-    revision: str | None = None,
-) -> Result[DBMetadata, Exception]:
-    return load_metadata(data_root, revision=revision)
