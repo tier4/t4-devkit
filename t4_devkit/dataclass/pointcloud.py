@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json
+from t4_devkit.common.io import json_load
 import struct
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, TypeVar
@@ -77,10 +77,7 @@ class PointCloudMetainfo:
         Returns:
             Self: PointCloudMetainfo instance.
         """
-        assert filepath.endswith(".json"), f"Unexpected filetype: {filepath}"
-        with open(filepath, "r") as f:
-            data = json.load(f)
-
+        data = json_load(filepath)
         stamp = Stamp(**data["stamp"])
         sources = []
         for source_data in data.get("sources", []):
@@ -235,9 +232,7 @@ class LidarPointCloud(PointCloud):
         scan = np.fromfile(filepath, dtype=np.float32)
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
 
-        metainfo = None
-        if metainfo_filepath is not None:
-            metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
+        metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
 
         return cls(points.T, metainfo=metainfo)
 
@@ -321,9 +316,7 @@ class RadarPointCloud(PointCloud):
         # A NaN in the first point indicates an empty pointcloud.
         point = np.array(points[0])
         if np.any(np.isnan(point)):
-            metainfo = None
-            if metainfo_filepath is not None:
-                metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
+            metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
             return cls(np.zeros((feature_count, 0)), metainfo=metainfo)
 
         # Convert to numpy matrix.
@@ -346,10 +339,7 @@ class RadarPointCloud(PointCloud):
         valid = [p in ambig_states for p in points[11, :]]
         points = points[:, valid]
 
-        metainfo = None
-        if metainfo_filepath is not None:
-            metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
-
+        metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
         return cls(points, metainfo=metainfo)
 
 
@@ -375,11 +365,7 @@ class SegmentationPointCloud(PointCloud):
         scan = np.fromfile(point_filepath, dtype=np.float32)
         points = scan.reshape((-1, 5))[:, : cls.num_dims()]
         labels = np.fromfile(label_filepath, dtype=np.uint8)
-
-        metainfo = None
-        if metainfo_filepath is not None:
-            metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
-
+        metainfo = PointCloudMetainfo.from_file(metainfo_filepath) if metainfo_filepath is not None else None
         return cls(points.T, labels=labels, metainfo=metainfo)
 
 
