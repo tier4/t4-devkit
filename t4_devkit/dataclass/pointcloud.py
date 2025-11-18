@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from t4_devkit.common.io import json_load
+from t4_devkit.common.io import load_json
 import struct
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, TypeVar
@@ -77,7 +77,7 @@ class PointCloudMetainfo:
         Returns:
             Self: PointCloudMetainfo instance.
         """
-        data = json_load(filepath)
+        data = load_json(filepath)
         stamp = Stamp(**data["stamp"])
         sources = []
         for source_data in data.get("sources", []):
