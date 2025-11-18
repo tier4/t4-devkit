@@ -64,21 +64,27 @@ plugins:
             - https://numpy.org/doc/stable/objects.inv
             - https://ipython.readthedocs.io/en/stable/objects.inv
           options:
-            docstring_style: google
-            docstring_section_style: list # list spacy table
-            heading_level: 3
+            # general
             filters: ["!^_"]
-            show_bases: true
-            show_source: false
-            inherited_members: false
-            members_order: source # The order of class members
-            parameter_headings: true
-            show_root_heading: false
+            show_bases: false
+            show_source: true
+            # headings
+            heading_level: 2
+            parameter_headings: false
+            show_root_heading: true
             show_symbol_type_heading: true
             show_symbol_type_toc: true
+            # members
+            inherited_members: false
+            members_order: source # The order of class members
+            # docstrings
+            docstring_style: google
+            docstring_section_style: list # list spacy table
             merge_init_into_class: true
+            # signatures
             separate_signature: true
             show_signature_annotations: true
+            show_overload: true
 
 markdown_extensions:
   - pymdownx.highlight:
