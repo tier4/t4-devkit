@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
-
 
 __all__ = ["REF011"]
 
 
-@CHECKERS.register(RuleID("REF011"))
+@CHECKERS.register()
 class REF011(RecordReferenceChecker):
     """A checker of REF011."""
 
+    id = RuleID("REF011")
     name = RuleName("instance-to-last-sample-annotation")
+    severity = Severity.ERROR
     description = "'Instance.last_annotation_token' refers to 'SampleAnnotation' record."
     source = SchemaName.INSTANCE
     target = SchemaName.SAMPLE_ANNOTATION

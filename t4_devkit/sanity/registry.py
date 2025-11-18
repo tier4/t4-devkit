@@ -13,7 +13,7 @@ class RuleGroup(Enum):
     RECORD = "REC"
     REFERENCE = "REF"
     FORMAT = "FMT"
-    TIER4 = "TIV"
+    TIERIV = "TIV"
 
     @classmethod
     def values(cls) -> list[str]:
@@ -37,37 +37,37 @@ class RuleGroup(Enum):
 
 
 class CheckerRegistry(dict[RuleGroup, dict[RuleID, type[Checker]]]):
-    def register(self, id: RuleID) -> Callable:
+    def register(self) -> Callable:
         """Register a checker class.
-
-        Args:
-            id (RuleID): The ID of the rule.
 
         Returns:
             A decorator function that registers the checker class.
         """
-        group = RuleGroup.to_group(id)
-
-        if group is None:
-            raise ValueError(f"'{id}' doesn't belong to any rule groups: {RuleGroup.values()}")
 
         def _register_decorator(module: type[Checker]) -> type[Checker]:
-            self._add_module(module, group, id)
+            self._add_module(module)
             return module
 
         return _register_decorator
 
-    def _add_module(self, module: type[Checker], group: RuleGroup, id: RuleID) -> None:
+    def _add_module(self, module: type[Checker]) -> None:
         if not inspect.isclass(module):
             raise TypeError(f"module must be a class, but got {type(module)}.")
+
+        group = RuleGroup.to_group(module.id)
+
+        if group is None:
+            raise ValueError(
+                f"'{module.id}' doesn't belong to any rule groups: {RuleGroup.values()}"
+            )
 
         if group not in self:
             self[group] = {}
 
-        if id in self[group]:
-            raise ValueError(f"'{id}' has already been registered.")
+        if module.id in self[group]:
+            raise ValueError(f"'{module.id}' has already been registered.")
 
-        self[group][id] = module
+        self[group][module.id] = module
 
     def build(self, excludes: Sequence[str] | None = None) -> list[Checker]:
         """Build a list of checkers from the registry.
@@ -82,7 +82,7 @@ class CheckerRegistry(dict[RuleGroup, dict[RuleID, type[Checker]]]):
             excludes = []
 
         return [
-            checker(id)
+            checker()
             for group, values in self.items()
             for id, checker in values.items()
             if id not in excludes and group.value not in excludes

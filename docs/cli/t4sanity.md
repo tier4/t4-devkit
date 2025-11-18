@@ -10,10 +10,10 @@ $ t4sanity -h
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --version             -v             Show the application version and exit.                                           │
-│ --output              -o       TEXT  Path to output JSON file.                                                        │
-│ --revision            -rv      TEXT  Specify if you want to check the specific version.                               │
-│ --exclude             -e       TEXT  Exclude specific rules or rule groups.                                           │
-│ --include-warning     -iw            Indicates whether to report any warnings.                                        │
+│ --output              -o       TEXT  Path to output JSON file. [default: None]                                        │
+│ --revision            -rv      TEXT  Specify if you want to check the specific version. [default: None]               │
+│ --exclude             -e       TEXT  Exclude specific rules or rule groups. [default: None]                           │
+│ --strict              -s             Indicates whether warnings are treated as failures.                              │
 │ --install-completion                 Install completion for the current shell.                                        │
 │ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
 │ --help                -h             Show this message and exit.                                                      │
@@ -58,12 +58,43 @@ $ t4sanity <DATA_ROOT>
   STR008: ✅
   ...
 
-+-----------+---------+---------+-------+---------+----------+-------+
-| DatasetID | Version | Status  | Rules | Success | Failures | Skips |
-+-----------+---------+---------+-------+---------+----------+-------+
-| dataset1  |    0    | SUCCESS |  44   |   44    |    0     |   0   |
-+-----------+---------+---------+-------+---------+----------+-------+
++-----------+---------+--------+--------+---------+----------+
+| DatasetID | Version | Passed | Failed | Skipped | Warnings |
++-----------+---------+--------+--------+---------+----------+
+| dataset1  |    0    |   49   |   0    |    2    |    3     |
++-----------+---------+--------+--------+---------+----------+
 ```
+
+### Strict Mode
+
+Basically, rules whose **severity is WARNING** will be treated as success.
+
+With `-s; --strict` option enables us to treat warnings as failures:
+
+```shell
+# Run strict mode
+t4sanity <DATA_ROOT> -s
+```
+
+### Exclude Checks
+
+With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
+
+```shell
+# Exclude STR001 and all FMT-relevant rules
+t4sanity <DATA_ROOT> -e STR001 -e FMT
+```
+
+### Exit Status Logic
+
+`t4sanity` CLI returns the exit code based on the following conditions:
+
+| Condition                                                               | `--strict`        | Exit Code | Notes                                               |
+| ----------------------------------------------------------------------- | ----------------- | --------- | --------------------------------------------------- |
+| At least one `Severity.ERROR` rule failed                               | N/A               | 1         | Always fails the run                                |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed | `False` (default) | 0         | Run is considered successful, warnings are reported |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed | `True`            | 1         | Treat warnings as failures; exit with failure       |
+| All rules passed or skipped                                             | N/A               | 0         | Run is considered successful                        |
 
 ### Dump Results as JSON
 
@@ -83,19 +114,23 @@ Then a JSON file named `result.json` will be generated as follows:
     {
         "id": "<RuleID: str>",
         "name": "<RuleName: str>",
+        "severity": "<WARNING/ERROR: str>",
         "description": "<Description: str>",
-        "status": "<SUCCESS/FAILURE/SKIPPED: str>",
-        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failure or skipped reasons, null if success
+        "status": "<PASSED/FAILED/SKIPPED: str>",
+        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failed or skipped reasons, null if passed
     },
   ]
 }
 ```
 
-### Exclude Checks
+Here is the description of the JSON format:
 
-With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
-
-```shell
-# Exclude STR001 and all FMT-relevant rules
-t4sanity <DATA_ROOT> -e STR001 -e FMT
-```
+- `dataset_id`: The ID of the dataset.
+- `version`: The version of the dataset.
+- `reports`: An array of rule reports.
+  - `id`: The ID of the rule.
+  - `name`: The name of the rule.
+  - `severity`: How important a rule is.
+  - `description`: A description of the rule.
+  - `status`: What happened when it ran.
+  - `reasons`: An array of reasons for failure or skipped rules, null if passed.

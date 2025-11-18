@@ -18,7 +18,9 @@ class RecordReferenceChecker(Checker):
     """Base class for record reference checkers.
 
     Attributes:
+        id (RuleID): The ID of the rule.
         name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         source (SchemaName): The source schema name.
         target (SchemaName): The target schema name.
@@ -43,7 +45,7 @@ class RecordReferenceChecker(Checker):
             case _:
                 return Maybe.from_value(Reason("Missing 'annotation' directory path"))
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         source_file = context.to_schema_file(self.source).unwrap()
         target_file = context.to_schema_file(self.target).unwrap()
         source_records = load_json_safe(source_file).unwrap()
@@ -55,7 +57,7 @@ class RecordReferenceChecker(Checker):
             for record in source_records
             if record[self.reference] not in target_tokens
             and self.is_additional_condition_ok(record)
-        ]
+        ] or None
 
     def is_additional_condition_ok(self, record: dict[str, Any]) -> bool:
         """Return True if the additional condition is met.
@@ -74,6 +76,7 @@ class FileReferenceChecker(Checker):
 
     Attributes:
         name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         schema (SchemaName): The schema name to check.
     """

@@ -2,23 +2,24 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from .base import RecordCountChecker
 
-
 __all__ = ["REC003"]
 
 
-@CHECKERS.register(RuleID("REC003"))
+@CHECKERS.register()
 class REC003(RecordCountChecker):
     """A checker of REC003."""
 
+    id = RuleID("REC003")
     name = RuleName("sample-data-not-empty")
+    severity = Severity.ERROR
     description = "'SampleData' record is not empty."
     schema = SchemaName.SAMPLE_DATA
 
-    def check_count(self, records: list[dict]) -> list[Reason]:
+    def check_count(self, records: list[dict]) -> list[Reason] | None:
         num_sample_data = len(records)
-        return [Reason("'SampleData' record must not be empty")] if num_sample_data == 0 else []
+        return [Reason("'SampleData' record must not be empty")] if num_sample_data == 0 else None

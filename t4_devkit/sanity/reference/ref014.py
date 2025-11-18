@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName
+from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_json_safe
@@ -17,15 +17,17 @@ if TYPE_CHECKING:
 __all__ = ["REF014"]
 
 
-@CHECKERS.register(RuleID("REF014"))
+@CHECKERS.register()
 class REF014(FileReferenceChecker):
     """A checker of REF014."""
 
+    id = RuleID("REF014")
     name = RuleName("sample-data-filename-presence")
+    severity = Severity.ERROR
     description = "'SampleData.filename' exists."
     schema = SchemaName.SAMPLE_DATA
 
-    def check(self, context: SanityContext) -> list[Reason]:
+    def check(self, context: SanityContext) -> list[Reason] | None:
         filepath = context.to_schema_file(self.schema).unwrap()
         records = load_json_safe(filepath).unwrap()
         data_root = context.data_root.unwrap()
@@ -34,4 +36,4 @@ class REF014(FileReferenceChecker):
             for record in records
             if record.get("info_filename") is not None
             and not data_root.joinpath(record["info_filename"]).exists()
-        ]
+        ] or None
