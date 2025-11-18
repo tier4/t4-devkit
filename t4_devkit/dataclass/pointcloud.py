@@ -61,11 +61,11 @@ class PointCloudMetainfo:
 
     Attributes:
         stamp (Stamp): Timestamp.
-        sources (dict[str, PointcloudSourceInfo]): Dictionary of source information keyed by sensor name.
+        sources (list[PointcloudSourceInfo]): List of source information.
     """
 
     stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
-    sources: dict[str, PointcloudSourceInfo] = field(factory=dict)
+    sources: list[PointcloudSourceInfo] = field(factory=list)
 
     @classmethod
     def from_file(cls, filepath: str) -> Self:
@@ -93,7 +93,7 @@ class PointCloudMetainfo:
         Returns:
             list[str]: List of sensor names.
         """
-        return list(self.sources.keys())
+        return [source.source_id for source in self.sources]
 
 
 @define
@@ -380,7 +380,7 @@ class SegmentationPointCloud(PointCloud):
         if metainfo_filepath is not None:
             metainfo = PointCloudMetainfo.from_file(metainfo_filepath)
 
-        return cls(points.T, labels, metainfo=metainfo)
+        return cls(points.T, labels=labels, metainfo=metainfo)
 
 
 PointCloudLike = TypeVar("PointCloudLike", bound=PointCloud)
