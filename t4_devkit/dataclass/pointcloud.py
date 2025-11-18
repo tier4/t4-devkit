@@ -43,16 +43,16 @@ class PointcloudSourceInfo:
     """A dataclass to represent pointcloud source information.
 
     Attributes:
-        stamp (Stamp): Timestamp.
-        source_id (str): source identifier.
+        id (str): source identifier.
         idx_begin (int): Begin index of points for the source in the concatenated pointcloud structure.
         length (int): Length of points for the source in the concatenated pointcloud structure.
+        stamp (Stamp): Timestamp.
     """
 
-    stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
-    source_id: str
+    id: str
     idx_begin: int
     length: int
+    stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
 
 
 @define
@@ -84,13 +84,14 @@ class PointCloudMetainfo:
             sources.append(PointcloudSourceInfo(**source_data))
         return cls(stamp=stamp, sources=sources)
 
+    @property
     def source_ids(self) -> list[str]:
         """Get the list of source sensor IDs.
 
         Returns:
             list[str]: List of sensor names.
         """
-        return [source.source_id for source in self.sources]
+        return [source.id for source in self.sources]
 
 
 @define
@@ -126,7 +127,7 @@ class PointCloud:
         # Collect all intervals defined by sources
         intervals = []
         for source_info in value.sources:
-            source_id = source_info.source_id
+            source_id = source_info.id
             idx_begin = source_info.idx_begin
             length = source_info.length
             idx_end = idx_begin + length
