@@ -17,7 +17,7 @@ from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import CamIntrinsicLike, Vector3
+    from t4_devkit.typing import CameraIntrinsicLike, Vector3
 
     from .dataclass import BoxLike
     from .schema import (
@@ -390,7 +390,7 @@ class Tier4:
         as_sensor_coord: bool = True,
         future_seconds: float = 0.0,
         visibility: VisibilityLevel = VisibilityLevel.NONE,
-    ) -> tuple[str, list[BoxLike], CamIntrinsicLike | None]:
+    ) -> tuple[str, list[BoxLike], CameraIntrinsicLike | None]:
         """Return the data path as well as all annotations related to that `sample_data`.
         Note that output boxes is w.r.t base link or sensor coordinate system.
 
