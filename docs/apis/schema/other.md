@@ -8,11 +8,12 @@ Following classes are sub items composed of each schema tables.
 
 ::: t4_devkit.schema.tables
     options:
-        members: ["FileFormat", "SensorModality", "VisibilityLevel", "RLEMask", "ShiftState", "IndicatorState", "Indicators", "AdditionalInfo"]
+        members: ["FileFormat", "SensorModality", "VisibilityLevel", "RLEMask", "ShiftState", "IndicatorState", "Indicators", "AdditionalInfo", "AutolabelModel", "AutolabelMixin"]
         show_root_toc_entry: false
         merge_init_into_class: false
         show_signature_annotations: false
         show_docstring_attributes: true
+        show_root_heading: false
 
 ## `Sensor`
 
@@ -25,6 +26,7 @@ Following classes are sub items composed of each schema tables.
         merge_init_into_class: false
         show_signature_annotations: false
         show_docstring_attributes: true
+        show_root_heading: false
 
 ## `ObjectAnn`/`SurfaceAnn`
 
@@ -37,6 +39,7 @@ Following classes are sub items composed of each schema tables.
         merge_init_into_class: false
         show_signature_annotations: false
         show_docstring_attributes: true
+        show_root_heading: false
 
 ## `Visibility`
 
@@ -49,6 +52,7 @@ Following classes are sub items composed of each schema tables.
         merge_init_into_class: false
         show_signature_annotations: false
         show_docstring_attributes: true
+        show_root_heading: false
 
 ## `VehicleState`
 
@@ -61,5 +65,6 @@ Following classes are sub items composed of each schema tables.
         merge_init_into_class: false
         show_signature_annotations: false
         show_docstring_attributes: true
+        show_root_heading: false
 
 <!-- prettier-ignore-end -->
