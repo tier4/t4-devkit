@@ -8,6 +8,9 @@ if TYPE_CHECKING:
     from t4_devkit.typing import ScalarLike
 
 
+__all__ = ["microseconds2seconds", "seconds2microseconds"]
+
+
 @deprecated("Please use `microseconds2seconds(...)` instead.")
 def us2sec(timestamp: ScalarLike) -> float:
     """Convert timestamp from micro seconds [us] to seconds [s].

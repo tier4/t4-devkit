@@ -8,6 +8,9 @@ from attrs import asdict, fields, filters
 from pyquaternion import Quaternion
 
 
+__all__ = ["serialize_dataclasses", "serialize_dataclass"]
+
+
 def serialize_dataclasses(data: list[Any]) -> list[dict]:
     """Serialize list of attrs' dataclasses into list of dict.
 
