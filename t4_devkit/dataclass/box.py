@@ -47,7 +47,7 @@ def distance_box(box: BoxLike, tf_matrix: HomogeneousMatrix) -> float | None:
     else:
         raise TypeError(f"Unexpected box type: {type(box)}")
 
-    return np.linalg.norm(position)
+    return np.linalg.norm(position).item()
 
 
 @define(eq=False)

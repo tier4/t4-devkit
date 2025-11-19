@@ -131,9 +131,9 @@ def is_box_in_image(
     in_front = corners_3d[2, :] > 0.1  # True if a corner is at least 0.1 meter in front of camera.
 
     if visibility == VisibilityLevel.FULL:
-        return np.all(is_visible) and np.all(in_front)
+        return bool(np.all(is_visible) and np.all(in_front))
     elif visibility in (VisibilityLevel.MOST, VisibilityLevel.PARTIAL):
-        return np.any(is_visible)
+        return bool(np.any(is_visible))
     elif visibility == VisibilityLevel.NONE:
         return True
     else:
