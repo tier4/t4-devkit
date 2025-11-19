@@ -157,7 +157,7 @@ An `attribute` is a property of an instance that may change throughout different
 ```
 
 <!-- prettier-ignore-start -->
-??? WARNING
+!!! WARNING
     Expected `level` values in `visibility` are as below:
 
     <!-- markdownlint-disable MD046 -->

@@ -6,9 +6,8 @@
 
 About the defined rules, please refer to [requirement.md](../schema/requirement.md).
 
-```python
-from t4_devkit.common.io import save_json
-from t4_devkit.common.serialize import serialize_dataclass
+```python title="main.py"
+from t4_devkit.common import save_json, serialize_dataclass
 from t4_devkit.sanity import sanity_check, print_sanity_result
 
 
@@ -30,7 +29,7 @@ All checkers must follow:
 - Override the `check() -> list[Reason] | None` method to perform the specific check.
 - Register the checker using `CHECKERS.register()` decorator.
 
-```python
+```python title="str000.py"
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

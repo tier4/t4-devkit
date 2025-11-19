@@ -6,7 +6,7 @@ You can crate a schema containing the specified table data with a new token usin
 
 ```python
 >>> from t4_devkit.schema import Attribute
->>> from t4_devkit.common.serialize import serialize_dataclass
+>>> from t4_devkit.common import serialize_dataclass
 >>>
 >>> # schema data except of the unique identifier token
 >>> data = {
@@ -58,7 +58,7 @@ from __future__ import annotations
 from attrs import define, field
 
 from t4_devkit.schema import SCHEMAS, SchemaName, SchemaBase
-from t4_devkit.common.io import load_json
+from t4_devkit.common import load_json
 
 __all__ = ["CustomAttribute"]
 
