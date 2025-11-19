@@ -8,7 +8,7 @@ import numpy as np
 import rerun as rr
 
 from t4_devkit.common.converter import to_quaternion
-from t4_devkit.common.timestamp import us2sec
+from t4_devkit.common.timestamp import microseconds2seconds
 from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SensorModality
 
@@ -487,7 +487,7 @@ class RerunViewer:
 
     def _render_ego_with_schema(self, ego_pose: EgoPose) -> None:
         self._render_ego_without_schema(
-            seconds=us2sec(ego_pose.timestamp),
+            seconds=microseconds2seconds(ego_pose.timestamp),
             translation=ego_pose.translation,
             rotation=ego_pose.rotation,
             geocoordinate=ego_pose.geocoordinate,

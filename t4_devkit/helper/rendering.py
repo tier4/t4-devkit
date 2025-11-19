@@ -12,7 +12,7 @@ import yaml
 from PIL import Image
 
 from t4_devkit.common.geometry import view_points
-from t4_devkit.common.timestamp import sec2us, us2sec
+from t4_devkit.common.timestamp import microseconds2seconds, seconds2microseconds
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud
 from t4_devkit.schema import SensorModality
 from t4_devkit.viewer import (
@@ -126,7 +126,7 @@ class RenderingHelper:
 
         scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
-        max_timestamp_us = first_sample.timestamp + sec2us(max_time_seconds)
+        max_timestamp_us = first_sample.timestamp + seconds2microseconds(max_time_seconds)
 
         concurrent.futures.wait(
             self._render_lidar_and_ego(
@@ -295,7 +295,9 @@ class RenderingHelper:
             raise ValueError("There is no 3D pointcloud data.")
 
         first_lidar_sample_data: Sample = self._t4.get("sample_data", first_lidar_token)
-        max_timestamp_us = first_lidar_sample_data.timestamp + sec2us(max_time_seconds)
+        max_timestamp_us = first_lidar_sample_data.timestamp + seconds2microseconds(
+            max_time_seconds
+        )
 
         concurrent.futures.wait(
             self._render_lidar_and_ego(
@@ -354,7 +356,7 @@ class RenderingHelper:
                     osp.join(self._t4.data_root, sample_data.filename)
                 )
                 viewer.render_pointcloud(
-                    seconds=us2sec(sample_data.timestamp),
+                    seconds=microseconds2seconds(sample_data.timestamp),
                     channel=sample_data.channel,
                     pointcloud=pointcloud,
                     color_mode=color_mode,
@@ -384,7 +386,7 @@ class RenderingHelper:
                     osp.join(self._t4.data_root, sample_data.filename)
                 )
                 viewer.render_pointcloud(
-                    seconds=us2sec(sample_data.timestamp),
+                    seconds=microseconds2seconds(sample_data.timestamp),
                     channel=sample_data.channel,
                     pointcloud=pointcloud,
                 )
@@ -410,7 +412,7 @@ class RenderingHelper:
                     break
 
                 viewer.render_image(
-                    seconds=us2sec(sample_data.timestamp),
+                    seconds=microseconds2seconds(sample_data.timestamp),
                     camera=sample_data.channel,
                     image=osp.join(self._t4.data_root, sample_data.filename),
                 )
@@ -455,7 +457,7 @@ class RenderingHelper:
                     color_mode=color_mode,
                 )
 
-                rr.set_time_seconds(ViewerConfig.timeline, us2sec(sample.timestamp))
+                rr.set_time_seconds(ViewerConfig.timeline, microseconds2seconds(sample.timestamp))
 
                 rr.log(format_entity(ViewerConfig.ego_entity, camera), rr.Image(image))
                 rr.log(
@@ -582,7 +584,7 @@ class RenderingHelper:
                     self._t4.get_box3d(token, future_seconds=future_seconds)
                     for token in sample.ann_3ds
                 ]
-            viewer.render_box3ds(us2sec(sample.timestamp), boxes)
+            viewer.render_box3ds(microseconds2seconds(sample.timestamp), boxes)
 
             current_sample_token = sample.next
 
@@ -636,7 +638,7 @@ class RenderingHelper:
                     )
 
             # Render 2D box
-            viewer.render_box2ds(us2sec(sample.timestamp), boxes)
+            viewer.render_box2ds(microseconds2seconds(sample.timestamp), boxes)
 
             if instance_tokens is None:
                 # Surface Annotation
@@ -655,7 +657,7 @@ class RenderingHelper:
             # Render 2D segmentation image
             for camera, data in camera_masks.items():
                 viewer.render_segmentation2d(
-                    seconds=us2sec(sample.timestamp), camera=camera, **data
+                    seconds=microseconds2seconds(sample.timestamp), camera=camera, **data
                 )
 
             # TODO: add support of rendering keypoints

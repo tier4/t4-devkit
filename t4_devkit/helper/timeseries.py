@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from t4_devkit.common.timestamp import us2sec
+from t4_devkit.common.timestamp import microseconds2seconds
 
 if TYPE_CHECKING:
     from t4_devkit import Tier4
@@ -57,7 +57,9 @@ class TimeseriesHelper:
         while current_sample_token != "":
             current_sample: Sample = self._t4.get("sample", current_sample_token)
 
-            if abs(us2sec(current_sample.timestamp - start_sample.timestamp)) > abs(seconds):
+            if abs(microseconds2seconds(current_sample.timestamp - start_sample.timestamp)) > abs(
+                seconds
+            ):
                 break
 
             ann_token = self._sample_and_instance_to_ann3d.get(
@@ -100,9 +102,9 @@ class TimeseriesHelper:
         while current_sample_data_token != "":
             current_sample_data: SampleData = self._t4.get("sample_data", current_sample_data_token)
 
-            if abs(us2sec(current_sample_data.timestamp - start_sample_data.timestamp)) > abs(
-                seconds
-            ):
+            if abs(
+                microseconds2seconds(current_sample_data.timestamp - start_sample_data.timestamp)
+            ) > abs(seconds):
                 break
 
             ann_token = self._sample_data_and_instance_to_ann2d.get(
