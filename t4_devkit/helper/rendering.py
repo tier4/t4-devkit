@@ -318,6 +318,53 @@ class RenderingHelper:
             ),
         )
 
+    def render_lidarseg(
+        self,
+        *,
+        max_time_seconds: float = np.inf,
+        ignore_distortion: bool = True,
+        save_dir: str | None = None,
+    ) -> None:
+        """Render lidar segmentation.
+
+        Args:
+            max_time_seconds (float, optional): Max time length to be rendered [s].
+            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
+            save_dir (str | None, optional): Directory path to save the recording.
+                Viewer will be spawned if it is None, otherwise not.
+        """
+        if self._sample_data_to_lidarseg_filename is None:
+            return
+
+        app_id = f"lidarseg@{self._t4.dataset_id}"
+        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
+
+        self._render_map(viewer)
+
+        # search first lidar sample data token
+        first_lidar_token: str | None = None
+        for sensor in self._t4.sensor:
+            if sensor.modality != SensorModality.LIDAR:
+                continue
+            first_lidar_token = sensor.first_sd_token
+
+        if first_lidar_token is None:
+            raise ValueError("There is no 3D pointcloud data.")
+
+        first_lidar_sample_data: Sample = self._t4.get("sample_data", first_lidar_token)
+        max_timestamp_us = first_lidar_sample_data.timestamp + seconds2microseconds(
+            max_time_seconds
+        )
+
+        concurrent.futures.wait(
+            self._render_lidar_and_ego(
+                viewer=viewer,
+                first_lidar_tokens=[first_lidar_token],
+                max_timestamp_us=max_timestamp_us,
+                color_mode=PointCloudColorMode.SEGMENTATION,
+            )
+        )
+
     def _render_map(self, viewer: RerunViewer) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
         viewer.render_map(lanelet_path)
@@ -342,6 +389,7 @@ class RenderingHelper:
         viewer: RerunViewer,
         first_lidar_tokens: list[str],
         max_timestamp_us: float,
+        *,
         color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
     ) -> list[Future]:
         def _render_single_lidar(first_lidar_token: str) -> None:
@@ -358,26 +406,34 @@ class RenderingHelper:
                 viewer.render_ego(ego_pose=ego_pose)
 
                 # render segmentation pointcloud if available, otherwise render raw pointcloud
-                if (
-                    self._sample_data_to_lidarseg_filename
-                    and sample_data.token in self._sample_data_to_lidarseg_filename
-                ):
+                if color_mode == PointCloudColorMode.SEGMENTATION:
+                    if not (
+                        self._sample_data_to_lidarseg_filename
+                        and sample_data.token in self._sample_data_to_lidarseg_filename
+                    ):
+                        continue
+
                     label_filename = self._sample_data_to_lidarseg_filename[sample_data.token]
                     pointcloud = SegmentationPointCloud.from_file(
                         point_filepath=osp.join(self._t4.data_root, sample_data.filename),
                         label_filepath=osp.join(self._t4.data_root, label_filename),
+                    )
+                    viewer.render_lidarseg(
+                        seconds=microseconds2seconds(sample_data.timestamp),
+                        channel=sample_data.channel,
+                        pointcloud=pointcloud,
                     )
                 else:
                     pointcloud = LidarPointCloud.from_file(
                         osp.join(self._t4.data_root, sample_data.filename)
                     )
 
-                viewer.render_pointcloud(
-                    seconds=microseconds2seconds(sample_data.timestamp),
-                    channel=sample_data.channel,
-                    pointcloud=pointcloud,
-                    color_mode=color_mode,
-                )
+                    viewer.render_pointcloud(
+                        seconds=microseconds2seconds(sample_data.timestamp),
+                        channel=sample_data.channel,
+                        pointcloud=pointcloud,
+                        color_mode=color_mode,
+                    )
 
                 current_lidar_token = sample_data.next
 

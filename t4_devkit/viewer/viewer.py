@@ -9,7 +9,6 @@ import rerun as rr
 
 from t4_devkit.common.converter import to_quaternion
 from t4_devkit.common.timestamp import microseconds2seconds
-from t4_devkit.dataclass import SegmentationPointCloud
 from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SensorModality
 
@@ -25,7 +24,7 @@ from .lanelet import (
 from .record import BatchBox2D, BatchBox3D, BatchSegmentation2D
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
+    from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike, SegmentationPointCloud
     from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
     from t4_devkit.typing import (
         CameraIntrinsicLike,
@@ -427,17 +426,31 @@ class RerunViewer:
         # TODO(ktro2828): add support of rendering pointcloud on images
         rr.set_time_seconds(self.config.timeline, seconds)
 
-        if isinstance(pointcloud, SegmentationPointCloud):
-            rr.log(
-                format_entity(self.config.ego_entity, channel),
-                rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels),
-            )
-        else:
-            colors = pointcloud_color(pointcloud, color_mode=color_mode)
-            rr.log(
-                format_entity(self.config.ego_entity, channel),
-                rr.Points3D(pointcloud.points[:3].T, colors=colors),
-            )
+        colors = pointcloud_color(pointcloud, color_mode=color_mode)
+        rr.log(
+            format_entity(self.config.ego_entity, channel),
+            rr.Points3D(pointcloud.points[:3].T, colors=colors),
+        )
+
+    @_check_spatial3d
+    def render_lidarseg(
+        self,
+        seconds: float,
+        channel: str,
+        pointcloud: SegmentationPointCloud,
+    ) -> None:
+        """Render a LiDAR segmentation point cloud.
+
+        Args:
+            seconds (float): Timestamp in [sec].
+            channel (str): Name of the pointcloud sensor channel.
+            pointcloud (SegmentationPointCloud): Segmentation pointcloud.
+        """
+        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.log(
+            format_entity(self.config.ego_entity, channel),
+            rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels),
+        )
 
     @_check_spatial2d
     def render_image(self, seconds: float, camera: str, image: str | NDArrayU8) -> None:

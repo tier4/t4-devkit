@@ -20,6 +20,7 @@ class PointCloudColorMode(str, Enum):
 
     DISTANCE = "distance"
     INTENSITY = "intensity"
+    SEGMENTATION = "segmentation"
 
 
 def pointcloud_color(
