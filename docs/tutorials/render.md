@@ -48,6 +48,22 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
     ```
 <!-- prettier-ignore-end -->
 
+### LiDAR Segmentation
+
+```python
+>>> t4.render_lidarseg()
+```
+
+<!--![Render LiDAR Segmentation GIF](../assets/render_lidarseg.gif)-->
+
+<!-- prettier-ignore-start -->
+!!! NOTE
+    `render_lidarseg()` method requires `lidarseg` data as follows:
+
+    ```shell
+    ```
+<!-- prettier-ignore-end -->
+
 ### Save Recording
 
 You can save the rendering result as follows:
@@ -134,14 +150,30 @@ It allows you to render boxes by specifying elements of boxes directly:
 
 ```python
 from t4_devkit.dataclass import LidarPointCloud
+from t4_devkit.viewer import PointCloudColorMode
 # Point cloud channel name
 >>> lidar_channel = "LIDAR_TOP"
 # Load point cloud from file
 >>> pointcloud = LidarPointCloud.from_file(<PATH_TO_POINTCLOUD.pcd.bin>)
->>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud)
+>>> color_mode = PointCloudColorMode.DISTANCE
+>>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
 ```
 
 ![Render Point Cloud](../assets/render_pointcloud.png)
+
+### Rendering LiDAR segmentation
+
+```python
+from t4_devkit.dataclass import SegmentationPointCloud
+from t4_devkit.viewer import PointCloudColorMode
+# Point cloud channel name
+>>> lidar_channel = "LIDAR_TOP"
+# Load point cloud and label from file
+>>> pointcloud = SegmentationPointCloud.from_file("<PATH_TO_POINTCLOUD.pcd.bin>", "<PATH_TO_LABEL.pcd.bin>")
+>>> viewer.render_lidarseg(seconds, lidar_channel, pointcloud)
+```
+
+<!--![Render LiDAR Segmentation](../assets/render_lidarseg.png)-->
 
 ### Rendering lanelet map
 
