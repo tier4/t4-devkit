@@ -802,3 +802,23 @@ class Tier4:
             ignore_distortion=ignore_distortion,
             save_dir=save_dir,
         )
+
+    def render_lidarseg(
+        self,
+        *,
+        max_time_seconds: float = np.inf,
+        ignore_distortion: bool = True,
+        save_dir: str | None = None,
+    ) -> None:
+        """Render lidarseg on 3D view.
+
+        Args:
+            max_time_seconds (float, optional): Max time length to be rendered [s].
+            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
+            save_dir (str | None, optional): Directory path to save the recording.
+        """
+        self._rendering_helper.render_lidarseg(
+            max_time_seconds=max_time_seconds,
+            ignore_distortion=ignore_distortion,
+            save_dir=save_dir,
+        )

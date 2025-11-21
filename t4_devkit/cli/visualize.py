@@ -120,6 +120,43 @@ def pointcloud(
     t4.render_pointcloud(ignore_distortion=ignore_distortion, save_dir=output)
 
 
+@cli.command("lidarseg", help="Visualize LiDAR segmentation pointcloud.")
+def lidarseg(
+    data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
+    revision: Annotated[
+        str | None,
+        typer.Option(
+            ...,
+            "-rv",
+            "--revision",
+            help="Specify if you want to load the specific version.",
+        ),
+    ] = None,
+    ignore_distortion: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-ig",
+            "--ignore-distortion",
+            help="Indicates whether to ignore camera distortion",
+        ),
+    ] = True,
+    output: Annotated[
+        str | None,
+        typer.Option(
+            ...,
+            "-o",
+            "--output",
+            help="Output directory to save recorded .rrd file.",
+        ),
+    ] = None,
+) -> None:
+    _create_dir(output)
+
+    t4 = Tier4(data_root, revision=revision, verbose=False)
+    t4.render_lidarseg(ignore_distortion=ignore_distortion, save_dir=output)
+
+
 def _create_dir(dir_path: str | None) -> None:
     """Create a directory with the specified path.
 
