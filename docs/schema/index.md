@@ -4,12 +4,13 @@
 
 ```shell
 <DATASET_ID>/
-└── <DATASET_VERSION>
-    ├── annotation    ...schema tables in JSON format
-    ├── data          ...sensor raw data
-    ├── input_bag     ...original ROS bag file
-    ├── map           ...map files
-    └── status.json   ...dataset status information
+└── <DATASET_VERSION>/
+    ├── annotation/    ...schema tables in JSON format
+    ├── data/          ...sensor raw data
+    ├── input_bag/     ...original ROS bag file
+    ├── map/           ...map files
+    ├── lidarseg/      ...[OPTIONAL] LiDAR segmentation annotation
+    └── status.json    ...dataset status information
 ```
 
 ## Schema Tables
@@ -32,8 +33,22 @@ It is structured as follows:
 
 ```shell
 map/
-├── lanelet2_map.osm
-└── pointcloud_map.pcd
+├── lanelet2_map.osm    ...lanelet2 map file
+└── pointcloud_map.pcd/ ...pointcloud map directory
+```
+
+## LiDAR Segmentation Annotation
+
+T4 dataset can include 3D LiDAR segmentation annotation optionally.
+The format is exactly the same as the [nuScenes format](https://www.nuscenes.org/nuscenes) with one additional `lidarseg.json` file.
+
+Note that every `<lidarseg_token>.bin` consists of category labels for every LiDAR pointcloud at a keyframe.
+
+```shell
+lidarseg/
+└── annotation/
+    ├── <lidarseg_token>.bin    ...category labels for every LiDAR pointcloud at a keyframe
+    ...
 ```
 
 ## status.json
