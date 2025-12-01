@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from pyquaternion import Quaternion
 
 from t4_devkit.dataclass.trajectory import Future
+from t4_devkit.typing import Quaternion
 
 
 def test_future_trajectory(dummy_future: Future) -> None:
