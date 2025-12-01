@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from t4_devkit.common.io import load_json
 import struct
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, TypeVar
 
 import numpy as np
 from attrs import define, field
+
+from t4_devkit.common.io import load_json
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -252,7 +253,7 @@ class RadarPointCloud(PointCloud):
 
     # class variables
     invalid_states: ClassVar[list[int]] = [0]
-    dynprop_states: ClassVar[list[int]] = range(7)
+    dynprop_states: ClassVar[list[int]] = list(range(7))
     ambig_states: ClassVar[list[int]] = [3]
 
     @staticmethod
