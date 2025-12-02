@@ -3,7 +3,7 @@ from __future__ import annotations
 from attrs import define, field, validators
 
 from ..name import SchemaName
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 __all__ = ["Sample"]
@@ -34,8 +34,8 @@ class Sample(SchemaBase):
     """
 
     timestamp: int = field(validator=validators.instance_of(int))
-    scene_token: str = field(validator=validators.instance_of(str))
-    next: str = field(validator=validators.instance_of(str))  # noqa: A003
+    scene_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    next: str = field(validator=validators.instance_of(str))
     prev: str = field(validator=validators.instance_of(str))
 
     # shortcuts

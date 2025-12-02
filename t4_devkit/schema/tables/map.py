@@ -3,7 +3,7 @@ from __future__ import annotations
 from attrs import define, field, validators
 
 from ..name import SchemaName
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 __all__ = ["Map"]
@@ -21,6 +21,8 @@ class Map(SchemaBase):
         filename (str): Relative path to the file with the map mask.
     """
 
-    log_tokens: list[str] = field(validator=validators.deep_iterable(validators.instance_of(str)))
+    log_tokens: list[str] = field(
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
+    )
     category: str = field(validator=validators.instance_of(str))
     filename: str = field(validator=validators.instance_of(str))

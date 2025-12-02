@@ -3,7 +3,7 @@ from __future__ import annotations
 from attrs import define, field, validators
 
 from ..name import SchemaName
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 __all__ = ["LidarSeg"]
@@ -21,4 +21,4 @@ class LidarSeg(SchemaBase):
     """
 
     filename: str = field(validator=validators.instance_of(str))
-    sample_data_token: str = field(validator=validators.instance_of(str))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))

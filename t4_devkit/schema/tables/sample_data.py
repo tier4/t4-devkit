@@ -7,7 +7,7 @@ from attrs import define, field, validators
 
 from ..name import SchemaName
 from .autolabel_metadata import AutolabelModel
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 if TYPE_CHECKING:
@@ -71,7 +71,7 @@ class SampleData(SchemaBase):
 
     Attributes:
         token (str): Unique record identifier.
-        sample_token (str): Foreign key pointing the sample.
+        sample_token (str): Foreign key pointing the sample. Empty if this is not a key frame.
         ego_pose_token (str): Foreign key pointing the ego_pose.
         calibrated_sensor_token (str): Foreign key pointing the calibrated_sensor.
         filename (str): Relative path to data-blob on disk.
@@ -95,8 +95,8 @@ class SampleData(SchemaBase):
     """
 
     sample_token: str = field(validator=validators.instance_of(str))
-    ego_pose_token: str = field(validator=validators.instance_of(str))
-    calibrated_sensor_token: str = field(validator=validators.instance_of(str))
+    ego_pose_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    calibrated_sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     filename: str = field(validator=validators.instance_of(str))
     fileformat: FileFormat = field(converter=FileFormat)
     width: int = field(validator=validators.instance_of(int))

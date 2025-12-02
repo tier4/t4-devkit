@@ -3,7 +3,7 @@ from __future__ import annotations
 from attrs import define, field, validators
 
 from ..name import SchemaName
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 __all__ = ["Scene"]
@@ -26,7 +26,7 @@ class Scene(SchemaBase):
 
     name: str = field(validator=validators.instance_of(str))
     description: str = field(validator=validators.instance_of(str))
-    log_token: str = field(validator=validators.instance_of(str))
+    log_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     nbr_samples: int = field(validator=validators.instance_of(int))
-    first_sample_token: str = field(validator=validators.instance_of(str))
-    last_sample_token: str = field(validator=validators.instance_of(str))
+    first_sample_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    last_sample_token: str = field(validator=(validators.instance_of(str), impossible_empty))
