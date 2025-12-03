@@ -6,12 +6,14 @@ from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
+__all__ = ["REF104"]
+
 
 @CHECKERS.register()
-class REF019(RecordReferenceChecker):
-    """A checker of REF019."""
+class REF104(RecordReferenceChecker):
+    """A checker of REF104."""
 
-    id = RuleID("REF019")
+    id = RuleID("REF104")
     name = RuleName("sample-annotation-prev-to-another")
     severity = Severity.ERROR
     description = "'SampleAnnotation.prev' refers to another one unless it is empty."

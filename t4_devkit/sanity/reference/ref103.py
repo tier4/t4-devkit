@@ -6,12 +6,14 @@ from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
+__all__ = ["REF103"]
+
 
 @CHECKERS.register()
-class REF018(RecordReferenceChecker):
-    """A checker of REF018."""
+class REF103(RecordReferenceChecker):
+    """A checker of REF103."""
 
-    id = RuleID("REF018")
+    id = RuleID("REF103")
     name = RuleName("sample-annotation-next-to-another")
     severity = Severity.ERROR
     description = "'SampleAnnotation.next' refers to another one unless it is empty."

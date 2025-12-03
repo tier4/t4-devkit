@@ -14,14 +14,14 @@ if TYPE_CHECKING:
     from ..context import SanityContext
 
 
-__all__ = ["REF013"]
+__all__ = ["REF201"]
 
 
 @CHECKERS.register()
-class REF013(FileReferenceChecker):
-    """A checker of REF013."""
+class REF201(FileReferenceChecker):
+    """A checker of REF201."""
 
-    id = RuleID("REF013")
+    id = RuleID("REF201")
     name = RuleName("sample-data-filename-presence")
     severity = Severity.ERROR
     description = "'SampleData.filename' exists."

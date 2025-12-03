@@ -27,6 +27,8 @@
 
 ## Reference (`REF`)
 
+### Record Reference (A to B)
+
 | ID       | Name                                  | Severity | Description                                                               |
 | -------- | ------------------------------------- | -------- | ------------------------------------------------------------------------- |
 | `REF001` | `scene-to-log`                        | `ERROR`  | `Scene.log_token` refers to `Log` record.                                 |
@@ -41,15 +43,25 @@
 | `REF010` | `instance-to-first-sample-annotation` | `ERROR`  | `Instance.first_annotation_token` refers to `SampleAnnotation` record.    |
 | `REF011` | `instance-to-last-sample-annotation`  | `ERROR`  | `Instance.last_annotation_token` refers to `SampleAnnotation` record.     |
 | `REF012` | `lidarseg-to-sample-data`             | `ERROR`  | `LidarSeg.sample_data_token` refers to `SampleData` record.               |
-| `REF013` | `sample-data-filename-presence`       | `ERROR`  | `SampleData.filename` exists.                                             |
-| `REF014` | `sample-data-info-filename-presence`  | `ERROR`  | `SampleData.info_filename` exists if it is not `None`.                    |
-| `REF015` | `lidarseg-filename-presence`          | `ERROR`  | `LidarSeg.filename` exists if `lidarseg.json` exists.                     |
-| `REF016` | `sample-next-to-another`              | `ERROR`  | `Sample.next` refers to another one unless it is empty.                   |
-| `REF017` | `sample-prev-to-another`              | `ERROR`  | `Sample.prev` refers to another one unless it is empty.                   |
-| `REF018` | `sample-annotation-next-to-another`   | `ERROR`  | `SampleAnnotation.next` refers to another one unless it is empty.         |
-| `REF019` | `sample-annotation-prev-to-another`   | `ERROR`  | `SampleAnnotation.prev` refers to another one unless it is empty.         |
-| `REF020` | `sample-data-next-to-another`         | `ERROR`  | `SampleData.next` refers to another one unless it is empty.               |
-| `REF021` | `sample-data-prev-to-another`         | `ERROR`  | `SampleData.prev` refers to another one unless it is empty.               |
+
+### Record Reference (A to A')
+
+| ID       | Name                                | Severity | Description                                                       |
+| -------- | ----------------------------------- | -------- | ----------------------------------------------------------------- |
+| `REF101` | `sample-next-to-another`            | `ERROR`  | `Sample.next` refers to another one unless it is empty.           |
+| `REF102` | `sample-prev-to-another`            | `ERROR`  | `Sample.prev` refers to another one unless it is empty.           |
+| `REF103` | `sample-annotation-next-to-another` | `ERROR`  | `SampleAnnotation.next` refers to another one unless it is empty. |
+| `REF104` | `sample-annotation-prev-to-another` | `ERROR`  | `SampleAnnotation.prev` refers to another one unless it is empty. |
+| `REF105` | `sample-data-next-to-another`       | `ERROR`  | `SampleData.next` refers to another one unless it is empty.       |
+| `REF106` | `sample-data-prev-to-another`       | `ERROR`  | `SampleData.prev` refers to another one unless it is empty.       |
+
+### File Reference
+
+| ID       | Name                                 | Severity | Description                                            |
+| -------- | ------------------------------------ | -------- | ------------------------------------------------------ |
+| `REF201` | `sample-data-filename-presence`      | `ERROR`  | `SampleData.filename` exists.                          |
+| `REF202` | `sample-data-info-filename-presence` | `ERROR`  | `SampleData.info_filename` exists if it is not `None`. |
+| `REF203` | `lidarseg-filename-presence`         | `ERROR`  | `LidarSeg.filename` exists if `lidarseg.json` exists.  |
 
 ## Format (`FMT`)
 
