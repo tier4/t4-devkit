@@ -30,23 +30,27 @@ class REF301(ExternalReferenceChecker):
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         sensor_token_filepath = context.to_schema_file(self.target).unwrap()
-        sensor_tokens = {item[self.reference] for item in load_json_safe(sensor_token_filepath).unwrap()}
+        sensor_tokens = {
+            item[self.reference] for item in load_json_safe(sensor_token_filepath).unwrap()
+        }
 
         filepath = context.to_schema_file(SchemaName.SAMPLE_DATA).unwrap()
         records = load_json_safe(filepath).unwrap()
         data_root = context.data_root.unwrap()
-        
+
         # Get all valid pointcloud info records with their filenames
         valid_records = (
             (
-                record.get("info_filename", ""), 
-                PointCloudMetainfo.from_file(data_root.joinpath(record.get("info_filename", ""))).source_tokens
+                record.get("info_filename", ""),
+                PointCloudMetainfo.from_file(
+                    data_root.joinpath(record.get("info_filename", ""))
+                ).source_tokens,
             )
             for record in records
             if data_root.joinpath(record.get("info_filename", "")).exists()
             and record.fileformat in {FileFormat.PCD, FileFormat.PCDBIN}
         )
-        
+
         # Flatten all source tokens with their filenames and find missing ones
         reasons = [
             Reason(f"No reference to 'Sensor.token': {token} (in {filename})")
@@ -54,5 +58,5 @@ class REF301(ExternalReferenceChecker):
             for token in source_tokens
             if token not in sensor_tokens
         ]
-        
+
         return reasons
