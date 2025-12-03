@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from functools import reduce
 from typing import TYPE_CHECKING, NewType
 
 from attrs import define, field
@@ -79,22 +78,22 @@ class Report:
         Returns:
             A string representation of the report.
         """
-        string = ""
+        parts = []
         if not self.is_passed(strict=strict):
-            string += f"\033[31m  {self.id}:\033[0m\n"
+            parts.append(f"\033[31m  {self.id}:\033[0m\n")
             for reason in self.reasons or []:
-                string += f"\033[31m     - {reason}\033[0m\n"
+                parts.append(f"\033[31m     - {reason}\033[0m\n")
         elif self.is_skipped():
-            string += f"\033[36m  {self.id}: [SKIPPED]\033[0m\n"
+            parts.append(f"\033[36m  {self.id}: [SKIPPED]\033[0m\n")
             for reason in self.reasons or []:
-                string += f"\033[36m     - {reason}\033[0m\n"
+                parts.append(f"\033[36m     - {reason}\033[0m\n")
         elif self.severity.is_warning() and self.reasons:
-            string += f"\033[33m  {self.id}:\033[0m\n"
+            parts.append(f"\033[33m  {self.id}:\033[0m\n")
             for reason in self.reasons or []:
-                string += f"\033[33m     - {reason}\033[0m\n"
+                parts.append(f"\033[33m     - {reason}\033[0m\n")
         else:
-            string += f"\033[32m  {self.id}: ✅\033[0m\n"
-        return string
+            parts.append(f"\033[32m  {self.id}: ✅\033[0m\n")
+        return "".join(parts)
 
 
 def make_report(
@@ -169,10 +168,8 @@ class SanityResult:
         Returns:
             A string representation of the result.
         """
-        return reduce(
-            lambda x, y: x + y.to_str(strict=strict),
-            self.reports,
-            f"=== DatasetID: {self.dataset_id} ===\n",
+        return f"=== DatasetID: {self.dataset_id} ===\n" + "".join(
+            report.to_str(strict=strict) for report in self.reports
         )
 
 
