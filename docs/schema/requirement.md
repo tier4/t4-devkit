@@ -44,6 +44,12 @@
 | `REF013` | `sample-data-filename-presence`       | `ERROR`  | `SampleData.filename` exists.                                             |
 | `REF014` | `sample-data-info-filename-presence`  | `ERROR`  | `SampleData.info_filename` exists if it is not `None`.                    |
 | `REF015` | `lidarseg-filename-presence`          | `ERROR`  | `LidarSeg.filename` exists if `lidarseg.json` exists.                     |
+| `REF016` | `sample-next-to-another`              | `ERROR`  | `Sample.next` refers to another one unless it is empty.                   |
+| `REF017` | `sample-prev-to-another`              | `ERROR`  | `Sample.prev` refers to another one unless it is empty.                   |
+| `REF018` | `sample-annotation-next-to-another`   | `ERROR`  | `SampleAnnotation.next` refers to another one unless it is empty.         |
+| `REF019` | `sample-annotation-prev-to-another`   | `ERROR`  | `SampleAnnotation.prev` refers to another one unless it is empty.         |
+| `REF020` | `sample-data-next-to-another`         | `ERROR`  | `SampleData.next` refers to another one unless it is empty.               |
+| `REF021` | `sample-data-prev-to-another`         | `ERROR`  | `SampleData.prev` refers to another one unless it is empty.               |
 
 ## Format (`FMT`)
 
