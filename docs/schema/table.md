@@ -158,8 +158,8 @@ instance {
   "category_token":         <str> -- Foreign key to the `Category` table.
   "instance_name":          <str> -- Consists of the dataset name and the instance ID separated by colons `::`, such as `<DATASET_ID>::<INSTANCE_ID>`.
   "nbr_annotations":        <int> -- Number of annotations associated with this instance.
-  "first_annotation_token": <str> -- Foreign key to the first `SampleAnnotation` table associated with this instance.
-  "last_annotation_token":  <str> -- Foreign key to the last `SampleAnnotation` table associated with this instance.
+  "first_annotation_token": <str> -- Foreign key to the first `SampleAnnotation` table associated with this instance. Empty string `""` if the dataset only contains 2D annotations.
+  "last_annotation_token":  <str> -- Foreign key to the last `SampleAnnotation` table associated with this instance. Empty string `""` if the dataset only contains 2D annotations.
 }
 ```
 
@@ -245,7 +245,7 @@ If the `is_key_frame=True`, the timestamp should be very close to the associated
 ```json
 sample_data {
   "token":                    <str> -- Unique record identifier.
-  "sample_token":             <str> -- Foreign key to the `Sample` table.
+  "sample_token":             <str> -- Foreign key to the `Sample` table. Empty string `""` if this is not a key frame.
   "ego_pose_token":           <str> -- Foreign key to the `EgoPose` table.
   "calibrated_sensor_token":  <str> -- Foreign key to the `CalibratedSensor` table.
   "filename":                 <str> -- Relative path from a dataset root directory to the sensor data file.

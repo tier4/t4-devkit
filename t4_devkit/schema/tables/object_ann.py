@@ -10,7 +10,7 @@ from t4_devkit.typing import Roi
 
 from ..name import SchemaName
 from .autolabel_metadata import AutolabelMixin
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 if TYPE_CHECKING:
@@ -76,11 +76,11 @@ class ObjectAnn(SchemaBase, AutolabelMixin):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_data_token: str = field(validator=validators.instance_of(str))
-    instance_token: str = field(validator=validators.instance_of(str))
-    category_token: str = field(validator=validators.instance_of(str))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     attribute_tokens: list[str] = field(
-        validator=validators.deep_iterable(validators.instance_of(str))
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
     )
     bbox: Roi = field(converter=Roi)
     mask: RLEMask | None = field(

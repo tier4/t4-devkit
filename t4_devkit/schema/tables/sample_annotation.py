@@ -7,7 +7,7 @@ from t4_devkit.typing import Quaternion, Vector3
 
 from ..name import SchemaName
 from .autolabel_metadata import AutolabelMixin
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 __all__ = ["SampleAnnotation"]
@@ -48,18 +48,18 @@ class SampleAnnotation(SchemaBase, AutolabelMixin):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_token: str = field(validator=validators.instance_of(str))
-    instance_token: str = field(validator=validators.instance_of(str))
+    sample_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     attribute_tokens: list[str] = field(
-        validator=validators.deep_iterable(validators.instance_of(str))
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
     )
-    visibility_token: str = field(validator=validators.instance_of(str))
+    visibility_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     translation: Vector3 = field(converter=Vector3)
     size: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)
     num_lidar_pts: int = field(validator=validators.instance_of(int))
     num_radar_pts: int = field(validator=validators.instance_of(int))
-    next: str = field(validator=validators.instance_of(str))  # noqa: A003
+    next: str = field(validator=validators.instance_of(str))
     prev: str = field(validator=validators.instance_of(str))
     velocity: Vector3 | None = field(default=None, converter=converters.optional(Vector3))
     acceleration: Vector3 | None = field(default=None, converter=converters.optional(Vector3))

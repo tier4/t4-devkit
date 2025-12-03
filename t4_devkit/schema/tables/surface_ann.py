@@ -7,7 +7,7 @@ from t4_devkit.typing import Roi
 
 from ..name import SchemaName
 from .autolabel_metadata import AutolabelMixin
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .object_ann import RLEMask
 from .registry import SCHEMAS
 
@@ -35,8 +35,8 @@ class SurfaceAnn(SchemaBase, AutolabelMixin):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_data_token: str = field(validator=validators.instance_of(str))
-    category_token: str = field(validator=validators.instance_of(str))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     mask: RLEMask | None = field(
         default=None,
         converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,

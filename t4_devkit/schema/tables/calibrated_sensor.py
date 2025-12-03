@@ -6,7 +6,7 @@ from t4_devkit.common.converter import to_quaternion
 from t4_devkit.typing import CameraDistortion, CameraIntrinsic, Quaternion, Vector3
 
 from ..name import SchemaName
-from .base import SchemaBase
+from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
 __all__ = ["CalibratedSensor"]
@@ -26,7 +26,7 @@ class CalibratedSensor(SchemaBase):
         camera_distortion (CameraDistortion): Camera distortion array. Empty for sensors that are not cameras.
     """
 
-    sensor_token: str = field(validator=validators.instance_of(str))
+    sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty))
     translation: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)
     camera_intrinsic: CameraIntrinsic = field(converter=CameraIntrinsic)
