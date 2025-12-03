@@ -56,6 +56,7 @@ class RecordReferenceChecker(Checker):
             )
             for record in source_records
             if record[self.reference] not in target_tokens
+            and record[self.reference] != ""  # NOTE: success if the reference token is ""
             and self.is_additional_condition_ok(record)
         ] or None
 
