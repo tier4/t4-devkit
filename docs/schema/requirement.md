@@ -63,6 +63,13 @@
 | `REF202` | `sample-data-info-filename-presence` | `ERROR`  | `SampleData.info_filename` exists if it is not `None`. |
 | `REF203` | `lidarseg-filename-presence`         | `ERROR`  | `LidarSeg.filename` exists if `lidarseg.json` exists.  |
 
+
+### External Table Reference
+
+| ID       | Name                                 | Severity | Description                                            |
+| -------- | ------------------------------------ | -------- | ------------------------------------------------------ |
+| `REF301` | `pointcloud-metainfo-token-check`    | `ERROR`  | `PointCloudMetainfo sensor tokens` exists.                          |
+
 ## Format (`FMT`)
 
 | ID       | Name                      | Severity | Description                                       |
