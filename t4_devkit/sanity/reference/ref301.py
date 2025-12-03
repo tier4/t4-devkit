@@ -48,7 +48,7 @@ class REF301(ExternalReferenceChecker):
             )
             for record in records
             if data_root.joinpath(record.get("info_filename", "")).exists()
-            and record.fileformat in {FileFormat.PCD, FileFormat.PCDBIN}
+            and record.get("fileformat") in {FileFormat.PCD, FileFormat.PCDBIN}
         )
 
         # Flatten all source tokens with their filenames and find missing ones
