@@ -681,6 +681,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Reference (REF)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-reference-a-to-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Reference (A to B)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-reference-a-to-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Reference (A to A')
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1613,6 +1652,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Reference (REF)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-reference-a-to-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Reference (A to B)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-reference-a-to-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Reference (A to A')
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1775,6 +1853,7 @@
 </tbody>
 </table>
 <h2 id="reference-ref">Reference (<code>REF</code>)</h2>
+<h3 id="record-reference-a-to-b">Record Reference (A to B)</h3>
 <table>
 <thead>
 <tr>
@@ -1857,59 +1936,85 @@
 <td><code>ERROR</code></td>
 <td><code>LidarSeg.sample_data_token</code> refers to <code>SampleData</code> record.</td>
 </tr>
+</tbody>
+</table>
+<h3 id="record-reference-a-to-a">Record Reference (A to A')</h3>
+<table>
+<thead>
 <tr>
-<td><code>REF013</code></td>
-<td><code>sample-data-filename-presence</code></td>
-<td><code>ERROR</code></td>
-<td><code>SampleData.filename</code> exists.</td>
+<th>ID</th>
+<th>Name</th>
+<th>Severity</th>
+<th>Description</th>
 </tr>
+</thead>
+<tbody>
 <tr>
-<td><code>REF014</code></td>
-<td><code>sample-data-info-filename-presence</code></td>
-<td><code>ERROR</code></td>
-<td><code>SampleData.info_filename</code> exists if it is not <code>None</code>.</td>
-</tr>
-<tr>
-<td><code>REF015</code></td>
-<td><code>lidarseg-filename-presence</code></td>
-<td><code>ERROR</code></td>
-<td><code>LidarSeg.filename</code> exists if <code>lidarseg.json</code> exists.</td>
-</tr>
-<tr>
-<td><code>REF016</code></td>
+<td><code>REF101</code></td>
 <td><code>sample-next-to-another</code></td>
 <td><code>ERROR</code></td>
 <td><code>Sample.next</code> refers to another one unless it is empty.</td>
 </tr>
 <tr>
-<td><code>REF017</code></td>
+<td><code>REF102</code></td>
 <td><code>sample-prev-to-another</code></td>
 <td><code>ERROR</code></td>
 <td><code>Sample.prev</code> refers to another one unless it is empty.</td>
 </tr>
 <tr>
-<td><code>REF018</code></td>
+<td><code>REF103</code></td>
 <td><code>sample-annotation-next-to-another</code></td>
 <td><code>ERROR</code></td>
 <td><code>SampleAnnotation.next</code> refers to another one unless it is empty.</td>
 </tr>
 <tr>
-<td><code>REF019</code></td>
+<td><code>REF104</code></td>
 <td><code>sample-annotation-prev-to-another</code></td>
 <td><code>ERROR</code></td>
 <td><code>SampleAnnotation.prev</code> refers to another one unless it is empty.</td>
 </tr>
 <tr>
-<td><code>REF020</code></td>
+<td><code>REF105</code></td>
 <td><code>sample-data-next-to-another</code></td>
 <td><code>ERROR</code></td>
 <td><code>SampleData.next</code> refers to another one unless it is empty.</td>
 </tr>
 <tr>
-<td><code>REF021</code></td>
+<td><code>REF106</code></td>
 <td><code>sample-data-prev-to-another</code></td>
 <td><code>ERROR</code></td>
 <td><code>SampleData.prev</code> refers to another one unless it is empty.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="file-reference">File Reference</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Severity</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REF201</code></td>
+<td><code>sample-data-filename-presence</code></td>
+<td><code>ERROR</code></td>
+<td><code>SampleData.filename</code> exists.</td>
+</tr>
+<tr>
+<td><code>REF202</code></td>
+<td><code>sample-data-info-filename-presence</code></td>
+<td><code>ERROR</code></td>
+<td><code>SampleData.info_filename</code> exists if it is not <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>REF203</code></td>
+<td><code>lidarseg-filename-presence</code></td>
+<td><code>ERROR</code></td>
+<td><code>LidarSeg.filename</code> exists if <code>lidarseg.json</code> exists.</td>
 </tr>
 </tbody>
 </table>
