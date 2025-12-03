@@ -23,6 +23,7 @@
 | `REC003` | `sample-data-not-empty`       | `ERROR`  | `SampleData` record is not empty.       |
 | `REC004` | `ego-pose-not-empty`          | `ERROR`  | `EgoPose` record is not empty.          |
 | `REC005` | `calibrated-sensor-non-empty` | `ERROR`  | `CalibratedSensor` record is not empty. |
+| `REC006` | `instance-not-empty`          | `ERROR`  | `Instance` record is not empty.         |
 
 ## Reference (`REF`)
 
