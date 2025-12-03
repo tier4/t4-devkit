@@ -47,7 +47,8 @@ class REF301(ExternalReferenceChecker):
                 ).source_tokens,
             )
             for record in records
-            if record.get("info_filename") and data_root.joinpath(record.get("info_filename")).exists()
+            if record.get("info_filename")
+            and data_root.joinpath(record.get("info_filename")).exists()
             and record.get("fileformat") in {FileFormat.PCD, FileFormat.PCDBIN}
         )
 
