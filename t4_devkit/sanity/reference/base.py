@@ -101,7 +101,7 @@ class ExternalReferenceChecker(Checker):
         severity (Severity): The severity of the rule.
         description (str): The description of the rule.
         target (SchemaName): The target schema name.
-        reference (str): The reference token name in the target record.
+        reference (str): The field name in the target schema (e.g., 'token') to reference.
     """
 
     target: SchemaName
