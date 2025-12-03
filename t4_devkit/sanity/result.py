@@ -69,6 +69,32 @@ class Report:
         """Check if the status is skipped."""
         return self.status == Status.SKIPPED
 
+    def to_str(self, *, strict: bool = False) -> str:
+        """Return a string representation of the report.
+
+        Args:
+            strict (bool): Whether to consider warnings as failures.
+
+        Returns:
+            A string representation of the report.
+        """
+        parts = []
+        if not self.is_passed(strict=strict):
+            parts.append(f"\033[31m  {self.id}:\033[0m\n")
+            for reason in self.reasons or []:
+                parts.append(f"\033[31m     - {reason}\033[0m\n")
+        elif self.is_skipped():
+            parts.append(f"\033[36m  {self.id}: [SKIPPED]\033[0m\n")
+            for reason in self.reasons or []:
+                parts.append(f"\033[36m     - {reason}\033[0m\n")
+        elif self.severity.is_warning() and self.reasons:
+            parts.append(f"\033[33m  {self.id}:\033[0m\n")
+            for reason in self.reasons or []:
+                parts.append(f"\033[33m     - {reason}\033[0m\n")
+        else:
+            parts.append(f"\033[32m  {self.id}: ✅\033[0m\n")
+        return "".join(parts)
+
 
 def make_report(
     id: RuleID,
@@ -142,23 +168,9 @@ class SanityResult:
         Returns:
             A string representation of the result.
         """
-        string = f"=== DatasetID: {self.dataset_id} ===\n"
-        for report in self.reports:
-            if not report.is_passed(strict=strict):
-                string += f"\033[31m  {report.id}:\033[0m\n"
-                for reason in report.reasons or []:
-                    string += f"\033[31m     - {reason}\033[0m\n"
-            elif report.is_skipped():
-                string += f"\033[36m  {report.id}: [SKIPPED]\033[0m\n"
-                for reason in report.reasons or []:
-                    string += f"\033[36m     - {reason}\033[0m\n"
-            elif report.severity.is_warning() and report.reasons:
-                string += f"\033[33m  {report.id}:\033[0m\n"
-                for reason in report.reasons or []:
-                    string += f"\033[33m     - {reason}\033[0m\n"
-            else:
-                string += f"\033[32m  {report.id}: ✅\033[0m\n"
-        return string
+        return f"=== DatasetID: {self.dataset_id} ===\n" + "".join(
+            report.to_str(strict=strict) for report in self.reports
+        )
 
 
 def print_sanity_result(result: SanityResult, *, strict: bool = False) -> None:
