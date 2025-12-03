@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "t4-devkit"
-version = "0.5.1"
+version = "0.5.2"
 description = "A toolkit to load and operate T4 dataset."
 authors = [{ name = "Kotaro Uetake", email = "kotaro.uetake@tier4.jp" }]
 readme = "README.md"
