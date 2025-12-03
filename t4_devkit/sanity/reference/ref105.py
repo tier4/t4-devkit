@@ -6,12 +6,14 @@ from ..checker import RuleID, RuleName, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
+__all__ = ["REF105"]
+
 
 @CHECKERS.register()
-class REF020(RecordReferenceChecker):
-    """A checker of REF020."""
+class REF105(RecordReferenceChecker):
+    """A checker of REF105."""
 
-    id = RuleID("REF020")
+    id = RuleID("REF105")
     name = RuleName("sample-data-next-to-another")
     severity = Severity.ERROR
     description = "'SampleData.next' refers to another one unless it is empty."

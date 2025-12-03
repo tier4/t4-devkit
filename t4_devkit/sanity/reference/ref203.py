@@ -14,14 +14,14 @@ if TYPE_CHECKING:
     from ..context import SanityContext
 
 
-__all__ = ["REF015"]
+__all__ = ["REF203"]
 
 
 @CHECKERS.register()
-class REF015(FileReferenceChecker):
-    """A checker of REF015."""
+class REF203(FileReferenceChecker):
+    """A checker of REF203."""
 
-    id = RuleID("REF015")
+    id = RuleID("REF203")
     name = RuleName("lidarseg-filename-presence")
     severity = Severity.ERROR
     description = "'LidarSeg.filename' exists."

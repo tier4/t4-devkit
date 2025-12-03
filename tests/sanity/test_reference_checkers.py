@@ -19,8 +19,8 @@ from t4_devkit.sanity.reference.ref009 import REF009
 from t4_devkit.sanity.reference.ref010 import REF010
 from t4_devkit.sanity.reference.ref011 import REF011
 from t4_devkit.sanity.reference.ref012 import REF012
-from t4_devkit.sanity.reference.ref013 import REF013
-from t4_devkit.sanity.reference.ref014 import REF014
+from t4_devkit.sanity.reference.ref201 import REF201
+from t4_devkit.sanity.reference.ref202 import REF202
 
 # Sample dataset root (non-versioned)
 SAMPLE_ROOT = Path(__file__).parent.parent.joinpath("sample", "t4dataset")
@@ -86,8 +86,8 @@ def _ensure_is_valid(records: list[dict]) -> list[dict]:
         REF009,
         REF010,
         REF011,
-        REF013,
-        REF014,
+        REF201,
+        REF202,
     ],
 )
 def test_reference_checkers_pass(checker_cls: type) -> None:
@@ -198,8 +198,8 @@ def test_ref005_fail_invalid_sample_reference(tmp_path: Path) -> None:
     assert any("nonexistent_sample_token" in r for r in report.reasons)
 
 
-def test_ref013_fail_missing_filename(tmp_path: Path) -> None:
-    """Mutate sample_data.json to point to a missing file for REF013."""
+def test_ref201_fail_missing_filename(tmp_path: Path) -> None:
+    """Mutate sample_data.json to point to a missing file for REF201."""
     root = _copy_dataset(tmp_path / "dataset_ref013_fail")
     ann_dir = root / "annotation"
     if not ann_dir.exists():
@@ -210,15 +210,15 @@ def test_ref013_fail_missing_filename(tmp_path: Path) -> None:
         records[0]["filename"] = "data/CAM_FRONT/does_not_exist.jpg"
     _dump_json(sd_path, records)
 
-    checker = REF013()
+    checker = REF201()
     report = checker(_context(root))
     assert not report.is_passed(strict=True)
     assert report.reasons
     assert any("does_not_exist.jpg" in r for r in report.reasons)
 
 
-def test_ref014_fail_missing_info_filename(tmp_path: Path) -> None:
-    """Add an info_filename pointing to a non-existing file to trigger REF014 failure."""
+def test_ref202_fail_missing_info_filename(tmp_path: Path) -> None:
+    """Add an info_filename pointing to a non-existing file to trigger REF202 failure."""
     root = _copy_dataset(tmp_path / "dataset_ref014_fail")
     ann_dir = root / "annotation"
     if not ann_dir.exists():
@@ -229,7 +229,7 @@ def test_ref014_fail_missing_info_filename(tmp_path: Path) -> None:
         records[0]["info_filename"] = "data/CAM_FRONT/missing_info.json"
     _dump_json(sd_path, records)
 
-    checker = REF014()
+    checker = REF202()
     report = checker(_context(root))
     assert not report.is_passed(strict=True)
     assert report.reasons
