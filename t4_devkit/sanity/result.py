@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from functools import reduce
 from typing import TYPE_CHECKING, NewType
 
 from attrs import define, field
@@ -68,6 +69,32 @@ class Report:
     def is_skipped(self) -> bool:
         """Check if the status is skipped."""
         return self.status == Status.SKIPPED
+
+    def to_str(self, *, strict: bool = False) -> str:
+        """Return a string representation of the report.
+
+        Args:
+            strict (bool): Whether to consider warnings as failures.
+
+        Returns:
+            A string representation of the report.
+        """
+        string = ""
+        if not self.is_passed(strict=strict):
+            string += f"\033[31m  {self.id}:\033[0m\n"
+            for reason in self.reasons or []:
+                string += f"\033[31m     - {reason}\033[0m\n"
+        elif self.is_skipped():
+            string += f"\033[36m  {self.id}: [SKIPPED]\033[0m\n"
+            for reason in self.reasons or []:
+                string += f"\033[36m     - {reason}\033[0m\n"
+        elif self.severity.is_warning() and self.reasons:
+            string += f"\033[33m  {self.id}:\033[0m\n"
+            for reason in self.reasons or []:
+                string += f"\033[33m     - {reason}\033[0m\n"
+        else:
+            string += f"\033[32m  {self.id}: ✅\033[0m\n"
+        return string
 
 
 def make_report(
@@ -142,23 +169,11 @@ class SanityResult:
         Returns:
             A string representation of the result.
         """
-        string = f"=== DatasetID: {self.dataset_id} ===\n"
-        for report in self.reports:
-            if not report.is_passed(strict=strict):
-                string += f"\033[31m  {report.id}:\033[0m\n"
-                for reason in report.reasons or []:
-                    string += f"\033[31m     - {reason}\033[0m\n"
-            elif report.is_skipped():
-                string += f"\033[36m  {report.id}: [SKIPPED]\033[0m\n"
-                for reason in report.reasons or []:
-                    string += f"\033[36m     - {reason}\033[0m\n"
-            elif report.severity.is_warning() and report.reasons:
-                string += f"\033[33m  {report.id}:\033[0m\n"
-                for reason in report.reasons or []:
-                    string += f"\033[33m     - {reason}\033[0m\n"
-            else:
-                string += f"\033[32m  {report.id}: ✅\033[0m\n"
-        return string
+        return reduce(
+            lambda x, y: x + y.to_str(strict=strict),
+            self.reports,
+            f"=== DatasetID: {self.dataset_id} ===\n",
+        )
 
 
 def print_sanity_result(result: SanityResult, *, strict: bool = False) -> None:
