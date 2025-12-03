@@ -43,11 +43,11 @@ class REF301(ExternalReferenceChecker):
             (
                 record.get("info_filename", ""),
                 PointCloudMetainfo.from_file(
-                    data_root.joinpath(record.get("info_filename", ""))
+                    data_root.joinpath(record.get("info_filename"))
                 ).source_tokens,
             )
             for record in records
-            if data_root.joinpath(record.get("info_filename", "")).exists()
+            if record.get("info_filename") and data_root.joinpath(record.get("info_filename")).exists()
             and record.get("fileformat") in {FileFormat.PCD, FileFormat.PCDBIN}
         )
 
