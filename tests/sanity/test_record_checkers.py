@@ -13,6 +13,7 @@ from t4_devkit.sanity.record.rec003 import REC003
 from t4_devkit.sanity.record.rec004 import REC004
 from t4_devkit.sanity.record.rec005 import REC005
 from t4_devkit.sanity.record.rec006 import REC006
+from t4_devkit.schema.name import SchemaName
 
 # Base sample dataset root (contains all mandatory annotation json files with non-empty records)
 SAMPLE_ROOT = Path(__file__).parent.parent.joinpath("sample", "t4dataset")
@@ -153,6 +154,18 @@ def test_rec006_pass_instance_not_empty() -> None:
     report = checker(_context(SAMPLE_ROOT))
     assert report.is_passed(strict=True)
     assert report.reasons is None
+
+
+def test_rec006_skip_annotation_empty(tmp_path: Path) -> None:
+    root = _make_mutated_dataset(tmp_path, {"sample_annotation.json": [], "object_ann.json": []})
+    checker = REC006()
+    report = checker(_context(root))
+    assert report.is_passed(strict=True)
+    assert (
+        report.reasons
+        and report.reasons[0]
+        == f"Both {SchemaName.SAMPLE_ANNOTATION} and {SchemaName.OBJECT_ANN} records are empty"
+    )
 
 
 def test_rec006_fail_instance_empty(tmp_path: Path) -> None:
