@@ -46,7 +46,8 @@ class Stamp:
             float: Timestamp in seconds.
         """
         return self.sec + self.nanosec * 1e-9
-    
+
+
 @define
 class PointCloudSourceInfo:
     """A dataclass to represent pointcloud source information.
@@ -101,6 +102,7 @@ class PointCloudMetainfo:
             list[str]: List of sensor tokens.
         """
         return [source.sensor_token for source in self.sources]
+
 
 @define
 class PointCloud:

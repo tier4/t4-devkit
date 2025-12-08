@@ -30,13 +30,13 @@ class REF301(ExternalReferenceChecker):
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         """Check that all sensor tokens in PointCloudMetainfo files exist in Sensor schema.
-        
+
         Validates that all source tokens found in pointcloud info files reference valid
         sensor tokens from the sensor schema.
-        
+
         Args:
             context: The sanity check context containing schema files and data root.
-            
+
         Returns:
             List of Reason objects for invalid sensor token references, or None if all valid.
         """
