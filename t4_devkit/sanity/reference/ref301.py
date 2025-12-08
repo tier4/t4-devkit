@@ -29,6 +29,17 @@ class REF301(ExternalReferenceChecker):
     reference = "token"
 
     def check(self, context: SanityContext) -> list[Reason] | None:
+        """Check that all sensor tokens in PointCloudMetainfo files exist in Sensor schema.
+        
+        Validates that all source tokens found in pointcloud info files reference valid
+        sensor tokens from the sensor schema.
+        
+        Args:
+            context: The sanity check context containing schema files and data root.
+            
+        Returns:
+            List of Reason objects for invalid sensor token references, or None if all valid.
+        """
         sensor_token_filepath = context.to_schema_file(self.target).unwrap()
         sensor_tokens = {
             item[self.reference] for item in load_json_safe(sensor_token_filepath).unwrap()
@@ -41,7 +52,7 @@ class REF301(ExternalReferenceChecker):
         # Get all valid pointcloud info records with their filenames
         valid_records = (
             (
-                record.get("info_filename", ""),
+                record.get("info_filename"),
                 PointCloudMetainfo.from_file(
                     data_root.joinpath(record.get("info_filename"))
                 ).source_tokens,

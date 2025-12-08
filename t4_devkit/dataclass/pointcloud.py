@@ -21,7 +21,7 @@ __all__ = [
     "SegmentationPointCloud",
     "PointCloudLike",
     "PointCloudMetainfo",
-    "PointcloudSourceInfo",
+    "PointCloudSourceInfo",
     "Stamp",
 ]
 
@@ -38,9 +38,17 @@ class Stamp:
     sec: int
     nanosec: int
 
+    @property
+    def in_seconds(self) -> float:
+        """Convert timestamp to seconds as a float.
 
+        Returns:
+            float: Timestamp in seconds.
+        """
+        return self.sec + self.nanosec * 1e-9
+    
 @define
-class PointcloudSourceInfo:
+class PointCloudSourceInfo:
     """A dataclass to represent pointcloud source information.
 
     Attributes:
@@ -62,11 +70,11 @@ class PointCloudMetainfo:
 
     Attributes:
         stamp (Stamp): Timestamp.
-        sources (list[PointcloudSourceInfo]): List of source information.
+        sources (list[PointCloudSourceInfo]): List of source information.
     """
 
     stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
-    sources: list[PointcloudSourceInfo] = field(factory=list)
+    sources: list[PointCloudSourceInfo] = field(factory=list)
 
     @classmethod
     def from_file(cls, filepath: str) -> Self:
@@ -82,7 +90,7 @@ class PointCloudMetainfo:
         stamp = Stamp(**data["stamp"])
         sources = []
         for source_data in data.get("sources", []):
-            sources.append(PointcloudSourceInfo(**source_data))
+            sources.append(PointCloudSourceInfo(**source_data))
         return cls(stamp=stamp, sources=sources)
 
     @property
@@ -93,7 +101,6 @@ class PointCloudMetainfo:
             list[str]: List of sensor tokens.
         """
         return [source.sensor_token for source in self.sources]
-
 
 @define
 class PointCloud:
