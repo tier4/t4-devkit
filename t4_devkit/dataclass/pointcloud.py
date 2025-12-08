@@ -21,7 +21,7 @@ __all__ = [
     "SegmentationPointCloud",
     "PointCloudLike",
     "PointCloudMetainfo",
-    "PointcloudSourceInfo",
+    "PointCloudSourceInfo",
     "Stamp",
 ]
 
@@ -38,19 +38,28 @@ class Stamp:
     sec: int
     nanosec: int
 
+    @property
+    def in_seconds(self) -> float:
+        """Convert timestamp to seconds as a float.
+
+        Returns:
+            float: Timestamp in seconds.
+        """
+        return self.sec + self.nanosec * 1e-9
+
 
 @define
-class PointcloudSourceInfo:
+class PointCloudSourceInfo:
     """A dataclass to represent pointcloud source information.
 
     Attributes:
-        id (str): source identifier.
+        sensor_token (str): source sensor identifier. References token field from Sensor table.
         idx_begin (int): Begin index of points for the source in the concatenated pointcloud structure.
         length (int): Length of points for the source in the concatenated pointcloud structure.
         stamp (Stamp): Timestamp.
     """
 
-    id: str
+    sensor_token: str
     idx_begin: int
     length: int
     stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
@@ -62,11 +71,11 @@ class PointCloudMetainfo:
 
     Attributes:
         stamp (Stamp): Timestamp.
-        sources (list[PointcloudSourceInfo]): List of source information.
+        sources (list[PointCloudSourceInfo]): List of source information.
     """
 
     stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
-    sources: list[PointcloudSourceInfo] = field(factory=list)
+    sources: list[PointCloudSourceInfo] = field(factory=list)
 
     @classmethod
     def from_file(cls, filepath: str) -> Self:
@@ -82,17 +91,17 @@ class PointCloudMetainfo:
         stamp = Stamp(**data["stamp"])
         sources = []
         for source_data in data.get("sources", []):
-            sources.append(PointcloudSourceInfo(**source_data))
+            sources.append(PointCloudSourceInfo(**source_data))
         return cls(stamp=stamp, sources=sources)
 
     @property
-    def source_ids(self) -> list[str]:
-        """Get the list of source sensor IDs.
+    def source_tokens(self) -> list[str]:
+        """Get the list of source sensor tokens.
 
         Returns:
-            list[str]: List of sensor names.
+            list[str]: List of sensor tokens.
         """
-        return [source.id for source in self.sources]
+        return [source.sensor_token for source in self.sources]
 
 
 @define
@@ -128,30 +137,30 @@ class PointCloud:
         # Collect all intervals defined by sources
         intervals = []
         for source_info in value.sources:
-            source_id = source_info.id
+            source_token = source_info.sensor_token
             idx_begin = source_info.idx_begin
             length = source_info.length
             idx_end = idx_begin + length
 
             # Check bounds
             if idx_begin < 0:
-                raise ValueError(f"Source '{source_id}' has negative idx_begin: {idx_begin}")
+                raise ValueError(f"Source '{source_token}' has negative idx_begin: {idx_begin}")
             if length < 0:
-                raise ValueError(f"Source '{source_id}' has negative length: {length}")
+                raise ValueError(f"Source '{source_token}' has negative length: {length}")
             if idx_end > num_points:
                 raise ValueError(
-                    f"Source '{source_id}' exceeds point cloud size: "
+                    f"Source '{source_token}' exceeds point cloud size: "
                     f"idx_begin={idx_begin}, length={length}, but num_points={num_points}"
                 )
 
-            intervals.append((idx_begin, idx_end, source_id))
+            intervals.append((idx_begin, idx_end, source_token))
 
         # Sort intervals by start index
         intervals.sort(key=lambda x: x[0])
 
         # Check for non-overlapping and complete coverage
         expected_start = 0
-        for idx_begin, idx_end, source_id in intervals:
+        for idx_begin, idx_end, source_token in intervals:
             if idx_begin != expected_start:
                 if idx_begin > expected_start:
                     raise ValueError(
@@ -159,7 +168,7 @@ class PointCloud:
                     )
                 else:
                     raise ValueError(
-                        f"Overlap detected: source '{source_id}' starts at {idx_begin}, "
+                        f"Overlap detected: source '{source_token}' starts at {idx_begin}, "
                         f"but previous source ends at {expected_start}"
                     )
             expected_start = idx_end

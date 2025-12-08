@@ -91,3 +91,18 @@ class FileReferenceChecker(Checker):
                 return Nothing if x.exists() else Maybe.from_value(Reason(f"Missing {x}"))
             case _:
                 return Maybe.from_value(Reason("Missing 'annotation' directory path"))
+
+
+class ExternalReferenceChecker(Checker):
+    """Base class for external reference checks to database tables.
+
+    Attributes:
+        name (RuleName): The name of the rule.
+        severity (Severity): The severity of the rule.
+        description (str): The description of the rule.
+        target (SchemaName): The target schema name.
+        reference (str): The field name in the target schema (e.g., 'token') to reference.
+    """
+
+    target: SchemaName
+    reference: str
