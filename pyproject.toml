@@ -10,7 +10,7 @@ authors = [{ name = "Kotaro Uetake", email = "kotaro.uetake@tier4.jp" }]
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "rerun-sdk>=0.20.0",
+    "rerun-sdk>=0.20.0,<0.28.0",
     "pyquaternion>=0.9.9",
     "matplotlib>=3.9.2",
     "shapely<2.0.0; python_version=='3.10'",
