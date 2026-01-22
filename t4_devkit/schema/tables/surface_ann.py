@@ -42,6 +42,13 @@ class SurfaceAnn(SchemaBase, AutolabelMixin):
         converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
         validator=validators.optional(validators.instance_of(RLEMask)),
     )
+    instance_token: str | None = field(
+        default=None, validator=validators.optional(validators.instance_of(str))
+    )
+    attribute_tokens: list[str] | None = field(
+        default=None,
+        validator=validators.optional(validators.deep_iterable(validators.instance_of(str))),
+    )
 
     # shortcuts
     category_name: str = field(init=False, factory=str)

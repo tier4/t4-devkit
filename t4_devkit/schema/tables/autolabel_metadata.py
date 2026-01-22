@@ -11,23 +11,24 @@ class AutolabelModel:
 
     Attributes:
         name (str): Name of the model used for annotation. Can include version information.
-        score (float): Label score for the annotation from this model (range: 0.0–1.0).
+        score (float | None): Label score for the annotation from this model (range: 0.0–1.0).
         uncertainty (float | None, optional): Model-reported uncertainty for the annotation (range: 0.0–1.0).
             Lower values imply higher confidence.
     """
 
     name: str = field(validator=validators.instance_of(str))
-    score: float = field(
-        validator=[
-            validators.instance_of(float),
-            validators.and_(validators.ge(0.0), validators.le(1.0)),
-        ]
+    score: float | None = field(
+        default=None,
+        validator=validators.optional(
+            [
+                validators.instance_of(float),
+                validators.and_(validators.ge(0.0), validators.le(1.0)),
+            ]
+        ),
     )
     uncertainty: float | None = field(
         default=None,
-        validator=validators.optional(
-            (validators.instance_of(float), validators.and_(validators.ge(0.0), validators.le(1.0)))
-        ),
+        validator=validators.optional(validators.instance_of(float)),
     )
 
     @staticmethod
@@ -47,6 +48,20 @@ class AutolabelModel:
         raise TypeError("Input must be None or a list of [dicts or AutolabelModel] instances.")
 
 
+@define
+class AutolabelMetadata:
+    """A dataclass to represent metadata used in auto-labeling.
+
+    Attributes:
+        models (list[AutolabelModel]): List of auto-labeling model information.
+    """
+
+    models: list[AutolabelModel] = field(
+        converter=AutolabelModel.to_autolabel_model,
+        validator=validators.deep_iterable(validators.instance_of(AutolabelModel)),
+    )
+
+
 @define(slots=False)
 class AutolabelMixin:
     """Mixin class for schema tables that use autolabel metadata with automatic annotation."""
@@ -54,12 +69,10 @@ class AutolabelMixin:
     automatic_annotation: bool = field(
         default=False, validator=validators.instance_of(bool), kw_only=True
     )
-    autolabel_metadata: list[AutolabelModel] | None = field(
+    autolabel_metadata: AutolabelMetadata | None = field(
         default=None,
-        converter=AutolabelModel.to_autolabel_model,
-        validator=validators.optional(
-            validators.deep_iterable(validators.instance_of(AutolabelModel))
-        ),
+        converter=lambda x: AutolabelMetadata(**x) if x is not None else None,
+        validator=validators.optional(validators.instance_of(AutolabelMetadata)),
         kw_only=True,
     )
 
