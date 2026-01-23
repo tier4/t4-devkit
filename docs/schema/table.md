@@ -36,9 +36,19 @@ The `AutolabelModel` type used in `autolabel_metadata` fields has the following 
 
 ```json
 AutolabelModel {
-  "name":                     <str> -- Name of the model used for annotation. Can include version information.
+  "name":                     <str> -- Name of the model used for auto-labeling. Can include version information.
   "score":                    <float> -- Label score for the annotation from this model (range: 0.0–1.0).
   "uncertainty":              <option[float]> -- Model-reported uncertainty for the annotation (range: 0.0–1.0). Lower values imply higher confidence.
+}
+```
+
+#### `AutolabelMetadata`
+
+The `AutolabelMetadata` type consists of a list of `AutolabelModel`, and it has the following structure:
+
+```json
+AutolabelMetadata {
+  "models":                   <list[AutolabelModel]> -- List of models used for auto-labeling.
 }
 ```
 
@@ -231,7 +241,7 @@ sample_annotation {
   "next":                   <str> -- Foreign key to the `SampleAnnotation` table associated with the next annotation in the sequence. Empty string `""` if this is the last annotation.
   "prev":                   <str> -- Foreign key to the `SampleAnnotation` table associated with the previous annotation in the sequence. Empty string `""` if this is the first annotation.
   "automatic_annotation":   <bool> -- Indicates whether the annotation was automatically generated. Defaults to `false`.
-  "autolabel_metadata":     <option[[AutolabelModel;N]]> -- List of models used for autolabeling. Required if `automatic_annotation` is `true`.
+  "autolabel_metadata":       <option[AutolabelMetadata]> -- Metadata of models used in auto-labeling. Required if `automatic_annotation` is `true`.
 }
 ```
 
@@ -258,7 +268,7 @@ sample_data {
   "prev":                     <str> -- Foreign key to the `SampleData` table associated with the previous data in the sequence. Empty string `""` if this is the first data.
   "is_valid":                 <bool> -- Indicates whether this data is valid. Defaults to `true`.
   "info_filename":            <option[str]> -- Relative path to metadata-blob file.
-  "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling applied to this entire sample_data item (e.g., image or scan).
+  "autolabel_metadata":       <option[AutolabelMetadata]> -- Metadata of models used for auto-labeling applied to this entire sample_data item (e.g., image or scan).
 }
 ```
 
@@ -367,7 +377,7 @@ object_ann {
   "orientation":              <option[float]> -- Orientation of the arrow shape within the bounding box, in radians. Present only for categories where `has_orientation` is true (e.g., traffic light arrows).
   "number":                   <option[int]> -- The digit displayed within the bounding box. Present only for categories where `has_number` is true (e.g., numeric traffic lights).
   "automatic_annotation":     <bool> -- Whether the annotation was automatically generated. Defaults to `false`.
-  "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling. Required if `automatic_annotation` is `true`.
+  "autolabel_metadata":       <option[AutolabelMetadata]> -- Metadata of models used in auto-labeling. Required if `automatic_annotation` is `true`.
 }
 ```
 
@@ -384,7 +394,7 @@ surface_ann {
   "category_token":           <str> -- Foreign key to the `Category` table associated with the category of the surface.
   "mask":                     <RLE> -- Run length encoding of instance mask.
   "automatic_annotation":     <bool> -- Whether the annotation was automatically generated. Defaults to `false`.
-  "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling. Required if `automatic_annotation` is `true`.
+  "autolabel_metadata":       <option[AutolabelMetadata]> -- Metadata of models used in auto-labeling. Required if `automatic_annotation` is `true`.
 }
 ```
 

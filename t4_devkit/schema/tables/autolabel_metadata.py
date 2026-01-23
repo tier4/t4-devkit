@@ -32,7 +32,7 @@ class AutolabelModel:
         """Convert input to a list of AutolabelModel instances.
 
         Args:
-            x (list[dict | AutolabelModel] | None): Input to convert. Can be None, a list of dicts, or a list of AutolabelModel instances.
+            x (list[dict | AutolabelModel] | None): Can be None or a list of [dicts or AutolabelModel] instances.
 
         Returns:
             list[AutolabelModel] | None: Converted list of AutolabelModel instances or None.
@@ -44,19 +44,63 @@ class AutolabelModel:
         raise TypeError("Input must be None or a list of [dicts or AutolabelModel] instances.")
 
 
-@define(slots=False)
-class AutolabelMixin:
-    """Mixin class for schema tables that use autolabel metadata with automatic annotation."""
+@define
+class AutolabelMetadata:
+    """A dataclass to represent metadata of models used in auto-labeling.
 
-    automatic_annotation: bool = field(
-        default=False, validator=validators.instance_of(bool), kw_only=True
-    )
-    autolabel_metadata: list[AutolabelModel] | None = field(
-        default=None,
+    Attributes:
+        models (list[AutolabelModel]): List of AutolabelModel instances.
+    """
+
+    models: list[AutolabelModel] | None = field(
         converter=AutolabelModel.to_autolabel_model,
         validator=validators.optional(
             validators.deep_iterable(validators.instance_of(AutolabelModel))
         ),
+    )
+
+    @staticmethod
+    def to_autolabel_metadata(
+        x: dict | AutolabelMetadata | list[dict | AutolabelModel] | None,
+    ) -> AutolabelMetadata | None:
+        """Convert input to an AutolabelMetadata instance.
+
+        Args:
+            x (dict | AutolabelMetadata | list[dict | AutolabelModel] | None):
+                Input to convert. Can be None, a dict, or an AutolabelMetadata instance.
+
+        Returns:
+            AutolabelMetadata | None: Converted AutolabelMetadata instance or None.
+        """
+        if x is None:
+            return None
+        if isinstance(x, AutolabelMetadata):
+            return x
+        if isinstance(x, list):
+            return AutolabelMetadata(x)
+        if isinstance(x, dict):
+            return AutolabelMetadata(x.get("models", None))
+        raise TypeError(
+            "Input must be None, a dict, an AutolabelMetadata instance, or a list of [dicts or AutolabelModel] instances."
+        )
+
+
+@define(slots=False)
+class AutolabelMixin:
+    """Mixin class for schema tables that use autolabel metadata with automatic annotation.
+
+    Attributes:
+        automatic_annotation (bool, optional): Indicates whether the annotation is generated automatically.
+        autolabel_metadata (AutolabelMetadata | None, optional): Metadata of models used in auto-labeling.
+    """
+
+    automatic_annotation: bool = field(
+        default=False, validator=validators.instance_of(bool), kw_only=True
+    )
+    autolabel_metadata: AutolabelMetadata | None = field(
+        default=None,
+        converter=AutolabelMetadata.to_autolabel_metadata,
+        validator=validators.optional(validators.instance_of(AutolabelMetadata)),
         kw_only=True,
     )
 
