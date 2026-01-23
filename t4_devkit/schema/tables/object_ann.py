@@ -24,11 +24,13 @@ class RLEMask:
     """A dataclass to represent segmentation mask compressed by RLE.
 
     Attributes:
-        size (list[int, int]): Size of image ordering (width, height).
+        size (tuple[int, int]): Size of image ordering (width, height).
         counts (str): RLE compressed mask data.
     """
 
-    size: list[int, int] = field(validator=validators.deep_iterable(validators.instance_of(int)))
+    size: tuple[int, int] = field(
+        converter=tuple, validator=validators.deep_iterable(validators.instance_of(int))
+    )
     counts: str = field(validator=validators.instance_of(str))
 
     @property
