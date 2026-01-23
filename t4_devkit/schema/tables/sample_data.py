@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from attrs import define, field, validators
 
 from ..name import SchemaName
-from .autolabel_metadata import AutolabelModel
+from .autolabel_metadata import AutolabelMetadata
 from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
@@ -86,7 +86,7 @@ class SampleData(SchemaBase):
             Empty if start of scene.
         is_valid (bool): True if this data is valid, else False. Invalid data should be ignored.
         info_filename (str): Relative path to metainfo data-blob on disk.
-        autolabel_metadata (list[AutolabelModel] | None, optional): List of models used for autolabeling applied to this entire sample_data item (e.g., image or scan).
+        autolabel_metadata (AutolabelMetadata | None, optional): Metadata of models used for autolabeling applied to this entire sample_data item (e.g., image or scan).
 
     Shortcuts:
     ---------
@@ -111,12 +111,10 @@ class SampleData(SchemaBase):
     info_filename: str | None = field(
         default=None, validator=validators.optional(validators.instance_of(str))
     )
-    autolabel_metadata: list[AutolabelModel] | None = field(
+    autolabel_metadata: AutolabelMetadata | None = field(
         default=None,
-        converter=AutolabelModel.to_autolabel_model,
-        validator=validators.optional(
-            validators.deep_iterable(validators.instance_of(AutolabelModel))
-        ),
+        converter=AutolabelMetadata.to_autolabel_metadata,
+        validator=validators.optional(validators.instance_of(AutolabelMetadata)),
     )
 
     # shortcuts
