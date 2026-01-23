@@ -12,7 +12,7 @@ __all__ = ["SchemaBase", "SchemaTable"]
 
 
 def impossible_empty():
-    """A validator that raises ValueError if value is empty."""
+    """Factory function that returns a validator instance which raises ValueError if value is empty."""
     return _ImpossibleEmptyValidator()
 
 
