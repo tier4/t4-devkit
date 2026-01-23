@@ -34,7 +34,7 @@ class Sample(SchemaBase):
     """
 
     timestamp: int = field(validator=validators.instance_of(int))
-    scene_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    scene_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     next: str = field(validator=validators.instance_of(str))
     prev: str = field(validator=validators.instance_of(str))
 

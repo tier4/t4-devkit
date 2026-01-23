@@ -11,17 +11,23 @@ from t4_devkit.common.io import load_json
 __all__ = ["SchemaBase", "SchemaTable"]
 
 
-def impossible_empty(instance, attribute, value: Sized) -> None:
+def impossible_empty():
     """A validator that raises ValueError if value is empty."""
-    if len(value) == 0:
-        raise ValueError(f"{attribute.name} cannot be empty")
+    return _ImpossibleEmptyValidator()
+
+
+@define(slots=True, unsafe_hash=True)
+class _ImpossibleEmptyValidator:
+    def __call__(self, instance, attribute, value: Sized) -> None:
+        if len(value) == 0:
+            raise ValueError(f"{attribute.name} cannot be empty")
 
 
 @define
 class SchemaBase(ABC):
     """Abstract base dataclass of schema tables."""
 
-    token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    token: str = field(validator=(validators.instance_of(str), impossible_empty()))
 
     @classmethod
     def from_json(cls, filepath: str) -> list[SchemaTable]:

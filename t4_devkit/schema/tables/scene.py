@@ -26,7 +26,7 @@ class Scene(SchemaBase):
 
     name: str = field(validator=validators.instance_of(str))
     description: str = field(validator=validators.instance_of(str))
-    log_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    log_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     nbr_samples: int = field(validator=validators.instance_of(int))
-    first_sample_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    last_sample_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    first_sample_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    last_sample_token: str = field(validator=(validators.instance_of(str), impossible_empty()))

@@ -29,10 +29,10 @@ class Keypoint(SchemaBase):
         num_keypoints (int): The number of keypoints to be annotated.
     """
 
-    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     category_tokens: list[str] = field(
-        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty()))
     )
     keypoints: KeypointLike = field(converter=np.array)
     num_keypoints: int = field(validator=validators.instance_of(int))

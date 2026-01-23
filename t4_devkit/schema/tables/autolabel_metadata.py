@@ -18,15 +18,12 @@ class AutolabelModel:
 
     name: str = field(validator=validators.instance_of(str))
     score: float = field(
-        validator=[
-            validators.instance_of(float),
-            validators.and_(validators.ge(0.0), validators.le(1.0)),
-        ]
+        validator=(validators.instance_of(float), validators.ge(0.0), validators.le(1.0))
     )
     uncertainty: float | None = field(
         default=None,
         validator=validators.optional(
-            (validators.instance_of(float), validators.and_(validators.ge(0.0), validators.le(1.0)))
+            validators.and_(validators.instance_of(float), validators.ge(0.0), validators.le(1.0))
         ),
     )
 

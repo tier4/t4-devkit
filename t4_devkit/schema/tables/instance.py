@@ -25,7 +25,7 @@ class Instance(SchemaBase):
             Empty if the dataset only contains 2D annotations.
     """
 
-    category_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     instance_name: str = field(validator=validators.instance_of(str))
     nbr_annotations: int = field(validator=validators.instance_of(int))
     first_annotation_token: str = field(validator=validators.instance_of(str))

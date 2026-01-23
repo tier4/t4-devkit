@@ -26,7 +26,7 @@ class CalibratedSensor(SchemaBase):
         camera_distortion (CameraDistortion): Camera distortion array. Empty for sensors that are not cameras.
     """
 
-    sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     translation: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)
     camera_intrinsic: CameraIntrinsic = field(converter=CameraIntrinsic)

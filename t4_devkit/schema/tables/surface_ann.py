@@ -35,8 +35,8 @@ class SurfaceAnn(SchemaBase, AutolabelMixin):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    category_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     mask: RLEMask | None = field(
         default=None,
         converter=lambda x: RLEMask(**x) if isinstance(x, dict) else x,
