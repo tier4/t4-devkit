@@ -369,6 +369,8 @@ def surface_ann_dict() -> dict:
         "token": "4230e00708fb3f404d246ea97716f848",
         "sample_data_token": "a1d3257e11ec9d4a587ea7053b33f1c1",
         "category_token": "7864884179fb37bf9e973016b13a332c",
+        "instance_token": None,
+        "attribute_tokens": [],
         "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
         "automatic_annotation": False,
         "autolabel_metadata": None,
