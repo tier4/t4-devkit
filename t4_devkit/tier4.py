@@ -12,6 +12,7 @@ from attrs import define
 from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image
+from t4_devkit.compatibility import fix_category_table
 from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel, Shape, ShapeType
 from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
@@ -181,6 +182,8 @@ class Tier4:
             self.annotation_dir, SchemaName.CALIBRATED_SENSOR
         )
         self.category: list[Category] = load_table(self.annotation_dir, SchemaName.CATEGORY)
+        self.category = fix_category_table(self.category)
+
         self.ego_pose: list[EgoPose] = load_table(self.annotation_dir, SchemaName.EGO_POSE)
         self.instance: list[Instance] = load_table(self.annotation_dir, SchemaName.INSTANCE)
         self.keypoint: list[Keypoint] = load_table(self.annotation_dir, SchemaName.KEYPOINT)
@@ -265,7 +268,7 @@ class Tier4:
         }
 
         self._label2id: dict[str, int] = {
-            category.name: idx for idx, category in enumerate(self.category)
+            category.name: category.index for category in self.category
         }
 
         # add shortcuts
