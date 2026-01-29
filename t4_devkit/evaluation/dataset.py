@@ -1,17 +1,25 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 from attrs import define
 
 from t4_devkit import Tier4
-from t4_devkit.dataclass import HomogeneousMatrix, TransformBuffer
+from t4_devkit.dataclass import BoxLike, HomogeneousMatrix, SegmentationPointCloud, TransformBuffer
+from t4_devkit.typing import NDArrayU8
 
 from .task import EvaluationTask
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import BoxLike
     from t4_devkit.schema import EgoPose, Sensor
+
+
+EvaluationObjectLike = TypeVar(
+    "EvaluationObjectLike",
+    list[BoxLike],  # boxes
+    SegmentationPointCloud,  # pointcloud
+    NDArrayU8,  # mask
+)
 
 
 __all__ = ["load_dataset", "FrameGroundTruth", "SceneGroundTruth"]
@@ -27,16 +35,20 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
     Returns:
         SceneGroundTruth: Loaded container of ground truths.
     """
-    t4 = Tier4("annotation", data_root=data_root, verbose=False)
+    t4 = Tier4(data_root, verbose=False)
 
     frames: list[FrameGroundTruth] = []
     for i, sample in enumerate(t4.sample):
-        # annotation boxes
-        boxes = (
-            list(map(t4.get_box3d, sample.ann_3ds))
-            if task.is_3d()
-            else list(map(t4.get_box2d, sample.ann_2ds))
-        )
+        # annotations
+        if task.is_segmentation():
+            # TODO(ktro2828): add support of segmentation object
+            raise NotImplementedError("Segmentation task is under construction.")
+        else:
+            annotations = (
+                list(map(t4.get_box3d, sample.ann_3ds))
+                if task.is_3d()
+                else list(map(t4.get_box2d, sample.ann_2ds))
+            )
 
         # transformation matrix from ego to map
         ego_pose = _closest_ego_pose(t4, sample.timestamp)
@@ -51,7 +63,7 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
             FrameGroundTruth(
                 unix_time=sample.timestamp,
                 frame_index=i,
-                boxes=boxes,
+                annotations=annotations,
                 ego2map=ego2map,
             )
         )
@@ -84,13 +96,13 @@ class FrameGroundTruth:
     Attributes:
         unix_time (int): Unix timestamp.
         frame_index (int): Index number of the frame.
-        boxes (list[BoxLike]): List of ground truth instances.
+        annotations (EvaluationObjectLike): Set of ground truth instances.
         ego2map (HomogeneousMatrix): Transformation matrix from ego to map coordinate.
     """
 
     unix_time: int
     frame_index: int
-    boxes: list[BoxLike]
+    annotations: EvaluationObjectLike
     ego2map: HomogeneousMatrix
 
 

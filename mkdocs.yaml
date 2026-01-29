@@ -20,6 +20,7 @@ nav:
       - Home: cli/index.md
       - t4viz: cli/t4viz.md
       - t4sanity: cli/t4sanity.md
+  - Evaluation: tutorials/evaluation.md
   - API References:
       - t4_devkit.tier4: apis/tier4.md
       - t4_devkit.helper: apis/helper.md
