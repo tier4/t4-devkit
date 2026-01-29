@@ -1,28 +1,31 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+import os.path as osp
+from typing import TYPE_CHECKING
 
+import numpy as np
 from attrs import define
 
 from t4_devkit import Tier4
-from t4_devkit.dataclass import BoxLike, HomogeneousMatrix, SegmentationPointCloud, TransformBuffer
-from t4_devkit.typing import NDArrayU8
+from t4_devkit.dataclass import BoxLike, HomogeneousMatrix, TransformBuffer
+from t4_devkit.typing import NDArray
 
 from .task import EvaluationTask
 
 if TYPE_CHECKING:
-    from t4_devkit.schema import EgoPose, Sensor
+    from t4_devkit.schema import EgoPose, ObjectAnn, Sample, SampleData, Sensor, SurfaceAnn
+
+__all__ = ["EvaluationObjectLike", "load_dataset", "FrameGroundTruth", "SceneGroundTruth"]
 
 
-EvaluationObjectLike = TypeVar(
-    "EvaluationObjectLike",
-    list[BoxLike],  # boxes
-    SegmentationPointCloud,  # pointcloud
-    NDArrayU8,  # mask
-)
+EvaluationObjectLike = list[BoxLike] | dict[str, NDArray] | NDArray
+"""Type alias for evaluation objects.
 
-
-__all__ = ["load_dataset", "FrameGroundTruth", "SceneGroundTruth"]
+Accepts:
+    list[BoxLike]: Boxes.
+    dict[str, NDArray]: Semantic masks for each camera in the shape of (H, W).
+    NDArray: Semantic pointcloud in the shape of (N,).
+"""
 
 
 def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
@@ -41,8 +44,11 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
     for i, sample in enumerate(t4.sample):
         # annotations
         if task.is_segmentation():
-            # TODO(ktro2828): add support of segmentation object
-            raise NotImplementedError("Segmentation task is under construction.")
+            annotations = (
+                _load_segmentation2d(t4, sample)
+                if task.is_2d()
+                else _load_segmentation3d(t4, sample)
+            )
         else:
             # TODO(ktro2828): add support of prediction future
             annotations = (
@@ -50,6 +56,9 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
                 if task.is_3d()
                 else list(map(t4.get_box2d, sample.ann_2ds))
             )
+
+        if annotations is None:
+            continue
 
         # transformation matrix from ego to map
         ego_pose = _closest_ego_pose(t4, sample.timestamp)
@@ -88,6 +97,46 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
 def _closest_ego_pose(t4: Tier4, timestamp: int) -> EgoPose:
     """Lookup the ego pose record at the closest timestamp."""
     return min(t4.ego_pose, key=lambda e: abs(e.timestamp - timestamp))
+
+
+def _load_segmentation2d(t4: Tier4, sample: Sample) -> dict[str, NDArray]:
+    """Load 2D segmentation masks for each channel."""
+    masks: dict[str, NDArray] = {}
+    for channel, token in sample.data.items():
+        sample_data: SampleData = t4.get("sample_data", token)
+        masks[channel] = np.zeros((sample_data.height, sample_data.width), dtype=np.uint8)
+
+    for token in sample.ann_2ds:
+        object_ann: ObjectAnn = t4.get("object_ann", token)
+        sample_data: SampleData = t4.get("sample_data", object_ann.sample_data_token)
+        masks[sample_data.channel] += object_ann.mask.decode()
+
+    for token in sample.surface_anns:
+        surface_ann: SurfaceAnn = t4.get("surface_ann", token)
+        sample_data: SampleData = t4.get("sample_data", surface_ann.sample_data_token)
+        masks[sample_data.channel] += surface_ann.mask.decode()
+
+    return masks
+
+
+def _load_segmentation3d(t4: Tier4, sample: Sample) -> NDArray | None:
+    """Load 3D pointcloud labels.
+
+    Args:
+        t4 (Tier4): Tier4 instance.
+        sample (Sample): Sample record.
+
+    Returns:
+        NDArray | None: Return label array in the shape of (N,)
+            if the corresponding lidarseg exists, otherwise None.
+    """
+    label: NDArray | None = None
+    for lidarseg in t4.lidarseg:
+        if lidarseg.sample_data_token not in sample.data.values():
+            continue
+        filepath = osp.join(t4.data_root, lidarseg.filename)
+        label = np.fromfile(filepath, dtype=np.uint8)
+    return label
 
 
 @define

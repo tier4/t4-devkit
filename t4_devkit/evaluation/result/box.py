@@ -32,6 +32,13 @@ class BoxMatch:
         if self.estimation is None and self.ground_truth is None:
             raise ValueError("At least one of `estimation` or `ground_truth` must be set.")
 
+        if self.estimation and self.ground_truth:
+            if not isinstance(self.estimation, type(self.ground_truth)):
+                raise ValueError(
+                    "Estimation and ground truth must be of the same type, "
+                    f"got {type(self.estimation)} and {type(self.ground_truth)}"
+                )
+
     def is_matched(self) -> bool:
         return self.estimation is not None and self.ground_truth is not None
 
