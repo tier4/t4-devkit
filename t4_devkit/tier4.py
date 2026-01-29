@@ -12,10 +12,10 @@ from attrs import define
 from pyquaternion import Quaternion
 
 from t4_devkit.common.geometry import is_box_in_image
-from t4_devkit.compatibility import fix_category_table
 from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel, Shape, ShapeType
 from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
+from t4_devkit.schema.compatibility import fix_category_table
 
 if TYPE_CHECKING:
     from t4_devkit.typing import CameraIntrinsicLike, Vector3
