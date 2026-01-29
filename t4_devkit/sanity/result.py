@@ -36,6 +36,7 @@ class Report:
         description (str): The description of the rule.
         status (Status): The status of the report.
         reasons (list[Reason] | None): The list of reasons for the report if the report is a failure or skipped.
+        fixed (bool): Whether the report is fixed.
     """
 
     id: RuleID
@@ -44,6 +45,7 @@ class Report:
     description: str
     status: Status
     reasons: list[Reason] | None = field(default=None)
+    fixed: bool = False
 
     def __attrs_post_init__(self) -> None:
         if self.status == Status.PASSED:
@@ -57,6 +59,7 @@ class Report:
             self.status == Status.PASSED
             or self.is_skipped()
             or (not strict and self.severity.is_warning())
+            or self.fixed
         )
 
     def is_failed(self, *, strict: bool = False) -> bool:
@@ -79,8 +82,9 @@ class Report:
             A string representation of the report.
         """
         parts = []
+        is_fixed = " --> FIXED" if self.fixed else ""
         if not self.is_passed(strict=strict):
-            parts.append(f"\033[31m  {self.id}:\033[0m\n")
+            parts.append(f"\033[31m  {self.id}:\033[0m{is_fixed}\n")
             for reason in self.reasons or []:
                 parts.append(f"\033[31m     - {reason}\033[0m\n")
         elif self.is_skipped():
@@ -88,7 +92,7 @@ class Report:
             for reason in self.reasons or []:
                 parts.append(f"\033[36m     - {reason}\033[0m\n")
         elif self.severity.is_warning() and self.reasons:
-            parts.append(f"\033[33m  {self.id}:\033[0m\n")
+            parts.append(f"\033[33m  {self.id}:\033[0m{is_fixed}\n")
             for reason in self.reasons or []:
                 parts.append(f"\033[33m     - {reason}\033[0m\n")
         else:
@@ -102,10 +106,11 @@ def make_report(
     severity: Severity,
     description: str,
     reasons: list[Reason] | None = None,
+    fixed: bool = False,
 ) -> Report:
     """Make a report for the given rule."""
     if reasons:
-        return Report(id, name, severity, description, Status.FAILED, reasons)
+        return Report(id, name, severity, description, Status.FAILED, reasons, fixed)
     else:
         return Report(id, name, severity, description, Status.PASSED)
 
@@ -190,12 +195,15 @@ def print_sanity_result(result: SanityResult, *, strict: bool = False) -> None:
     # just count the number of warnings
     warnings = sum(1 for rp in result.reports if rp.severity.is_warning() and rp.reasons)
 
-    summary_rows = [[result.dataset_id, result.version, passed, failed, skipped, warnings]]
+    # count the number of fixed issues
+    fixed = sum(1 for rp in result.reports if rp.fixed)
+
+    summary_rows = [[result.dataset_id, result.version, passed, failed, skipped, warnings, fixed]]
 
     print(
         tabulate(
             summary_rows,
-            headers=["DatasetID", "Version", "Passed", "Failed", "Skipped", "Warnings"],
+            headers=["DatasetID", "Version", "Passed", "Failed", "Skipped", "Warnings", "Fixed"],
             tablefmt="pretty",
         ),
     )

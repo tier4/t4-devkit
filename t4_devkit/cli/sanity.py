@@ -42,8 +42,11 @@ def main(
         "--strict",
         help="By default, warnings do not cause failure. If set, warnings are treated as failures.",
     ),
+    fix: bool = typer.Option(
+        False, "-f", "--fix", help="Attempt to fix the issues reported by the sanity check."
+    ),
 ) -> None:
-    result = sanity_check(data_root=data_root, revision=revision, excludes=excludes)
+    result = sanity_check(data_root=data_root, revision=revision, excludes=excludes, fix=fix)
 
     print_sanity_result(result, strict=strict)
 
