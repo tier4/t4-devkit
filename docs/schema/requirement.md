@@ -16,15 +16,15 @@
 
 ## Schema Record (`REC`)
 
-| ID       | Name                          | Severity | Description                                                                              |
-| -------- | ----------------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `REC001` | `scene-single`                | `ERROR`  | `Scene` record is a single.                                                              |
-| `REC002` | `sample-not-empty`            | `ERROR`  | `Sample` record is not empty.                                                            |
-| `REC003` | `sample-data-not-empty`       | `ERROR`  | `SampleData` record is not empty.                                                        |
-| `REC004` | `ego-pose-not-empty`          | `ERROR`  | `EgoPose` record is not empty.                                                           |
-| `REC005` | `calibrated-sensor-non-empty` | `ERROR`  | `CalibratedSensor` record is not empty.                                                  |
-| `REC006` | `instance-not-empty`          | `ERROR`  | `Instance` record is not empty if either 'SampleAnnotation' or 'ObjectAnn' is not empty. |
-| `REC007` | `category-indices-consistent` | `ERROR`  | `Category` records must either all have a unique 'index' or all have a 'null' index.     |
+| ID       | Name                          | Severity | Description                                                                                     |
+| -------- | ----------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `REC001` | `scene-single`                | `ERROR`  | `Scene` record is a single.                                                                     |
+| `REC002` | `sample-not-empty`            | `ERROR`  | `Sample` record is not empty.                                                                   |
+| `REC003` | `sample-data-not-empty`       | `ERROR`  | `SampleData` record is not empty.                                                               |
+| `REC004` | `ego-pose-not-empty`          | `ERROR`  | `EgoPose` record is not empty.                                                                  |
+| `REC005` | `calibrated-sensor-non-empty` | `ERROR`  | `CalibratedSensor` record is not empty.                                                         |
+| `REC006` | `instance-not-empty`          | `ERROR`  | `Instance` record is not empty if either `SampleAnnotation` or `ObjectAnnotation` is not empty. |
+| `REC007` | `category-indices-consistent` | `ERROR`  | `Category` records must either all have a unique `index` or all have a `null` index.            |
 
 ## Reference (`REF`)
 
