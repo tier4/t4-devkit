@@ -57,3 +57,13 @@ class REC007(Checker):
             return [Reason("Categories must have unique 'index' values.")]
 
         return None
+
+    def fix(self, context: SanityContext) -> bool:
+        """Fix the 'index' values of categories."""
+        filepath = context.to_schema_file(self.schema).unwrap()
+        records = load_json_safe(filepath).unwrap()
+
+        for idx, record in enumerate(records):
+            record["index"] = idx
+
+        return context.save_records(self.schema, records)
