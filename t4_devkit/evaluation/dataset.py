@@ -35,7 +35,7 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
     Returns:
         SceneGroundTruth: Loaded container of ground truths.
     """
-    t4 = Tier4("annotation", data_root=data_root, verbose=False)
+    t4 = Tier4(data_root, verbose=False)
 
     frames: list[FrameGroundTruth] = []
     for i, sample in enumerate(t4.sample):
