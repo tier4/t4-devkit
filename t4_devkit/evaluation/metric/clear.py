@@ -45,52 +45,59 @@ class Mota(BaseMetric):
         for i in range(1, num_frame):
             current_frame = frames[i]
             previous_frame = frames[i - 1]
+            self._update_buffer_frame(current_frame, previous_frame, buffer)
+        return buffer
 
-            buffer.num_gt += current_frame.num_gt
-            for current_match in current_frame.matches:
-                is_id_switch = False
-                is_same_match = False
-                for previous_match in previous_frame.matches:
-                    if not previous_match.is_tp(
-                        self.scorer,
-                        self.threshold,
-                        previous_frame.ego2map,
-                    ):
-                        continue
-
-                    is_id_switch = self._is_id_switched(current_match, previous_match)
-                    if is_id_switch:
-                        break
-
-                    is_same_match = self._is_same_match()
-                    if is_same_match:
-                        buffer.num_tp += current_match.is_tp(
-                            scorer=self.scorer,
-                            threshold=self.threshold,
-                            ego2map=current_frame.ego2map,
-                        )
-                        buffer.score += self.scorer(
-                            previous_match.estimation,
-                            previous_match.ground_truth,
-                            ego2map=previous_frame.ego2map,
-                        )
-                        break
-
-                if is_same_match:
+    def _update_buffer_frame(
+        self,
+        current_frame: FrameBoxMatch,
+        previous_frame: FrameBoxMatch,
+        buffer: ClearBuffer,
+    ) -> None:
+        buffer.num_gt += current_frame.num_gt
+        for current_match in current_frame.matches:
+            is_id_switch = False
+            is_same_match = False
+            for previous_match in previous_frame.matches:
+                if not previous_match.is_tp(
+                    self.scorer,
+                    self.threshold,
+                    previous_frame.ego2map,
+                ):
                     continue
 
-                if current_match.is_tp(self.scorer, self.threshold, current_frame.ego2map):
-                    buffer.num_tp += 1
-                    buffer.score += self.scorer(
-                        current_match.estimation,
-                        current_match.ground_truth,
-                        current_frame.ego2map,
+                is_id_switch = self._is_id_switched(current_match, previous_match)
+                if is_id_switch:
+                    break
+
+                is_same_match = self._is_same_match(current_match, previous_match)
+                if is_same_match:
+                    buffer.num_tp += current_match.is_tp(
+                        scorer=self.scorer,
+                        threshold=self.threshold,
+                        ego2map=current_frame.ego2map,
                     )
-                    if is_id_switch:
-                        buffer.num_id_switch += 1
-                else:
-                    buffer.num_fp += 1
-        return buffer
+                    buffer.score += self.scorer(
+                        previous_match.estimation,
+                        previous_match.ground_truth,
+                        ego2map=previous_frame.ego2map,
+                    )
+                    break
+
+            if is_same_match:
+                continue
+
+            if current_match.is_tp(self.scorer, self.threshold, current_frame.ego2map):
+                buffer.num_tp += 1
+                buffer.score += self.scorer(
+                    current_match.estimation,
+                    current_match.ground_truth,
+                    current_frame.ego2map,
+                )
+                if is_id_switch:
+                    buffer.num_id_switch += 1
+            else:
+                buffer.num_fp += 1
 
     def _is_id_switched(self, current_match: BoxMatch, previous_match: BoxMatch) -> bool:
         if (not current_match.is_matched()) and (not previous_match.is_matched()):

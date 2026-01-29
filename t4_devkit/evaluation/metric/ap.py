@@ -69,29 +69,32 @@ class Ap(BaseMetric):
         buffer = self._update_buffer(frames)
         return buffer.compute_ap()
 
-    def _compute_tp(self, _box_match: BoxMatch) -> float:
+    def _compute_tp(self, box_match: BoxMatch) -> float:
         return 1.0
 
     def _update_buffer(self, frames: list[FrameBoxMatch]) -> ApBuffer:
         buffer = self.ApBuffer()
         for frame in frames:
-            buffer.num_gt += frame.num_gt
-            for box_match in frame.matches:
-                if box_match.estimation is None:
-                    continue
-
-                buffer.confidences.append(box_match.estimation.confidence)
-                if box_match.is_tp(
-                    scorer=self.scorer,
-                    threshold=self.threshold,
-                    ego2map=frame.ego2map,
-                ):
-                    buffer.tp_list.append(self._compute_tp(box_match))
-                    buffer.fp_list.append(0.0)
-                else:
-                    buffer.tp_list.append(0.0)
-                    buffer.fp_list.append(1.0)
+            self._update_buffer_frame(frame, buffer)
         return buffer
+
+    def _update_buffer_frame(self, frame: FrameBoxMatch, buffer: ApBuffer) -> None:
+        buffer.num_gt += frame.num_gt
+        for box_match in frame.matches:
+            if box_match.estimation is None:
+                continue
+
+            buffer.confidences.append(box_match.estimation.confidence)
+            if box_match.is_tp(
+                scorer=self.scorer,
+                threshold=self.threshold,
+                ego2map=frame.ego2map,
+            ):
+                buffer.tp_list.append(self._compute_tp(box_match))
+                buffer.fp_list.append(0.0)
+            else:
+                buffer.tp_list.append(0.0)
+                buffer.fp_list.append(1.0)
 
 
 class ApH(Ap):
