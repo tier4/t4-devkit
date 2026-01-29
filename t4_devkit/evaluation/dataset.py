@@ -2,23 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar
 
+import numpy as np
 from attrs import define
 
 from t4_devkit import Tier4
-from t4_devkit.dataclass import BoxLike, HomogeneousMatrix, SegmentationPointCloud, TransformBuffer
-from t4_devkit.typing import NDArrayU8
+from t4_devkit.dataclass import BoxLike, HomogeneousMatrix, TransformBuffer
+from t4_devkit.typing import NDArray
 
 from .task import EvaluationTask
 
 if TYPE_CHECKING:
-    from t4_devkit.schema import EgoPose, Sensor
+    from t4_devkit.schema import EgoPose, ObjectAnn, Sample, SampleData, Sensor, SurfaceAnn
 
 
 EvaluationObjectLike = TypeVar(
     "EvaluationObjectLike",
     list[BoxLike],  # boxes
-    SegmentationPointCloud,  # pointcloud
-    NDArrayU8,  # mask
+    dict[str, NDArray],  # 2D segmentation mask for multiple cameras {channel: (H, W)}
+    NDArray,  # 3D pointcloud label (N)
 )
 
 
@@ -41,8 +42,11 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
     for i, sample in enumerate(t4.sample):
         # annotations
         if task.is_segmentation():
-            # TODO(ktro2828): add support of segmentation object
-            raise NotImplementedError("Segmentation task is under construction.")
+            annotations = (
+                _load_segmentation2d(t4, sample)
+                if task.is_2d()
+                else _load_segmentation3d(t4, sample)
+            )
         else:
             # TODO(ktro2828): add support of prediction future
             annotations = (
@@ -88,6 +92,31 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
 def _closest_ego_pose(t4: Tier4, timestamp: int) -> EgoPose:
     """Lookup the ego pose record at the closest timestamp."""
     return min(t4.ego_pose, key=lambda e: abs(e.timestamp - timestamp))
+
+
+def _load_segmentation2d(t4: Tier4, sample: Sample) -> dict[str, NDArray]:
+    """Load 2D segmentation masks for each channel."""
+    masks: dict[str, NDArray] = {}
+    for channel, token in sample.data.items():
+        sample_data: SampleData = t4.get("sample_data", token)
+        masks[channel] = np.zeros((sample_data.height, sample_data.width), dtype=np.uint8)
+
+    for token in sample.ann_2ds:
+        object_ann: ObjectAnn = t4.get("object_ann", token)
+        sample_data: SampleData = t4.get("sample_data", object_ann.sample_data_token)
+        masks[sample_data.channel] += object_ann.mask.decode()
+
+    for token in sample.surface_anns:
+        surface_ann: SurfaceAnn = t4.get("surface_ann", token)
+        sample_data: SampleData = t4.get("sample_data", surface_ann.sample_data_token)
+        masks[sample_data.channel] += surface_ann.mask.decode()
+
+    return masks
+
+
+def _load_segmentation3d(t4: Tier4, sample: Sample) -> NDArray:
+    """Load 3D pointcloud labels."""
+    pass
 
 
 @define
