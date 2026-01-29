@@ -24,7 +24,7 @@ class REC007(Checker):
     id = RuleID("REC007")
     name = RuleName("category-indices-consistent")
     severity = Severity.ERROR
-    description = "All categories must either have a unique `index` or all be `null`."
+    description = "All categories must either have a unique 'index' or all have a 'null' index."
     schema = SchemaName.CATEGORY
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
@@ -48,10 +48,12 @@ class REC007(Checker):
 
         some_none = any(index is None for index in indices)
         if some_none:
-            return [Reason("All categories either must have an `index` set or all be `null`.")]
+            return [
+                Reason("All categories either must have an 'index' set or all have a 'null' index.")
+            ]
 
         has_duplicates = len(set(indices)) < len(indices)
         if has_duplicates:
-            return [Reason("Categories must have unique `index` values.")]
+            return [Reason("Categories must have unique 'index' values.")]
 
         return None
