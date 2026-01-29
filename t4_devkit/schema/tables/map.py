@@ -22,7 +22,7 @@ class Map(SchemaBase):
     """
 
     log_tokens: list[str] = field(
-        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty()))
     )
     category: str = field(validator=validators.instance_of(str))
     filename: str = field(validator=validators.instance_of(str))

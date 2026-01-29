@@ -21,4 +21,4 @@ class LidarSeg(SchemaBase):
     """
 
     filename: str = field(validator=validators.instance_of(str))
-    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty()))

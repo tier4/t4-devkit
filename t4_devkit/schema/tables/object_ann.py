@@ -24,11 +24,13 @@ class RLEMask:
     """A dataclass to represent segmentation mask compressed by RLE.
 
     Attributes:
-        size (list[int, int]): Size of image ordering (width, height).
+        size (tuple[int, int]): Size of image ordering (width, height).
         counts (str): RLE compressed mask data.
     """
 
-    size: list[int, int] = field(validator=validators.deep_iterable(validators.instance_of(int)))
+    size: tuple[int, int] = field(
+        converter=tuple, validator=validators.deep_iterable(validators.instance_of(int))
+    )
     counts: str = field(validator=validators.instance_of(str))
 
     @property
@@ -76,11 +78,11 @@ class ObjectAnn(SchemaBase, AutolabelMixin):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    category_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    sample_data_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     attribute_tokens: list[str] = field(
-        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty()))
     )
     bbox: Roi = field(converter=Roi)
     mask: RLEMask | None = field(

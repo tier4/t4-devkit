@@ -48,12 +48,12 @@ class SampleAnnotation(SchemaBase, AutolabelMixin):
         category_name (str): Category name. This should be set after instantiated.
     """
 
-    sample_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    sample_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    instance_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     attribute_tokens: list[str] = field(
-        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty))
+        validator=validators.deep_iterable((validators.instance_of(str), impossible_empty()))
     )
-    visibility_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    visibility_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     translation: Vector3 = field(converter=Vector3)
     size: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)

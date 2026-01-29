@@ -95,8 +95,10 @@ class SampleData(SchemaBase):
     """
 
     sample_token: str = field(validator=validators.instance_of(str))
-    ego_pose_token: str = field(validator=(validators.instance_of(str), impossible_empty))
-    calibrated_sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty))
+    ego_pose_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    calibrated_sensor_token: str = field(
+        validator=(validators.instance_of(str), impossible_empty())
+    )
     filename: str = field(validator=validators.instance_of(str))
     fileformat: FileFormat = field(converter=FileFormat)
     width: int = field(validator=validators.instance_of(int))

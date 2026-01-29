@@ -54,7 +54,7 @@ class RenderingHelper:
         """
         self._t4 = t4
         self._label2id: dict[str, int] = {
-            category.name: idx for idx, category in enumerate(self._t4.category)
+            category.name: category.index for category in self._t4.category
         }
         self._sample_data_to_lidarseg_filename: dict[str, str] | None = (
             {lidarseg.sample_data_token: lidarseg.filename for lidarseg in self._t4.lidarseg}
