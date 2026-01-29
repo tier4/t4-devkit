@@ -28,8 +28,10 @@ class FilterParams:
 
     labels: Sequence[str | SemanticLabel] | None = field(
         default=None,
-        validator=validators.deep_iterable(
-            validators.or_(validators.instance_of(str), validators.instance_of(SemanticLabel))
+        validator=validators.optional(
+            validators.deep_iterable(
+                validators.or_(validators.instance_of(str), validators.instance_of(SemanticLabel))
+            )
         ),
     )
     uuids: Sequence[str] | None = field(

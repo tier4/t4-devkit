@@ -4,6 +4,17 @@ from t4_devkit.filtering import BoxFilter, FilterParams
 from t4_devkit.schema import VisibilityLevel
 
 
+def test_composite_filter_with_default_params(dummy_box3ds, dummy_box2ds, dummy_tf_buffer):
+    params = FilterParams()
+    box_filter = BoxFilter(params, dummy_tf_buffer)
+
+    answer3d = box_filter(dummy_box3ds)
+    answer2d = box_filter(dummy_box2ds)
+
+    assert len(answer3d) == len(dummy_box3ds)
+    assert len(answer2d) == len(dummy_box2ds)
+
+
 def test_composite_filter(dummy_box3ds, dummy_box2ds, dummy_tf_buffer) -> None:
     """Test `BoxFilter` compositing the box filters.
 
