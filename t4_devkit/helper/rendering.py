@@ -400,6 +400,7 @@ class RenderingHelper:
             current_lidar_token = first_lidar_token
             while current_lidar_token != "":
                 sample_data: SampleData = self._t4.get("sample_data", current_lidar_token)
+                current_lidar_token = sample_data.next
 
                 if max_timestamp_us < sample_data.timestamp:
                     break
@@ -436,8 +437,6 @@ class RenderingHelper:
                         pointcloud=pointcloud,
                         color_mode=color_mode,
                     )
-
-                current_lidar_token = sample_data.next
 
         return [self._executor.submit(_render_single_lidar, token) for token in first_lidar_tokens]
 
