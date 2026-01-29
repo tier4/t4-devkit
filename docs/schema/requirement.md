@@ -24,6 +24,7 @@
 | `REC004` | `ego-pose-not-empty`          | `ERROR`  | `EgoPose` record is not empty.                                                                  |
 | `REC005` | `calibrated-sensor-non-empty` | `ERROR`  | `CalibratedSensor` record is not empty.                                                         |
 | `REC006` | `instance-not-empty`          | `ERROR`  | `Instance` record is not empty if either `SampleAnnotation` or `ObjectAnnotation` is not empty. |
+| `REC007` | `category-indices-consistent` | `ERROR`  | `Category` records must either all have a unique `index` or all have a `null` index.            |
 
 ## Reference (`REF`)
 
