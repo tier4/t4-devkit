@@ -249,7 +249,7 @@ class RenderingHelper:
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
-                pointcloud_color_mode=pointcloud_color_mode,
+                color_mode=pointcloud_color_mode,
             )
             + self._render_radars(
                 viewer=viewer,
@@ -332,14 +332,14 @@ class RenderingHelper:
                 viewer=viewer,
                 first_lidar_tokens=[first_lidar_token],
                 max_timestamp_us=max_timestamp_us,
-                pointcloud_color_mode=pointcloud_color_mode,
+                color_mode=pointcloud_color_mode,
             )
             + self._render_points_on_cameras(
                 first_point_sample_data_token=first_lidar_token,
                 max_timestamp_us=max_timestamp_us,
                 min_dist=1.0,
                 ignore_distortion=ignore_distortion,
-                pointcloud_color_mode=pointcloud_color_mode,
+                color_mode=pointcloud_color_mode,
             ),
         )
 
