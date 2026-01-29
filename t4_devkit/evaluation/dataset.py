@@ -44,6 +44,7 @@ def load_dataset(data_root: str, task: EvaluationTask) -> SceneGroundTruth:
             # TODO(ktro2828): add support of segmentation object
             raise NotImplementedError("Segmentation task is under construction.")
         else:
+            # TODO(ktro2828): add support of prediction future
             annotations = (
                 list(map(t4.get_box3d, sample.ann_3ds))
                 if task.is_3d()
