@@ -64,6 +64,9 @@ class RenderingHelper:
 
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
+    def _has_lidarseg(self) -> bool:
+        return self._sample_data_to_lidarseg_filename is not None
+
     def _init_viewer(
         self,
         app_id: str,
@@ -133,11 +136,18 @@ class RenderingHelper:
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
         max_timestamp_us = first_sample.timestamp + seconds2microseconds(max_time_seconds)
 
+        pointcloud_color_mode = (
+            PointCloudColorMode.SEGMENTATION
+            if self._has_lidarseg()
+            else PointCloudColorMode.DISTANCE
+        )
+
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
+                color_mode=pointcloud_color_mode,
             )
             + self._render_radars(
                 viewer=viewer,
@@ -228,11 +238,18 @@ class RenderingHelper:
 
         self._try_render_map(viewer)
 
+        pointcloud_color_mode = (
+            PointCloudColorMode.SEGMENTATION
+            if self._has_lidarseg()
+            else PointCloudColorMode.DISTANCE
+        )
+
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
+                pointcloud_color_mode=pointcloud_color_mode,
             )
             + self._render_radars(
                 viewer=viewer,
@@ -304,17 +321,25 @@ class RenderingHelper:
             max_time_seconds
         )
 
+        pointcloud_color_mode = (
+            PointCloudColorMode.SEGMENTATION
+            if self._has_lidarseg()
+            else PointCloudColorMode.DISTANCE
+        )
+
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=[first_lidar_token],
                 max_timestamp_us=max_timestamp_us,
+                pointcloud_color_mode=pointcloud_color_mode,
             )
             + self._render_points_on_cameras(
                 first_point_sample_data_token=first_lidar_token,
                 max_timestamp_us=max_timestamp_us,
                 min_dist=1.0,
                 ignore_distortion=ignore_distortion,
+                pointcloud_color_mode=pointcloud_color_mode,
             ),
         )
 
