@@ -41,6 +41,18 @@ class Checker(ABC):
     severity: Severity
 
     def __call__(self, context: SanityContext, fix: bool = False) -> Report:
+        """Run the checker and return a report.
+
+        The issues will be fixed if the checker is fixable, `fix` is True and
+            the checker returns a list of failure or warning reasons (not `None`).
+
+        Args:
+            context (SanityContext): The sanity context.
+            fix (bool, optional): Whether to attempt to fix the issue.
+
+        Returns:
+            A report containing the results of the checker.
+        """
         match self.can_skip(context):
             case Some(skip):
                 return make_skipped(self.id, self.name, self.severity, self.description, skip)
