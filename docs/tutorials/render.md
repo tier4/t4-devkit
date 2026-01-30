@@ -157,7 +157,7 @@ from t4_devkit.viewer import PointCloudColorMode
 >>> viewer.render_lidarseg(seconds, lidar_channel, pointcloud)
 ```
 
-<!--![Render LiDAR Segmentation](../assets/render_lidarseg.png)-->
+![Render LiDAR Segmentation](../assets/render_lidarseg.png)
 
 ### Rendering lanelet map
 
