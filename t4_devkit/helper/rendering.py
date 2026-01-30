@@ -389,7 +389,7 @@ class RenderingHelper:
                 # render segmentation pointcloud if available, otherwise render raw pointcloud
                 if color_mode == PointCloudColorMode.SEGMENTATION:
                     if not (
-                        self._sample_data_to_lidarseg_filename
+                        self._has_lidarseg()
                         and sample_data.token in self._sample_data_to_lidarseg_filename
                     ):
                         continue
