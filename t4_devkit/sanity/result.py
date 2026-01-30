@@ -4,6 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, NewType
 
 from attrs import define, field
+from colorama import Fore
 from tabulate import tabulate
 from typing_extensions import Self
 
@@ -36,6 +37,7 @@ class Report:
         description (str): The description of the rule.
         status (Status): The status of the report.
         reasons (list[Reason] | None): The list of reasons for the report if the report is a failure or skipped.
+        fixed (bool): Whether the report is fixed.
     """
 
     id: RuleID
@@ -44,6 +46,7 @@ class Report:
     description: str
     status: Status
     reasons: list[Reason] | None = field(default=None)
+    fixed: bool = False
 
     def __attrs_post_init__(self) -> None:
         if self.status == Status.PASSED:
@@ -57,6 +60,7 @@ class Report:
             self.status == Status.PASSED
             or self.is_skipped()
             or (not strict and self.severity.is_warning())
+            or self.fixed
         )
 
     def is_failed(self, *, strict: bool = False) -> bool:
@@ -80,19 +84,29 @@ class Report:
         """
         parts = []
         if not self.is_passed(strict=strict):
-            parts.append(f"\033[31m  {self.id}:\033[0m\n")
+            # print failure reasons
+            parts.append(f"{Fore.RED}  {self.id}:\n")
             for reason in self.reasons or []:
-                parts.append(f"\033[31m     - {reason}\033[0m\n")
+                parts.append(f"{Fore.RED}     - {reason}\n")
         elif self.is_skipped():
-            parts.append(f"\033[36m  {self.id}: [SKIPPED]\033[0m\n")
+            # print skipped reasons
+            parts.append(f"{Fore.CYAN}  {self.id}: [SKIPPED]\n")
             for reason in self.reasons or []:
-                parts.append(f"\033[36m     - {reason}\033[0m\n")
+                parts.append(f"{Fore.CYAN}     - {reason}\n")
         elif self.severity.is_warning() and self.reasons:
-            parts.append(f"\033[33m  {self.id}:\033[0m\n")
+            # print warning reasons
+            parts.append(f"{Fore.YELLOW}  {self.id}:\n")
             for reason in self.reasons or []:
-                parts.append(f"\033[33m     - {reason}\033[0m\n")
+                parts.append(f"{Fore.YELLOW}     - {reason}\n")
+        elif self.is_passed() and self.fixed:
+            # print failure or warning but fixed reasons
+            parts.append(f"{Fore.GREEN}  {self.id}: --> FIXED ✅\n")
+            for reason in self.reasons or []:
+                parts.append(f"{Fore.GREEN}     - {reason}\n")
         else:
-            parts.append(f"\033[32m  {self.id}: ✅\033[0m\n")
+            # print passed
+            parts.append(f"{Fore.GREEN}  {self.id}: ✅\n")
+        parts.append(f"{Fore.RESET}")
         return "".join(parts)
 
 
@@ -102,10 +116,11 @@ def make_report(
     severity: Severity,
     description: str,
     reasons: list[Reason] | None = None,
+    fixed: bool = False,
 ) -> Report:
     """Make a report for the given rule."""
     if reasons:
-        return Report(id, name, severity, description, Status.FAILED, reasons)
+        return Report(id, name, severity, description, Status.FAILED, reasons, fixed)
     else:
         return Report(id, name, severity, description, Status.PASSED)
 
@@ -190,12 +205,15 @@ def print_sanity_result(result: SanityResult, *, strict: bool = False) -> None:
     # just count the number of warnings
     warnings = sum(1 for rp in result.reports if rp.severity.is_warning() and rp.reasons)
 
-    summary_rows = [[result.dataset_id, result.version, passed, failed, skipped, warnings]]
+    # count the number of fixed issues
+    fixed = sum(1 for rp in result.reports if rp.fixed)
+
+    summary_rows = [[result.dataset_id, result.version, passed, failed, skipped, warnings, fixed]]
 
     print(
         tabulate(
             summary_rows,
-            headers=["DatasetID", "Version", "Passed", "Failed", "Skipped", "Warnings"],
+            headers=["DatasetID", "Version", "Passed", "Failed", "Skipped", "Warnings", "Fixed"],
             tablefmt="pretty",
         ),
     )

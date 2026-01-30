@@ -40,16 +40,36 @@ class Checker(ABC):
     description: str
     severity: Severity
 
-    def __call__(self, context: SanityContext) -> Report:
+    def __call__(self, context: SanityContext, fix: bool = False) -> Report:
+        """Run the checker and return a report.
+
+        The issues will be fixed if the checker is fixable, `fix` is True and
+            the checker returns a list of failure or warning reasons (not `None`).
+
+        Args:
+            context (SanityContext): The sanity context.
+            fix (bool, optional): Whether to attempt to fix the issue.
+
+        Returns:
+            A report containing the results of the checker.
+        """
         match self.can_skip(context):
             case Some(skip):
                 return make_skipped(self.id, self.name, self.severity, self.description, skip)
 
         reasons = self.check(context)
-        return make_report(self.id, self.name, self.severity, self.description, reasons)
+        fixed = self.fix(context) if fix and reasons else False
+        return make_report(self.id, self.name, self.severity, self.description, reasons, fixed)
 
-    def can_skip(self, _: SanityContext) -> Maybe[Reason]:
-        """Return a skip reason if the checker should be skipped."""
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        """Return a skip reason if the checker should be skipped.
+
+        Args:
+            context (SanityContext): The sanity context.
+
+        Returns:
+            A skip reason if the checker should be skipped, or Nothing if it should not be skipped.
+        """
         return Nothing
 
     @abstractmethod
@@ -63,3 +83,14 @@ class Checker(ABC):
             A list of reasons if the checker fails, or None if it passes.
         """
         pass
+
+    def fix(self, context: SanityContext) -> bool:
+        """Fix the issue reported by the checker.
+
+        Args:
+            context (SanityContext): The sanity context.
+
+        Returns:
+            True if the issue was fixed, False otherwise.
+        """
+        return False

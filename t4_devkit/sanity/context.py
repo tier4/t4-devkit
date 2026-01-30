@@ -3,11 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from attrs import define
-from returns.maybe import Maybe
+from returns.maybe import Maybe, Some
 from returns.pipeline import is_successful
 from typing_extensions import Self
 
 from t4_devkit import DBMetadata
+from t4_devkit.common import save_json
 from t4_devkit.schema.name import SchemaName
 
 from .safety import load_metadata_safe
@@ -66,3 +67,15 @@ class SanityContext:
     def to_schema_file(self, schema: SchemaName) -> Maybe[Path]:
         """Convert schema name to file path, which is <data_root>/annotation/<schema_name>.json."""
         return self.annotation_dir.map(lambda ann: ann.joinpath(schema.filename))
+
+    def save_records(self, schema: SchemaName, records: list[dict]) -> bool:
+        """Save schema data to file."""
+        match self.to_schema_file(schema):
+            case Some(filepath):
+                try:
+                    save_json(records, filepath)
+                    return True
+                except Exception as e:
+                    print(f"Error saving schema: {e}")
+                    return False
+        return False

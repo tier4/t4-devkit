@@ -22,12 +22,28 @@ save_json(serialize_dataclass(result), "result.json")
 
 ### How to Add New Checkers
 
+The following diagram shows the logic of the checkers:
+
+```mermaid
+flowchart LR
+    Start --> A{Can skip?}
+    A --> |Yes| B[Skip check and <br/>returns skipped report]
+    A --> |No| C[Perform check]
+    C --> D{Failed and --fix=True?}
+    D --> |Yes| E[Fix issues]
+    E --> F[Return report]
+    D --> |No| F
+```
+
 All checkers must follow:
 
 - Implement a class that inherits from `Checker` class.
 - Its ID must be unique and belong to one of `RuleGroup` enum.
-- Override the `check() -> list[Reason] | None` method to perform the specific check.
 - Register the checker using `CHECKERS.register()` decorator.
+- Override the `check(...) -> list[Reason] | None` method to perform the specific check.
+- [OPTIONAL] The following methods can be overridden if needed:
+  - Override `can_skip(...) -> Maybe[Reason]` method to determine whether the checker can be skipped.
+  - Override `fix(...) -> bool` method to fix the issue if possible.
 
 ```python title="str000.py"
 from __future__ import annotations

@@ -14,6 +14,7 @@ $ t4sanity -h
 │ --revision            -rv      TEXT  Specify if you want to check the specific version. [default: None]               │
 │ --exclude             -e       TEXT  Exclude specific rules or rule groups. [default: None]                           │
 │ --strict              -s             Indicates whether warnings are treated as failures.                              │
+│ --fix                 -f             Attempt to fix the issues reported by the sanity check.                          │
 │ --install-completion                 Install completion for the current shell.                                        │
 │ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
 │ --help                -h             Show this message and exit.                                                      │
@@ -58,11 +59,20 @@ $ t4sanity <DATA_ROOT>
   STR008: ✅
   ...
 
-+-----------+---------+--------+--------+---------+----------+
-| DatasetID | Version | Passed | Failed | Skipped | Warnings |
-+-----------+---------+--------+--------+---------+----------+
-| dataset1  |    0    |   49   |   0    |    2    |    3     |
-+-----------+---------+--------+--------+---------+----------+
++-----------+---------+--------+--------+---------+----------+-------+
+| DatasetID | Version | Passed | Failed | Skipped | Warnings | Fixed |
++-----------+---------+--------+--------+---------+----------+-------+
+| dataset1  |    0    |   49   |   0    |    2    |    3     |   0   |
++-----------+---------+--------+--------+---------+----------+-------+
+```
+
+### Exclude Checks
+
+With `-e; --exclude` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
+
+```shell
+# Exclude STR001 and all FMT-relevant rules
+t4sanity <DATA_ROOT> -e STR001 -e FMT
 ```
 
 ### Strict Mode
@@ -73,28 +83,46 @@ With `-s; --strict` option enables us to treat warnings as failures:
 
 ```shell
 # Run strict mode
-t4sanity <DATA_ROOT> -s
+t4sanity <DATA_ROOT> --strict
 ```
 
-### Exclude Checks
+### Fix Issues
 
-With `-e; --excludes` option enables us to exclude specific checks by specifying the **rule IDs or groups**:
+With `-f; --fix` option enables to fix issues automatically:
 
 ```shell
-# Exclude STR001 and all FMT-relevant rules
-t4sanity <DATA_ROOT> -e STR001 -e FMT
+# Fix issues automatically
+t4sanity <DATA_ROOT> --fix
+
+>>>Sanity checking...: 1it [00:00,  9.70it/s]
+
+=== DatasetID: dataset1 ===
+  ...
+  REC007: --> FIXED ✅
+     - All categories either must have an 'index' set or all have a 'null' index.
+  ...
+
++-----------+---------+--------+--------+---------+----------+-------+
+| DatasetID | Version | Passed | Failed | Skipped | Warnings | Fixed |
++-----------+---------+--------+--------+---------+----------+-------+
+| dataset1  |    0    |   49   |   0    |    2    |    3     |   1   |
++-----------+---------+--------+--------+---------+----------+-------+
 ```
+
+The generated report contains failure or warning reasons, but it's considered as passed if the fix was successful.
 
 ### Exit Status Logic
 
 `t4sanity` CLI returns the exit code based on the following conditions:
 
-| Condition                                                               | `--strict`        | Exit Code | Notes                                               |
-| ----------------------------------------------------------------------- | ----------------- | --------- | --------------------------------------------------- |
-| At least one `Severity.ERROR` rule failed                               | N/A               | 1         | Always fails the run                                |
-| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed | `False` (default) | 0         | Run is considered successful, warnings are reported |
-| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed | `True`            | 1         | Treat warnings as failures; exit with failure       |
-| All rules passed or skipped                                             | N/A               | 0         | Run is considered successful                        |
+| Condition                                                                          | `--strict`        | `--fix` | Exit Code | Notes                                                                     |
+| ---------------------------------------------------------------------------------- | ----------------- | ------- | --------- | ------------------------------------------------------------------------- |
+| At least one `Severity.ERROR` rule failed                                          | N/A               | `False` | 1         | Always fails the run                                                      |
+| At least one `Severity.ERROR` rule failed, but fixed                               | N/A               | `True`  | 0         | Run is considered successful, error reasons are reported and `Fixed=true` |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed            | `False` (default) | N/A     | 0         | Run is considered successful, warnings are reported                       |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed            | `True`            | `False` | 1         | Treat warnings as failures; exit with failure                             |
+| At least one `Severity.WARNING` rule failed, no `Severity.ERROR` failed, but fixed | `True`            | `True`  | 0         | Run is considered successful, warnings are reported and `Fixed=true`      |
+| All rules passed or skipped                                                        | N/A               | N/A     | 0         | Run is considered successful                                              |
 
 ### Dump Results as JSON
 
@@ -117,7 +145,8 @@ Then a JSON file named `result.json` will be generated as follows:
         "severity": "<WARNING/ERROR: str>",
         "description": "<Description: str>",
         "status": "<PASSED/FAILED/SKIPPED: str>",
-        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>" // Failed or skipped reasons, null if passed
+        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>",
+        "fixed": "<Fixed: bool>"
     },
   ]
 }
@@ -134,3 +163,4 @@ Here is the description of the JSON format:
   - `description`: A description of the rule.
   - `status`: What happened when it ran.
   - `reasons`: An array of reasons for failure or skipped rules, null if passed.
+  - `fixed`: Whether the rule was fixed.
