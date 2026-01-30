@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, ClassVar, NewType
+from typing import TYPE_CHECKING, NewType
 
 from attrs import define, field
+from colorama import Fore
 from tabulate import tabulate
 from typing_extensions import Self
 
@@ -47,13 +48,6 @@ class Report:
     reasons: list[Reason] | None = field(default=None)
     fixed: bool = False
 
-    PALETTE: ClassVar[dict[str, str]] = {
-        "RED": "\033[31m",
-        "GREEN": "\033[32m",
-        "YELLOW": "\033[33m",
-        "CYAN": "\033[36m",
-    }
-
     def __attrs_post_init__(self) -> None:
         if self.status == Status.PASSED:
             assert self.reasons is None, "Passed report cannot have reasons"
@@ -91,33 +85,28 @@ class Report:
         parts = []
         if not self.is_passed(strict=strict):
             # print failure reasons
-            color = self.PALETTE["RED"]
-            parts.append(f"{color}  {self.id}:\033[0m\n")
+            parts.append(f"{Fore.RED}  {self.id}:\n")
             for reason in self.reasons or []:
-                parts.append(f"{color}     - {reason}\033[0m\n")
+                parts.append(f"{Fore.RED}     - {reason}\n")
         elif self.is_skipped():
             # print skipped reasons
-            color = self.PALETTE["CYAN"]
-            parts.append(f"{color}  {self.id}: [SKIPPED]\033[0m\n")
+            parts.append(f"{Fore.CYAN}  {self.id}: [SKIPPED]\n")
             for reason in self.reasons or []:
-                parts.append(f"{color}     - {reason}\033[0m\n")
+                parts.append(f"{Fore.CYAN}     - {reason}\n")
         elif self.severity.is_warning() and self.reasons:
             # print warning reasons
-            color = self.PALETTE["YELLOW"]
-            parts.append(f"{color}  {self.id}:\033[0m\n")
+            parts.append(f"{Fore.YELLOW}  {self.id}:\n")
             for reason in self.reasons or []:
-                parts.append(f"{color}     - {reason}\033[0m\n")
+                parts.append(f"{Fore.YELLOW}     - {reason}\n")
         elif self.is_passed() and self.fixed:
             # print failure or warning but fixed reasons
-            color1 = self.PALETTE["YELLOW"] if self.severity.is_warning() else self.PALETTE["RED"]
-            color2 = self.PALETTE["GREEN"]
-            parts.append(f"{color1}  {self.id}:\033[0m {color2}--> FIXED🎉\033[0m\n")
+            parts.append(f"{Fore.GREEN}  {self.id}: --> FIXED ✅\n")
             for reason in self.reasons or []:
-                parts.append(f"{color1}     - {reason}\033[0m\n")
+                parts.append(f"{Fore.GREEN}     - {reason}\n")
         else:
             # print passed
-            color = self.PALETTE["GREEN"]
-            parts.append(f"{color}  {self.id}: ✅\033[0m\n")
+            parts.append(f"{Fore.GREEN}  {self.id}: ✅\n")
+        parts.append(f"{Fore.RESET}")
         return "".join(parts)
 
 
