@@ -49,8 +49,15 @@ class Checker(ABC):
         fixed = self.fix(context) if fix and reasons else False
         return make_report(self.id, self.name, self.severity, self.description, reasons, fixed)
 
-    def can_skip(self, _: SanityContext) -> Maybe[Reason]:
-        """Return a skip reason if the checker should be skipped."""
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        """Return a skip reason if the checker should be skipped.
+
+        Args:
+            context (SanityContext): The sanity context.
+
+        Returns:
+            A skip reason if the checker should be skipped, or Nothing if it should not be skipped.
+        """
         return Nothing
 
     @abstractmethod
