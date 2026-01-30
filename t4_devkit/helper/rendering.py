@@ -343,53 +343,6 @@ class RenderingHelper:
             ),
         )
 
-    def render_lidarseg(
-        self,
-        *,
-        max_time_seconds: float = np.inf,
-        ignore_distortion: bool = True,
-        save_dir: str | None = None,
-    ) -> None:
-        """Render lidar segmentation.
-
-        Args:
-            max_time_seconds (float, optional): Max time length to be rendered [s].
-            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
-            save_dir (str | None, optional): Directory path to save the recording.
-                Viewer will be spawned if it is None, otherwise not.
-        """
-        if self._sample_data_to_lidarseg_filename is None:
-            return
-
-        app_id = f"lidarseg@{self._t4.dataset_id}"
-        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
-
-        self._try_render_map(viewer)
-
-        # search first lidar sample data token
-        first_lidar_token: str | None = None
-        for sensor in self._t4.sensor:
-            if sensor.modality != SensorModality.LIDAR:
-                continue
-            first_lidar_token = sensor.first_sd_token
-
-        if first_lidar_token is None:
-            raise ValueError("There is no 3D pointcloud data.")
-
-        first_lidar_sample_data: Sample = self._t4.get("sample_data", first_lidar_token)
-        max_timestamp_us = first_lidar_sample_data.timestamp + seconds2microseconds(
-            max_time_seconds
-        )
-
-        concurrent.futures.wait(
-            self._render_lidar_and_ego(
-                viewer=viewer,
-                first_lidar_tokens=[first_lidar_token],
-                max_timestamp_us=max_timestamp_us,
-                color_mode=PointCloudColorMode.SEGMENTATION,
-            )
-        )
-
     def _try_render_map(self, viewer: RerunViewer) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
         if not osp.exists(lanelet_path):

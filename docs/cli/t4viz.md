@@ -64,16 +64,6 @@ For options, run `t4viz pointcloud -h`.
 t4viz pointcloud <DATA_ROOT> [OPTIONS]
 ```
 
-### LiDAR Segmentation
-
-This command performs the same behavior with [`Tier4.render_lidarseg(...)`](../tutorials/render.md#rendering-lidar-segmentation).
-
-For options, run `t4viz lidarseg -h`.
-
-```shell
-t4viz lidarseg <DATA_ROOT> [OPTIONS]
-```
-
 ### Future Trajectories
 
 `scene` and `instance` commands support visualizing future trajectories for each object.

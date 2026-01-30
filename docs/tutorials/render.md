@@ -48,22 +48,6 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
     ```
 <!-- prettier-ignore-end -->
 
-### LiDAR Segmentation
-
-```python
->>> t4.render_lidarseg()
-```
-
-<!--![Render LiDAR Segmentation GIF](../assets/render_lidarseg.gif)-->
-
-<!-- prettier-ignore-start -->
-!!! NOTE
-    `render_lidarseg()` method requires `lidarseg` data as follows:
-
-    ```shell
-    ```
-<!-- prettier-ignore-end -->
-
 ### Save Recording
 
 You can save the rendering result as follows:
