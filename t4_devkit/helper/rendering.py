@@ -64,6 +64,9 @@ class RenderingHelper:
 
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
+    def _has_lidarseg(self) -> bool:
+        return self._sample_data_to_lidarseg_filename is not None
+
     def _init_viewer(
         self,
         app_id: str,
@@ -127,17 +130,24 @@ class RenderingHelper:
         app_id = f"scene@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
 
-        # self._render_map(viewer)
+        self._try_render_map(viewer)
 
         scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
         max_timestamp_us = first_sample.timestamp + seconds2microseconds(max_time_seconds)
+
+        pointcloud_color_mode = (
+            PointCloudColorMode.SEGMENTATION
+            if self._has_lidarseg()
+            else PointCloudColorMode.DISTANCE
+        )
 
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
+                color_mode=pointcloud_color_mode,
             )
             + self._render_radars(
                 viewer=viewer,
@@ -226,13 +236,20 @@ class RenderingHelper:
         app_id = f"instance@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
 
-        self._render_map(viewer)
+        self._try_render_map(viewer)
+
+        pointcloud_color_mode = (
+            PointCloudColorMode.SEGMENTATION
+            if self._has_lidarseg()
+            else PointCloudColorMode.DISTANCE
+        )
 
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
                 max_timestamp_us=max_timestamp_us,
+                color_mode=pointcloud_color_mode,
             )
             + self._render_radars(
                 viewer=viewer,
@@ -287,7 +304,7 @@ class RenderingHelper:
         app_id = f"pointcloud@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=False, save_dir=save_dir)
 
-        self._render_map(viewer)
+        self._try_render_map(viewer)
 
         # search first lidar sample data token
         first_lidar_token: str | None = None
@@ -304,17 +321,25 @@ class RenderingHelper:
             max_time_seconds
         )
 
+        pointcloud_color_mode = (
+            PointCloudColorMode.SEGMENTATION
+            if self._has_lidarseg()
+            else PointCloudColorMode.DISTANCE
+        )
+
         concurrent.futures.wait(
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=[first_lidar_token],
                 max_timestamp_us=max_timestamp_us,
+                color_mode=pointcloud_color_mode,
             )
             + self._render_points_on_cameras(
                 first_point_sample_data_token=first_lidar_token,
                 max_timestamp_us=max_timestamp_us,
                 min_dist=1.0,
                 ignore_distortion=ignore_distortion,
+                color_mode=pointcloud_color_mode,
             ),
         )
 
@@ -339,7 +364,7 @@ class RenderingHelper:
         app_id = f"lidarseg@{self._t4.dataset_id}"
         viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
 
-        self._render_map(viewer)
+        self._try_render_map(viewer)
 
         # search first lidar sample data token
         first_lidar_token: str | None = None
@@ -365,8 +390,10 @@ class RenderingHelper:
             )
         )
 
-    def _render_map(self, viewer: RerunViewer) -> None:
+    def _try_render_map(self, viewer: RerunViewer) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
+        if not osp.exists(lanelet_path):
+            return
         viewer.render_map(lanelet_path)
 
     def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
@@ -398,6 +425,7 @@ class RenderingHelper:
             current_lidar_token = first_lidar_token
             while current_lidar_token != "":
                 sample_data: SampleData = self._t4.get("sample_data", current_lidar_token)
+                current_lidar_token = sample_data.next
 
                 if max_timestamp_us < sample_data.timestamp:
                     break
@@ -434,8 +462,6 @@ class RenderingHelper:
                         pointcloud=pointcloud,
                         color_mode=color_mode,
                     )
-
-                current_lidar_token = sample_data.next
 
         return [self._executor.submit(_render_single_lidar, token) for token in first_lidar_tokens]
 
