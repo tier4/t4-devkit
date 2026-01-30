@@ -93,7 +93,23 @@ With `-f; --fix` option enables to fix issues automatically:
 ```shell
 # Fix issues automatically
 t4sanity <DATA_ROOT> --fix
+
+>>>Sanity checking...: 1it [00:00,  9.70it/s]
+
+=== DatasetID: dataset1 ===
+  ...
+  REC007: --> FIXED🎉
+     - All categories either must have an 'index' set or all have a 'null' index.
+  ...
+
++-----------+---------+--------+--------+---------+----------+-------+
+| DatasetID | Version | Passed | Failed | Skipped | Warnings | Fixed |
++-----------+---------+--------+--------+---------+----------+-------+
+| dataset1  |    0    |   49   |   0    |    2    |    3     |   1   |
++-----------+---------+--------+--------+---------+----------+-------+
 ```
+
+The generated report contains failure or warning reasons, but it's considered as passed if the fix was successful.
 
 ### Exit Status Logic
 
@@ -129,7 +145,7 @@ Then a JSON file named `result.json` will be generated as follows:
         "severity": "<WARNING/ERROR: str>",
         "description": "<Description: str>",
         "status": "<PASSED/FAILED/SKIPPED: str>",
-        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>", // Failed or skipped reasons, null if passed
+        "reasons": "<[<Reason1>, <Reason2>, ...]: [str; N] | null>",
         "fixed": "<Fixed: bool>"
     },
   ]
