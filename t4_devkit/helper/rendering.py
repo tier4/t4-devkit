@@ -142,7 +142,7 @@ class RenderingHelper:
             else PointCloudColorMode.DISTANCE
         )
 
-        concurrent.futures.wait(
+        futures = (
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
@@ -161,22 +161,22 @@ class RenderingHelper:
             )
             + [
                 self._executor.submit(
-                    self._render_annotation3ds(
-                        viewer=viewer,
-                        first_sample_token=scene.first_sample_token,
-                        max_timestamp_us=max_timestamp_us,
-                        future_seconds=future_seconds,
-                    )
+                    self._render_annotation3ds,
+                    viewer=viewer,
+                    first_sample_token=scene.first_sample_token,
+                    max_timestamp_us=max_timestamp_us,
+                    future_seconds=future_seconds,
                 ),
                 self._executor.submit(
-                    self._render_annotation2ds(
-                        viewer=viewer,
-                        first_sample_token=scene.first_sample_token,
-                        max_timestamp_us=max_timestamp_us,
-                    )
+                    self._render_annotation2ds,
+                    viewer=viewer,
+                    first_sample_token=scene.first_sample_token,
+                    max_timestamp_us=max_timestamp_us,
                 ),
             ]
         )
+
+        _handle_futures(futures)
 
     def render_instance(
         self,
@@ -244,7 +244,7 @@ class RenderingHelper:
             else PointCloudColorMode.DISTANCE
         )
 
-        concurrent.futures.wait(
+        futures = (
             self._render_lidar_and_ego(
                 viewer=viewer,
                 first_lidar_tokens=first_lidar_tokens,
@@ -263,24 +263,24 @@ class RenderingHelper:
             )
             + [
                 self._executor.submit(
-                    self._render_annotation3ds(
-                        viewer=viewer,
-                        first_sample_token=first_sample.token,
-                        max_timestamp_us=max_timestamp_us,
-                        future_seconds=future_seconds,
-                        instance_tokens=instance_tokens,
-                    )
+                    self._render_annotation3ds,
+                    viewer=viewer,
+                    first_sample_token=first_sample.token,
+                    max_timestamp_us=max_timestamp_us,
+                    future_seconds=future_seconds,
+                    instance_tokens=instance_tokens,
                 ),
                 self._executor.submit(
-                    self._render_annotation2ds(
-                        viewer=viewer,
-                        first_sample_token=first_sample.token,
-                        max_timestamp_us=max_timestamp_us,
-                        instance_tokens=instance_tokens,
-                    )
+                    self._render_annotation2ds,
+                    viewer=viewer,
+                    first_sample_token=first_sample.token,
+                    max_timestamp_us=max_timestamp_us,
+                    instance_tokens=instance_tokens,
                 ),
-            ],
+            ]
         )
+
+        _handle_futures(futures)
 
     def render_pointcloud(
         self,
@@ -321,27 +321,19 @@ class RenderingHelper:
             max_time_seconds
         )
 
-        pointcloud_color_mode = (
-            PointCloudColorMode.SEGMENTATION
-            if self._has_lidarseg()
-            else PointCloudColorMode.DISTANCE
+        # TODO: support rendering segmentation pointcloud on camera
+        futures = self._render_lidar_and_ego(
+            viewer=viewer,
+            first_lidar_tokens=[first_lidar_token],
+            max_timestamp_us=max_timestamp_us,
+        ) + self._render_points_on_cameras(
+            first_point_sample_data_token=first_lidar_token,
+            max_timestamp_us=max_timestamp_us,
+            min_dist=1.0,
+            ignore_distortion=ignore_distortion,
         )
 
-        concurrent.futures.wait(
-            self._render_lidar_and_ego(
-                viewer=viewer,
-                first_lidar_tokens=[first_lidar_token],
-                max_timestamp_us=max_timestamp_us,
-                color_mode=pointcloud_color_mode,
-            )
-            + self._render_points_on_cameras(
-                first_point_sample_data_token=first_lidar_token,
-                max_timestamp_us=max_timestamp_us,
-                min_dist=1.0,
-                ignore_distortion=ignore_distortion,
-                color_mode=pointcloud_color_mode,
-            ),
-        )
+        _handle_futures(futures)
 
     def _try_render_map(self, viewer: RerunViewer) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
@@ -751,3 +743,19 @@ def _append_mask(
         camera_masks[camera]["class_ids"] = [class_id]
         camera_masks[camera]["uuids"] = [uuid]
     return camera_masks
+
+
+def _handle_futures(futures: list[Future]) -> None:
+    """Wait for all futures and raise exception if any.
+
+    Args:
+        futures (list[Future]): List of futures.
+    """
+    if not futures:
+        return
+
+    concurrent.futures.wait(futures)
+    for future in futures:
+        if not future.done():
+            continue
+        future.result()
