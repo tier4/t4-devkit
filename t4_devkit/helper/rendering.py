@@ -54,7 +54,7 @@ class RenderingHelper:
         """
         self._t4 = t4
         self._label2id: dict[str, int] = {
-            category.name: idx for idx, category in enumerate(self._t4.category)
+            category.name: category.index for category in self._t4.category
         }
 
         self._executor = concurrent.futures.ThreadPoolExecutor()
