@@ -154,7 +154,8 @@ from t4_devkit.viewer import PointCloudColorMode
 >>> lidar_channel = "LIDAR_TOP"
 # Load point cloud and label from file
 >>> pointcloud = SegmentationPointCloud.from_file("<PATH_TO_POINTCLOUD.pcd.bin>", "<PATH_TO_LABEL.pcd.bin>")
->>> viewer.render_lidarseg(seconds, lidar_channel, pointcloud)
+>>> color_mode = PointCloudColorMode.SEGMENTATION
+>>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
 ```
 
 ![Render LiDAR Segmentation](../assets/render_lidarseg.png)

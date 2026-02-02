@@ -391,22 +391,17 @@ class RenderingHelper:
                         point_filepath=osp.join(self._t4.data_root, sample_data.filename),
                         label_filepath=osp.join(self._t4.data_root, label_filename),
                     )
-                    viewer.render_lidarseg(
-                        seconds=microseconds2seconds(sample_data.timestamp),
-                        channel=sample_data.channel,
-                        pointcloud=pointcloud,
-                    )
                 else:
                     pointcloud = LidarPointCloud.from_file(
                         osp.join(self._t4.data_root, sample_data.filename)
                     )
 
-                    viewer.render_pointcloud(
-                        seconds=microseconds2seconds(sample_data.timestamp),
-                        channel=sample_data.channel,
-                        pointcloud=pointcloud,
-                        color_mode=color_mode,
-                    )
+                viewer.render_pointcloud(
+                    seconds=microseconds2seconds(sample_data.timestamp),
+                    channel=sample_data.channel,
+                    pointcloud=pointcloud,
+                    color_mode=color_mode,
+                )
 
         return [self._executor.submit(_render_single_lidar, token) for token in first_lidar_tokens]
 

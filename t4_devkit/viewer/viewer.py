@@ -427,7 +427,8 @@ class RerunViewer:
         # TODO(ktro2828): add support of rendering pointcloud on images
         rr.set_time_seconds(self.config.timeline, seconds)
 
-        if isinstance(pointcloud, SegmentationPointCloud):
+        if color_mode == PointCloudColorMode.SEGMENTATION:
+            assert isinstance(pointcloud, SegmentationPointCloud)
             rr.log(
                 format_entity(self.config.ego_entity, channel),
                 rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels),
@@ -438,26 +439,6 @@ class RerunViewer:
                 format_entity(self.config.ego_entity, channel),
                 rr.Points3D(pointcloud.points[:3].T, colors=colors),
             )
-
-    @_check_spatial3d
-    def render_lidarseg(
-        self,
-        seconds: float,
-        channel: str,
-        pointcloud: SegmentationPointCloud,
-    ) -> None:
-        """Render a LiDAR segmentation point cloud.
-
-        Args:
-            seconds (float): Timestamp in [sec].
-            channel (str): Name of the pointcloud sensor channel.
-            pointcloud (SegmentationPointCloud): Segmentation pointcloud.
-        """
-        rr.set_time_seconds(self.config.timeline, seconds)
-        rr.log(
-            format_entity(self.config.ego_entity, channel),
-            rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels),
-        )
 
     @_check_spatial2d
     def render_image(self, seconds: float, camera: str, image: str | NDArrayU8) -> None:
