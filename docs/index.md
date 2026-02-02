@@ -17,7 +17,7 @@ More details, please refer to [`t4viz` CLI](./cli/t4viz.md) or [API usage](./tut
 | Feature | Task                        | Support |
 | :------ | :-------------------------- | :-----: |
 | 3D      | 3D Boxes                    |   ✅    |
-|         | PointCloud Segmentation     |         |
+|         | PointCloud Segmentation     |   ✅    |
 |         | Raw PointCloud              |   ✅    |
 |         | 3D Trajectories             |   ✅    |
 |         | TF Links                    |   ✅    |

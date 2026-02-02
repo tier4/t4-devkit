@@ -134,14 +134,31 @@ It allows you to render boxes by specifying elements of boxes directly:
 
 ```python
 from t4_devkit.dataclass import LidarPointCloud
+from t4_devkit.viewer import PointCloudColorMode
 # Point cloud channel name
 >>> lidar_channel = "LIDAR_TOP"
 # Load point cloud from file
 >>> pointcloud = LidarPointCloud.from_file(<PATH_TO_POINTCLOUD.pcd.bin>)
->>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud)
+>>> color_mode = PointCloudColorMode.DISTANCE
+>>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
 ```
 
 ![Render Point Cloud](../assets/render_pointcloud.png)
+
+### Rendering LiDAR segmentation
+
+```python
+from t4_devkit.dataclass import SegmentationPointCloud
+from t4_devkit.viewer import PointCloudColorMode
+# Point cloud channel name
+>>> lidar_channel = "LIDAR_TOP"
+# Load point cloud and label from file
+>>> pointcloud = SegmentationPointCloud.from_file("<PATH_TO_POINTCLOUD.pcd.bin>", "<PATH_TO_LABEL.pcd.bin>")
+>>> color_mode = PointCloudColorMode.SEGMENTATION
+>>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
+```
+
+![Render LiDAR Segmentation](../assets/render_lidarseg.png)
 
 ### Rendering lanelet map
 
