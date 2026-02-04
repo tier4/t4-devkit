@@ -13,7 +13,7 @@
 | `enum[X,Y,...]` | Enumerated type with possible values X, Y, ...                   |
 | `[T;N]`         | Array of N elements of type T                                    |
 | `[T;N,M,...]`   | Array of type T with N, M, or other specified number of elements |
-| `option[T]`     | Optional value of type T                                         |
+| `option[T]`     | Optional value of type T by default `None`                       |
 
 ### Special Types
 
@@ -392,7 +392,9 @@ surface_ann {
   "token":                    <str> -- Unique record identifier.
   "sample_data_token":        <str> -- Foreign key to the `SampleData` table associated with the sample data.
   "category_token":           <str> -- Foreign key to the `Category` table associated with the category of the surface.
-  "mask":                     <RLE> -- Run length encoding of instance mask.
+  "instance_token":           <option[str]> -- Foreign key to the `Instance` table associated with the instance of the surface.
+  "attribute_tokens":         <list[str]> -- Foreign keys to the `Attribute` table associated with the attributes of the surface. Defaults to `[]`.
+  "mask":                     <option[RLE]> -- Run length encoding of instance mask.
   "automatic_annotation":     <bool> -- Whether the annotation was automatically generated. Defaults to `false`.
   "autolabel_metadata":       <option[AutolabelMetadata]> -- Metadata of models used in auto-labeling. Required if `automatic_annotation` is `true`.
 }
