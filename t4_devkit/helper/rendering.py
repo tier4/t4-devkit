@@ -115,6 +115,11 @@ class RenderingHelper:
         Args:
             mode (RenderingMode): RenderingMode enum.
             entity_child (str, optional): Child entity path.
+
+        Returns:
+            list[str] | None: List of entity paths to be used as 2D projection contents.
+                Returns `None` to indicate that no 3D entities should be projected onto
+                2D spaces (e.g., when 2D annotations are available).
         """
         match mode:
             case RenderingMode.SCENE | RenderingMode.INSTANCE:
