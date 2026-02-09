@@ -259,7 +259,10 @@ class RenderingHelper:
                 last_sample = current_last_sample
 
         if first_sample is None or last_sample is None:
-            warnings.warn("There is no sample for the corresponding instance")
+            warnings.warn(
+                f"There is no sample for the corresponding instance(s): {instance_tokens}",
+                stacklevel=2,
+            )
             return
 
         max_timestamp_us = last_sample.timestamp
