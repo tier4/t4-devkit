@@ -429,9 +429,11 @@ class RerunViewer:
 
         entity_path = format_entity(self.config.ego_entity, channel)
         if color_mode == PointCloudColorMode.SEGMENTATION:
-            assert isinstance(
-                pointcloud, SegmentationPointCloud
-            ), f"Expected SegmentationPointCloud instance, but got {type(pointcloud)}"
+            if not isinstance(pointcloud, SegmentationPointCloud):
+                raise TypeError(
+                    f"Expected SegmentationPointCloud instance, but got {type(pointcloud)}"
+                )
+
             entity = rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels)
         else:
             colors = pointcloud_color(pointcloud, color_mode=color_mode)
