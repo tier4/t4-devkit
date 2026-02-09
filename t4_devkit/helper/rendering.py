@@ -78,6 +78,14 @@ class RenderingHelper:
         render_ann: bool = True,
         save_dir: str | None = None,
     ) -> RerunViewer:
+        """Initialize viewer instance.
+
+        Args:
+            app_id (str): Viewer application ID.
+            contents (list[str] | None, optional): List of contents to project 3D objects onto 2D spaces.
+            render_ann (bool, optional): Indicates whether to render annotations.
+            save_dir (str | None, optional): Directory path to save the rendering record.
+        """
         cameras = [
             sensor.channel for sensor in self._t4.sensor if sensor.modality == SensorModality.CAMERA
         ]
@@ -102,6 +110,12 @@ class RenderingHelper:
         return builder.build(app_id, save_dir=save_dir)
 
     def _load_contents(self, mode: RenderingMode, entity_child: str = "") -> list[str] | None:
+        """Load contents to project 3D objects onto 2D spaces.
+
+        Args:
+            mode (RenderingMode): RenderingMode enum.
+            entity_child (str, optional): Child entity path.
+        """
         match mode:
             case RenderingMode.SCENE | RenderingMode.INSTANCE:
                 # project 3D boxes/velocities/futures on image if there is no 2D annotation
@@ -154,6 +168,7 @@ class RenderingHelper:
         app_id = f"scene@{self._t4.dataset_id}"
         contents = self._load_contents(RenderingMode.SCENE)
         viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
+
         self._try_render_map(viewer)
 
         scene: Scene = self._t4.scene[0]
@@ -344,7 +359,6 @@ class RenderingHelper:
             max_time_seconds
         )
 
-        # initialize viewer
         app_id = f"pointcloud@{self._t4.dataset_id}"
         contents = self._load_contents(
             RenderingMode.POINTCLOUD,
