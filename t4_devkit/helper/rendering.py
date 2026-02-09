@@ -63,7 +63,7 @@ class RenderingHelper:
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
     def _has_lidarseg(self) -> bool:
-        return len(self._sample_data_to_lidarseg_filename) > 0
+        return bool(self._sample_data_to_lidarseg_filename)
 
     def _find_lidarseg_file(self, sample_data_token: str) -> str | None:
         return self._sample_data_to_lidarseg_filename.get(sample_data_token)
