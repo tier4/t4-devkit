@@ -3,6 +3,7 @@ from __future__ import annotations
 import concurrent
 import concurrent.futures
 import os.path as osp
+import warnings
 from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Sequence
@@ -237,6 +238,10 @@ class RenderingHelper:
             if last_sample is None or current_last_sample.timestamp > last_sample.timestamp:
                 last_sample = current_last_sample
 
+        if first_sample is None or last_sample is None:
+            warnings.warn("There is no sample for the corresponding instance")
+            return
+
         max_timestamp_us = last_sample.timestamp
 
         # search first sample data tokens
@@ -353,6 +358,10 @@ class RenderingHelper:
         futures = self._render_lidar_and_ego(
             viewer=viewer,
             first_lidar_tokens=[first_lidar_token],
+            max_timestamp_us=max_timestamp_us,
+        ) + self._render_cameras(
+            viewer=viewer,
+            first_camera_tokens=first_camera_tokens,
             max_timestamp_us=max_timestamp_us,
         )
 
