@@ -33,7 +33,7 @@ class ViewerBuilder:
         self._config = ViewerConfig()
 
     def with_spatial3d(self) -> Self:
-        """Update the viewer configurtion to include 3D view space.
+        """Update the viewer configuration to include 3D view space.
 
         Returns:
             Self: Updated `ViewerBuilder` instance itself.
