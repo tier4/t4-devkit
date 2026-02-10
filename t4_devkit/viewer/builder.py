@@ -45,7 +45,7 @@ class ViewerBuilder:
         """Update the viewer configuration to include 2D view spaces for each camera.
 
         Args:
-            cameras (Sequenece[str]): Camera names.
+            cameras (Sequence[str]): Camera names.
             contents (list[str] | None): List of 3D view contents to project onto 2D view spaces.
 
         Returns:
