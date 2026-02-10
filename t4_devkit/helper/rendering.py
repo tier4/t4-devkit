@@ -3,15 +3,14 @@ from __future__ import annotations
 import concurrent
 import concurrent.futures
 import os.path as osp
+import warnings
 from concurrent.futures import Future
+from enum import Enum
 from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
-import rerun as rr
 import yaml
-from PIL import Image
 
-from t4_devkit.common.geometry import view_points
 from t4_devkit.common.timestamp import microseconds2seconds, seconds2microseconds
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud, SegmentationPointCloud
 from t4_devkit.schema import SensorModality
@@ -21,7 +20,6 @@ from t4_devkit.viewer import (
     ViewerBuilder,
     ViewerConfig,
     format_entity,
-    pointcloud_color,
 )
 
 if TYPE_CHECKING:
@@ -38,9 +36,14 @@ if TYPE_CHECKING:
         Sensor,
         SurfaceAnn,
     )
-    from t4_devkit.typing import NDArrayF64, NDArrayU8
 
 __all__ = ["RenderingHelper"]
+
+
+class RenderingMode(Enum):
+    SCENE = "scene"
+    INSTANCE = "instance"
+    POINTCLOUD = "pointcloud"
 
 
 class RenderingHelper:
@@ -72,14 +75,25 @@ class RenderingHelper:
         self,
         app_id: str,
         *,
+        contents: list[str] | None = None,
         render_ann: bool = True,
         save_dir: str | None = None,
     ) -> RerunViewer:
+        """Initialize viewer instance.
+
+        Args:
+            app_id (str): Viewer application ID.
+            contents (list[str] | None, optional): List of contents to project 3D objects onto 2D spaces.
+            render_ann (bool, optional): Indicates whether to render annotations.
+            save_dir (str | None, optional): Directory path to save the rendering record.
+        """
         cameras = [
             sensor.channel for sensor in self._t4.sensor if sensor.modality == SensorModality.CAMERA
         ]
 
-        builder = ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras)
+        builder = (
+            ViewerBuilder().with_spatial3d().with_spatial2d(cameras=cameras, contents=contents)
+        )
 
         if render_ann:
             builder = builder.with_labels(self._label2id)
@@ -95,6 +109,35 @@ class RenderingHelper:
             builder = builder.with_streetmap()
 
         return builder.build(app_id, save_dir=save_dir)
+
+    def _load_contents(self, mode: RenderingMode, entity_child: str = "") -> list[str] | None:
+        """Load contents to project 3D objects onto 2D spaces.
+
+        Args:
+            mode (RenderingMode): RenderingMode enum.
+            entity_child (str, optional): Child entity path.
+
+        Returns:
+            list[str] | None: List of entity paths to be used as 2D projection contents.
+                Returns `None` to indicate that no 3D entities should be projected onto
+                2D spaces (e.g., when 2D annotations are available).
+        """
+        match mode:
+            case RenderingMode.SCENE | RenderingMode.INSTANCE:
+                # project 3D boxes/velocities/futures on image if there is no 2D annotation
+                entity_root = format_entity(ViewerConfig.map_entity, entity_child)
+                if len(self._t4.object_ann) == 0 and len(self._t4.surface_ann) == 0:
+                    contents = [
+                        format_entity(entity_root, "box"),
+                        format_entity(entity_root, "velocity"),
+                        format_entity(entity_root, "future"),
+                    ]
+                else:
+                    contents = None
+            case RenderingMode.POINTCLOUD:
+                contents = [format_entity(ViewerConfig.ego_entity, entity_child)]
+
+        return contents
 
     def render_scene(
         self,
@@ -129,7 +172,8 @@ class RenderingHelper:
         ]
 
         app_id = f"scene@{self._t4.dataset_id}"
-        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
+        contents = self._load_contents(RenderingMode.SCENE)
+        viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
         self._try_render_map(viewer)
 
@@ -215,6 +259,13 @@ class RenderingHelper:
             if last_sample is None or current_last_sample.timestamp > last_sample.timestamp:
                 last_sample = current_last_sample
 
+        if first_sample is None or last_sample is None:
+            warnings.warn(
+                f"There is no sample for the corresponding instance(s): {instance_tokens}",
+                stacklevel=2,
+            )
+            return
+
         max_timestamp_us = last_sample.timestamp
 
         # search first sample data tokens
@@ -235,7 +286,8 @@ class RenderingHelper:
         ]
 
         app_id = f"instance@{self._t4.dataset_id}"
-        viewer = self._init_viewer(app_id, render_ann=True, save_dir=save_dir)
+        contents = self._load_contents(RenderingMode.INSTANCE)
+        viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
         self._try_render_map(viewer)
 
@@ -287,51 +339,53 @@ class RenderingHelper:
         self,
         *,
         max_time_seconds: float = np.inf,
-        ignore_distortion: bool = True,
         save_dir: str | None = None,
     ) -> None:
         """Render pointcloud on 3D and 2D view.
 
         Args:
             max_time_seconds (float, optional): Max time length to be rendered [s].
-            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
 
         TODO:
             Add an option of rendering radar channels.
         """
-        # initialize viewer
-        app_id = f"pointcloud@{self._t4.dataset_id}"
-        viewer = self._init_viewer(app_id, render_ann=False, save_dir=save_dir)
-
-        self._try_render_map(viewer)
-
         # search first lidar sample data token
         first_lidar_token: str | None = None
+        first_camera_tokens: list[str] = []
         for sensor in self._t4.sensor:
-            if sensor.modality != SensorModality.LIDAR:
-                continue
-            first_lidar_token = sensor.first_sd_token
+            if sensor.modality == SensorModality.LIDAR:
+                first_lidar_token = sensor.first_sd_token
+            elif sensor.modality == SensorModality.CAMERA:
+                first_camera_tokens.append(sensor.first_sd_token)
 
         if first_lidar_token is None:
             raise ValueError("There is no 3D pointcloud data.")
 
-        first_lidar_sample_data: Sample = self._t4.get("sample_data", first_lidar_token)
+        first_lidar_sample_data: SampleData = self._t4.get("sample_data", first_lidar_token)
         max_timestamp_us = first_lidar_sample_data.timestamp + seconds2microseconds(
             max_time_seconds
         )
+
+        app_id = f"pointcloud@{self._t4.dataset_id}"
+        contents = self._load_contents(
+            RenderingMode.POINTCLOUD,
+            entity_child=first_lidar_sample_data.channel,
+        )
+        viewer = self._init_viewer(app_id, contents=contents, render_ann=False, save_dir=save_dir)
+
+        self._try_render_map(viewer)
 
         # TODO: support rendering segmentation pointcloud on camera
         futures = self._render_lidar_and_ego(
             viewer=viewer,
             first_lidar_tokens=[first_lidar_token],
             max_timestamp_us=max_timestamp_us,
-        ) + self._render_points_on_cameras(
-            first_point_sample_data_token=first_lidar_token,
+        ) + self._render_cameras(
+            viewer=viewer,
+            first_camera_tokens=first_camera_tokens,
             max_timestamp_us=max_timestamp_us,
-            min_dist=1.0,
-            ignore_distortion=ignore_distortion,
         )
 
         _handle_futures(futures)
@@ -348,14 +402,12 @@ class RenderingHelper:
             "calibrated_sensor", sample_data.calibrated_sensor_token
         )
         sensor: Sensor = self._t4.get("sensor", calibration.sensor_token)
-        if sensor.modality == SensorModality.CAMERA:
-            viewer.render_calibration(
-                sensor=sensor,
-                calibration=calibration,
-                resolution=(sample_data.width, sample_data.height),
-            )
-        else:
-            viewer.render_calibration(sensor=sensor, calibration=calibration)
+        resolution = (
+            (sample_data.width, sample_data.height)
+            if sensor.modality == SensorModality.CAMERA
+            else None
+        )
+        viewer.render_calibration(sensor=sensor, calibration=calibration, resolution=resolution)
 
     def _render_lidar_and_ego(
         self,
@@ -460,140 +512,6 @@ class RenderingHelper:
             self._executor.submit(_render_single_camera, token) for token in first_camera_tokens
         ]
 
-    def _render_points_on_cameras(
-        self,
-        first_point_sample_data_token: str,
-        max_timestamp_us: float,
-        *,
-        min_dist: float = 1.0,
-        ignore_distortion: bool = True,
-        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
-    ) -> list[Future]:
-        def _render_points_on_single_camera(camera: str) -> None:
-            current_point_sample_data_token = first_point_sample_data_token
-            while current_point_sample_data_token != "":
-                sample_data: SampleData = self._t4.get(
-                    "sample_data", current_point_sample_data_token
-                )
-                sample: Sample = self._t4.get("sample", sample_data.sample_token)
-
-                if camera not in sample.data:
-                    current_point_sample_data_token = sample_data.next
-                    continue
-
-                camera_sample_data_token = sample.data[camera]
-
-                if max_timestamp_us < sample.timestamp:
-                    break
-
-                points_on_image, colors, image = self._project_pointcloud(
-                    point_sample_data_token=current_point_sample_data_token,
-                    camera_sample_data_token=camera_sample_data_token,
-                    min_dist=min_dist,
-                    ignore_distortion=ignore_distortion,
-                    color_mode=color_mode,
-                )
-
-                rr.set_time_seconds(ViewerConfig.timeline, microseconds2seconds(sample.timestamp))
-
-                rr.log(format_entity(ViewerConfig.ego_entity, camera), rr.Image(image))
-                rr.log(
-                    format_entity(ViewerConfig.ego_entity, camera, "pointcloud"),
-                    rr.Points2D(positions=points_on_image.T, colors=colors),
-                )
-
-                current_point_sample_data_token = sample_data.next
-
-        return [
-            self._executor.submit(_render_points_on_single_camera, sensor.channel)
-            for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.CAMERA
-        ]
-
-    def _project_pointcloud(
-        self,
-        point_sample_data_token: str,
-        camera_sample_data_token: str,
-        min_dist: float = 1.0,
-        *,
-        ignore_distortion: bool = True,
-        color_mode: PointCloudColorMode = PointCloudColorMode.DISTANCE,
-    ) -> tuple[NDArrayF64, NDArrayF64, NDArrayU8]:
-        """Project pointcloud on image plane.
-
-        Args:
-            point_sample_data_token (str): Sample data token of lidar or radar sensor.
-            camera_sample_data_token (str): Sample data token of camera.
-            min_dist (float, optional): Distance from the camera below which points are discarded.
-            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
-            color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
-
-        Returns:
-            Projected points [2, n], their color values [n, 3], and an image.
-        """
-        point_sample_data: SampleData = self._t4.get("sample_data", point_sample_data_token)
-        pc_filepath = osp.join(self._t4.data_root, point_sample_data.filename)
-        if point_sample_data.modality == SensorModality.LIDAR:
-            pointcloud = LidarPointCloud.from_file(pc_filepath)
-        elif point_sample_data.modality == SensorModality.RADAR:
-            pointcloud = RadarPointCloud.from_file(pc_filepath)
-        else:
-            raise ValueError(f"Expected sensor lidar/radar, but got {point_sample_data.modality}")
-
-        camera_sample_data: SampleData = self._t4.get("sample_data", camera_sample_data_token)
-        if camera_sample_data.modality != SensorModality.CAMERA:
-            f"Expected camera, but got {camera_sample_data.modality}"
-
-        img = Image.open(osp.join(self._t4.data_root, camera_sample_data.filename))
-
-        # 1. transform the pointcloud to the ego vehicle frame for the timestamp to the sweep.
-        point_cs_record: CalibratedSensor = self._t4.get(
-            "calibrated_sensor", point_sample_data.calibrated_sensor_token
-        )
-        pointcloud.rotate(point_cs_record.rotation.rotation_matrix)
-        pointcloud.translate(point_cs_record.translation)
-
-        # 2. transform from ego to the global frame.
-        point_ego_pose: EgoPose = self._t4.get("ego_pose", point_sample_data.ego_pose_token)
-        pointcloud.rotate(point_ego_pose.rotation.rotation_matrix)
-        pointcloud.translate(point_ego_pose.translation)
-
-        # 3. transform from global into the ego vehicle frame for the timestamp of the image
-        camera_ego_pose: EgoPose = self._t4.get("ego_pose", camera_sample_data.ego_pose_token)
-        pointcloud.translate(-camera_ego_pose.translation)
-        pointcloud.rotate(camera_ego_pose.rotation.rotation_matrix.T)
-
-        # 4. transform from ego into the camera
-        camera_cs_record: CalibratedSensor = self._t4.get(
-            "calibrated_sensor", camera_sample_data.calibrated_sensor_token
-        )
-        pointcloud.translate(-camera_cs_record.translation)
-        pointcloud.rotate(camera_cs_record.rotation.rotation_matrix.T)
-
-        distortion = None if ignore_distortion else camera_cs_record.camera_distortion
-
-        points_on_img = view_points(
-            points=pointcloud.points[:3, :],
-            intrinsic=camera_cs_record.camera_intrinsic,
-            distortion=distortion,
-            normalize=True,
-        )[:2]
-
-        colors = pointcloud_color(pointcloud, color_mode)
-        depths = pointcloud.points[2, :]
-
-        mask = np.ones(colors.shape[0], dtype=bool)
-        mask = np.logical_and(mask, depths > min_dist)  # mask by depths
-        # mask by size of points on image
-        mask = np.logical_and(mask, 1 < points_on_img[0])
-        mask = np.logical_and(mask, points_on_img[0] < img.size[0] - 1)
-        mask = np.logical_and(mask, 1 < points_on_img[1])
-        mask = np.logical_and(mask, points_on_img[1] < img.size[1] - 1)
-        points_on_img = points_on_img[:, mask]
-        colors = colors[mask]
-
-        return points_on_img, colors, np.array(img, dtype=np.uint8)
-
     def _render_annotation3ds(
         self,
         viewer: RerunViewer,
@@ -650,19 +568,17 @@ class RenderingHelper:
                 obj_ann: ObjectAnn = self._t4.get("object_ann", obj_ann_token)
                 box = self._t4.get_box2d(obj_ann_token)
                 if instance_tokens is not None:
-                    if obj_ann.instance_token in instance_tokens:
-                        boxes.append(box)
-                        sample_data: SampleData = self._t4.get(
-                            "sample_data",
-                            obj_ann.sample_data_token,
-                        )
-                        camera_masks = _append_mask(
-                            camera_masks,
-                            camera=sample_data.channel,
-                            ann=obj_ann,
-                            class_id=self._label2id[obj_ann.category_name],
-                            uuid=box.uuid,
-                        )
+                    if obj_ann.instance_token not in instance_tokens:
+                        continue
+                    boxes.append(box)
+                    sample_data: SampleData = self._t4.get("sample_data", obj_ann.sample_data_token)
+                    camera_masks = _append_mask(
+                        camera_masks,
+                        camera=sample_data.channel,
+                        ann=obj_ann,
+                        class_id=self._label2id[obj_ann.category_name],
+                        uuid=box.uuid,
+                    )
                 else:
                     boxes.append(box)
                     sample_data: SampleData = self._t4.get("sample_data", obj_ann.sample_data_token)

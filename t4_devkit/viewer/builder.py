@@ -36,13 +36,20 @@ class ViewerBuilder:
         self._config.spatial3ds.append(rrb.Spatial3DView(name="3D", origin=ViewerConfig.map_entity))
         return self
 
-    def with_spatial2d(self, cameras: Sequence[str]) -> Self:
-        self._config.spatial2ds.extend(
-            [
-                rrb.Spatial2DView(name=name, origin=format_entity(ViewerConfig.ego_entity, name))
-                for name in cameras
-            ]
-        )
+    def with_spatial2d(self, cameras: Sequence[str], contents: list[str] | None = None) -> Self:
+        # Preserve the original contents arguments so each camera gets its own view_contents.
+        base_contents = contents
+        for name in cameras:
+            origin = format_entity(ViewerConfig.ego_entity, name)
+
+            default_contents = [format_entity(origin, "**")]
+            view_contents = (
+                default_contents if base_contents is None else default_contents + base_contents
+            )
+
+            self._config.spatial2ds.append(
+                rrb.Spatial2DView(name=name, origin=origin, contents=view_contents)
+            )
         return self
 
     def with_labels(self, label2id: dict[str, int]) -> Self:
