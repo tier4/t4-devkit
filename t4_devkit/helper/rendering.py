@@ -128,9 +128,9 @@ class RenderingHelper:
                 entity_root = format_entity(EntityPath.MAP, entity_child)
                 if len(self._t4.object_ann) == 0 and len(self._t4.surface_ann) == 0:
                     contents = [
-                        format_entity(entity_root, "box"),
-                        format_entity(entity_root, "velocity"),
-                        format_entity(entity_root, "future"),
+                        format_entity(entity_root, EntityPath.BOX),
+                        format_entity(entity_root, EntityPath.VELOCITY),
+                        format_entity(entity_root, EntityPath.FUTURE),
                     ]
                 else:
                     contents = None
