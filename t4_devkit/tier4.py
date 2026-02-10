@@ -784,7 +784,6 @@ class Tier4:
         self,
         *,
         max_time_seconds: float = np.inf,
-        ignore_distortion: bool = True,
         save_dir: str | None = None,
     ) -> None:
         """Render pointcloud on 3D and 2D view.
@@ -792,13 +791,11 @@ class Tier4:
         Args:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             save_dir (str | None, optional): Directory path to save the recording.
-            ignore_distortion (bool, optional): Whether to ignore distortion parameters.
 
         TODO:
             Add an option of rendering radar channels.
         """
         self._rendering_helper.render_pointcloud(
             max_time_seconds=max_time_seconds,
-            ignore_distortion=ignore_distortion,
             save_dir=save_dir,
         )

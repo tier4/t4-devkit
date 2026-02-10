@@ -141,7 +141,7 @@ class BatchBox3D:
             sizes=sizes,
             centers=centers,
             rotations=rotations,
-            fill_mode=rrc.FillMode.Solid,
+            fill_mode=rrc.FillMode.MajorWireframe,
             labels=labels,
             class_ids=class_ids,
             show_labels=False,
