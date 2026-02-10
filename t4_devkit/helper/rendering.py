@@ -41,6 +41,8 @@ __all__ = ["RenderingHelper"]
 
 
 class RenderingMode(Enum):
+    """Rendering mode enumerations."""
+
     SCENE = "scene"
     INSTANCE = "instance"
     POINTCLOUD = "pointcloud"
@@ -66,9 +68,11 @@ class RenderingHelper:
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
     def _has_lidarseg(self) -> bool:
+        """Return `True` if the dataset includes lidarseg."""
         return bool(self._sample_data_to_lidarseg_filename)
 
     def _find_lidarseg_file(self, sample_data_token: str) -> str | None:
+        """Try to find lidarseg filename from the sample data token."""
         return self._sample_data_to_lidarseg_filename.get(sample_data_token)
 
     def _init_viewer(

@@ -33,10 +33,24 @@ class ViewerBuilder:
         self._config = ViewerConfig()
 
     def with_spatial3d(self) -> Self:
+        """Update the viewer configuration to include 3D view space.
+
+        Returns:
+            Self: Updated `ViewerBuilder` instance itself.
+        """
         self._config.spatial3ds.append(rrb.Spatial3DView(name="3D", origin=EntityPath.MAP))
         return self
 
     def with_spatial2d(self, cameras: Sequence[str], contents: list[str] | None = None) -> Self:
+        """Update the viewer configuration to include 2D view spaces for each camera.
+
+        Args:
+            cameras (Sequence[str]): Camera names.
+            contents (list[str] | None): List of 3D view contents to project onto 2D view spaces.
+
+        Returns:
+            Self: Updated `ViewerBuilder` instance itself.
+        """
         # Preserve the original contents arguments so each camera gets its own view_contents.
         base_contents = contents
         for name in cameras:
@@ -53,14 +67,39 @@ class ViewerBuilder:
         return self
 
     def with_labels(self, label2id: dict[str, int]) -> Self:
+        """Update the viewer configuration to include label to id mapping.
+
+        Args:
+            label2id (dict[str, int]): Key-value mapping to convert label name to its ID.
+
+        Returns:
+            Self: Updated `ViewerBuilder` instance itself.
+        """
         self._config.label2id = label2id
         return self
 
     def with_streetmap(self, latlon: Vector2Like | None = None) -> Self:
+        """Update the viewer configuration to include the streetmap view space.
+
+        Args:
+            latlon (Vector2Like | None): Starting point in (latitude, longitude).
+
+        Returns:
+            Self: Updated `ViewerBuilder` instance itself.
+        """
         self._config.spatial3ds.append(rrb.MapView(name="Map", origin=EntityPath.GEOCOORDINATE))
         if latlon is not None:
             self._config.latlon = latlon
         return self
 
     def build(self, app_id: str, save_dir: str | None = None) -> RerunViewer:
+        """Build `RerunViewer` from the configuration.
+
+        Args:
+            app_id (str): Viewer application ID.
+            save_dir (str | None): Directory path to save the rendering record.
+
+        Returns:
+            RerunViewer: Viewer instance.
+        """
         return RerunViewer(app_id=app_id, config=self._config, save_dir=save_dir)
