@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, unique
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 import rerun.blueprint as rrb
 from attrs import define, field
@@ -30,13 +30,8 @@ class EntityPath(str, Enum):
 
 @define
 class ViewerConfig:
-    map_entity: ClassVar[str] = "map"
-    ego_entity: ClassVar[str] = "map/base_link"
-    geocoordinate_entity: ClassVar[str] = "geocoordinate"
-    timeline: ClassVar[str] = "timeline"
-
-    spatial3ds: list[rrb.SpaceView] = field(factory=list)
-    spatial2ds: list[rrb.SpaceView] = field(factory=list)
+    spatial3ds: list[rrb.Spatial3DView | rrb.MapView] = field(factory=list)
+    spatial2ds: list[rrb.Spatial2DView] = field(factory=list)
     label2id: dict[str, int] = field(factory=dict)
     latlon: Vector2Like | None = field(default=None)
 
