@@ -34,7 +34,7 @@ class ViewerConfig:
 
     Attributes:
         spatial3ds (list[rrb.Spatial3DView | rrb.MapView]): List of 3D spatial views.
-        spatial2ds (list[rrb.Spatial2Dview]): List of 2D spatial views.
+        spatial2ds (list[rrb.Spatial2DView]): List of 2D spatial views.
         label2id (dict[str, int]): Key-value mapping to convert label name to its ID.
         latlon (Vector2Like | None): Starting point in (latitude, longitude).
     """
