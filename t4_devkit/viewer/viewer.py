@@ -427,18 +427,19 @@ class RerunViewer:
         # TODO(ktro2828): add support of rendering pointcloud on images
         rr.set_time_seconds(self.config.timeline, seconds)
 
+        entity_path = format_entity(self.config.ego_entity, channel)
         if color_mode == PointCloudColorMode.SEGMENTATION:
-            assert isinstance(pointcloud, SegmentationPointCloud)
-            rr.log(
-                format_entity(self.config.ego_entity, channel),
-                rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels),
-            )
+            if not isinstance(pointcloud, SegmentationPointCloud):
+                raise TypeError(
+                    f"Expected SegmentationPointCloud instance, but got {type(pointcloud)}"
+                )
+
+            entity = rr.Points3D(pointcloud.points[:3].T, class_ids=pointcloud.labels)
         else:
             colors = pointcloud_color(pointcloud, color_mode=color_mode)
-            rr.log(
-                format_entity(self.config.ego_entity, channel),
-                rr.Points3D(pointcloud.points[:3].T, colors=colors),
-            )
+            entity = rr.Points3D(pointcloud.points[:3].T, colors=colors)
+
+        rr.log(entity_path, entity)
 
     @_check_spatial2d
     def render_image(self, seconds: float, camera: str, image: str | NDArrayU8) -> None:
@@ -451,10 +452,10 @@ class RerunViewer:
         """
         rr.set_time_seconds(self.config.timeline, seconds)
 
-        if isinstance(image, str):
-            rr.log(format_entity(self.config.ego_entity, camera), rr.ImageEncoded(path=image))
-        else:
-            rr.log(format_entity(self.config.ego_entity, camera), rr.Image(image))
+        entity_path = format_entity(self.config.ego_entity, camera)
+        entity = rr.ImageEncoded(path=image) if isinstance(image, str) else rr.Image(image)
+
+        rr.log(entity_path, entity)
 
     @overload
     def render_ego(self, ego_pose: EgoPose) -> None:
@@ -519,18 +520,12 @@ class RerunViewer:
             ),
         )
 
+        entity_path = self.config.geocoordinate_entity
         if geocoordinate is not None:
-            latitude, longitude, _ = geocoordinate
-            rr.log(
-                self.config.geocoordinate_entity,
-                rr.GeoPoints(lat_lon=(latitude, longitude)),
-            )
+            rr.log(entity_path, rr.GeoPoints(lat_lon=geocoordinate[:2]))
         elif self.latlon is not None:
             latitude, longitude = calculate_geodetic_point(translation, self.latlon)
-            rr.log(
-                self.config.geocoordinate_entity,
-                rr.GeoPoints(lat_lon=(latitude, longitude)),
-            )
+            rr.log(entity_path, rr.GeoPoints(lat_lon=(latitude, longitude)))
 
     @overload
     def render_calibration(

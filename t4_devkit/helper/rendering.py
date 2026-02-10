@@ -59,16 +59,17 @@ class RenderingHelper:
         self._label2id: dict[str, int] = {
             category.name: category.index for category in self._t4.category
         }
-        self._sample_data_to_lidarseg_filename: dict[str, str] | None = (
-            {lidarseg.sample_data_token: lidarseg.filename for lidarseg in self._t4.lidarseg}
-            if self._t4.lidarseg
-            else None
-        )
+        self._sample_data_to_lidarseg_filename: dict[str, str] = {
+            lidarseg.sample_data_token: lidarseg.filename for lidarseg in self._t4.lidarseg
+        }
 
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
     def _has_lidarseg(self) -> bool:
-        return self._sample_data_to_lidarseg_filename is not None
+        return bool(self._sample_data_to_lidarseg_filename)
+
+    def _find_lidarseg_file(self, sample_data_token: str) -> str | None:
+        return self._sample_data_to_lidarseg_filename.get(sample_data_token)
 
     def _init_viewer(
         self,
@@ -432,13 +433,10 @@ class RenderingHelper:
 
                 # render segmentation pointcloud if available, otherwise render raw pointcloud
                 if color_mode == PointCloudColorMode.SEGMENTATION:
-                    if not (
-                        self._has_lidarseg()
-                        and sample_data.token in self._sample_data_to_lidarseg_filename
-                    ):
+                    label_filename = self._find_lidarseg_file(sample_data.token)
+                    if label_filename is None:
                         continue
 
-                    label_filename = self._sample_data_to_lidarseg_filename[sample_data.token]
                     pointcloud = SegmentationPointCloud.from_file(
                         point_filepath=osp.join(self._t4.data_root, sample_data.filename),
                         label_filepath=osp.join(self._t4.data_root, label_filename),
