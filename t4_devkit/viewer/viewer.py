@@ -14,7 +14,7 @@ from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SensorModality
 
 from .color import PointCloudColorMode, pointcloud_color
-from .config import ViewerConfig, format_entity
+from .config import EntityPath, ViewerConfig, format_entity
 from .geography import calculate_geodetic_point
 from .lanelet import (
     render_geographic_borders,
@@ -25,7 +25,7 @@ from .lanelet import (
 from .record import BatchBox2D, BatchBox3D, BatchSegmentation2D
 
 if TYPE_CHECKING:
-    from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike, SegmentationPointCloud
+    from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
     from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
     from t4_devkit.typing import (
         CameraIntrinsicLike,
@@ -135,10 +135,10 @@ class RerunViewer:
         if save_dir is not None:
             self._start_saving(save_dir=save_dir)
 
-        rr.log(self.config.map_entity, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
+        rr.log(EntityPath.MAP, rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
 
         rr.log(
-            self.config.map_entity,
+            EntityPath.MAP,
             rr.AnnotationContext(
                 [
                     rr.AnnotationInfo(id=label_id, label=label)
@@ -215,7 +215,7 @@ class RerunViewer:
             self._render_box3ds_with_elements(*args, **kwargs)
 
     def _render_box3ds_with_boxes(self, seconds: float, boxes: Sequence[Box3D]) -> None:
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
         batches: dict[str, BatchBox3D] = {}
         for box in boxes:
@@ -226,17 +226,17 @@ class RerunViewer:
         for frame_id, batch in batches.items():
             # record boxes 3d
             rr.log(
-                format_entity(self.config.map_entity, frame_id, "box"),
+                format_entity(EntityPath.MAP, frame_id, EntityPath.BOX),
                 batch.as_boxes3d(),
             )
             # record velocities
             rr.log(
-                format_entity(self.config.map_entity, frame_id, "velocity"),
+                format_entity(EntityPath.MAP, frame_id, EntityPath.VELOCITY),
                 batch.as_arrows3d(),
             )
             # record futures
             rr.log(
-                format_entity(self.config.map_entity, frame_id, "future"),
+                format_entity(EntityPath.MAP, frame_id, EntityPath.FUTURE),
                 batch.as_linestrips3d(),
             )
 
@@ -248,9 +248,9 @@ class RerunViewer:
         rotations: Sequence[RotationLike],
         sizes: Sequence[Vector3Like],
         class_ids: Sequence[int],
-        velocities: Sequence[Vector3Like] | None = None,
-        uuids: Sequence[str] | None | None = None,
-        futures: Sequence[Future] | None = None,
+        velocities: Sequence[Vector3Like | None] | None = None,
+        uuids: Sequence[str | None] | None = None,
+        futures: Sequence[Future | None] | None = None,
     ) -> None:
         if uuids is None:
             uuids = [None] * len(centers)
@@ -288,19 +288,19 @@ class RerunViewer:
                 future=future,
             )
 
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
-        rr.log(format_entity(self.config.map_entity, frame_id, "box"), batch.as_boxes3d())
+        rr.log(format_entity(EntityPath.MAP, frame_id, EntityPath.BOX), batch.as_boxes3d())
 
         if show_arrows:
             rr.log(
-                format_entity(self.config.map_entity, frame_id, "velocity"),
+                format_entity(EntityPath.MAP, frame_id, EntityPath.VELOCITY),
                 batch.as_arrows3d(),
             )
 
         if show_futures:
             rr.log(
-                format_entity(self.config.map_entity, frame_id, "future"),
+                format_entity(EntityPath.MAP, frame_id, EntityPath.FUTURE),
                 batch.as_linestrips3d(),
             )
 
@@ -344,7 +344,7 @@ class RerunViewer:
             self._render_box2ds_with_elements(*args, **kwargs)
 
     def _render_box2ds_with_boxes(self, seconds: float, boxes: Sequence[Box2D]) -> None:
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
         batches: dict[str, BatchBox2D] = {}
         for box in boxes:
@@ -354,7 +354,7 @@ class RerunViewer:
 
         for frame_id, batch in batches.items():
             rr.log(
-                format_entity(self.config.ego_entity, frame_id, "box"),
+                format_entity(EntityPath.BASE_LINK, frame_id, EntityPath.BOX),
                 batch.as_boxes2d(),
             )
 
@@ -364,7 +364,7 @@ class RerunViewer:
         camera: str,
         rois: Sequence[RoiLike],
         class_ids: Sequence[int],
-        uuids: Sequence[str] | None = None,
+        uuids: Sequence[str | None] | None = None,
     ) -> None:
         if uuids is None:
             uuids = [None] * len(rois)
@@ -373,8 +373,8 @@ class RerunViewer:
         for roi, class_id, uuid in zip(rois, class_ids, uuids, strict=True):
             batch.append(roi=roi, class_id=class_id, uuid=uuid)
 
-        rr.set_time_seconds(self.config.timeline, seconds)
-        rr.log(format_entity(self.config.ego_entity, camera, "box"), batch.as_boxes2d())
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.log(format_entity(EntityPath.BASE_LINK, camera, EntityPath.BOX), batch.as_boxes2d())
 
     @_check_spatial2d
     def render_segmentation2d(
@@ -395,7 +395,7 @@ class RerunViewer:
             class_ids (Sequence[int]): Sequence of label ids.
             uuids (Sequence[str | None] | None, optional): Sequence of each instance ID.
         """
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
         batch = BatchSegmentation2D()
         if uuids is None:
@@ -404,7 +404,7 @@ class RerunViewer:
             batch.append(mask, class_id, uuid)
 
         rr.log(
-            format_entity(self.config.ego_entity, camera, "segmentation"),
+            format_entity(EntityPath.BASE_LINK, camera, EntityPath.SEGMENTATION),
             batch.as_segmentation_image(),
         )
 
@@ -425,9 +425,9 @@ class RerunViewer:
             color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
         """
         # TODO(ktro2828): add support of rendering pointcloud on images
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
-        entity_path = format_entity(self.config.ego_entity, channel)
+        entity_path = format_entity(EntityPath.BASE_LINK, channel)
         if color_mode == PointCloudColorMode.SEGMENTATION:
             if not isinstance(pointcloud, SegmentationPointCloud):
                 raise TypeError(
@@ -450,9 +450,9 @@ class RerunViewer:
             camera (str): Name of the camera channel.
             image (str | NDArrayU8): Image tensor or path of the image file.
         """
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
-        entity_path = format_entity(self.config.ego_entity, camera)
+        entity_path = format_entity(EntityPath.BASE_LINK, camera)
         entity = rr.ImageEncoded(path=image) if isinstance(image, str) else rr.Image(image)
 
         rr.log(entity_path, entity)
@@ -509,10 +509,10 @@ class RerunViewer:
         rotation: RotationLike,
         geocoordinate: Vector3Like | None = None,
     ) -> None:
-        rr.set_time_seconds(self.config.timeline, seconds)
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
 
         rr.log(
-            self.config.ego_entity,
+            EntityPath.BASE_LINK,
             rr.Transform3D(
                 translation=translation,
                 rotation=_to_rerun_quaternion(rotation),
@@ -520,7 +520,7 @@ class RerunViewer:
             ),
         )
 
-        entity_path = self.config.geocoordinate_entity
+        entity_path = EntityPath.GEOCOORDINATE
         if geocoordinate is not None:
             rr.log(entity_path, rr.GeoPoints(lat_lon=geocoordinate[:2]))
         elif self.latlon is not None:
@@ -608,14 +608,14 @@ class RerunViewer:
             resolution (Vector2Like | None, optional): Camera resolution (width, height).
         """
         rr.log(
-            format_entity(self.config.ego_entity, channel),
+            format_entity(EntityPath.BASE_LINK, channel),
             rr.Transform3D(translation=translation, rotation=_to_rerun_quaternion(rotation)),
             static=True,
         )
 
         if modality == SensorModality.CAMERA:
             rr.log(
-                format_entity(self.config.ego_entity, channel),
+                format_entity(EntityPath.BASE_LINK, channel),
                 rr.Pinhole(image_from_camera=camera_intrinsic, resolution=resolution),
                 static=True,
             )
@@ -630,12 +630,12 @@ class RerunViewer:
         """
         parser = LaneletParser(filepath, verbose=False)
 
-        root_entity = format_entity(self.config.map_entity, "vector_map")
+        root_entity = format_entity(EntityPath.MAP, EntityPath.VECTOR_MAP)
         render_lanelets(parser, root_entity)
         render_traffic_elements(parser, root_entity)
         render_ways(parser, root_entity)
 
-        render_geographic_borders(parser, f"{self.config.geocoordinate_entity}/vector_map")
+        render_geographic_borders(parser, f"{EntityPath.GEOCOORDINATE}/{EntityPath.VECTOR_MAP}")
 
 
 def _to_rerun_quaternion(rotation: RotationLike) -> rr.Quaternion:

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Sequence
 import rerun.blueprint as rrb
 from typing_extensions import Self
 
-from .config import ViewerConfig, format_entity
+from .config import EntityPath, ViewerConfig, format_entity
 from .viewer import RerunViewer
 
 if TYPE_CHECKING:
@@ -33,14 +33,14 @@ class ViewerBuilder:
         self._config = ViewerConfig()
 
     def with_spatial3d(self) -> Self:
-        self._config.spatial3ds.append(rrb.Spatial3DView(name="3D", origin=ViewerConfig.map_entity))
+        self._config.spatial3ds.append(rrb.Spatial3DView(name="3D", origin=EntityPath.MAP))
         return self
 
     def with_spatial2d(self, cameras: Sequence[str], contents: list[str] | None = None) -> Self:
         # Preserve the original contents arguments so each camera gets its own view_contents.
         base_contents = contents
         for name in cameras:
-            origin = format_entity(ViewerConfig.ego_entity, name)
+            origin = format_entity(EntityPath.BASE_LINK, name)
 
             default_contents = [format_entity(origin, "**")]
             view_contents = (
@@ -57,9 +57,7 @@ class ViewerBuilder:
         return self
 
     def with_streetmap(self, latlon: Vector2Like | None = None) -> Self:
-        self._config.spatial3ds.append(
-            rrb.MapView(name="Map", origin=self._config.geocoordinate_entity)
-        )
+        self._config.spatial3ds.append(rrb.MapView(name="Map", origin=EntityPath.GEOCOORDINATE))
         if latlon is not None:
             self._config.latlon = latlon
         return self

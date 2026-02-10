@@ -15,10 +15,10 @@ from t4_devkit.common.timestamp import microseconds2seconds, seconds2microsecond
 from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud, SegmentationPointCloud
 from t4_devkit.schema import SensorModality
 from t4_devkit.viewer import (
+    EntityPath,
     PointCloudColorMode,
     RerunViewer,
     ViewerBuilder,
-    ViewerConfig,
     format_entity,
 )
 
@@ -125,7 +125,7 @@ class RenderingHelper:
         match mode:
             case RenderingMode.SCENE | RenderingMode.INSTANCE:
                 # project 3D boxes/velocities/futures on image if there is no 2D annotation
-                entity_root = format_entity(ViewerConfig.map_entity, entity_child)
+                entity_root = format_entity(EntityPath.MAP, entity_child)
                 if len(self._t4.object_ann) == 0 and len(self._t4.surface_ann) == 0:
                     contents = [
                         format_entity(entity_root, "box"),
@@ -135,7 +135,7 @@ class RenderingHelper:
                 else:
                     contents = None
             case RenderingMode.POINTCLOUD:
-                contents = [format_entity(ViewerConfig.ego_entity, entity_child)]
+                contents = [format_entity(EntityPath.BASE_LINK, entity_child)]
 
         return contents
 

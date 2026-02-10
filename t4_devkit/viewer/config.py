@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Sequence
+from enum import Enum, unique
+from typing import TYPE_CHECKING
 
 import rerun.blueprint as rrb
 from attrs import define, field
@@ -9,18 +10,28 @@ if TYPE_CHECKING:
     from t4_devkit.typing import Vector2Like
 
 
-__all__ = ["ViewerConfig", "format_entity"]
+__all__ = ["EntityPath", "ViewerConfig", "format_entity"]
+
+
+@unique
+class EntityPath(str, Enum):
+    """Entity path enumerations."""
+
+    TIMELINE = "timeline"
+    MAP = "map"
+    BASE_LINK = "map/base_link"
+    GEOCOORDINATE = "geocoordinate"
+    VECTOR_MAP = "vector_map"
+    BOX = "box"
+    VELOCITY = "velocity"
+    FUTURE = "future"
+    SEGMENTATION = "segmentation"
 
 
 @define
 class ViewerConfig:
-    map_entity: ClassVar[str] = "map"
-    ego_entity: ClassVar[str] = "map/base_link"
-    geocoordinate_entity: ClassVar[str] = "geocoordinate"
-    timeline: ClassVar[str] = "timeline"
-
-    spatial3ds: list[rrb.SpaceView] = field(factory=list)
-    spatial2ds: list[rrb.SpaceView] = field(factory=list)
+    spatial3ds: list[rrb.Spatial3DView | rrb.MapView] = field(factory=list)
+    spatial2ds: list[rrb.Spatial2DView] = field(factory=list)
     label2id: dict[str, int] = field(factory=dict)
     latlon: Vector2Like | None = field(default=None)
 
@@ -43,11 +54,11 @@ class ViewerConfig:
         return len(self.spatial2ds) > 0
 
 
-def format_entity(*entities: Sequence[str]) -> str:
+def format_entity(*entities: str | EntityPath) -> str:
     """Format entity path.
 
     Args:
-        *entities: Entity path(s).
+        *entities (str | EntityPath): Entity path(s).
 
     Returns:
         Formatted entity path.
@@ -58,6 +69,8 @@ def format_entity(*entities: Sequence[str]) -> str:
         >>> format_entity("map", "map/base_link")
         "map/base_link"
         >>> format_entity("map", "map/base_link", "camera")
+        "map/base_link/camera"
+        >>> format_entity(EntityPath.BASE_LINK, "camera")
         "map/base_link/camera"
     """
     if not entities:
