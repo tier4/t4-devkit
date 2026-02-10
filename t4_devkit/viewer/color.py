@@ -32,6 +32,9 @@ def pointcloud_color(
     Args:
         pointcloud (PointCloudLike): Any inheritance of `PointCloud` class.
         color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
+
+    Returns:
+        NDArrayF64: RGB color array in the shape of (N, 3).
     """
     match color_mode:
         case PointCloudColorMode.DISTANCE:

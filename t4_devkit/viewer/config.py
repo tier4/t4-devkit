@@ -30,6 +30,15 @@ class EntityPath(str, Enum):
 
 @define
 class ViewerConfig:
+    """Viewer configuration.
+
+    Attributes:
+        spatial3ds (list[rrb.Spatial3DView] | rrb.MapView): List of 3D spatial views.
+        spatial2ds (list[rrb.Spatial2Dview]): List of 2D spatial views.
+        label2id (dict[str, int]): Key-value mapping to convert label name to its ID.
+        latlon (Vector2Like | None): Starting point in (latitude, longitude).
+    """
+
     spatial3ds: list[rrb.Spatial3DView | rrb.MapView] = field(factory=list)
     spatial2ds: list[rrb.Spatial2DView] = field(factory=list)
     label2id: dict[str, int] = field(factory=dict)
