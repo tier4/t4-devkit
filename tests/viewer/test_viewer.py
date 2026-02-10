@@ -5,7 +5,7 @@ from pyquaternion import Quaternion
 
 from t4_devkit.dataclass import LidarPointCloud
 from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
-from t4_devkit.viewer import format_entity
+from t4_devkit.viewer import EntityPath, format_entity
 
 
 def test_format_entity() -> None:
@@ -15,6 +15,8 @@ def test_format_entity() -> None:
     assert "map/base_link" == format_entity("map", "map/base_link")
     assert "map/base_link/camera" == format_entity("map", "map/base_link", "camera")
     assert "map/base_link/camera" == format_entity("map", "map/base_link", "base_link/camera")
+    assert "map/base_link" == format_entity(EntityPath.MAP, EntityPath.BASE_LINK)
+    assert "map/base_link/camera" == format_entity(EntityPath.MAP, EntityPath.BASE_LINK, "camera")
 
 
 def test_render_box3ds(dummy_viewer, dummy_box3ds) -> None:
