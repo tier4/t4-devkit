@@ -18,13 +18,12 @@ if TYPE_CHECKING:
 __all__ = ["EvaluationObjectLike", "load_dataset", "FrameGroundTruth", "SceneGroundTruth"]
 
 
-EvaluationObjectLike = list[BoxLike] | dict[str, NDArray] | NDArray
+EvaluationObjectLike = list[BoxLike] | dict[str, NDArray]
 """Type alias for evaluation objects.
 
 Accepts:
     list[BoxLike]: Boxes.
     dict[str, NDArray]: Semantic masks for each camera in the shape of (H, W).
-    NDArray: Semantic pointcloud in the shape of (N,).
 """
 
 
@@ -119,7 +118,7 @@ def _load_segmentation2d(t4: Tier4, sample: Sample) -> dict[str, NDArray]:
     return masks
 
 
-def _load_segmentation3d(t4: Tier4, sample: Sample) -> NDArray | None:
+def _load_segmentation3d(t4: Tier4, sample: Sample) -> dict[str, NDArray] | None:
     """Load 3D pointcloud labels.
 
     Args:
@@ -127,16 +126,20 @@ def _load_segmentation3d(t4: Tier4, sample: Sample) -> NDArray | None:
         sample (Sample): Sample record.
 
     Returns:
-        NDArray | None: Return label array in the shape of (N,)
+        dict[str, NDArray] | None: Return label array in the shape of (N,)
             if the corresponding lidarseg exists, otherwise None.
     """
+    channel: str | None = None
     label: NDArray | None = None
     for lidarseg in t4.lidarseg:
-        if lidarseg.sample_data_token not in sample.data.values():
+        for key, token in sample.data.items():
+            if lidarseg.sample_data_token == token:
+                channel = key
+        if channel is None:
             continue
         filepath = osp.join(t4.data_root, lidarseg.filename)
         label = np.fromfile(filepath, dtype=np.uint8)
-    return label
+    return {channel: label} if channel and label else None
 
 
 @define
