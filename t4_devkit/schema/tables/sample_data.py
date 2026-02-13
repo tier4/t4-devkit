@@ -64,6 +64,11 @@ class FileFormat(str, Enum):
         return f".{self.value}"
 
 
+@define
+class Uncertainty:
+    instance: float = field(validator=validators.instance_of(float))
+
+
 @define(slots=False)
 @SCHEMAS.register(SchemaName.SAMPLE_DATA)
 class SampleData(SchemaBase):
@@ -115,6 +120,12 @@ class SampleData(SchemaBase):
         default=None,
         converter=AutolabelMetadata.to_autolabel_metadata,
         validator=validators.optional(validators.instance_of(AutolabelMetadata)),
+    )
+    # NOTE: uncertainty maybe unused
+    uncertainty: Uncertainty | None = field(
+        default=None,
+        converter=lambda x: Uncertainty(**x) if x is not None else None,
+        validator=validators.optional(validators.instance_of(Uncertainty)),
     )
 
     # shortcuts
