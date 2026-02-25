@@ -153,6 +153,10 @@ class PointCloud:
                     f"idx_begin={idx_begin}, length={length}, but num_points={num_points}"
                 )
 
+            # Skip sources with zero length as they don't represent any points and can cause false positives in coverage validation.
+            if length == 0:
+                continue
+
             intervals.append((idx_begin, idx_end, source_token))
 
         # Sort intervals by start index
