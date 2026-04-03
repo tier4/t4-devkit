@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from attrs import define, field, validators
 
 from ..name import SchemaName
-from .autolabel_metadata import AutolabelMetadata
 from .base import SchemaBase, impossible_empty
 from .registry import SCHEMAS
 
@@ -64,6 +63,17 @@ class FileFormat(str, Enum):
         return f".{self.value}"
 
 
+@define
+class Uncertainty:
+    instance: float = field(validator=validators.instance_of(float))
+
+    @staticmethod
+    def to_uncertainty(x: dict | None) -> Uncertainty | None:
+        if x is None:
+            return None
+        return Uncertainty(**x)
+
+
 @define(slots=False)
 @SCHEMAS.register(SchemaName.SAMPLE_DATA)
 class SampleData(SchemaBase):
@@ -86,7 +96,7 @@ class SampleData(SchemaBase):
             Empty if start of scene.
         is_valid (bool): True if this data is valid, else False. Invalid data should be ignored.
         info_filename (str): Relative path to metainfo data-blob on disk.
-        autolabel_metadata (AutolabelMetadata | None, optional): Metadata of models used for autolabeling applied to this entire sample_data item (e.g., image or scan).
+        uncertainty (Uncertainty | None, optional): Uncertainty of the sample data.
 
     Shortcuts:
     ---------
@@ -111,10 +121,10 @@ class SampleData(SchemaBase):
     info_filename: str | None = field(
         default=None, validator=validators.optional(validators.instance_of(str))
     )
-    autolabel_metadata: AutolabelMetadata | None = field(
+    uncertainty: Uncertainty | None = field(
         default=None,
-        converter=AutolabelMetadata.to_autolabel_metadata,
-        validator=validators.optional(validators.instance_of(AutolabelMetadata)),
+        converter=Uncertainty.to_uncertainty,
+        validator=validators.optional(validators.instance_of(Uncertainty)),
     )
 
     # shortcuts
