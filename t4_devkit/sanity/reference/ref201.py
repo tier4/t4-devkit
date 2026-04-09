@@ -34,5 +34,5 @@ class REF201(FileReferenceChecker):
         return [
             Reason(f"File not found: {record['filename']}")
             for record in records
-            if not data_root.joinpath(record["filename"]).exists()
+            if record.get("is_valid", True) and not data_root.joinpath(record["filename"]).exists()
         ] or None
