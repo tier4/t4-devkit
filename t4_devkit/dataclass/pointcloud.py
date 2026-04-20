@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os.path as osp
 import struct
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, TypeVar
@@ -72,10 +73,12 @@ class PointCloudMetainfo:
     Attributes:
         stamp (Stamp): Timestamp.
         sources (list[PointCloudSourceInfo]): List of source information.
+        num_pts_feats (int): Number of float32 fields in each pointcloud point.
     """
 
     stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
     sources: list[PointCloudSourceInfo] = field(factory=list)
+    num_pts_feats: int = 5
 
     @classmethod
     def from_file(cls, filepath: str) -> Self:
@@ -92,7 +95,7 @@ class PointCloudMetainfo:
         sources = []
         for source_data in data.get("sources", []):
             sources.append(PointCloudSourceInfo(**source_data))
-        return cls(stamp=stamp, sources=sources)
+        return cls(stamp=stamp, sources=sources, num_pts_feats=data.get("num_pts_feats", 5))
 
     @property
     def source_tokens(self) -> list[str]:
@@ -244,14 +247,14 @@ class LidarPointCloud(PointCloud):
     def from_file(cls, filepath: str, metainfo_filepath: str | None = None) -> Self:
         assert filepath.endswith(".bin"), f"Unexpected filetype: {filepath}"
 
-        scan = np.fromfile(filepath, dtype=np.float32)
-        points = scan.reshape((-1, 5))[:, : cls.num_dims()]
-
         metainfo = (
             PointCloudMetainfo.from_file(metainfo_filepath)
-            if metainfo_filepath is not None
+            if metainfo_filepath is not None and osp.exists(metainfo_filepath)
             else None
         )
+        num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
+        scan = np.fromfile(filepath, dtype=np.float32)
+        points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
 
         return cls(points.T, metainfo=metainfo)
 
@@ -389,14 +392,15 @@ class SegmentationPointCloud(PointCloud):
     def from_file(
         cls, point_filepath: str, label_filepath: str, metainfo_filepath: str | None = None
     ) -> Self:
-        scan = np.fromfile(point_filepath, dtype=np.float32)
-        points = scan.reshape((-1, 5))[:, : cls.num_dims()]
-        labels = np.fromfile(label_filepath, dtype=np.uint8)
         metainfo = (
             PointCloudMetainfo.from_file(metainfo_filepath)
-            if metainfo_filepath is not None
+            if metainfo_filepath is not None and osp.exists(metainfo_filepath)
             else None
         )
+        num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
+        scan = np.fromfile(point_filepath, dtype=np.float32)
+        points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+        labels = np.fromfile(label_filepath, dtype=np.uint8)
         return cls(points.T, labels=labels, metainfo=metainfo)
 
 

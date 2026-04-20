@@ -434,6 +434,11 @@ class RenderingHelper:
 
                 ego_pose: EgoPose = self._t4.get("ego_pose", sample_data.ego_pose_token)
                 viewer.render_ego(ego_pose=ego_pose)
+                metainfo_filepath = (
+                    osp.join(self._t4.data_root, sample_data.info_filename)
+                    if sample_data.info_filename
+                    else None
+                )
 
                 # render segmentation pointcloud if available, otherwise render raw pointcloud
                 if color_mode == PointCloudColorMode.SEGMENTATION:
@@ -444,10 +449,12 @@ class RenderingHelper:
                     pointcloud = SegmentationPointCloud.from_file(
                         point_filepath=osp.join(self._t4.data_root, sample_data.filename),
                         label_filepath=osp.join(self._t4.data_root, label_filename),
+                        metainfo_filepath=metainfo_filepath,
                     )
                 else:
                     pointcloud = LidarPointCloud.from_file(
-                        osp.join(self._t4.data_root, sample_data.filename)
+                        osp.join(self._t4.data_root, sample_data.filename),
+                        metainfo_filepath=metainfo_filepath,
                     )
 
                 viewer.render_pointcloud(
