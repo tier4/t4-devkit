@@ -66,9 +66,9 @@
 
 ### External Table Reference
 
-| ID       | Name                              | Severity | Fixable | Description                                |
-| -------- | --------------------------------- | -------- | ------- | ------------------------------------------ |
-| `REF301` | `pointcloud-metainfo-token-check` | `ERROR`  | `N/A`   | `PointCloudMetainfo sensor tokens` exists. |
+| ID       | Name                              | Severity | Fixable | Description                                                                                                         |
+| -------- | --------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `REF301` | `pointcloud-metainfo-token-check` | `ERROR`  | `N/A`   | `PointCloudMetainfo.sources[].sensor_token` exists for each metainfo file referenced by `SampleData.info_filename`. |
 
 ## Format (`FMT`)
 
