@@ -21,6 +21,7 @@ dependencies = [
     "tabulate>=0.9.0",
     "tqdm>=4.67.1",
     "returns>=0.26.0",
+    "pyarrow<24.0.0", # NOTE: pyarrow==24.0.0 is only supported on macOS
 ]
 
 [dependency-groups]
