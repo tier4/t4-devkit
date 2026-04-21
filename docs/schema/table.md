@@ -257,7 +257,7 @@ sample_data {
   "next":                     <str> -- Foreign key to the `SampleData` table associated with the next data in the sequence. Empty string `""` if this is the last data.
   "prev":                     <str> -- Foreign key to the `SampleData` table associated with the previous data in the sequence. Empty string `""` if this is the first data.
   "is_valid":                 <bool> -- Indicates whether this data is valid. Defaults to `true`.
-  "info_filename":            <option[str]> -- Relative path to metadata-blob file.
+  "info_filename":            <option[str]> -- Relative path to an optional metainfo JSON file. For pointcloud data, this can describe the point layout, including `num_pts_feats`.
   "autolabel_metadata":       <option[[AutolabelModel;N]]> -- List of models used for autolabeling applied to this entire sample_data item (e.g., image or scan).
 }
 ```

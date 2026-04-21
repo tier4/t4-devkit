@@ -58,6 +58,8 @@ t4viz instance <DATA_ROOT> <INSTANCE_TOKEN1> <INSTANCE_TOKEN2> ... [OPTIONS]
 
 This command performs the same behavior with [`Tier4.render_pointcloud(...)`](../tutorials/render.md#rendering-pointcloud).
 
+If a pointcloud `sample_data` record has `info_filename`, `t4viz pointcloud` loads the metainfo JSON automatically and uses `num_pts_feats` to parse extended point layouts. Without that file, it falls back to the standard 5-feature layout.
+
 For options, run `t4viz pointcloud -h`.
 
 ```shell

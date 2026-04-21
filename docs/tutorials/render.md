@@ -36,6 +36,8 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 >>> t4.render_pointcloud()
 ```
 
+If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `Tier4.render_pointcloud()` loads it automatically. This allows rendering pointclouds with extended per-point features such as `return_type` or `timestamp`. When no metainfo file is available, the standard 5-feature layout is assumed.
+
 ![Render PointCloud GIF](../assets/render_pointcloud.gif)
 
 ### Save Recording
@@ -127,8 +129,12 @@ from t4_devkit.dataclass import LidarPointCloud
 from t4_devkit.viewer import PointCloudColorMode
 # Point cloud channel name
 >>> lidar_channel = "LIDAR_TOP"
-# Load point cloud from file
->>> pointcloud = LidarPointCloud.from_file(<PATH_TO_POINTCLOUD.pcd.bin>)
+# Load point cloud from file.
+# Pass metainfo_filepath when the binary stores more than 5 float32 values per point.
+>>> pointcloud = LidarPointCloud.from_file(
+...     <PATH_TO_POINTCLOUD.pcd.bin>,
+...     metainfo_filepath=<PATH_TO_POINTCLOUD_INFO.json>,
+... )
 >>> color_mode = PointCloudColorMode.DISTANCE
 >>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
 ```
@@ -142,8 +148,13 @@ from t4_devkit.dataclass import SegmentationPointCloud
 from t4_devkit.viewer import PointCloudColorMode
 # Point cloud channel name
 >>> lidar_channel = "LIDAR_TOP"
-# Load point cloud and label from file
->>> pointcloud = SegmentationPointCloud.from_file("<PATH_TO_POINTCLOUD.pcd.bin>", "<PATH_TO_LABEL.pcd.bin>")
+# Load point cloud and label from file.
+# Pass metainfo_filepath when the pointcloud binary uses an extended feature layout.
+>>> pointcloud = SegmentationPointCloud.from_file(
+...     "<PATH_TO_POINTCLOUD.pcd.bin>",
+...     "<PATH_TO_LABEL.pcd.bin>",
+...     metainfo_filepath="<PATH_TO_POINTCLOUD_INFO.json>",
+... )
 >>> color_mode = PointCloudColorMode.SEGMENTATION
 >>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
 ```
