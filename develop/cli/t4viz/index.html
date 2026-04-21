@@ -1746,6 +1746,7 @@
 </span></code></pre></div>
 <h3 id="pointcloud">PointCloud</h3>
 <p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-pointcloud"><code>Tier4.render_pointcloud(...)</code></a>.</p>
+<p>If a pointcloud <code>sample_data</code> record has <code>info_filename</code>, <code>t4viz pointcloud</code> loads the metainfo JSON automatically and uses <code>num_pts_feats</code> to parse extended point layouts. Without that file, it falls back to the standard 5-feature layout.</p>
 <p>For options, run <code>t4viz pointcloud -h</code>.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>t4viz<span class="w"> </span>pointcloud<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </span></code></pre></div>
