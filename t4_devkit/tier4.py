@@ -136,8 +136,8 @@ class T4Devkit:
             verbose (bool, optional): Whether to display status during load.
 
         Examples:
-            >>> from t4_devkit import Tier4
-            >>> t4 = Tier4("data/tier4")
+            >>> from t4_devkit import T4Devkit
+            >>> t4 = T4Devkit("data/tier4")
             ======
             Loading T4 tables in `annotation`...
             Reverse indexing...
@@ -214,7 +214,7 @@ class T4Devkit:
             elapsed_time = time.time() - start_time
             print(f"Done loading in {elapsed_time:.3f} seconds.\n======")
 
-        # initialize helpers after finishing construction of Tier4
+        # initialize helpers after finishing construction of T4Devkit
         self._timeseries_helper = TimeseriesHelper(self)
         self._rendering_helper = RenderingHelper(self)
 

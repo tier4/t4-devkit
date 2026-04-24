@@ -16,7 +16,7 @@ def _context(path: Path) -> SanityContext:
 
 def test_tiv001_pass() -> None:
     """
-    TIV001 should PASS (Tier4 loads successfully) on the valid sample dataset.
+    TIV001 should PASS (T4Devkit loads successfully) on the valid sample dataset.
     """
     checker = TIV001()
     report = checker(_context(SAMPLE_ROOT))
@@ -38,7 +38,7 @@ def test_tiv001_skip_missing_root(tmp_path: Path) -> None:
 
 def test_tiv001_fail_broken_dataset(tmp_path: Path) -> None:
     """
-    TIV001 should FAIL when Tier4 cannot be initialized due to broken dataset contents.
+    TIV001 should FAIL when T4Devkit cannot be initialized due to broken dataset contents.
 
     We create a dataset root with an 'annotation' directory containing an invalid JSON file
     to trigger a loading failure.
@@ -57,5 +57,5 @@ def test_tiv001_fail_broken_dataset(tmp_path: Path) -> None:
     assert not report.is_skipped(), "Existing root should not trigger skip"
     assert report.reasons, "Failed report must include reasons"
     assert any(
-        "Failed to load Tier4" in r for r in report.reasons
-    ), "Failure reason should indicate Tier4 load issue"
+        "Failed to load T4Devkit" in r for r in report.reasons
+    ), "Failure reason should indicate T4Devkit load issue"

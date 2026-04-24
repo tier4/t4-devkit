@@ -1,6 +1,6 @@
-## Rendering with `Tier4`
+## Rendering with `T4Devkit`
 
-If you want to visualize annotation results, `Tier4` supports some rendering methods as below.
+If you want to visualize annotation results, `T4Devkit` supports some rendering methods as below.
 
 ### Scene
 
@@ -36,7 +36,7 @@ If you want to visualize annotation results, `Tier4` supports some rendering met
 >>> t4.render_pointcloud()
 ```
 
-If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `Tier4.render_pointcloud()` loads it automatically. This allows rendering pointclouds with extended per-point features such as `return_type` or `timestamp`. When no metainfo file is available, the standard 5-feature layout is assumed.
+If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `T4Devkit.render_pointcloud()` loads it automatically. This allows rendering pointclouds with extended per-point features such as `return_type` or `timestamp`. When no metainfo file is available, the standard 5-feature layout is assumed.
 
 ![Render PointCloud GIF](../assets/render_pointcloud.gif)
 

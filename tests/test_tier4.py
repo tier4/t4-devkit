@@ -9,7 +9,7 @@ import pytest
 
 from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel
 from t4_devkit.schema import SchemaName
-from t4_devkit.tier4 import DBMetadata, Tier4, load_metadata, load_table
+from t4_devkit.tier4 import DBMetadata, T4Devkit, load_metadata, load_table
 from t4_devkit.typing import Quaternion
 
 
@@ -93,11 +93,11 @@ class TestLoadTable:
         assert result == []
 
 
-class TestTier4:
+class TestT4Devkit:
     """Comprehensive integration tests using the sample T4 dataset.
 
     This test class provides comprehensive integration tests that use the real sample T4 dataset
-    located in tests/sample to verify end-to-end functionality of the Tier4 class.
+    located in tests/sample to verify end-to-end functionality of the T4Devkit class.
 
     These tests focus on real data validation instead of mocked objects:
     - Using real data files instead of mocked objects
@@ -108,11 +108,11 @@ class TestTier4:
 
     @pytest.fixture(scope="class")
     def sample_t4(self):
-        """Create a Tier4 instance using the real sample dataset."""
+        """Create a T4Devkit instance using the real sample dataset."""
         sample_dataset_path = Path(__file__).parent / "sample/t4dataset"
         if not sample_dataset_path.exists():
             pytest.skip("Sample dataset not available")
-        return Tier4(sample_dataset_path.as_posix(), verbose=False)
+        return T4Devkit(sample_dataset_path.as_posix(), verbose=False)
 
     def test_dataset_structure_validation(self, sample_t4):
         """Validate the complete structure of the sample dataset."""

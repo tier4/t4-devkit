@@ -23,7 +23,7 @@ from t4_devkit.viewer import (
 )
 
 if TYPE_CHECKING:
-    from t4_devkit import Tier4
+    from t4_devkit import T4Devkit
     from t4_devkit.schema import (
         CalibratedSensor,
         EgoPose,
@@ -49,13 +49,13 @@ class RenderingMode(Enum):
 
 
 class RenderingHelper:
-    """Help `Tier4` class with rendering tasks."""
+    """Help `T4Devkit` class with rendering tasks."""
 
-    def __init__(self, t4: Tier4) -> None:
+    def __init__(self, t4: T4Devkit) -> None:
         """Construct a new object.
 
         Args:
-            t4 (Tier4): `Tier4` instance.
+            t4 (T4Devkit): `T4Devkit` instance.
         """
         self._t4 = t4
         self._label2id: dict[str, int] = {

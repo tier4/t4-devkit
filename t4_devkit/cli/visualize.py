@@ -5,7 +5,7 @@ from typing import Annotated
 
 import typer
 
-from t4_devkit import Tier4
+from t4_devkit import T4Devkit
 
 from .version import version_callback
 
@@ -47,7 +47,7 @@ def scene(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4(data_root, revision=revision, verbose=False)
+    t4 = T4Devkit(data_root, revision=revision, verbose=False)
     t4.render_scene(future_seconds=future, save_dir=output)
 
 
@@ -82,7 +82,7 @@ def instance(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4(data_root, revision=revision, verbose=False)
+    t4 = T4Devkit(data_root, revision=revision, verbose=False)
     t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
 
 
@@ -107,7 +107,7 @@ def pointcloud(
 ) -> None:
     _create_dir(output)
 
-    t4 = Tier4(data_root, revision=revision, verbose=False)
+    t4 = T4Devkit(data_root, revision=revision, verbose=False)
     t4.render_pointcloud(save_dir=output)
 
 
