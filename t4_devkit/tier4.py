@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Sequence
 import numpy as np
 from attrs import define
 from pyquaternion import Quaternion
+from typing_extensions import deprecated
 
 from t4_devkit.common.geometry import is_box_in_image
 from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel, Shape, ShapeType
@@ -43,7 +44,7 @@ if TYPE_CHECKING:
         Visibility,
     )
 
-__all__ = ["DBMetadata", "load_metadata", "load_table", "Tier4"]
+__all__ = ["DBMetadata", "load_metadata", "load_table", "Tier4", "T4Devkit"]
 
 
 @define
@@ -117,7 +118,7 @@ def load_table(annotation_dir: str, schema: SchemaName) -> list[SchemaTable]:
     return build_schema(schema, filepath)
 
 
-class Tier4:
+class T4Devkit:
     """Database class for T4 dataset to help query and retrieve information from the database."""
 
     def __init__(
@@ -135,8 +136,8 @@ class Tier4:
             verbose (bool, optional): Whether to display status during load.
 
         Examples:
-            >>> from t4_devkit import Tier4
-            >>> t4 = Tier4("data/tier4")
+            >>> from t4_devkit import T4Devkit
+            >>> t4 = T4Devkit("data/tier4")
             ======
             Loading T4 tables in `annotation`...
             Reverse indexing...
@@ -213,7 +214,7 @@ class Tier4:
             elapsed_time = time.time() - start_time
             print(f"Done loading in {elapsed_time:.3f} seconds.\n======")
 
-        # initialize helpers after finishing construction of Tier4
+        # initialize helpers after finishing construction of T4Devkit
         self._timeseries_helper = TimeseriesHelper(self)
         self._rendering_helper = RenderingHelper(self)
 
@@ -799,3 +800,8 @@ class Tier4:
             max_time_seconds=max_time_seconds,
             save_dir=save_dir,
         )
+
+
+@deprecated("Tier4 is deprecated. Use T4Devkit instead.")
+class Tier4(T4Devkit):
+    """This class is deprecated. Use T4Devkit instead."""

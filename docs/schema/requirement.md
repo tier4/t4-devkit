@@ -93,8 +93,8 @@
 | `FMT017` | `keypoint-field`          | `ERROR`  | `N/A`   | All types of `Keypoint` fields are valid.         |
 | `FMT018` | `vehicle-state-field`     | `ERROR`  | `N/A`   | All types of `VehicleState` fields are valid.     |
 
-## Tier4 Instance (`TIV`)
+## TIER IV Instance (`TIV`)
 
-| ID       | Name         | Severity | Fixable | Description                                     |
-| -------- | ------------ | -------- | ------- | ----------------------------------------------- |
-| `TIV001` | `load-tier4` | `ERROR`  | `N/A`   | Ensure `Tier4` instance is loaded successfully. |
+| ID       | Name         | Severity | Fixable | Description                                        |
+| -------- | ------------ | -------- | ------- | -------------------------------------------------- |
+| `TIV001` | `load-tier4` | `ERROR`  | `N/A`   | Ensure `T4Devkit` instance is loaded successfully. |

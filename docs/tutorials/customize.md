@@ -77,7 +77,7 @@ class CustomAttribute(SchemaBase):
     description: str | None = field(default=None)
 ```
 
-Note that `CustomAttribute` should be imported before instantiating `Tier4` class.
+Note that `CustomAttribute` should be imported before instantiating `T4Devkit` class.
 Then modify `__init__.py` in order to import it automatically:
 
 ```python title="__init__.py"

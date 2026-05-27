@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from t4_devkit.common.timestamp import microseconds2seconds
 
 if TYPE_CHECKING:
-    from t4_devkit import Tier4
+    from t4_devkit import T4Devkit
     from t4_devkit.schema import ObjectAnn, Sample, SampleAnnotation, SampleData
 
 
@@ -13,13 +13,13 @@ __all__ = ["TimeseriesHelper"]
 
 
 class TimeseriesHelper:
-    """Help `Tier4` class with timeseries relevant operations."""
+    """Help `T4Devkit` class with timeseries relevant operations."""
 
-    def __init__(self, t4: Tier4) -> None:
+    def __init__(self, t4: T4Devkit) -> None:
         """Construct a new object.
 
         Args:
-            t4 (Tier4): `Tier4` instance.
+            t4 (T4Devkit): `T4Devkit` instance.
         """
         self._t4 = t4
 

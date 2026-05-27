@@ -23,7 +23,7 @@ class TIV001(Checker):
     id = RuleID("TIV001")
     name = RuleName("load-tier4")
     severity = Severity.ERROR
-    description = "Ensure 'Tier4' instance is loaded successfully."
+    description = "Ensure 'T4Devkit' instance is loaded successfully."
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
         match context.data_root:
@@ -37,5 +37,7 @@ class TIV001(Checker):
     def check(self, context: SanityContext) -> list[Reason] | None:
         result = load_tier4_safe(context)
         return (
-            None if is_successful(result) else [Reason(f"Failed to load Tier4: {result.failure()}")]
+            None
+            if is_successful(result)
+            else [Reason(f"Failed to load T4Devkit: {result.failure()}")]
         )

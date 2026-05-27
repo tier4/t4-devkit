@@ -30,7 +30,7 @@ t4viz --install-completion
 
 ### Scene
 
-This command performs the same behavior with [`Tier4.render_scene(...)`](../tutorials/render.md#rendering-scene).
+This command performs the same behavior with [`T4Devkit.render_scene(...)`](../tutorials/render.md#rendering-scene).
 
 For options, run `t4viz scene -h`.
 
@@ -40,7 +40,7 @@ t4viz scene <DATA_ROOT> [OPTIONS]
 
 ### Specific Instance(s)
 
-This command performs the same behavior with [`Tier4.render_instance(...)`](../tutorials/render.md#rendering-instances).
+This command performs the same behavior with [`T4Devkit.render_instance(...)`](../tutorials/render.md#rendering-instances).
 
 For options, run `t4viz instance -h`.
 
@@ -56,7 +56,7 @@ t4viz instance <DATA_ROOT> <INSTANCE_TOKEN1> <INSTANCE_TOKEN2> ... [OPTIONS]
 
 ### PointCloud
 
-This command performs the same behavior with [`Tier4.render_pointcloud(...)`](../tutorials/render.md#rendering-pointcloud).
+This command performs the same behavior with [`T4Devkit.render_pointcloud(...)`](../tutorials/render.md#rendering-pointcloud).
 
 If a pointcloud `sample_data` record has `info_filename`, `t4viz pointcloud` loads the metainfo JSON automatically and uses `num_pts_feats` to parse extended point layouts. Without that file, it falls back to the standard 5-feature layout.
 

@@ -1,8 +1,8 @@
-## Initialize `Tier4` class
+## Initialize `T4Devkit` class
 
 ---
 
-`Tier4` class expects both following dataset directly structure with or without `<VERSION>` directory:
+`T4Devkit` class expects both following dataset directly structure with or without `<VERSION>` directory:
 
 - With `<VERSION>` directory:
 
@@ -39,13 +39,13 @@
   ...
   ```
 
-You can initialize a `Tier4` instance as follows:
+You can initialize a `T4Devkit` instance as follows:
 
 ```python
 
->>> from t4_devkit import Tier4
+>>> from t4_devkit import T4Devkit
 
->>> t4 = Tier4("data/tier4/", verbose=True)
+>>> t4 = T4Devkit("data/tier4/", verbose=True)
 ======
 Loading T4 tables in `annotation`...
 Reverse indexing...
@@ -75,7 +75,7 @@ Note that if you doesn't specify `revision` parameter in construction, it search
 By specifying `revision=<VERSION>`, you can load the specific version of the dataset.
 
 ```python
->>> t4 = Tier4("data/tier4/", revision="2", verbose=True)
+>>> t4 = T4Devkit("data/tier4/", revision="2", verbose=True)
 ```
 
 ## Access to Schema Fields

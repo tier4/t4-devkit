@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from returns.result import Result, safe
 
-from t4_devkit import DBMetadata, Tier4, load_metadata
+from t4_devkit import DBMetadata, T4Devkit, load_metadata
 from t4_devkit.common.io import load_json
 
 if TYPE_CHECKING:
@@ -35,9 +35,9 @@ def load_metadata_safe(
 
 
 @safe
-def load_tier4_safe(context: SanityContext) -> Result[Tier4, Exception]:
-    """Load Tier4 instance safely."""
+def load_tier4_safe(context: SanityContext) -> Result[T4Devkit, Exception]:
+    """Load T4Devkit instance safely."""
     data_root = context.data_root.unwrap()
     revision = context.version.value_or(None)
     data_root = data_root.as_posix() if revision is None else data_root.parent.as_posix()
-    return Tier4(data_root, revision=revision, verbose=False)
+    return T4Devkit(data_root, revision=revision, verbose=False)

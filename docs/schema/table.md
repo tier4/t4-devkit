@@ -333,7 +333,7 @@ visibility {
 
 ## Optional Tables
 
-The following tables are optional, and skipped loading by `Tier4` class if not exists.
+The following tables are optional, and skipped loading by `T4Devkit` class if not exists.
 
 ### LidarSeg
 
