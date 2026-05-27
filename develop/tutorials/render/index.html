@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rendering-with-tier4" class="md-skip">
+        <a href="#rendering-with-t4devkit" class="md-skip">
           Skip to content
         </a>
       
@@ -770,15 +770,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#rendering-with-tier4" class="md-nav__link">
+  <a href="#rendering-with-t4devkit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rendering with Tier4
+        Rendering with T4Devkit
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Rendering with Tier4">
+    <nav class="md-nav" aria-label="Rendering with T4Devkit">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1655,15 +1655,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#rendering-with-tier4" class="md-nav__link">
+  <a href="#rendering-with-t4devkit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rendering with Tier4
+        Rendering with T4Devkit
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Rendering with Tier4">
+    <nav class="md-nav" aria-label="Rendering with T4Devkit">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1809,8 +1809,8 @@
 
   <h1>Visualization</h1>
 
-<h2 id="rendering-with-tier4">Rendering with <code>Tier4</code></h2>
-<p>If you want to visualize annotation results, <code>Tier4</code> supports some rendering methods as below.</p>
+<h2 id="rendering-with-t4devkit">Rendering with <code>T4Devkit</code></h2>
+<p>If you want to visualize annotation results, <code>T4Devkit</code> supports some rendering methods as below.</p>
 <h3 id="scene">Scene</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span><span class="o">.</span><span class="n">render_scene</span><span class="p">()</span>
 </span></code></pre></div>
@@ -1834,7 +1834,7 @@
 <h3 id="pointcloud">PointCloud</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span><span class="o">.</span><span class="n">render_pointcloud</span><span class="p">()</span>
 </span></code></pre></div>
-<p>If <code>SampleData.info_filename</code> points to a pointcloud metainfo JSON file, <code>Tier4.render_pointcloud()</code> loads it automatically. This allows rendering pointclouds with extended per-point features such as <code>return_type</code> or <code>timestamp</code>. When no metainfo file is available, the standard 5-feature layout is assumed.</p>
+<p>If <code>SampleData.info_filename</code> points to a pointcloud metainfo JSON file, <code>T4Devkit.render_pointcloud()</code> loads it automatically. This allows rendering pointclouds with extended per-point features such as <code>return_type</code> or <code>timestamp</code>. When no metainfo file is available, the standard 5-feature layout is assumed.</p>
 <p><img alt="Render PointCloud GIF" src="../../assets/render_pointcloud.gif" /></p>
 <h3 id="save-recording">Save Recording</h3>
 <p>You can save the rendering result as follows:</p>

@@ -1732,12 +1732,12 @@
 </span></code></pre></div>
 <h2 id="usages">Usages</h2>
 <h3 id="scene">Scene</h3>
-<p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-scene"><code>Tier4.render_scene(...)</code></a>.</p>
+<p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-scene"><code>T4Devkit.render_scene(...)</code></a>.</p>
 <p>For options, run <code>t4viz scene -h</code>.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>t4viz<span class="w"> </span>scene<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </span></code></pre></div>
 <h3 id="specific-instances">Specific Instance(s)</h3>
-<p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-instances"><code>Tier4.render_instance(...)</code></a>.</p>
+<p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-instances"><code>T4Devkit.render_instance(...)</code></a>.</p>
 <p>For options, run <code>t4viz instance -h</code>.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>t4viz<span class="w"> </span>instance<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>&lt;INSTANCE_TOKEN&gt;<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </span></code></pre></div>
@@ -1745,7 +1745,7 @@
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>t4viz<span class="w"> </span>instance<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span>&lt;INSTANCE_TOKEN1&gt;<span class="w"> </span>&lt;INSTANCE_TOKEN2&gt;<span class="w"> </span>...<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </span></code></pre></div>
 <h3 id="pointcloud">PointCloud</h3>
-<p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-pointcloud"><code>Tier4.render_pointcloud(...)</code></a>.</p>
+<p>This command performs the same behavior with <a href="../../tutorials/render/#rendering-pointcloud"><code>T4Devkit.render_pointcloud(...)</code></a>.</p>
 <p>If a pointcloud <code>sample_data</code> record has <code>info_filename</code>, <code>t4viz pointcloud</code> loads the metainfo JSON automatically and uses <code>num_pts_feats</code> to parse extended point layouts. Without that file, it falls back to the standard 5-feature layout.</p>
 <p>For options, run <code>t4viz pointcloud -h</code>.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>t4viz<span class="w"> </span>pointcloud<span class="w"> </span>&lt;DATA_ROOT&gt;<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>

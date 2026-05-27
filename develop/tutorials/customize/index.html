@@ -1650,7 +1650,7 @@ This class suppresses runtime exception caused by missing <code>description</cod
 </span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
 </span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </span></code></pre></div>
-<p>Note that <code>CustomAttribute</code> should be imported before instantiating <code>Tier4</code> class.
+<p>Note that <code>CustomAttribute</code> should be imported before instantiating <code>T4Devkit</code> class.
 Then modify <code>__init__.py</code> in order to import it automatically:</p>
 <div class="language-python highlight"><span class="filename">__init__.py</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">.custom_attribute</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span> <span class="c1"># noqa</span>
 </span></code></pre></div>
