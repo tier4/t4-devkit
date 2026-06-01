@@ -79,36 +79,14 @@ class Rosbag2Reader:
         self._build_timestamp_index(topic_to_channel)
 
     def _build_timestamp_index(self, topic_to_channel: dict[str, str]) -> None:
-        """Build timestamp index from the rosbag.
-
-        Uses direct SQL query for SQLite3 storage to avoid reading message
-        payloads, with a fallback to the standard messages() API.
-        """
+        """Build timestamp index from the rosbag."""
         raw_index: dict[str, list[tuple[int, int]]] = {}  # channel -> [(ts_us, ts_ns)]
 
-        dbconn = getattr(self._reader.storage, "dbconn", None)
-        if dbconn is not None:
-            # SQLite3 storage: query timestamps without reading message data
-            topics = tuple(self._channel_to_topic.values())
-            placeholders = ",".join("?" for _ in topics)
-            query = (
-                f"SELECT topics.name, messages.timestamp "
-                f"FROM messages JOIN topics ON messages.topic_id=topics.id "
-                f"WHERE topics.name IN ({placeholders}) "
-                f"ORDER BY messages.timestamp"
-            )
-            for topic_name, timestamp_ns in dbconn.execute(query, topics):
-                channel = topic_to_channel[topic_name]
-                if channel not in raw_index:
-                    raw_index[channel] = []
-                raw_index[channel].append((timestamp_ns // 1_000, timestamp_ns))
-        else:
-            # Fallback for non-SQLite3 storage (e.g., mcap)
-            for conn, timestamp_ns, _rawdata in self._reader.messages(self._connections):
-                channel = topic_to_channel[conn.topic]
-                if channel not in raw_index:
-                    raw_index[channel] = []
-                raw_index[channel].append((timestamp_ns // 1_000, timestamp_ns))
+        for conn, timestamp_ns, _rawdata in self._reader.messages(self._connections):
+            channel = topic_to_channel[conn.topic]
+            if channel not in raw_index:
+                raw_index[channel] = []
+            raw_index[channel].append((timestamp_ns // 1_000, timestamp_ns))
 
         for channel, entries in raw_index.items():
             entries.sort()
