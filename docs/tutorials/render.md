@@ -40,6 +40,46 @@ If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `T4Devk
 
 ![Render PointCloud GIF](../assets/render_pointcloud.gif)
 
+#### Rosbag Support
+
+If the dataset contains an `input_bag/` directory with rosbag2 files (db3 or mcap format), you can read LiDAR point clouds directly from the rosbag instead of the processed `.pcd.bin` files.
+
+<!-- prettier-ignore-start -->
+!!! NOTE
+    This feature requires the optional `rosbags` dependency:
+
+    <!-- markdownlint-disable MD046 -->
+    ```bash
+    pip install t4-devkit[rosbag]
+    ```
+<!-- prettier-ignore-end -->
+
+```python
+>>> from t4_devkit import T4Devkit
+
+# Enable rosbag reading with explicit topic mapping
+>>> t4 = T4Devkit(
+...     "data/tier4/",
+...     use_rosbag=True,
+...     topic_mapping={"LIDAR_TOP": "/sensing/lidar/top/pointcloud"},
+... )
+
+# get_lidar_pointcloud returns the same LidarPointCloud format as file-based loading
+>>> pc = t4.get_lidar_pointcloud(sample_data_token)
+
+# Rendering also uses rosbag data automatically when use_rosbag=True
+>>> t4.render_pointcloud()
+```
+
+You can also use the CLI:
+
+```bash
+t4viz scene data/tier4/ --use-rosbag \
+    --topic-mapping '{"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}'
+```
+
+If `topic_mapping` is not specified, PointCloud2 topics are auto-detected from the rosbag.
+
 ### Save Recording
 
 You can save the rendering result as follows:

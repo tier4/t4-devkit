@@ -19,6 +19,7 @@
       │   ├── CAM_FRONT_RIGHT
       │   ├── LIDAR_CONCAT
       │   └── ...Other sensor channels
+      ├── input_bag (optional) ...rosbag2 files
       ...
   ```
 
@@ -36,6 +37,7 @@
   │   ├── CAM_FRONT_RIGHT
   │   ├── LIDAR_CONCAT
   │   └── ...Other sensor channels
+  ├── input_bag (optional) ...rosbag2 files
   ...
   ```
 
