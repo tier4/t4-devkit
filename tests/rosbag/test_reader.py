@@ -12,6 +12,7 @@ from rosbags.rosbag2 import Writer  # noqa: E402
 from rosbags.typesys import Stores, get_typestore  # noqa: E402
 
 from t4_devkit.rosbag.reader import Rosbag2Reader  # noqa: E402
+from t4_devkit.rosbag.topic_mapping import TopicMapping  # noqa: E402
 
 
 def _create_test_rosbag(bag_dir: Path, topic: str, timestamps_ns: list[int]) -> None:
@@ -92,14 +93,14 @@ class TestRosbag2Reader:
         reader.close()
 
     def test_init_with_topic_mapping(self, bag_with_pointclouds: Path) -> None:
-        mapping = {"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         reader = Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping)
         assert reader.has_channel("LIDAR_TOP")
         assert not reader.has_channel("/sensing/lidar/top/pointcloud")
         reader.close()
 
     def test_get_pointcloud_exact(self, bag_with_pointclouds: Path) -> None:
-        mapping = {"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
             pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
 
@@ -108,21 +109,21 @@ class TestRosbag2Reader:
             np.testing.assert_array_almost_equal(pc.points[:, 0], [0.0, 1.0, 2.0, 0.0])
 
     def test_get_pointcloud_near_match(self, bag_with_pointclouds: Path) -> None:
-        mapping = {"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
             # Slightly off timestamp (1ms difference), within default 75ms tolerance
             pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_001_000)
             assert pc.points.shape == (4, 3)
 
     def test_get_pointcloud_out_of_tolerance(self, bag_with_pointclouds: Path) -> None:
-        mapping = {"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
             with pytest.raises(ValueError, match="No message found"):
                 # Timestamp far from any message (1 second off)
                 reader.get_pointcloud("LIDAR_TOP", 1_704_067_201_000_000)
 
     def test_get_pointcloud_unknown_channel(self, bag_with_pointclouds: Path) -> None:
-        mapping = {"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
             with pytest.raises(KeyError, match="LIDAR_BOTTOM"):
                 reader.get_pointcloud("LIDAR_BOTTOM", 1_704_067_200_000_000)
@@ -136,7 +137,7 @@ class TestRosbag2Reader:
             assert len(reader.channels) > 0
 
     def test_multiple_timestamps(self, bag_with_pointclouds: Path) -> None:
-        mapping = {"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
             # Read all three timestamps
             for ts_us in [

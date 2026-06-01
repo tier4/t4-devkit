@@ -128,7 +128,7 @@ class T4Devkit:
         verbose: bool = True,
         *,
         use_rosbag: bool = False,
-        topic_mapping: dict[str, str] | None = None,
+        topic_mapping: list | dict[str, str] | None = None,
     ) -> None:
         """Load database and creates reverse indexes and shortcuts.
 
@@ -138,9 +138,11 @@ class T4Devkit:
                 If None, search the latest one.
             verbose (bool, optional): Whether to display status during load.
             use_rosbag (bool, optional): Whether to read LiDAR data from rosbag
-                instead of processed .pcd.bin files. Requires ``pip install t4-devkit[rosbag]``.
-            topic_mapping (dict[str, str] | None, optional): Mapping from sensor channel names
-                to ROS topic names (e.g., ``{"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}``).
+                instead of processed .pcd.bin files.
+            topic_mapping (list[TopicMapping] | dict[str, str] | None, optional):
+                Mapping from sensor channel names to ROS topic names.
+                Accepts a list of ``TopicMapping`` instances or a dict
+                (e.g., ``{"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}``).
                 If None and ``use_rosbag`` is True, topics are auto-detected.
 
         Examples:
@@ -225,13 +227,15 @@ class T4Devkit:
         # initialize rosbag reader if requested
         self._rosbag_reader = None
         if use_rosbag:
-            from t4_devkit.rosbag import Rosbag2Reader
+            from t4_devkit.rosbag import Rosbag2Reader, TopicMapping
 
             if not osp.isdir(self.bag_dir):
                 raise FileNotFoundError(
                     f"Rosbag directory not found: {self.bag_dir}. "
                     "Cannot use use_rosbag=True without input_bag/ directory."
                 )
+            if isinstance(topic_mapping, dict):
+                topic_mapping = TopicMapping.from_dict(topic_mapping)
             self._rosbag_reader = Rosbag2Reader(self.bag_dir, topic_mapping=topic_mapping)
             if verbose:
                 print(f"Loaded rosbag reader with channels: {self._rosbag_reader.channels}")

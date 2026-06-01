@@ -175,22 +175,27 @@ def pointcloud(
     t4.render_pointcloud(save_dir=output)
 
 
-def _parse_topic_mapping(topic_mapping: str | None) -> dict[str, str] | None:
+def _parse_topic_mapping(topic_mapping: str | None) -> list | None:
     """Parse topic mapping from a JSON string or file path.
 
     Args:
         topic_mapping (str | None): JSON string or path to a JSON file.
 
     Returns:
-        Parsed mapping dict, or None.
+        List of TopicMapping instances, or None.
     """
     if topic_mapping is None:
         return None
     if os.path.isfile(topic_mapping):
         from t4_devkit.common.io import load_json
 
-        return load_json(topic_mapping)
-    return json.loads(topic_mapping)
+        raw = load_json(topic_mapping)
+    else:
+        raw = json.loads(topic_mapping)
+
+    from t4_devkit.rosbag import TopicMapping
+
+    return TopicMapping.from_dict(raw)
 
 
 def _create_dir(dir_path: str | None) -> None:

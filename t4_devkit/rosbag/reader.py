@@ -9,6 +9,7 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
 
 from t4_devkit.rosbag.pointcloud2 import pointcloud2_to_lidar
+from t4_devkit.rosbag.topic_mapping import TopicMapping
 
 if TYPE_CHECKING:
     from rosbags.interfaces import Connection
@@ -28,14 +29,14 @@ class Rosbag2Reader:
 
     Args:
         bag_dir: Path to the rosbag2 directory (containing metadata.yaml).
-        topic_mapping: Optional mapping from T4 sensor channel names to ROS topic names.
+        topic_mapping: Optional list of ``TopicMapping`` instances.
             If ``None``, PointCloud2 topics are auto-detected from the bag.
     """
 
     def __init__(
         self,
         bag_dir: str,
-        topic_mapping: dict[str, str] | None = None,
+        topic_mapping: list[TopicMapping] | None = None,
     ) -> None:
         bag_path = Path(bag_dir)
         if not bag_path.is_dir():
@@ -61,7 +62,7 @@ class Rosbag2Reader:
 
         # Build topic <-> channel mapping
         if topic_mapping is not None:
-            self._channel_to_topic = dict(topic_mapping)
+            self._channel_to_topic = TopicMapping.to_channel_dict(topic_mapping)
         else:
             self._channel_to_topic = {conn.topic: conn.topic for conn in pc2_connections}
 
