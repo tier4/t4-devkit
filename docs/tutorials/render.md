@@ -44,14 +44,18 @@ If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `T4Devk
 
 If the dataset contains an `input_bag/` directory with rosbag2 files (db3 or mcap format), you can read LiDAR point clouds directly from the rosbag instead of the processed `.pcd.bin` files.
 
+The `topic_mapping` parameter maps T4 dataset sensor channel names (e.g. `LIDAR_TOP`, `LIDAR_CONCAT`) to ROS topic names in the rosbag. This mapping is required so that `get_lidar_pointcloud()` can look up the correct rosbag topic for each `sample_data.channel`.
+
 ```python
 >>> from t4_devkit import T4Devkit
 
 # Enable rosbag reading with explicit topic mapping
+# Keys: T4 sensor channel names (must match sample_data.channel)
+# Values: ROS topic names in the rosbag
 >>> t4 = T4Devkit(
 ...     "data/tier4/",
 ...     use_rosbag=True,
-...     topic_mapping={"LIDAR_TOP": "/sensing/lidar/top/pointcloud"},
+...     topic_mapping={"LIDAR_CONCAT": "/sensing/lidar/concatenated/pointcloud"},
 ... )
 
 # get_lidar_pointcloud returns the same LidarPointCloud format as file-based loading
@@ -64,11 +68,11 @@ If the dataset contains an `input_bag/` directory with rosbag2 files (db3 or mca
 You can also use the CLI:
 
 ```bash
-t4viz scene data/tier4/ --use-rosbag \
-    --topic-mapping '{"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}'
+t4viz pointcloud data/tier4/ --use-rosbag \
+    --topic-mapping '{"LIDAR_CONCAT": "/sensing/lidar/concatenated/pointcloud"}'
 ```
 
-If `topic_mapping` is not specified, PointCloud2 topics are auto-detected from the rosbag.
+If `topic_mapping` is omitted, PointCloud2 topics are auto-detected from the rosbag, but the auto-detected keys are the ROS topic names themselves (e.g. `/sensing/lidar/concatenated/pointcloud`), which typically do not match the T4 channel names. In most cases you should specify `topic_mapping` explicitly.
 
 ### Save Recording
 
