@@ -12,7 +12,7 @@ import numpy as np
 import yaml
 
 from t4_devkit.common.timestamp import microseconds2seconds, seconds2microseconds
-from t4_devkit.dataclass import LidarPointCloud, RadarPointCloud, SegmentationPointCloud
+from t4_devkit.dataclass import RadarPointCloud, SegmentationPointCloud
 from t4_devkit.schema import SensorModality
 from t4_devkit.viewer import (
     EntityPath,
@@ -452,8 +452,8 @@ class RenderingHelper:
                         metainfo_filepath=metainfo_filepath,
                     )
                 else:
-                    pointcloud = LidarPointCloud.from_file(
-                        osp.join(self._t4.data_root, sample_data.filename),
+                    pointcloud = self._t4.get_lidar_pointcloud(
+                        sample_data.token,
                         metainfo_filepath=metainfo_filepath,
                     )
 

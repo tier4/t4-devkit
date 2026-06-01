@@ -13,7 +13,7 @@ from pyquaternion import Quaternion
 from typing_extensions import deprecated
 
 from t4_devkit.common.geometry import is_box_in_image
-from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel, Shape, ShapeType
+from t4_devkit.dataclass import Box2D, Box3D, LidarPointCloud, SemanticLabel, Shape, ShapeType
 from t4_devkit.helper import RenderingHelper, TimeseriesHelper
 from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
 from t4_devkit.schema.compatibility import fix_category_table
@@ -126,6 +126,9 @@ class T4Devkit:
         data_root: str,
         revision: str | None = None,
         verbose: bool = True,
+        *,
+        use_rosbag: bool = False,
+        topic_mapping: dict[str, str] | None = None,
     ) -> None:
         """Load database and creates reverse indexes and shortcuts.
 
@@ -134,6 +137,11 @@ class T4Devkit:
             revision (str | None, optional): You can specify any specific version if you want.
                 If None, search the latest one.
             verbose (bool, optional): Whether to display status during load.
+            use_rosbag (bool, optional): Whether to read LiDAR data from rosbag
+                instead of processed .pcd.bin files. Requires ``pip install t4-devkit[rosbag]``.
+            topic_mapping (dict[str, str] | None, optional): Mapping from sensor channel names
+                to ROS topic names (e.g., ``{"LIDAR_TOP": "/sensing/lidar/top/pointcloud"}``).
+                If None and ``use_rosbag`` is True, topics are auto-detected.
 
         Examples:
             >>> from t4_devkit import T4Devkit
@@ -214,9 +222,28 @@ class T4Devkit:
             elapsed_time = time.time() - start_time
             print(f"Done loading in {elapsed_time:.3f} seconds.\n======")
 
+        # initialize rosbag reader if requested
+        self._rosbag_reader = None
+        if use_rosbag:
+            from t4_devkit.rosbag import Rosbag2Reader
+
+            if not osp.isdir(self.bag_dir):
+                raise FileNotFoundError(
+                    f"Rosbag directory not found: {self.bag_dir}. "
+                    "Cannot use use_rosbag=True without input_bag/ directory."
+                )
+            self._rosbag_reader = Rosbag2Reader(self.bag_dir, topic_mapping=topic_mapping)
+            if verbose:
+                print(f"Loaded rosbag reader with channels: {self._rosbag_reader.channels}")
+
         # initialize helpers after finishing construction of T4Devkit
         self._timeseries_helper = TimeseriesHelper(self)
         self._rendering_helper = RenderingHelper(self)
+
+    def close(self) -> None:
+        """Close resources held by this instance."""
+        if self._rosbag_reader is not None:
+            self._rosbag_reader.close()
 
     @property
     def data_root(self) -> str:
@@ -384,6 +411,36 @@ class T4Devkit:
         """
         sd_record: SampleData = self.get("sample_data", sample_data_token)
         return osp.join(self.data_root, sd_record.filename)
+
+    def get_lidar_pointcloud(
+        self,
+        sample_data_token: str,
+        *,
+        metainfo_filepath: str | None = None,
+    ) -> LidarPointCloud:
+        """Return a LidarPointCloud for the given sample_data token.
+
+        If ``use_rosbag`` is enabled and the channel exists in the rosbag,
+        reads from the rosbag. Otherwise, falls back to file-based loading.
+
+        Args:
+            sample_data_token (str): Token of ``sample_data``.
+            metainfo_filepath (str | None, optional): Path to metainfo JSON file.
+
+        Returns:
+            LidarPointCloud instance with shape (4, N).
+        """
+        sd_record: SampleData = self.get("sample_data", sample_data_token)
+
+        if self._rosbag_reader is not None and sd_record.channel:
+            if self._rosbag_reader.has_channel(sd_record.channel):
+                return self._rosbag_reader.get_pointcloud(
+                    sd_record.channel, sd_record.timestamp
+                )
+
+        # Fallback to file-based reading
+        filepath = osp.join(self.data_root, sd_record.filename)
+        return LidarPointCloud.from_file(filepath, metainfo_filepath=metainfo_filepath)
 
     def get_sample_data(
         self,
