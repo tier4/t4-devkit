@@ -44,16 +44,6 @@ If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `T4Devk
 
 If the dataset contains an `input_bag/` directory with rosbag2 files (db3 or mcap format), you can read LiDAR point clouds directly from the rosbag instead of the processed `.pcd.bin` files.
 
-<!-- prettier-ignore-start -->
-!!! NOTE
-    This feature requires the optional `rosbags` dependency:
-
-    <!-- markdownlint-disable MD046 -->
-    ```bash
-    pip install t4-devkit[rosbag]
-    ```
-<!-- prettier-ignore-end -->
-
 ```python
 >>> from t4_devkit import T4Devkit
 
