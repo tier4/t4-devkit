@@ -8,12 +8,12 @@ __all__ = ["pointcloud2_to_lidar"]
 
 # PointField datatype constants -> numpy dtype mapping
 _DATATYPE_TO_NUMPY = {
-    1: np.int8,     # INT8
-    2: np.uint8,    # UINT8
-    3: np.int16,    # INT16
-    4: np.uint16,   # UINT16
-    5: np.int32,    # INT32
-    6: np.uint32,   # UINT32
+    1: np.int8,  # INT8
+    2: np.uint8,  # UINT8
+    3: np.int16,  # INT16
+    4: np.uint16,  # UINT16
+    5: np.int32,  # INT32
+    6: np.uint32,  # UINT32
     7: np.float32,  # FLOAT32
     8: np.float64,  # FLOAT64
 }

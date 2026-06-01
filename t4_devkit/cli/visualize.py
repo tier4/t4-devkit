@@ -64,8 +64,11 @@ def scene(
 
     mapping = _parse_topic_mapping(topic_mapping)
     t4 = T4Devkit(
-        data_root, revision=revision, verbose=False,
-        use_rosbag=use_rosbag, topic_mapping=mapping,
+        data_root,
+        revision=revision,
+        verbose=False,
+        use_rosbag=use_rosbag,
+        topic_mapping=mapping,
     )
     t4.render_scene(future_seconds=future, save_dir=output)
 
@@ -117,8 +120,11 @@ def instance(
 
     mapping = _parse_topic_mapping(topic_mapping)
     t4 = T4Devkit(
-        data_root, revision=revision, verbose=False,
-        use_rosbag=use_rosbag, topic_mapping=mapping,
+        data_root,
+        revision=revision,
+        verbose=False,
+        use_rosbag=use_rosbag,
+        topic_mapping=mapping,
     )
     t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
 
@@ -160,8 +166,11 @@ def pointcloud(
 
     mapping = _parse_topic_mapping(topic_mapping)
     t4 = T4Devkit(
-        data_root, revision=revision, verbose=False,
-        use_rosbag=use_rosbag, topic_mapping=mapping,
+        data_root,
+        revision=revision,
+        verbose=False,
+        use_rosbag=use_rosbag,
+        topic_mapping=mapping,
     )
     t4.render_pointcloud(save_dir=output)
 

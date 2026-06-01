@@ -434,9 +434,7 @@ class T4Devkit:
 
         if self._rosbag_reader is not None and sd_record.channel:
             if self._rosbag_reader.has_channel(sd_record.channel):
-                return self._rosbag_reader.get_pointcloud(
-                    sd_record.channel, sd_record.timestamp
-                )
+                return self._rosbag_reader.get_pointcloud(sd_record.channel, sd_record.timestamp)
 
         # Fallback to file-based reading
         filepath = osp.join(self.data_root, sd_record.filename)
