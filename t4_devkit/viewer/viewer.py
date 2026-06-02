@@ -215,7 +215,7 @@ class RerunViewer:
             self._render_box3ds_with_elements(*args, **kwargs)
 
     def _render_box3ds_with_boxes(self, seconds: float, boxes: Sequence[Box3D]) -> None:
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         batches: dict[str, BatchBox3D] = {}
         for box in boxes:
@@ -288,7 +288,7 @@ class RerunViewer:
                 future=future,
             )
 
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         rr.log(format_entity(EntityPath.MAP, frame_id, EntityPath.BOX), batch.as_boxes3d())
 
@@ -344,7 +344,7 @@ class RerunViewer:
             self._render_box2ds_with_elements(*args, **kwargs)
 
     def _render_box2ds_with_boxes(self, seconds: float, boxes: Sequence[Box2D]) -> None:
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         batches: dict[str, BatchBox2D] = {}
         for box in boxes:
@@ -373,7 +373,7 @@ class RerunViewer:
         for roi, class_id, uuid in zip(rois, class_ids, uuids, strict=True):
             batch.append(roi=roi, class_id=class_id, uuid=uuid)
 
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
         rr.log(format_entity(EntityPath.BASE_LINK, camera, EntityPath.BOX), batch.as_boxes2d())
 
     @_check_spatial2d
@@ -395,7 +395,7 @@ class RerunViewer:
             class_ids (Sequence[int]): Sequence of label ids.
             uuids (Sequence[str | None] | None, optional): Sequence of each instance ID.
         """
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         batch = BatchSegmentation2D()
         if uuids is None:
@@ -425,7 +425,7 @@ class RerunViewer:
             color_mode (PointCloudColorMode, optional): Color mode for pointcloud.
         """
         # TODO(ktro2828): add support of rendering pointcloud on images
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         entity_path = format_entity(EntityPath.BASE_LINK, channel)
         if color_mode == PointCloudColorMode.SEGMENTATION:
@@ -450,10 +450,10 @@ class RerunViewer:
             camera (str): Name of the camera channel.
             image (str | NDArrayU8): Image tensor or path of the image file.
         """
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         entity_path = format_entity(EntityPath.BASE_LINK, camera)
-        entity = rr.ImageEncoded(path=image) if isinstance(image, str) else rr.Image(image)
+        entity = rr.EncodedImage(path=image) if isinstance(image, str) else rr.Image(image)
 
         rr.log(entity_path, entity)
 
@@ -509,7 +509,7 @@ class RerunViewer:
         rotation: RotationLike,
         geocoordinate: Vector3Like | None = None,
     ) -> None:
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        rr.set_time(EntityPath.TIMELINE, duration=seconds)
 
         rr.log(
             EntityPath.BASE_LINK,

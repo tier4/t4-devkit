@@ -12,6 +12,7 @@ from rosbags.rosbag2 import Writer  # noqa: E402
 from rosbags.typesys import Stores, get_typestore  # noqa: E402
 
 from t4_devkit.rosbag.pandar_decoder import (  # noqa: E402
+    HESAI_MODELS,
     pandarscan_to_lidar,
     register_pandar_types,
 )
@@ -56,12 +57,7 @@ def _build_xt32_packet(
             body.extend(struct.pack("<H", distances_mm[blk][ch]))
             body.append(reflectivities[blk][ch])
 
-    # Tail (22 bytes): reserved(10) + high_temp(1) + return_mode(1) +
-    #   motor_speed(2) + datetime(6) + timestamp_us(4) + factory(1)
-    # Total = 10 + 1 + 1 + 2 + 6 + 4 + 1 = 25... let me compute properly
-    # Actually: reserved(8) + shutdown(2) + return_mode(1) + motor_speed(2) +
-    #   datetime(6) + timestamp_us(4) + factory(1) = 24? No...
-    # Use 22 bytes tail (standard for XT32 without UDP seq)
+    # Tail (22 bytes)
     tail = bytearray(22)
     tail[-1] = _XT32_FACTORY  # factory info byte
 
@@ -86,15 +82,15 @@ class TestPandarDecoderUnit:
 
         from t4_devkit.rosbag.pandar_decoder import _decode_packet
 
-        points, config = _decode_packet(packet, None)
+        config = HESAI_MODELS["XT32"]
+        points = _decode_packet(packet, config)
 
-        assert config.name == "XT32"
         assert points.shape[0] == 4
         assert points.shape[1] == laser_num
 
-        # At azimuth=0°: x = d*cos(el)*sin(0) = 0, y = d*cos(el)*cos(0) = d*cos(el)
-        # All x values should be ~0
-        np.testing.assert_array_almost_equal(points[0, :], 0.0, decimal=5)
+        # At azimuth=0° in ROS frame: x = d*cos(el)*cos(0) = d*cos(el), y = -d*cos(el)*sin(0) = 0
+        # All y values should be ~0
+        np.testing.assert_array_almost_equal(points[1, :], 0.0, decimal=5)
         # All intensities should be 128
         np.testing.assert_array_almost_equal(points[3, :], 128.0)
 
@@ -112,11 +108,12 @@ class TestPandarDecoderUnit:
 
         from t4_devkit.rosbag.pandar_decoder import _decode_packet
 
-        points, _ = _decode_packet(packet, None)
+        config = HESAI_MODELS["XT32"]
+        points = _decode_packet(packet, config)
         assert points.shape[1] == 0
 
     def test_decode_azimuth_90(self) -> None:
-        """Test decoding at azimuth=90° - x should be positive for 0° elevation."""
+        """Test decoding at azimuth=90° - y should be negative (left-hand convention)."""
         laser_num = 32
         distances = [[2500] * laser_num]  # 10m
         reflectivities = [[100] * laser_num]
@@ -129,18 +126,19 @@ class TestPandarDecoderUnit:
 
         from t4_devkit.rosbag.pandar_decoder import _decode_packet
 
-        points, _ = _decode_packet(packet, None)
+        config = HESAI_MODELS["XT32"]
+        points = _decode_packet(packet, config)
 
-        # At azimuth=90°: x = d*cos(el)*sin(90°) = d*cos(el)
-        # Channel 15 (elevation=0°): x = 10.0, y ≈ 0
+        # At azimuth=90° in ROS frame: x = d*cos(el)*cos(90°) ≈ 0, y = -d*cos(el)*sin(90°) = -d*cos(el)
+        # Channel 15 (elevation=0°): x ≈ 0, y = -10.0
         ch15_idx = None
         for i in range(points.shape[1]):
             if abs(points[2, i]) < 0.01:  # z ≈ 0 means elevation ≈ 0
                 ch15_idx = i
                 break
         assert ch15_idx is not None
-        assert points[0, ch15_idx] == pytest.approx(10.0, abs=0.1)
-        assert points[1, ch15_idx] == pytest.approx(0.0, abs=0.1)
+        assert points[0, ch15_idx] == pytest.approx(0.0, abs=0.1)
+        assert points[1, ch15_idx] == pytest.approx(-10.0, abs=0.1)
 
     def test_multiple_blocks(self) -> None:
         """Test decoding a packet with multiple blocks."""
@@ -158,9 +156,28 @@ class TestPandarDecoderUnit:
 
         from t4_devkit.rosbag.pandar_decoder import _decode_packet
 
-        points, _ = _decode_packet(packet, None)
+        config = HESAI_MODELS["XT32"]
+        points = _decode_packet(packet, config)
         assert points.shape[0] == 4
         assert points.shape[1] == laser_num * block_num
+
+    def test_channel_count_mismatch_raises(self) -> None:
+        """Test that mismatched sensor type raises ValueError."""
+        laser_num = 32
+        distances = [[1000] * laser_num]
+        reflectivities = [[128] * laser_num]
+
+        packet = _build_xt32_packet(
+            azimuths_deg=[0.0],
+            distances_mm=distances,
+            reflectivities=reflectivities,
+        )
+
+        from t4_devkit.rosbag.pandar_decoder import _decode_packet
+
+        config = HESAI_MODELS["OT128"]  # 128ch config for 32ch packet
+        with pytest.raises(ValueError, match="does not match"):
+            _decode_packet(packet, config)
 
 
 class TestPandarScanToLidar:
@@ -186,12 +203,13 @@ class TestPandarScanToLidar:
         class MockPacket:
             stamp = MockTime()
             data = packet_data
+            size = len(packet_data)
 
         class MockScan:
             header = None
             packets = [MockPacket()]
 
-        pc = pandarscan_to_lidar(MockScan())
+        pc = pandarscan_to_lidar(MockScan(), "XT32")
         assert pc.points.shape[0] == 4
         assert pc.points.shape[1] == laser_num
 
@@ -203,7 +221,17 @@ class TestPandarScanToLidar:
             packets = []
 
         with pytest.raises(ValueError, match="no packets"):
-            pandarscan_to_lidar(MockScan())
+            pandarscan_to_lidar(MockScan(), "XT32")
+
+    def test_unsupported_sensor_type_raises(self) -> None:
+        """Test that unsupported sensor type raises ValueError."""
+
+        class MockScan:
+            header = None
+            packets = [object()]
+
+        with pytest.raises(ValueError, match="Unsupported sensor type"):
+            pandarscan_to_lidar(MockScan(), "UNKNOWN_SENSOR")
 
     def test_multiple_packets(self) -> None:
         """Test combining multiple packets into one point cloud."""
@@ -226,6 +254,7 @@ class TestPandarScanToLidar:
 
             pkt = MockPacket()
             pkt.data = data
+            pkt.size = len(data)
             packets.append(pkt)
 
         class MockScan:
@@ -234,7 +263,7 @@ class TestPandarScanToLidar:
         scan = MockScan()
         scan.packets = packets
 
-        pc = pandarscan_to_lidar(scan)
+        pc = pandarscan_to_lidar(scan, "XT32")
         assert pc.points.shape[0] == 4
         assert pc.points.shape[1] == laser_num * 4
 
@@ -272,9 +301,12 @@ def _create_pandar_rosbag(
                     distances_mm=[[1000] * laser_num],
                     reflectivities=[[128] * laser_num],
                 )
+                # Pad to fixed 1500-byte buffer
+                padded = pkt_data + b"\x00" * (1500 - len(pkt_data))
                 pkt = PandarPacket(
                     stamp=Time(sec=sec, nanosec=nanosec),
-                    data=np.frombuffer(pkt_data, dtype=np.uint8),
+                    data=np.frombuffer(padded, dtype=np.uint8),
+                    size=len(pkt_data),
                 )
                 packets.append(pkt)
 
@@ -303,12 +335,34 @@ class TestRosbag2ReaderPandarScan:
         _create_pandar_rosbag(bag_dir, "/sensing/lidar/top/pandar_packets", timestamps_ns)
         return bag_dir
 
-    def test_auto_detect_pandar(self, pandar_bag: Path) -> None:
-        with Rosbag2Reader(str(pandar_bag)) as reader:
-            assert reader.has_channel("/sensing/lidar/top/pandar_packets")
+    def test_missing_sensor_type_raises(self, pandar_bag: Path) -> None:
+        """Test that PandarScan topic without sensor_type raises ValueError."""
+        mapping = [
+            TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")
+        ]
+        with pytest.raises(ValueError, match="sensor_type must be specified"):
+            Rosbag2Reader(str(pandar_bag), topic_mapping=mapping)
+
+    def test_invalid_sensor_type_raises(self, pandar_bag: Path) -> None:
+        """Test that invalid sensor_type raises ValueError."""
+        mapping = [
+            TopicMapping(
+                channel="LIDAR_TOP",
+                topic="/sensing/lidar/top/pandar_packets",
+                sensor_type="INVALID",
+            )
+        ]
+        with pytest.raises(ValueError, match="Unsupported sensor_type"):
+            Rosbag2Reader(str(pandar_bag), topic_mapping=mapping)
 
     def test_topic_mapping_pandar(self, pandar_bag: Path) -> None:
-        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")]
+        mapping = [
+            TopicMapping(
+                channel="LIDAR_TOP",
+                topic="/sensing/lidar/top/pandar_packets",
+                sensor_type="XT32",
+            )
+        ]
         with Rosbag2Reader(str(pandar_bag), topic_mapping=mapping) as reader:
             assert reader.has_channel("LIDAR_TOP")
             pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
@@ -316,7 +370,13 @@ class TestRosbag2ReaderPandarScan:
             assert pc.points.shape[1] > 0
 
     def test_get_pointcloud_pandar(self, pandar_bag: Path) -> None:
-        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")]
+        mapping = [
+            TopicMapping(
+                channel="LIDAR_TOP",
+                topic="/sensing/lidar/top/pandar_packets",
+                sensor_type="XT32",
+            )
+        ]
         with Rosbag2Reader(str(pandar_bag), topic_mapping=mapping) as reader:
             pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
             # 4 packets × 1 block × 32 channels = 128 points

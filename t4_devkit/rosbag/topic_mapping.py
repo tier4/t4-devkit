@@ -18,10 +18,14 @@ class TopicMapping:
     Attributes:
         channel (str): T4 sensor channel name (e.g. ``"LIDAR_CONCAT"``).
         topic (str): ROS topic name (e.g. ``"/sensing/lidar/concatenated/pointcloud"``).
+        sensor_type (str | None): Hesai sensor model name for PandarScan topics
+            (e.g. ``"OT128"``, ``"XT32"``).
+            Required when the topic type is ``pandar_msgs/msg/PandarScan``.
     """
 
     channel: str = field(validator=[validators.instance_of(str), validators.min_len(1)])
     topic: str = field(validator=[validators.instance_of(str), _validate_topic_name])
+    sensor_type: str | None = field(default=None)
 
     @staticmethod
     def from_dict(mapping: dict[str, str]) -> list[TopicMapping]:

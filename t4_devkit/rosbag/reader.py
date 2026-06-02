@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
 
-from t4_devkit.rosbag.pandar_decoder import pandarscan_to_lidar, register_pandar_types
+from t4_devkit.rosbag.pandar_decoder import (
+    HESAI_MODELS,
+    pandarscan_to_lidar,
+    register_pandar_types,
+)
 from t4_devkit.rosbag.pointcloud2 import pointcloud2_to_lidar
 from t4_devkit.rosbag.topic_mapping import TopicMapping
 
@@ -77,17 +81,46 @@ class Rosbag2Reader:
         if has_pandar:
             register_pandar_types(self._typestore)
 
-        # Build topic <-> channel mapping
+        # Build topic <-> channel mapping and sensor_type mapping
         if topic_mapping is not None:
             self._channel_to_topic = TopicMapping.to_channel_dict(topic_mapping)
+            self._channel_to_sensor_type: dict[str, str | None] = {
+                m.channel: m.sensor_type for m in topic_mapping
+            }
         else:
-            self._channel_to_topic = {conn.topic: conn.topic for conn in lidar_connections}
+            # Auto-detect mode: only include PointCloud2 topics (PandarScan requires
+            # explicit sensor_type via TopicMapping).
+            auto_connections = [
+                conn for conn in lidar_connections if conn.msgtype != _PANDARSCAN_MSGTYPE
+            ]
+            self._channel_to_topic = {conn.topic: conn.topic for conn in auto_connections}
+            self._channel_to_sensor_type = {}
+
+        # Validate sensor_type for PandarScan topics
+        pandar_topics = {c.topic for c in lidar_connections if c.msgtype == _PANDARSCAN_MSGTYPE}
+        for channel, topic in self._channel_to_topic.items():
+            if topic in pandar_topics:
+                sensor_type = self._channel_to_sensor_type.get(channel)
+                if sensor_type is None:
+                    raise ValueError(
+                        f"Topic '{topic}' (channel '{channel}') is a PandarScan topic. "
+                        f"sensor_type must be specified in TopicMapping. "
+                        f"Supported types: {sorted(HESAI_MODELS.keys())}"
+                    )
+                if sensor_type not in HESAI_MODELS:
+                    raise ValueError(
+                        f"Unsupported sensor_type '{sensor_type}' for channel '{channel}'. "
+                        f"Supported types: {sorted(HESAI_MODELS.keys())}"
+                    )
 
         topic_to_channel = {v: k for k, v in self._channel_to_topic.items()}
 
-        # Filter connections to only the mapped topics
+        # Filter connections to only the mapped topics, indexed by topic for O(1) lookup
         mapped_topics = set(self._channel_to_topic.values())
         self._connections = [conn for conn in lidar_connections if conn.topic in mapped_topics]
+        self._topic_connections: dict[str, list[Connection]] = {}
+        for conn in self._connections:
+            self._topic_connections.setdefault(conn.topic, []).append(conn)
 
         # Build timestamp index: channel -> sorted list of timestamp_ns
         # Also build a cached list of timestamp_us per channel for bisect lookups
@@ -107,18 +140,16 @@ class Rosbag2Reader:
 
     def _build_timestamp_index(self, topic_to_channel: dict[str, str]) -> None:
         """Build timestamp index from the rosbag."""
-        raw_index: dict[str, list[tuple[int, int]]] = {}  # channel -> [(ts_us, ts_ns)]
+        raw_ns: dict[str, list[int]] = {}
 
         for conn, timestamp_ns, _rawdata in self._reader.messages(self._connections):
             channel = topic_to_channel[conn.topic]
-            if channel not in raw_index:
-                raw_index[channel] = []
-            raw_index[channel].append((timestamp_ns // 1_000, timestamp_ns))
+            raw_ns.setdefault(channel, []).append(timestamp_ns)
 
-        for channel, entries in raw_index.items():
-            entries.sort()
-            self._timestamp_us[channel] = [t[0] for t in entries]
-            self._timestamp_ns[channel] = [t[1] for t in entries]
+        for channel, ns_list in raw_ns.items():
+            ns_list.sort()
+            self._timestamp_ns[channel] = ns_list
+            self._timestamp_us[channel] = [t // 1_000 for t in ns_list]
 
     @property
     def channels(self) -> list[str]:
@@ -187,7 +218,7 @@ class Rosbag2Reader:
         target_ns = ts_ns_list[best_idx]
         topic = self._channel_to_topic[channel]
 
-        conns_for_topic = [c for c in self._connections if c.topic == topic]
+        conns_for_topic = self._topic_connections.get(topic)
         if not conns_for_topic:
             raise ValueError(f"No connections found for topic '{topic}' (channel '{channel}')")
 
@@ -199,7 +230,7 @@ class Rosbag2Reader:
             ):
                 msg = self._typestore.deserialize_cdr(rawdata, conn.msgtype)
                 if conn.msgtype == _PANDARSCAN_MSGTYPE:
-                    return pandarscan_to_lidar(msg)
+                    return pandarscan_to_lidar(msg, self._channel_to_sensor_type[channel])
                 return pointcloud2_to_lidar(msg)
 
         raise ValueError(
