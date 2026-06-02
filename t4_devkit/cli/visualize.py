@@ -200,9 +200,7 @@ def _parse_topic_mapping(topic_mapping: str | None) -> list | None:
         ) from e
 
     if not isinstance(raw, dict):
-        raise typer.BadParameter(
-            "--topic-mapping must be a JSON object mapping channel -> topic"
-        )
+        raise typer.BadParameter("--topic-mapping must be a JSON object mapping channel -> topic")
 
     from t4_devkit.rosbag import TopicMapping
 
