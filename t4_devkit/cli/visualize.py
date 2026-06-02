@@ -186,16 +186,30 @@ def _parse_topic_mapping(topic_mapping: str | None) -> list | None:
     """
     if topic_mapping is None:
         return None
-    if os.path.isfile(topic_mapping):
-        from t4_devkit.common.io import load_json
 
-        raw = load_json(topic_mapping)
-    else:
-        raw = json.loads(topic_mapping)
+    try:
+        if os.path.isfile(topic_mapping):
+            from t4_devkit.common.io import load_json
+
+            raw = load_json(topic_mapping)
+        else:
+            raw = json.loads(topic_mapping)
+    except Exception as e:
+        raise typer.BadParameter(
+            "--topic-mapping must be a JSON object (or a path to a JSON file) mapping channel -> topic"
+        ) from e
+
+    if not isinstance(raw, dict):
+        raise typer.BadParameter(
+            "--topic-mapping must be a JSON object mapping channel -> topic"
+        )
 
     from t4_devkit.rosbag import TopicMapping
 
-    return TopicMapping.from_dict(raw)
+    try:
+        return TopicMapping.from_dict(raw)
+    except (TypeError, ValueError) as e:
+        raise typer.BadParameter(str(e)) from e
 
 
 def _create_dir(dir_path: str | None) -> None:
