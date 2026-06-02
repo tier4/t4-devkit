@@ -44,11 +44,20 @@ def scene(
             help="Output directory to save recorded .rrd file.",
         ),
     ] = None,
+    show_map: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-m",
+            "--map",
+            help="Whether to render the map.",
+        ),
+    ] = False,
 ) -> None:
     _create_dir(output)
 
     t4 = T4Devkit(data_root, revision=revision, verbose=False)
-    t4.render_scene(future_seconds=future, save_dir=output)
+    t4.render_scene(future_seconds=future, save_dir=output, show_map=show_map)
 
 
 @cli.command("instance", help="Visualize a particular instance in the corresponding scene.")
@@ -79,11 +88,22 @@ def instance(
             help="Output directory to save recorded .rrd file.",
         ),
     ] = None,
+    show_map: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-m",
+            "--map",
+            help="Whether to render the map.",
+        ),
+    ] = False,
 ) -> None:
     _create_dir(output)
 
     t4 = T4Devkit(data_root, revision=revision, verbose=False)
-    t4.render_instance(instance_token=instance, future_seconds=future, save_dir=output)
+    t4.render_instance(
+        instance_token=instance, future_seconds=future, save_dir=output, show_map=show_map
+    )
 
 
 @cli.command("pointcloud", help="Visualize pointcloud in the corresponding scene.")
@@ -104,11 +124,20 @@ def pointcloud(
             help="Output directory to save recorded .rrd file.",
         ),
     ] = None,
+    show_map: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-m",
+            "--map",
+            help="Whether to render the map.",
+        ),
+    ] = False,
 ) -> None:
     _create_dir(output)
 
     t4 = T4Devkit(data_root, revision=revision, verbose=False)
-    t4.render_pointcloud(save_dir=output)
+    t4.render_pointcloud(save_dir=output, show_map=show_map)
 
 
 def _create_dir(dir_path: str | None) -> None:
