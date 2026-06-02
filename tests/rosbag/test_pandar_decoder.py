@@ -308,9 +308,7 @@ class TestRosbag2ReaderPandarScan:
             assert reader.has_channel("/sensing/lidar/top/pandar_packets")
 
     def test_topic_mapping_pandar(self, pandar_bag: Path) -> None:
-        mapping = [
-            TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")
-        ]
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")]
         with Rosbag2Reader(str(pandar_bag), topic_mapping=mapping) as reader:
             assert reader.has_channel("LIDAR_TOP")
             pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
@@ -318,9 +316,7 @@ class TestRosbag2ReaderPandarScan:
             assert pc.points.shape[1] > 0
 
     def test_get_pointcloud_pandar(self, pandar_bag: Path) -> None:
-        mapping = [
-            TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")
-        ]
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")]
         with Rosbag2Reader(str(pandar_bag), topic_mapping=mapping) as reader:
             pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
             # 4 packets × 1 block × 32 channels = 128 points
