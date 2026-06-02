@@ -56,11 +56,8 @@ def pointcloud2_to_lidar(msg: object) -> LidarPointCloud:
 
         np_dtype_base = _DATATYPE_TO_NUMPY.get(f.datatype)
         if np_dtype_base is None:
-            raise ValueError(
-                f"Unsupported PointField datatype: {f.datatype} for field '{f.name}'"
-            )
-        np_dtype = np.dtype(np_dtype_base).newbyteorder(">" if msg.is_bigendian else "<"
-        )
+            raise ValueError(f"Unsupported PointField datatype: {f.datatype} for field '{f.name}'")
+        np_dtype = np.dtype(np_dtype_base).newbyteorder(">" if msg.is_bigendian else "<")
 
         count = int(getattr(f, "count", 1))
         if count < 1:
