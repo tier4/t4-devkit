@@ -111,7 +111,6 @@ class RenderingHelper:
             builder = builder.with_streetmap((latitude, longitude))
         elif osp.exists(osp.join(self._t4.map_dir, "lanelet2_map.osm")):
             builder = builder.with_streetmap()
-
         return builder.build(app_id, save_dir=save_dir)
 
     def _load_contents(self, mode: RenderingMode, entity_child: str = "") -> list[str] | None:
@@ -162,17 +161,17 @@ class RenderingHelper:
         first_lidar_tokens: list[str] = [
             sensor.first_sd_token
             for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.LIDAR
+            if sensor.modality == SensorModality.LIDAR and sensor.first_sd_token != ""
         ]
         first_radar_tokens: list[str] = [
             sensor.first_sd_token
             for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.RADAR
+            if sensor.modality == SensorModality.RADAR and sensor.first_sd_token != ""
         ]
         first_camera_tokens: list[str] = [
             sensor.first_sd_token
             for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.CAMERA
+            if sensor.modality == SensorModality.CAMERA and sensor.first_sd_token != ""
         ]
 
         app_id = f"scene@{self._t4.dataset_id}"
@@ -276,17 +275,17 @@ class RenderingHelper:
         first_lidar_tokens: list[str] = [
             sensor.first_sd_token
             for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.LIDAR
+            if sensor.modality == SensorModality.LIDAR and sensor.first_sd_token != ""
         ]
         first_radar_tokens: list[str] = [
             sensor.first_sd_token
             for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.RADAR
+            if sensor.modality == SensorModality.RADAR and sensor.first_sd_token != ""
         ]
         first_camera_tokens: list[str] = [
             sensor.first_sd_token
             for sensor in self._t4.sensor
-            if sensor.modality == SensorModality.CAMERA
+            if sensor.modality == SensorModality.CAMERA and sensor.first_sd_token != ""
         ]
 
         app_id = f"instance@{self._t4.dataset_id}"
@@ -359,9 +358,9 @@ class RenderingHelper:
         first_lidar_token: str | None = None
         first_camera_tokens: list[str] = []
         for sensor in self._t4.sensor:
-            if sensor.modality == SensorModality.LIDAR:
+            if sensor.modality == SensorModality.LIDAR and sensor.first_sd_token != "":
                 first_lidar_token = sensor.first_sd_token
-            elif sensor.modality == SensorModality.CAMERA:
+            elif sensor.modality == SensorModality.CAMERA and sensor.first_sd_token != "":
                 first_camera_tokens.append(sensor.first_sd_token)
 
         if first_lidar_token is None:

@@ -4,6 +4,7 @@ from abc import ABC
 from secrets import token_hex
 from typing import Any, Sized, TypeVar
 
+import attrs
 from attrs import define, field, validators
 
 from t4_devkit.common.io import load_json
@@ -52,7 +53,12 @@ class SchemaBase(ABC):
         Returns:
             Instantiated schema dataclass.
         """
-        return cls(**data)
+        init_names = {f.name for f in attrs.fields(cls) if f.init}
+        instance = cls(**{k: v for k, v in data.items() if k in init_names})
+        for f in attrs.fields(cls):
+            if not f.init and f.name in data:
+                setattr(instance, f.name, data[f.name])
+        return instance
 
     @classmethod
     def new(cls, data: dict[str, Any], *, token_nbytes: int = 16) -> SchemaTable:
