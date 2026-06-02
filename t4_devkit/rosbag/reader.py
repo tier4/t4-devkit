@@ -29,6 +29,7 @@ _POINTCLOUD2_MSGTYPE = "sensor_msgs/msg/PointCloud2"
 _PANDARSCAN_MSGTYPE = "pandar_msgs/msg/PandarScan"
 _TF_STATIC_TOPIC = "/tf_static"
 
+_DEFAULT_TARGET_FRAME = "base_link"
 _SUPPORTED_MSGTYPES = {_POINTCLOUD2_MSGTYPE, _PANDARSCAN_MSGTYPE}
 
 logger = logging.getLogger(__name__)
@@ -43,20 +44,27 @@ def _quat_to_matrix(x: float, y: float, z: float, w: float) -> np.ndarray:
     ])
 
 
-def _build_tf_to_base(typestore: object, reader: Reader) -> dict[str, tuple[np.ndarray, np.ndarray]]:
-    """Read /tf_static and compute transforms from each frame to base_link.
+def _make_transform(R: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """Build a 4x4 homogeneous transform from a 3x3 rotation and 3-vector."""
+    T = np.eye(4)
+    T[:3, :3] = R
+    T[:3, 3] = t
+    return T
+
+
+def _read_tf_static(typestore: object, reader: Reader) -> dict[str, tuple[str, np.ndarray]]:
+    """Read ``/tf_static`` and return per-edge transforms.
 
     Returns:
-        Dict mapping ``frame_id`` to ``(R, t)`` where ``R`` is a 3x3 rotation
-        matrix and ``t`` is a 3-element translation vector, representing the
-        transform from that frame to ``base_link``.
+        Dict mapping ``child_frame_id`` to ``(parent_frame_id, T_4x4)``
+        where ``T_4x4`` is the 4x4 homogeneous matrix satisfying
+        ``p_parent = T_4x4 @ p_child``.
     """
     tf_conns = [c for c in reader.connections if c.topic == _TF_STATIC_TOPIC]
     if not tf_conns:
         return {}
 
-    # Parse the TF tree: child_frame -> (parent_frame, R, t)
-    tree: dict[str, tuple[str, np.ndarray, np.ndarray]] = {}
+    tree: dict[str, tuple[str, np.ndarray]] = {}
     for conn, _ts, rawdata in reader.messages(connections=tf_conns):
         msg = typestore.deserialize_cdr(rawdata, conn.msgtype)
         for tf in msg.transforms:
@@ -66,32 +74,52 @@ def _build_tf_to_base(typestore: object, reader: Reader) -> dict[str, tuple[np.n
             rot = tf.transform.rotation
             R = _quat_to_matrix(rot.x, rot.y, rot.z, rot.w)
             t = np.array([tr.x, tr.y, tr.z])
-            tree[child] = (parent, R, t)
+            tree[child] = (parent, _make_transform(R, t))
 
-    # Compose transforms from each frame to base_link
-    result: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-    result["base_link"] = (np.eye(3), np.zeros(3))
+    return tree
 
-    def _resolve(frame: str) -> tuple[np.ndarray, np.ndarray] | None:
-        if frame in result:
-            return result[frame]
-        if frame not in tree:
-            return None
-        parent, R_child, t_child = tree[frame]
-        parent_tf = _resolve(parent)
-        if parent_tf is None:
-            return None
-        R_parent, t_parent = parent_tf
-        # T_base = T_parent * T_child: p_base = R_parent*(R_child*p + t_child) + t_parent
-        R = R_parent @ R_child
-        t = R_parent @ t_child + t_parent
-        result[frame] = (R, t)
-        return result[frame]
 
-    for frame in tree:
-        _resolve(frame)
+def _resolve_chain(
+    tree: dict[str, tuple[str, np.ndarray]],
+    frame_id: str,
+    target_frame: str = _DEFAULT_TARGET_FRAME,
+) -> np.ndarray:
+    """Walk the TF tree from *frame_id* up to *target_frame* and compose transforms.
 
-    return result
+    Args:
+        tree: Per-edge TF dict from :func:`_read_tf_static`.
+        frame_id: Source sensor frame (e.g. ``"hesai_top"``).
+        target_frame: Destination frame. Defaults to ``"base_link"``.
+
+    Returns:
+        4x4 homogeneous matrix ``sensor2ego`` such that
+        ``p_target = sensor2ego @ p_sensor``.
+
+    Raises:
+        ValueError: If no chain exists from *frame_id* to *target_frame*.
+    """
+    if frame_id == target_frame:
+        return np.eye(4)
+
+    visited: set[str] = set()
+    T = np.eye(4)
+    current = frame_id
+    while current != target_frame:
+        if current in visited:
+            break
+        visited.add(current)
+        if current not in tree:
+            break
+        parent, T_edge = tree[current]
+        T = T_edge @ T
+        current = parent
+    else:
+        return T
+
+    raise ValueError(
+        f"No TF chain from '{frame_id}' to '{target_frame}'. "
+        f"Available frames: {sorted(tree.keys())}"
+    )
 
 
 class Rosbag2Reader:
@@ -184,18 +212,20 @@ class Rosbag2Reader:
         for conn in self._connections:
             self._topic_connections.setdefault(conn.topic, []).append(conn)
 
-        # Read /tf_static and build transforms to base_link
-        self._tf_to_base = _build_tf_to_base(self._typestore, self._reader)
+        # Read /tf_static and build per-edge TF tree
+        self._tf_tree = _read_tf_static(self._typestore, self._reader)
 
-        # For PandarScan topics with frame_id specified, look up TF transform
-        self._channel_tf: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+        # Pre-compute sensor2ego for channels with frame_id
+        self._channel_sensor2ego: dict[str, np.ndarray] = {}
         if topic_mapping is not None:
             for m in topic_mapping:
                 if m.frame_id is None:
                     continue
-                if m.frame_id in self._tf_to_base:
-                    self._channel_tf[m.channel] = self._tf_to_base[m.frame_id]
-                else:
+                try:
+                    self._channel_sensor2ego[m.channel] = _resolve_chain(
+                        self._tf_tree, m.frame_id,
+                    )
+                except ValueError:
                     logger.warning(
                         "Channel '%s': frame_id='%s' not found in /tf_static. "
                         "Points will be in sensor frame.",
@@ -248,6 +278,34 @@ class Rosbag2Reader:
         """
         return channel in self._timestamp_ns
 
+    def get_sensor2ego(
+        self,
+        frame_id: str,
+        target_frame: str = _DEFAULT_TARGET_FRAME,
+    ) -> np.ndarray:
+        """Return the 4x4 homogeneous transform from *frame_id* to *target_frame*.
+
+        Resolves the ``/tf_static`` chain from the sensor frame to the target
+        frame (usually ``base_link``).  The returned matrix satisfies
+        ``p_target = sensor2ego @ p_sensor``.
+
+        Args:
+            frame_id: Source sensor frame (e.g. ``"hesai_top"``).
+            target_frame: Destination frame. Defaults to ``"base_link"``.
+
+        Returns:
+            4x4 ``np.ndarray`` (float64) homogeneous transformation matrix.
+
+        Raises:
+            ValueError: If ``/tf_static`` is unavailable or no chain exists.
+        """
+        if not self._tf_tree:
+            raise ValueError(
+                "No /tf_static data available in the rosbag. "
+                "Cannot compute sensor2ego transform."
+            )
+        return _resolve_chain(self._tf_tree, frame_id, target_frame)
+
     def get_pointcloud(
         self,
         channel: str,
@@ -258,6 +316,10 @@ class Rosbag2Reader:
 
         Automatically dispatches to the correct decoder based on the topic's
         message type (PointCloud2 or PandarScan).
+
+        When the channel has a ``frame_id`` in its ``TopicMapping`` and the
+        corresponding ``/tf_static`` chain exists, decoded PandarScan points
+        are automatically transformed to ``base_link``.
 
         Args:
             channel: Sensor channel name.
@@ -312,11 +374,11 @@ class Rosbag2Reader:
                 msg = self._typestore.deserialize_cdr(rawdata, conn.msgtype)
                 if conn.msgtype == _PANDARSCAN_MSGTYPE:
                     pc = pandarscan_to_lidar(msg, self._channel_to_sensor_type[channel])
-                    tf = self._channel_tf.get(channel)
-                    if tf is not None:
-                        R, t = tf
-                        xyz = pc.points[:3, :]
-                        pc.points[:3, :] = R @ xyz + t[:, np.newaxis]
+                    sensor2ego = self._channel_sensor2ego.get(channel)
+                    if sensor2ego is not None:
+                        R = sensor2ego[:3, :3]
+                        t = sensor2ego[:3, 3]
+                        pc.points[:3, :] = R @ pc.points[:3, :] + t[:, np.newaxis]
                     return pc
                 return pointcloud2_to_lidar(msg)
 
