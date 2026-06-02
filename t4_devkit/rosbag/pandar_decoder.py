@@ -72,18 +72,25 @@ class _HesaiModelConfig:
 
     name: str
     elevation_deg: list[float] = field(repr=False)
+    azimuth_offset_deg: list[float] = field(repr=False)
     cos_el: np.ndarray = field(init=False, repr=False, compare=False)
     sin_el: np.ndarray = field(init=False, repr=False, compare=False)
+    azimuth_offset_rad: np.ndarray = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         el_rad = np.radians(np.array(self.elevation_deg, dtype=np.float32))
         object.__setattr__(self, "cos_el", np.cos(el_rad))
         object.__setattr__(self, "sin_el", np.sin(el_rad))
+        object.__setattr__(
+            self, "azimuth_offset_rad",
+            np.radians(np.array(self.azimuth_offset_deg, dtype=np.float32)),
+        )
 
 
 # XT32: 32 channels, 1° spacing from +15° to -16°
 # https://www.hesaitech.com/product/xt16-32-32m/
 _XT32_ELEVATION_DEG: list[float] = [float(15 - i) for i in range(32)]
+_XT32_AZIMUTH_OFFSET_DEG: list[float] = [0.0] * 32
 
 # OT128: 128 channels, non-uniform spacing from +14.985° to -24.765°
 # Per Hesai OT128 User Manual (O01-en-260410), Appendix A / Angle Correction File:
@@ -107,12 +114,36 @@ _OT128_ELEVATION_DEG: list[float] = [
     -14.879, -15.237, -15.593, -15.948, -16.299, -16.651, -17.0, -17.347,
     -17.701, -18.386, -19.063, -19.73, -20.376, -21.653, -23.044, -24.765,
 ]
+_OT128_AZIMUTH_OFFSET_DEG: list[float] = [
+    0.186, 0.185, 1.335, 1.343, 0.148, 0.147, 0.146, 0.146,
+    1.335, 1.336, 1.337, 1.338, 1.339, 1.34, 1.341, 1.342,
+    0.128, 0.128, 0.127, 0.127, 0.107, 0.106, 0.105, 0.105,
+    -3.118, 1.315, 4.529, -3.121, 1.316, 4.532, -3.124, 1.317,
+    4.536, -3.127, 1.317, 4.539, -3.13, 1.318, 4.542, -3.133,
+    0.103, 2.935, -1.517, 0.103, 2.937, -1.519, 0.103, 2.939,
+    -1.52, 0.103, 2.941, -1.521, 0.102, 2.943, -1.523, 0.102,
+    2.945, -1.524, 0.102, 2.946, -1.526, 0.102, 2.948, -1.526,
+    1.324, 4.57, -3.155, 1.325, 4.573, -3.157, 1.326, 4.575,
+    -3.159, 1.326, 4.578, -3.161, 1.327, 4.581, -3.163, 1.328,
+    4.583, -3.165, 1.329, 4.586, -3.167, 1.329, 4.588, -3.168,
+    0.102, 0.103, 0.103, 0.103, 0.104, 0.104, 0.104, 0.104,
+    1.337, 1.337, 1.338, 1.339, 1.34, 1.341, 1.341, 1.342,
+    0.108, 0.108, 0.109, 0.109, 0.13, 0.131, 0.131, 0.132,
+    1.384, 1.384, 1.385, 1.385, 1.386, 1.386, 1.387, 1.387,
+    0.151, 0.153, 0.154, 0.156, 1.388, 1.408, 0.196, 0.286,
+]
 # fmt: on
 
 # Model lookup by sensor type name.
 HESAI_MODELS: dict[str, _HesaiModelConfig] = {
-    "XT32": _HesaiModelConfig(name="XT32", elevation_deg=_XT32_ELEVATION_DEG),
-    "OT128": _HesaiModelConfig(name="OT128", elevation_deg=_OT128_ELEVATION_DEG),
+    "XT32": _HesaiModelConfig(
+        name="XT32", elevation_deg=_XT32_ELEVATION_DEG,
+        azimuth_offset_deg=_XT32_AZIMUTH_OFFSET_DEG,
+    ),
+    "OT128": _HesaiModelConfig(
+        name="OT128", elevation_deg=_OT128_ELEVATION_DEG,
+        azimuth_offset_deg=_OT128_AZIMUTH_OFFSET_DEG,
+    ),
 }
 
 
@@ -262,13 +293,15 @@ def _decode_packet(
     if not np.any(valid):
         return _EMPTY_POINTS
 
-    azimuths_rad = np.radians(azimuths_raw.astype(np.float32) / 100.0)
+    # Per-channel azimuth: block azimuth + channel-specific offset
+    block_az_rad = np.radians(azimuths_raw.astype(np.float32) / 100.0)
+    azimuths_rad = block_az_rad[:, np.newaxis] + config.azimuth_offset_rad
 
     # Hesai native frame: x = d*cos(el)*sin(az), y = d*cos(el)*cos(az), z = d*sin(el)
     # The TF tree (hesai_top -> base_link) handles the frame conversion.
     xy_dist = distances * cos_el
-    x = xy_dist * np.sin(azimuths_rad[:, np.newaxis])
-    y = xy_dist * np.cos(azimuths_rad[:, np.newaxis])
+    x = xy_dist * np.sin(azimuths_rad)
+    y = xy_dist * np.cos(azimuths_rad)
     z = distances * sin_el
 
     return np.stack([x[valid], y[valid], z[valid], reflectivities[valid]], axis=0)
