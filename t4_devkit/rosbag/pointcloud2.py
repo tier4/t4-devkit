@@ -53,12 +53,23 @@ def pointcloud2_to_lidar(msg: object) -> LidarPointCloud:
     for f in sorted_fields:
         if f.offset > offset:
             dt_list.append((f"_pad{offset}", np.void, f.offset - offset))
-        np_dtype = _DATATYPE_TO_NUMPY[f.datatype]
-        dt_list.append((f.name, np_dtype))
-        offset = f.offset + np.dtype(np_dtype).itemsize
+
+        np_dtype_base = _DATATYPE_TO_NUMPY.get(f.datatype)
+        if np_dtype_base is None:
+            raise ValueError(
+                f"Unsupported PointField datatype: {f.datatype} for field '{f.name}'"
+            )
+        np_dtype = np.dtype(np_dtype_base).newbyteorder(">" if msg.is_bigendian else "<"
+        )
+
+        count = int(getattr(f, "count", 1))
+        if count < 1:
+            raise ValueError(f"Invalid PointField count for field '{f.name}': {count}")
+
+        dt_list.append((f.name, np_dtype) if count == 1 else (f.name, np_dtype, count))
+        offset = f.offset + np_dtype.itemsize * count
     if offset < point_step:
         dt_list.append(("_pad_end", np.void, point_step - offset))
-
     dtype = np.dtype(dt_list)
     structured = np.frombuffer(msg.data, dtype=dtype, count=num_points)
 
