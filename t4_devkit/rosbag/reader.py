@@ -157,11 +157,13 @@ class Rosbag2Reader:
         target_ns = ts_ns_list[best_idx]
         topic = self._channel_to_topic[channel]
 
-        conn_for_topic = next(c for c in self._connections if c.topic == topic)
+        conns_for_topic = [c for c in self._connections if c.topic == topic]
+        if not conns_for_topic:
+            raise ValueError(f"No connections found for topic '{topic}' (channel '{channel}')")
 
         with self._lock:
             for conn, ts_ns, rawdata in self._reader.messages(
-                connections=[conn_for_topic],
+                connections=conns_for_topic,
                 start=target_ns,
                 stop=target_ns + 1,
             ):
