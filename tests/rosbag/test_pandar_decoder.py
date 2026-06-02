@@ -88,9 +88,9 @@ class TestPandarDecoderUnit:
         assert points.shape[0] == 4
         assert points.shape[1] == laser_num
 
-        # At azimuth=0° in ROS frame: x = d*cos(el)*cos(0) = d*cos(el), y = -d*cos(el)*sin(0) = 0
-        # All y values should be ~0
-        np.testing.assert_array_almost_equal(points[1, :], 0.0, decimal=5)
+        # At azimuth=0°: x = d*cos(el)*sin(0) = 0, y = d*cos(el)*cos(0) = d*cos(el)
+        # All x values should be ~0
+        np.testing.assert_array_almost_equal(points[0, :], 0.0, decimal=5)
         # All intensities should be 128
         np.testing.assert_array_almost_equal(points[3, :], 128.0)
 
@@ -113,7 +113,7 @@ class TestPandarDecoderUnit:
         assert points.shape[1] == 0
 
     def test_decode_azimuth_90(self) -> None:
-        """Test decoding at azimuth=90° - y should be negative (left-hand convention)."""
+        """Test decoding at azimuth=90° - x should be positive for 0° elevation."""
         laser_num = 32
         distances = [[2500] * laser_num]  # 10m
         reflectivities = [[100] * laser_num]
@@ -129,16 +129,16 @@ class TestPandarDecoderUnit:
         config = HESAI_MODELS["XT32"]
         points = _decode_packet(packet, config)
 
-        # At azimuth=90° in ROS frame: x = d*cos(el)*cos(90°) ≈ 0, y = -d*cos(el)*sin(90°) = -d*cos(el)
-        # Channel 15 (elevation=0°): x ≈ 0, y = -10.0
+        # At azimuth=90°: x = d*cos(el)*sin(90°) = d*cos(el), y = d*cos(el)*cos(90°) ≈ 0
+        # Channel 15 (elevation=0°): x = 10.0, y ≈ 0
         ch15_idx = None
         for i in range(points.shape[1]):
             if abs(points[2, i]) < 0.01:  # z ≈ 0 means elevation ≈ 0
                 ch15_idx = i
                 break
         assert ch15_idx is not None
-        assert points[0, ch15_idx] == pytest.approx(0.0, abs=0.1)
-        assert points[1, ch15_idx] == pytest.approx(-10.0, abs=0.1)
+        assert points[0, ch15_idx] == pytest.approx(10.0, abs=0.1)
+        assert points[1, ch15_idx] == pytest.approx(0.0, abs=0.1)
 
     def test_multiple_blocks(self) -> None:
         """Test decoding a packet with multiple blocks."""

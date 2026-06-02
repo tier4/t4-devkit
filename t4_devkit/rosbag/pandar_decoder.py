@@ -181,8 +181,8 @@ def _decode_packet(
         config: Model config for the sensor type.
 
     Returns:
-        Points array with shape ``(4, N)`` in ROS sensor frame
-        (x=forward, y=left, z=up).
+        Points array with shape ``(4, N)`` in Hesai native frame
+        (x=d*cos*sin, y=d*cos*cos, z=d*sin).
 
     Raises:
         ValueError: If the packet channel count doesn't match the config.
@@ -264,11 +264,11 @@ def _decode_packet(
 
     azimuths_rad = np.radians(azimuths_raw.astype(np.float32) / 100.0)
 
-    # Convert from Hesai native (x=right, y=forward, z=up) to
-    # ROS sensor frame (x=forward, y=left, z=up).
+    # Hesai native frame: x = d*cos(el)*sin(az), y = d*cos(el)*cos(az), z = d*sin(el)
+    # The TF tree (hesai_top -> base_link) handles the frame conversion.
     xy_dist = distances * cos_el
-    x = xy_dist * np.cos(azimuths_rad[:, np.newaxis])
-    y = -xy_dist * np.sin(azimuths_rad[:, np.newaxis])
+    x = xy_dist * np.sin(azimuths_rad[:, np.newaxis])
+    y = xy_dist * np.cos(azimuths_rad[:, np.newaxis])
     z = distances * sin_el
 
     return np.stack([x[valid], y[valid], z[valid], reflectivities[valid]], axis=0)

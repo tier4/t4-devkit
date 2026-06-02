@@ -60,7 +60,7 @@ For `PointCloud2` topics, a simple dict mapping is sufficient:
 ... )
 ```
 
-For `PandarScan` topics, use `TopicMapping` with `sensor_type` to specify the Hesai sensor model (`"XT32"` or `"OT128"`):
+For `PandarScan` topics, use `TopicMapping` with `sensor_type` to specify the Hesai sensor model (`"XT32"` or `"OT128"`). Use `frame_id` to specify the TF frame so that the decoded point cloud is automatically transformed to `base_link`:
 
 ```python
 >>> from t4_devkit import T4Devkit
@@ -74,6 +74,7 @@ For `PandarScan` topics, use `TopicMapping` with `sensor_type` to specify the He
 ...             channel="LIDAR_CONCAT",
 ...             topic="/sensing/lidar/top/pandar_packets",
 ...             sensor_type="OT128",
+...             frame_id="hesai_top",
 ...         ),
 ...     ],
 ... )
@@ -82,7 +83,7 @@ For `PandarScan` topics, use `TopicMapping` with `sensor_type` to specify the He
 >>> t4.render_pointcloud()
 ```
 
-If `topic_mapping` is omitted, `PointCloud2` topics are auto-detected from the rosbag. `PandarScan` topics always require explicit `topic_mapping` with `sensor_type`.
+If `topic_mapping` is omitted, `PointCloud2` topics are auto-detected from the rosbag. `PandarScan` topics always require explicit `topic_mapping` with `sensor_type`. The `frame_id` parameter is optional but recommended — without it, points remain in the sensor's native coordinate frame.
 
 ### Save Recording
 

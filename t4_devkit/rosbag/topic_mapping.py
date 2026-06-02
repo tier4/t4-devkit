@@ -21,11 +21,15 @@ class TopicMapping:
         sensor_type (str | None): Hesai sensor model name for PandarScan topics
             (e.g. ``"OT128"``, ``"XT32"``).
             Required when the topic type is ``pandar_msgs/msg/PandarScan``.
+        frame_id (str | None): TF frame ID of the sensor (e.g. ``"hesai_top"``).
+            When specified and ``/tf_static`` is available in the rosbag,
+            the decoded point cloud is transformed from this frame to ``base_link``.
     """
 
     channel: str = field(validator=[validators.instance_of(str), validators.min_len(1)])
     topic: str = field(validator=[validators.instance_of(str), _validate_topic_name])
     sensor_type: str | None = field(default=None)
+    frame_id: str | None = field(default=None)
 
     @staticmethod
     def from_dict(mapping: dict[str, str]) -> list[TopicMapping]:
