@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import bisect
+import logging
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -8,6 +9,7 @@ from typing import TYPE_CHECKING
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
 
+from t4_devkit.rosbag.pandar_decoder import pandarscan_to_lidar, register_pandar_types
 from t4_devkit.rosbag.pointcloud2 import pointcloud2_to_lidar
 from t4_devkit.rosbag.topic_mapping import TopicMapping
 
@@ -19,6 +21,11 @@ if TYPE_CHECKING:
 __all__ = ["Rosbag2Reader"]
 
 _POINTCLOUD2_MSGTYPE = "sensor_msgs/msg/PointCloud2"
+_PANDARSCAN_MSGTYPE = "pandar_msgs/msg/PandarScan"
+
+_SUPPORTED_MSGTYPES = {_POINTCLOUD2_MSGTYPE, _PANDARSCAN_MSGTYPE}
+
+logger = logging.getLogger(__name__)
 
 
 class Rosbag2Reader:
@@ -27,10 +34,13 @@ class Rosbag2Reader:
     Reads db3 or mcap format rosbag2 files from the ``input_bag/`` directory
     and provides access to LiDAR point cloud data indexed by timestamp.
 
+    Supports both ``sensor_msgs/msg/PointCloud2`` and
+    ``pandar_msgs/msg/PandarScan`` (Hesai raw packet) topics.
+
     Args:
         bag_dir: Path to the rosbag2 directory (containing metadata.yaml).
         topic_mapping: Optional list of ``TopicMapping`` instances.
-            If ``None``, PointCloud2 topics are auto-detected from the bag.
+            If ``None``, supported LiDAR topics are auto-detected from the bag.
     """
 
     def __init__(
@@ -49,34 +59,51 @@ class Rosbag2Reader:
         self._reader.open()
         self._lock = threading.Lock()
 
-        # Find PointCloud2 connections
-        pc2_connections: list[Connection] = [
-            conn for conn in self._reader.connections if conn.msgtype == _POINTCLOUD2_MSGTYPE
+        # Find all supported LiDAR connections
+        lidar_connections: list[Connection] = [
+            conn for conn in self._reader.connections if conn.msgtype in _SUPPORTED_MSGTYPES
         ]
-        if not pc2_connections:
+
+        if not lidar_connections:
             self._reader.close()
             raise ValueError(
-                f"No PointCloud2 topics found in rosbag at {bag_dir}. "
+                f"No supported LiDAR topics found in rosbag at {bag_dir}. "
+                f"Supported types: {_SUPPORTED_MSGTYPES}. "
                 f"Available topics: {[c.topic for c in self._reader.connections]}"
             )
+
+        # Register pandar_msgs types if any PandarScan connections exist
+        has_pandar = any(c.msgtype == _PANDARSCAN_MSGTYPE for c in lidar_connections)
+        if has_pandar:
+            register_pandar_types(self._typestore)
 
         # Build topic <-> channel mapping
         if topic_mapping is not None:
             self._channel_to_topic = TopicMapping.to_channel_dict(topic_mapping)
         else:
-            self._channel_to_topic = {conn.topic: conn.topic for conn in pc2_connections}
+            self._channel_to_topic = {conn.topic: conn.topic for conn in lidar_connections}
 
         topic_to_channel = {v: k for k, v in self._channel_to_topic.items()}
 
         # Filter connections to only the mapped topics
         mapped_topics = set(self._channel_to_topic.values())
-        self._connections = [conn for conn in pc2_connections if conn.topic in mapped_topics]
+        self._connections = [conn for conn in lidar_connections if conn.topic in mapped_topics]
 
         # Build timestamp index: channel -> sorted list of timestamp_ns
         # Also build a cached list of timestamp_us per channel for bisect lookups
         self._timestamp_ns: dict[str, list[int]] = {}
         self._timestamp_us: dict[str, list[int]] = {}
         self._build_timestamp_index(topic_to_channel)
+
+        # Warn about mapped channels that have 0 messages
+        for channel, topic in self._channel_to_topic.items():
+            if channel not in self._timestamp_ns:
+                logger.warning(
+                    "Topic '%s' (channel '%s') has 0 messages in the rosbag. "
+                    "LiDAR data will not be available for this channel.",
+                    topic,
+                    channel,
+                )
 
     def _build_timestamp_index(self, topic_to_channel: dict[str, str]) -> None:
         """Build timestamp index from the rosbag."""
@@ -116,6 +143,9 @@ class Rosbag2Reader:
         tolerance_us: int = 75_000,
     ) -> LidarPointCloud:
         """Retrieve a LiDAR point cloud from the rosbag matching the given timestamp.
+
+        Automatically dispatches to the correct decoder based on the topic's
+        message type (PointCloud2 or PandarScan).
 
         Args:
             channel: Sensor channel name.
@@ -168,6 +198,8 @@ class Rosbag2Reader:
                 stop=target_ns + 1,
             ):
                 msg = self._typestore.deserialize_cdr(rawdata, conn.msgtype)
+                if conn.msgtype == _PANDARSCAN_MSGTYPE:
+                    return pandarscan_to_lidar(msg)
                 return pointcloud2_to_lidar(msg)
 
         raise ValueError(
