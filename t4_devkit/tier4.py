@@ -236,6 +236,10 @@ class T4Devkit:
                 )
             if isinstance(topic_mapping, dict):
                 topic_mapping = TopicMapping.from_dict(topic_mapping)
+            elif topic_mapping is not None and not all(
+                isinstance(m, TopicMapping) for m in topic_mapping
+            ):
+                raise TypeError("topic_mapping must be dict[str, str] or list[TopicMapping]")
             self._rosbag_reader = Rosbag2Reader(self.bag_dir, topic_mapping=topic_mapping)
             if verbose:
                 print(f"Loaded rosbag reader with channels: {self._rosbag_reader.channels}")
