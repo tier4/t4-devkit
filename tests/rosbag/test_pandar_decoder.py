@@ -337,9 +337,7 @@ class TestRosbag2ReaderPandarScan:
 
     def test_missing_sensor_type_raises(self, pandar_bag: Path) -> None:
         """Test that PandarScan topic without sensor_type raises ValueError."""
-        mapping = [
-            TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")
-        ]
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pandar_packets")]
         with pytest.raises(ValueError, match="sensor_type must be specified"):
             Rosbag2Reader(str(pandar_bag), topic_mapping=mapping)
 
