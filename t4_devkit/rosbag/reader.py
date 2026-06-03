@@ -314,6 +314,7 @@ class Rosbag2Reader:
         channel: str,
         timestamp_us: int,
         tolerance_us: int = 75_000,
+        min_completeness: float = 1.0,
     ) -> LidarPointCloud:
         """Retrieve a LiDAR point cloud from the rosbag matching the given timestamp.
 
@@ -328,13 +329,19 @@ class Rosbag2Reader:
             channel: Sensor channel name.
             timestamp_us: Target timestamp in microseconds (T4 format).
             tolerance_us: Maximum allowed time difference in microseconds.
+            min_completeness: Minimum scan completeness for PandarScan topics
+                (0.0–1.0).  If the fraction of received vs. expected UDP
+                packets is below this threshold the scan is rejected with
+                :class:`ValueError`.  Defaults to ``1.0`` (reject any scan
+                with dropped packets).  Set to ``0.0`` to disable the check.
 
         Returns:
             LidarPointCloud with shape ``(4, N)`` matching ``LidarPointCloud.from_file`` format.
 
         Raises:
             KeyError: If the channel is not available.
-            ValueError: If no message is found within the tolerance.
+            ValueError: If no message is found within the tolerance, or if
+                the PandarScan completeness is below *min_completeness*.
         """
         if channel not in self._timestamp_us:
             raise KeyError(f"Channel '{channel}' not found. Available: {self.channels}")
@@ -382,7 +389,11 @@ class Rosbag2Reader:
             ):
                 msg = self._typestore.deserialize_cdr(rawdata, conn.msgtype)
                 if conn.msgtype == _PANDARSCAN_MSGTYPE:
-                    pc = pandarscan_to_lidar(msg, self._channel_to_sensor_type[channel])
+                    pc = pandarscan_to_lidar(
+                        msg,
+                        self._channel_to_sensor_type[channel],
+                        min_completeness=min_completeness,
+                    )
                     sensor2ego = self._channel_sensor2ego.get(channel)
                     if sensor2ego is not None:
                         R = sensor2ego[:3, :3]

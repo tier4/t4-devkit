@@ -27,6 +27,7 @@ def _build_xt32_packet(
     azimuths_deg: list[float],
     distances_mm: list[list[int]],
     reflectivities: list[list[int]],
+    udp_sequence: int | None = None,
 ) -> bytes:
     """Build a synthetic XT32 packet (pre-header + header + body + tail).
 
@@ -34,6 +35,8 @@ def _build_xt32_packet(
         azimuths_deg: Azimuth angle in degrees for each block.
         distances_mm: Distance values (in raw units, 1 unit = 4mm) per block per channel.
         reflectivities: Reflectivity values (0-255) per block per channel.
+        udp_sequence: Optional UDP Sequence number (u32 LE, appended as
+            "Additional information" after the tail, matching XT32 spec).
 
     Returns:
         Raw packet bytes.
@@ -57,11 +60,15 @@ def _build_xt32_packet(
             body.extend(struct.pack("<H", distances_mm[blk][ch]))
             body.append(reflectivities[blk][ch])
 
-    # Tail (22 bytes)
-    tail = bytearray(22)
+    # Tail (24 bytes per spec: 10 reserved + 1 return mode + 2 motor speed
+    #        + 6 date&time + 4 utc frac sec + 1 factory info)
+    tail = bytearray(24)
     tail[-1] = _XT32_FACTORY  # factory info byte
 
-    return bytes(pre_header + header + body + tail)
+    # Additional information (4 bytes): UDP Sequence
+    additional = struct.pack("<I", udp_sequence) if udp_sequence is not None else b""
+
+    return bytes(pre_header + header + body + tail + additional)
 
 
 class TestPandarDecoderUnit:
@@ -186,83 +193,42 @@ class TestPandarScanToLidar:
     def test_basic_conversion(self) -> None:
         """Test converting a mock PandarScan message."""
         laser_num = 32
-        distances = [[1000] * laser_num]
-        reflectivities = [[200] * laser_num]
-
         packet_data = _build_xt32_packet(
             azimuths_deg=[45.0],
-            distances_mm=distances,
-            reflectivities=reflectivities,
+            distances_mm=[[1000] * laser_num],
+            reflectivities=[[200] * laser_num],
         )
-
-        # Create a mock PandarScan message
-        class MockTime:
-            sec = 0
-            nanosec = 0
-
-        class MockPacket:
-            stamp = MockTime()
-            data = packet_data
-            size = len(packet_data)
-
-        class MockScan:
-            header = None
-            packets = [MockPacket()]
-
-        pc = pandarscan_to_lidar(MockScan(), "XT32")
+        scan = _make_mock_scan([packet_data])
+        pc = pandarscan_to_lidar(scan, "XT32")
         assert pc.points.shape[0] == 4
         assert pc.points.shape[1] == laser_num
 
     def test_empty_packets_raises(self) -> None:
         """Test that empty packets raise ValueError."""
-
-        class MockScan:
-            header = None
-            packets = []
-
+        scan = _make_mock_scan([])
         with pytest.raises(ValueError, match="no packets"):
-            pandarscan_to_lidar(MockScan(), "XT32")
+            pandarscan_to_lidar(scan, "XT32")
 
     def test_unsupported_sensor_type_raises(self) -> None:
         """Test that unsupported sensor type raises ValueError."""
+        from types import SimpleNamespace
 
-        class MockScan:
-            header = None
-            packets = [object()]
-
+        scan = SimpleNamespace(header=None, packets=[object()])
         with pytest.raises(ValueError, match="Unsupported sensor type"):
-            pandarscan_to_lidar(MockScan(), "UNKNOWN_SENSOR")
+            pandarscan_to_lidar(scan, "UNKNOWN_SENSOR")
 
     def test_multiple_packets(self) -> None:
         """Test combining multiple packets into one point cloud."""
         laser_num = 32
-
-        class MockTime:
-            sec = 0
-            nanosec = 0
-
-        packets = []
-        for az in [0.0, 90.0, 180.0, 270.0]:
-            data = _build_xt32_packet(
+        packet_data_list = [
+            _build_xt32_packet(
                 azimuths_deg=[az],
                 distances_mm=[[500] * laser_num],
                 reflectivities=[[100] * laser_num],
             )
-
-            class MockPacket:
-                stamp = MockTime()
-
-            pkt = MockPacket()
-            pkt.data = data
-            pkt.size = len(data)
-            packets.append(pkt)
-
-        class MockScan:
-            header = None
-
-        scan = MockScan()
-        scan.packets = packets
-
+            for az in [0.0, 90.0, 180.0, 270.0]
+        ]
+        scan = _make_mock_scan(packet_data_list)
         pc = pandarscan_to_lidar(scan, "XT32")
         assert pc.points.shape[0] == 4
         assert pc.points.shape[1] == laser_num * 4
@@ -381,3 +347,83 @@ class TestRosbag2ReaderPandarScan:
             assert pc.points.shape == (4, 128)
             # All reflectivities should be 128
             np.testing.assert_array_almost_equal(pc.points[3, :], 128.0)
+
+
+def _make_mock_scan(packet_data_list: list[bytes]) -> object:
+    """Create a mock PandarScan message from a list of raw packet bytes."""
+    from types import SimpleNamespace
+
+    stamp = SimpleNamespace(sec=0, nanosec=0)
+    packets = [
+        SimpleNamespace(stamp=stamp, data=data, size=len(data))
+        for data in packet_data_list
+    ]
+    return SimpleNamespace(header=None, packets=packets)
+
+
+class TestScanCompleteness:
+    """Tests for UDP Sequence-based packet drop detection."""
+
+    @staticmethod
+    def _make_packets(
+        seq_numbers: list[int],
+    ) -> list[bytes]:
+        """Build XT32 packets with given UDP Sequence numbers."""
+        laser_num = 32
+        return [
+            _build_xt32_packet(
+                azimuths_deg=[float(i * 10 % 360)],
+                distances_mm=[[1000] * laser_num],
+                reflectivities=[[128] * laser_num],
+                udp_sequence=seq,
+            )
+            for i, seq in enumerate(seq_numbers)
+        ]
+
+    def test_complete_scan_passes(self) -> None:
+        """A scan with all packets present should pass any threshold."""
+        packets = self._make_packets([100, 101, 102, 103, 104])
+        scan = _make_mock_scan(packets)
+        pc = pandarscan_to_lidar(scan, "XT32", min_completeness=1.0)
+        assert pc.points.shape[0] == 4
+        assert pc.points.shape[1] > 0
+
+    def test_incomplete_scan_rejected(self) -> None:
+        """A scan missing >50% of packets should be rejected at 90% threshold."""
+        # Sequences 100, 101, 200 → expected 101 packets, actual 3 → 3%
+        packets = self._make_packets([100, 101, 200])
+        scan = _make_mock_scan(packets)
+        with pytest.raises(ValueError, match="Incomplete PandarScan"):
+            pandarscan_to_lidar(scan, "XT32", min_completeness=0.9)
+
+    def test_incomplete_scan_allowed_when_disabled(self) -> None:
+        """When min_completeness=0.0, incomplete scans should pass."""
+        packets = self._make_packets([100, 101, 200])
+        scan = _make_mock_scan(packets)
+        pc = pandarscan_to_lidar(scan, "XT32", min_completeness=0.0)
+        assert pc.points.shape[1] > 0
+
+    def test_minor_drop_below_threshold_passes(self) -> None:
+        """A scan with minor drops above the threshold should pass."""
+        # 9 out of 10 packets present → 90% completeness
+        seqs = [100, 101, 102, 103, 104, 105, 106, 107, 109]
+        packets = self._make_packets(seqs)
+        scan = _make_mock_scan(packets)
+        pc = pandarscan_to_lidar(scan, "XT32", min_completeness=0.9)
+        assert pc.points.shape[1] > 0
+
+    def test_minor_drop_at_threshold_rejected(self) -> None:
+        """A scan exactly below the threshold should be rejected."""
+        # 8 out of 10 packets → 80% < 90% threshold
+        seqs = [100, 101, 102, 103, 104, 105, 106, 109]
+        packets = self._make_packets(seqs)
+        scan = _make_mock_scan(packets)
+        with pytest.raises(ValueError, match="Incomplete PandarScan"):
+            pandarscan_to_lidar(scan, "XT32", min_completeness=0.9)
+
+    def test_single_packet_skips_check(self) -> None:
+        """A scan with a single packet should skip the completeness check."""
+        packets = self._make_packets([100])
+        scan = _make_mock_scan(packets)
+        pc = pandarscan_to_lidar(scan, "XT32", min_completeness=1.0)
+        assert pc.points.shape[1] > 0

@@ -10,6 +10,7 @@ Supported models:
 
 from __future__ import annotations
 
+import logging
 import struct
 from dataclasses import dataclass, field
 
@@ -19,6 +20,8 @@ from rosbags.interfaces import Nodetype
 from t4_devkit.dataclass import LidarPointCloud
 
 __all__ = ["HESAI_MODELS", "pandarscan_to_lidar", "register_pandar_types"]
+
+logger = logging.getLogger(__name__)
 
 # pandar_msgs type definitions for rosbags typestore registration.
 # PandarPacket uses a fixed uint8[1500] data buffer with a uint32 size field
@@ -73,6 +76,10 @@ class _HesaiModelConfig:
     name: str
     elevation_deg: list[float] = field(repr=False)
     azimuth_offset_deg: list[float] = field(repr=False)
+    udp_seq_offset_from_end: int = 4
+    """Byte offset from the end of the raw packet to the start of the 4-byte
+    UDP Sequence field (u32 LE).  XT32: 4 (last 4 bytes, in "Additional
+    information").  OT128: 30 (in Tail, followed by 26 bytes of IMU data)."""
     cos_el: np.ndarray = field(init=False, repr=False, compare=False)
     sin_el: np.ndarray = field(init=False, repr=False, compare=False)
     azimuth_offset_rad: np.ndarray = field(init=False, repr=False, compare=False)
@@ -146,6 +153,7 @@ HESAI_MODELS: dict[str, _HesaiModelConfig] = {
         name="OT128",
         elevation_deg=_OT128_ELEVATION_DEG,
         azimuth_offset_deg=_OT128_AZIMUTH_OFFSET_DEG,
+        udp_seq_offset_from_end=30,
     ),
 }
 
@@ -159,21 +167,54 @@ def register_pandar_types(typestore: object) -> None:
     typestore.register(PANDAR_FIELDDEFS)
 
 
-def pandarscan_to_lidar(msg: object, sensor_type: str) -> LidarPointCloud:
+def _extract_udp_sequence(raw: bytes, config: _HesaiModelConfig) -> int | None:
+    """Extract the UDP Sequence number from a raw Hesai packet.
+
+    The UDP Sequence is a monotonically incrementing u32 counter embedded
+    in each UDP packet.  Its byte offset from the end of the packet varies
+    by model (see ``_HesaiModelConfig.udp_seq_offset_from_end``).
+
+    Args:
+        raw: Raw packet bytes (trimmed to actual size).
+        config: Model config for the sensor type.
+
+    Returns:
+        UDP Sequence number (u32), or ``None`` if the packet is too short.
+    """
+    if len(raw) < config.udp_seq_offset_from_end + 4:
+        return None
+    offset = len(raw) - config.udp_seq_offset_from_end
+    return struct.unpack_from("<I", raw, offset)[0]
+
+
+def pandarscan_to_lidar(
+    msg: object,
+    sensor_type: str,
+    min_completeness: float = 1.0,
+) -> LidarPointCloud:
     """Convert a deserialized ``PandarScan`` message to ``LidarPointCloud``.
 
     Decodes all packets in the scan, converts spherical coordinates to
     Cartesian, and returns a ``LidarPointCloud`` with shape ``(4, N)``.
 
+    When *min_completeness* > 0, the UDP Sequence numbers embedded in each
+    packet are checked.  If the ratio ``actual_packets / expected_packets``
+    is below *min_completeness*, a :class:`ValueError` is raised to indicate
+    that the scan is incomplete (packets were dropped during recording).
+
     Args:
         msg: Deserialized ``pandar_msgs/msg/PandarScan`` message.
         sensor_type: Hesai sensor model name (e.g. ``"OT128"``, ``"XT32"``).
+        min_completeness: Minimum fraction of expected packets that must be
+            present (0.0–1.0).  Defaults to ``1.0`` (reject any scan with
+            dropped packets).  Set to ``0.0`` to disable the check.
 
     Returns:
         LidarPointCloud instance.
 
     Raises:
-        ValueError: If no packets, unsupported sensor type, or channel count mismatch.
+        ValueError: If no packets, unsupported sensor type, channel count
+            mismatch, or scan completeness is below *min_completeness*.
     """
     config = HESAI_MODELS.get(sensor_type)
     if config is None:
@@ -185,14 +226,50 @@ def pandarscan_to_lidar(msg: object, sensor_type: str) -> LidarPointCloud:
     if not msg.packets:
         raise ValueError("PandarScan message contains no packets")
 
-    point_arrays: list[np.ndarray] = []
-
+    # Extract raw bytes and UDP sequences for each packet.
+    raw_packets: list[bytes] = []
     for packet in msg.packets:
         data = packet.data[: packet.size]
         raw = data.tobytes() if hasattr(data, "tobytes") else bytes(data)
         if len(raw) < 20:
             continue
+        raw_packets.append(raw)
 
+    if not raw_packets:
+        raise ValueError("PandarScan message contains no valid packets")
+
+    # Check scan completeness via UDP Sequence.
+    # Packets in a PandarScan are assembled by the ROS driver in
+    # chronological (azimuth) order, so first/last is sufficient.
+    if min_completeness > 0.0 and len(raw_packets) >= 2:
+        first_seq = _extract_udp_sequence(raw_packets[0], config)
+        last_seq = _extract_udp_sequence(raw_packets[-1], config)
+        if first_seq is not None and last_seq is not None:
+            expected = last_seq - first_seq + 1
+            actual = len(raw_packets)
+            if expected > 0:
+                completeness = actual / expected
+                if completeness < min_completeness:
+                    raise ValueError(
+                        f"Incomplete PandarScan: {actual}/{expected} packets "
+                        f"({completeness:.1%} completeness, "
+                        f"threshold={min_completeness:.1%}). "
+                        f"UDP Sequence range: {first_seq}–{last_seq}."
+                    )
+                if completeness < 1.0:
+                    dropped = expected - actual
+                    logger.debug(
+                        "PandarScan has %d/%d packets (%.1f%% complete, "
+                        "%d dropped). Proceeding (above %.0f%% threshold).",
+                        actual,
+                        expected,
+                        completeness * 100,
+                        dropped,
+                        min_completeness * 100,
+                    )
+
+    point_arrays: list[np.ndarray] = []
+    for raw in raw_packets:
         points = _decode_packet(raw, config)
         if points.shape[1] > 0:
             point_arrays.append(points)
