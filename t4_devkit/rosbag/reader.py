@@ -37,11 +37,13 @@ logger = logging.getLogger(__name__)
 
 def _quat_to_matrix(x: float, y: float, z: float, w: float) -> np.ndarray:
     """Convert quaternion (x, y, z, w) to a 3x3 rotation matrix."""
-    return np.array([
-        [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
-        [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
-        [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
-    ])
+    return np.array(
+        [
+            [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+            [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+            [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
+        ]
+    )
 
 
 def _make_transform(R: np.ndarray, t: np.ndarray) -> np.ndarray:
@@ -223,7 +225,8 @@ class Rosbag2Reader:
                     continue
                 try:
                     self._channel_sensor2ego[m.channel] = _resolve_chain(
-                        self._tf_tree, m.frame_id,
+                        self._tf_tree,
+                        m.frame_id,
                     )
                 except ValueError:
                     logger.warning(

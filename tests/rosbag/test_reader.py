@@ -137,7 +137,9 @@ class TestRosbag2Reader:
             assert len(reader.channels) > 0
 
     def test_get_pointcloud_start_widened(
-        self, bag_with_pointclouds: Path, monkeypatch: pytest.MonkeyPatch,
+        self,
+        bag_with_pointclouds: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Regression: start is widened by 1ns to dodge rosbags MCAP chunk-filter off-by-one."""
         mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
