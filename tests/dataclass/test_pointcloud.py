@@ -218,6 +218,28 @@ def test_split_by_sensor_returns_independent_lidar_pointclouds() -> None:
     assert pointcloud.points[0, 0] != -1.0
 
 
+def test_segmentation_pointcloud_split_by_sensor_splits_labels_and_copies() -> None:
+    points = np.arange(24, dtype=np.float32).reshape(4, 6)
+    labels = np.array([10, 11, 12, 13, 14, 15], dtype=np.uint8)
+    pointcloud = SegmentationPointCloud(
+        points=points,
+        labels=labels,
+        metainfo=_metainfo([_source("lidar_front", 0, 2), _source("lidar_rear", 2, 4)]),
+    )
+
+    split_pointclouds = pointcloud.split_by_sensor()
+
+    assert isinstance(split_pointclouds["lidar_front"], SegmentationPointCloud)
+    assert isinstance(split_pointclouds["lidar_rear"], SegmentationPointCloud)
+    assert np.array_equal(split_pointclouds["lidar_front"].points, points[:, :2])
+    assert np.array_equal(split_pointclouds["lidar_rear"].points, points[:, 2:6])
+    assert np.array_equal(split_pointclouds["lidar_front"].labels, labels[:2])
+    assert np.array_equal(split_pointclouds["lidar_rear"].labels, labels[2:6])
+
+    split_pointclouds["lidar_front"].labels[0] = 255
+    assert pointcloud.labels[0] != 255
+
+
 def test_lidar_pointcloud_from_file_reads_points_and_metainfo(tmp_path: Path) -> None:
     bin_filepath = tmp_path / "pointcloud.bin"
     metainfo_filepath = tmp_path / "pointcloud.json"
