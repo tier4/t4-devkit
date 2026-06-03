@@ -366,9 +366,15 @@ class Rosbag2Reader:
             raise ValueError(f"No connections found for topic '{topic}' (channel '{channel}')")
 
         with self._lock:
+            # Workaround for a rosbags MCAP off-by-one (storage_mcap.py:591):
+            # `start < x.message_end_time` excludes the chunk when start equals
+            # the chunk's last-message ts (which is inclusive), causing 1ns-window
+            # queries at chunk boundaries to return empty. Widening start by 1ns
+            # selects the correct chunk; the [start, stop) interval still uniquely
+            # identifies the target packet.
             for conn, ts_ns, rawdata in self._reader.messages(
                 connections=conns_for_topic,
-                start=target_ns,
+                start=target_ns - 1,
                 stop=target_ns + 1,
             ):
                 msg = self._typestore.deserialize_cdr(rawdata, conn.msgtype)
