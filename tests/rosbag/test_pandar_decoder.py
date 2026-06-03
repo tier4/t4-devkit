@@ -354,10 +354,7 @@ def _make_mock_scan(packet_data_list: list[bytes]) -> object:
     from types import SimpleNamespace
 
     stamp = SimpleNamespace(sec=0, nanosec=0)
-    packets = [
-        SimpleNamespace(stamp=stamp, data=data, size=len(data))
-        for data in packet_data_list
-    ]
+    packets = [SimpleNamespace(stamp=stamp, data=data, size=len(data)) for data in packet_data_list]
     return SimpleNamespace(header=None, packets=packets)
 
 
