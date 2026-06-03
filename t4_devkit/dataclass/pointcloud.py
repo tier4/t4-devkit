@@ -230,6 +230,22 @@ class PointCloud:
             np.vstack((self.points[:3, :], np.ones(self.num_points())))
         )[:3, :]
 
+    def split_by_sensor(self) -> dict[str, PointCloud]:
+        """Split points by sensors using the metainfo.
+
+        Returns:
+            dict[str, PointCloud]: A dictionary mapping sensor tokens to their corresponding pointclouds.
+        """
+        if self.metainfo is None:
+            raise ValueError("Cannot split into sensors: metainfo is None")
+
+        return {
+            source.sensor_token: self.__class__(
+                points=self.points[:, source.idx_begin : source.idx_begin + source.length].copy()
+            )
+            for source in self.metainfo.sources
+        }
+
 
 @define
 class LidarPointCloud(PointCloud):
