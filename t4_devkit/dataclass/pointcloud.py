@@ -237,7 +237,7 @@ class PointCloud:
             dict[str, PointCloud]: A dictionary mapping sensor tokens to their corresponding pointclouds.
         """
         if self.metainfo is None:
-            raise ValueError("Cannot split into sensors: metainfo is None")
+            raise ValueError("Cannot split by sensor: metainfo is None")
 
         return {
             source.sensor_token: self.__class__(
@@ -418,6 +418,18 @@ class SegmentationPointCloud(PointCloud):
         points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
         labels = np.fromfile(label_filepath, dtype=np.uint8)
         return cls(points.T, labels=labels, metainfo=metainfo)
+
+    def split_by_sensor(self) -> dict[str, PointCloud]:
+        if self.metainfo is None:
+            raise ValueError("Cannot split by sensor: metainfo is None")
+
+        return {
+            source.sensor_token: SegmentationPointCloud(
+                points=self.points[:, source.idx_begin : source.idx_begin + source.length].copy(),
+                labels=self.labels[source.idx_begin : source.idx_begin + source.length].copy(),
+            )
+            for source in self.metainfo.sources
+        }
 
 
 PointCloudLike = TypeVar("PointCloudLike", bound=PointCloud)
