@@ -136,6 +136,32 @@ class TestRosbag2Reader:
         with Rosbag2Reader(str(bag_with_pointclouds)) as reader:
             assert len(reader.channels) > 0
 
+    def test_get_pointcloud_start_widened(
+        self,
+        bag_with_pointclouds: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Regression: start is widened by 1ns to dodge rosbags MCAP chunk-filter off-by-one."""
+        mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
+        with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
+            captured_starts: list[int] = []
+            original_messages = reader._reader.messages
+
+            def patched_messages(*args, **kwargs):
+                if "start" in kwargs:
+                    captured_starts.append(kwargs["start"])
+                return original_messages(*args, **kwargs)
+
+            monkeypatch.setattr(reader._reader, "messages", patched_messages)
+
+            target_ts_us = 1_704_067_200_000_000
+            target_ts_ns = target_ts_us * 1_000
+            pc = reader.get_pointcloud("LIDAR_TOP", target_ts_us)
+
+            assert pc.points.shape == (4, 3)
+            assert len(captured_starts) == 1
+            assert captured_starts[0] == target_ts_ns - 1
+
     def test_multiple_timestamps(self, bag_with_pointclouds: Path) -> None:
         mapping = [TopicMapping(channel="LIDAR_TOP", topic="/sensing/lidar/top/pointcloud")]
         with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:

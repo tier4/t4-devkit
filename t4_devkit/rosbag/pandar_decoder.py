@@ -82,7 +82,8 @@ class _HesaiModelConfig:
         object.__setattr__(self, "cos_el", np.cos(el_rad))
         object.__setattr__(self, "sin_el", np.sin(el_rad))
         object.__setattr__(
-            self, "azimuth_offset_rad",
+            self,
+            "azimuth_offset_rad",
             np.radians(np.array(self.azimuth_offset_deg, dtype=np.float32)),
         )
 
@@ -137,11 +138,13 @@ _OT128_AZIMUTH_OFFSET_DEG: list[float] = [
 # Model lookup by sensor type name.
 HESAI_MODELS: dict[str, _HesaiModelConfig] = {
     "XT32": _HesaiModelConfig(
-        name="XT32", elevation_deg=_XT32_ELEVATION_DEG,
+        name="XT32",
+        elevation_deg=_XT32_ELEVATION_DEG,
         azimuth_offset_deg=_XT32_AZIMUTH_OFFSET_DEG,
     ),
     "OT128": _HesaiModelConfig(
-        name="OT128", elevation_deg=_OT128_ELEVATION_DEG,
+        name="OT128",
+        elevation_deg=_OT128_ELEVATION_DEG,
         azimuth_offset_deg=_OT128_AZIMUTH_OFFSET_DEG,
     ),
 }
