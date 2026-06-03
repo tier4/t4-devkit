@@ -149,6 +149,7 @@ class RenderingHelper:
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
+        show_map: bool = False,
     ) -> None:
         """Render specified scene.
 
@@ -157,6 +158,7 @@ class RenderingHelper:
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
+            show_map (bool, optional): Whether to render the map.
         """
         # search first sample data tokens
         first_lidar_tokens: list[str] = [
@@ -179,7 +181,8 @@ class RenderingHelper:
         contents = self._load_contents(RenderingMode.SCENE)
         viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
-        self._try_render_map(viewer)
+        if show_map:
+            self._try_render_map(viewer)
 
         scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
@@ -233,6 +236,7 @@ class RenderingHelper:
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
+        show_map: bool = False,
     ) -> None:
         """Render particular instance.
 
@@ -241,7 +245,7 @@ class RenderingHelper:
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
-
+            show_map (bool, optional): Whether to render the map.
         """
         instance_tokens = [instance_token] if isinstance(instance_token, str) else instance_token
 
@@ -293,7 +297,8 @@ class RenderingHelper:
         contents = self._load_contents(RenderingMode.INSTANCE)
         viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
-        self._try_render_map(viewer)
+        if show_map:
+            self._try_render_map(viewer)
 
         pointcloud_color_mode = (
             PointCloudColorMode.SEGMENTATION
@@ -344,6 +349,7 @@ class RenderingHelper:
         *,
         max_time_seconds: float = np.inf,
         save_dir: str | None = None,
+        show_map: bool = False,
     ) -> None:
         """Render pointcloud on 3D and 2D view.
 
@@ -351,6 +357,7 @@ class RenderingHelper:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             save_dir (str | None, optional): Directory path to save the recording.
                 Viewer will be spawned if it is None, otherwise not.
+            show_map (bool, optional): Whether to render the map.
 
         TODO:
             Add an option of rendering radar channels.
@@ -379,7 +386,8 @@ class RenderingHelper:
         )
         viewer = self._init_viewer(app_id, contents=contents, render_ann=False, save_dir=save_dir)
 
-        self._try_render_map(viewer)
+        if show_map:
+            self._try_render_map(viewer)
 
         # TODO: support rendering segmentation pointcloud on camera
         futures = self._render_lidar_and_ego(

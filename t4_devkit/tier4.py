@@ -810,6 +810,7 @@ class T4Devkit:
         max_time_seconds: float = np.inf,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
+        show_map: bool = False,
     ) -> None:
         """Render specified scene.
 
@@ -817,11 +818,13 @@ class T4Devkit:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
+            show_map (bool, optional): Whether to render the map.
         """
         self._rendering_helper.render_scene(
             max_time_seconds=max_time_seconds,
             future_seconds=future_seconds,
             save_dir=save_dir,
+            show_map=show_map,
         )
 
     def render_instance(
@@ -830,6 +833,7 @@ class T4Devkit:
         *,
         future_seconds: float = 0.0,
         save_dir: str | None = None,
+        show_map: bool = False,
     ) -> None:
         """Render particular instance.
 
@@ -837,11 +841,13 @@ class T4Devkit:
             instance_token (str | Sequence[str]): Instance token(s).
             future_seconds (float, optional): Future time in [s].
             save_dir (str | None, optional): Directory path to save the recording.
+            show_map (bool, optional): Whether to render the map.
         """
         self._rendering_helper.render_instance(
             instance_token=instance_token,
             future_seconds=future_seconds,
             save_dir=save_dir,
+            show_map=show_map,
         )
 
     def render_pointcloud(
@@ -849,12 +855,14 @@ class T4Devkit:
         *,
         max_time_seconds: float = np.inf,
         save_dir: str | None = None,
+        show_map: bool = False,
     ) -> None:
         """Render pointcloud on 3D and 2D view.
 
         Args:
             max_time_seconds (float, optional): Max time length to be rendered [s].
             save_dir (str | None, optional): Directory path to save the recording.
+            show_map (bool, optional): Whether to render the map.
 
         TODO:
             Add an option of rendering radar channels.
@@ -862,6 +870,7 @@ class T4Devkit:
         self._rendering_helper.render_pointcloud(
             max_time_seconds=max_time_seconds,
             save_dir=save_dir,
+            show_map=show_map,
         )
 
 
