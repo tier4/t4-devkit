@@ -18,9 +18,7 @@ def _validate_translation(
     if value is None:
         return
     if not isinstance(value, tuple) or len(value) != 3:
-        raise ValueError(
-            f"sensor2ego_translation must be a tuple of 3 floats; got {value!r}"
-        )
+        raise ValueError(f"sensor2ego_translation must be a tuple of 3 floats; got {value!r}")
     for v in value:
         if not isinstance(v, (int, float)) or v != v or abs(v) == float("inf"):
             raise ValueError(
@@ -42,14 +40,10 @@ def _validate_rotation(
         )
     for v in value:
         if not isinstance(v, (int, float)) or v != v or abs(v) == float("inf"):
-            raise ValueError(
-                f"sensor2ego_rotation entries must be finite numbers; got {value!r}"
-            )
+            raise ValueError(f"sensor2ego_rotation entries must be finite numbers; got {value!r}")
     norm = sum(v * v for v in value) ** 0.5
     if not (0.98 < norm < 1.02):
-        raise ValueError(
-            f"sensor2ego_rotation must be approximately unit-norm; got |q|={norm:.4f}"
-        )
+        raise ValueError(f"sensor2ego_rotation must be approximately unit-norm; got |q|={norm:.4f}")
 
 
 @define(frozen=True)
@@ -102,10 +96,7 @@ class TopicMapping:
     @property
     def has_explicit_sensor2ego(self) -> bool:
         """True iff an explicit sensor → base_link calibration is supplied."""
-        return (
-            self.sensor2ego_translation is not None
-            and self.sensor2ego_rotation is not None
-        )
+        return self.sensor2ego_translation is not None and self.sensor2ego_rotation is not None
 
     @staticmethod
     def from_dict(mapping: dict[str, str]) -> list[TopicMapping]:
