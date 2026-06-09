@@ -217,10 +217,31 @@ class Rosbag2Reader:
         # Read /tf_static and build per-edge TF tree
         self._tf_tree = _read_tf_static(self._typestore, self._reader)
 
-        # Pre-compute sensor2ego for channels with frame_id
+        # Pre-compute sensor2ego per channel. Source priority:
+        #   1. Explicit ``sensor2ego_translation`` + ``sensor2ego_rotation``
+        #      on the TopicMapping (bypasses /tf_static — useful when the
+        #      bag's TF tree is missing or holds an outdated calibration).
+        #   2. ``frame_id`` resolved against the bag's ``/tf_static`` chain.
+        #   3. No entry → points stay in sensor frame.
         self._channel_sensor2ego: dict[str, np.ndarray] = {}
         if topic_mapping is not None:
             for m in topic_mapping:
+                if m.has_explicit_sensor2ego:
+                    # ``sensor2ego_rotation`` is (w, x, y, z); ``_quat_to_matrix``
+                    # takes (x, y, z, w). Unpack accordingly.
+                    qw, qx, qy, qz = m.sensor2ego_rotation
+                    R = _quat_to_matrix(qx, qy, qz, qw)
+                    t = np.asarray(m.sensor2ego_translation, dtype=np.float64)
+                    self._channel_sensor2ego[m.channel] = _make_transform(R, t)
+                    if m.frame_id is not None:
+                        logger.debug(
+                            "Channel '%s': explicit sensor2ego override is in "
+                            "effect; frame_id='%s' is ignored for the sensor → "
+                            "base_link step.",
+                            m.channel,
+                            m.frame_id,
+                        )
+                    continue
                 if m.frame_id is None:
                     continue
                 try:
@@ -394,13 +415,16 @@ class Rosbag2Reader:
                         self._channel_to_sensor_type[channel],
                         min_completeness=min_completeness,
                     )
-                    sensor2ego = self._channel_sensor2ego.get(channel)
-                    if sensor2ego is not None:
-                        R = sensor2ego[:3, :3]
-                        t = sensor2ego[:3, 3]
-                        pc.points[:3, :] = R @ pc.points[:3, :] + t[:, np.newaxis]
-                    return pc
-                return pointcloud2_to_lidar(msg)
+                else:
+                    pc = pointcloud2_to_lidar(msg)
+                # Apply sensor2ego (from /tf_static OR explicit TopicMapping
+                # override) uniformly across both decoder paths.
+                sensor2ego = self._channel_sensor2ego.get(channel)
+                if sensor2ego is not None:
+                    R = sensor2ego[:3, :3]
+                    t = sensor2ego[:3, 3]
+                    pc.points[:3, :] = R @ pc.points[:3, :] + t[:, np.newaxis]
+                return pc
 
         raise ValueError(
             f"Failed to read message for channel '{channel}' at timestamp {target_ns}ns"

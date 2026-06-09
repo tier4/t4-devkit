@@ -173,3 +173,68 @@ class TestRosbag2Reader:
             ]:
                 pc = reader.get_pointcloud("LIDAR_TOP", ts_us)
                 assert pc.points.shape == (4, 3)
+
+    def test_explicit_sensor2ego_translation_only(
+        self, bag_with_pointclouds: Path
+    ) -> None:
+        """Explicit ``sensor2ego_*`` translates points without /tf_static."""
+        # Pure translation by (10, 20, 30); identity rotation.
+        mapping = [
+            TopicMapping(
+                channel="LIDAR_TOP",
+                topic="/sensing/lidar/top/pointcloud",
+                sensor2ego_translation=(10.0, 20.0, 30.0),
+                sensor2ego_rotation=(1.0, 0.0, 0.0, 0.0),
+            )
+        ]
+        with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
+            pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
+            # First point in sensor frame is (0, 1, 2); after translation: (10, 21, 32).
+            np.testing.assert_array_almost_equal(
+                pc.points[:3, 0], [10.0, 21.0, 32.0]
+            )
+
+    def test_explicit_sensor2ego_overrides_frame_id(
+        self, bag_with_pointclouds: Path
+    ) -> None:
+        """When the override is set, ``frame_id`` is ignored for the transform."""
+        # ``frame_id`` resolves to identity (no /tf_static in this mock bag),
+        # so without the override points stay in sensor frame. With the
+        # override they should be shifted by the explicit translation.
+        mapping = [
+            TopicMapping(
+                channel="LIDAR_TOP",
+                topic="/sensing/lidar/top/pointcloud",
+                frame_id="some_frame_not_in_tf",
+                sensor2ego_translation=(1.0, 2.0, 3.0),
+                sensor2ego_rotation=(1.0, 0.0, 0.0, 0.0),
+            )
+        ]
+        with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
+            pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
+            np.testing.assert_array_almost_equal(
+                pc.points[:3, 0], [1.0, 3.0, 5.0]
+            )
+
+    def test_explicit_sensor2ego_quaternion_rotation(
+        self, bag_with_pointclouds: Path
+    ) -> None:
+        """Rotation quaternion is applied correctly (90° about +Z swaps x↔y)."""
+        # q = (cos(45°), 0, 0, sin(45°)) = 90° rotation about +z.
+        import math
+
+        s = math.sin(math.pi / 4)
+        mapping = [
+            TopicMapping(
+                channel="LIDAR_TOP",
+                topic="/sensing/lidar/top/pointcloud",
+                sensor2ego_translation=(0.0, 0.0, 0.0),
+                sensor2ego_rotation=(s, 0.0, 0.0, s),
+            )
+        ]
+        with Rosbag2Reader(str(bag_with_pointclouds), topic_mapping=mapping) as reader:
+            pc = reader.get_pointcloud("LIDAR_TOP", 1_704_067_200_000_000)
+            # (0, 1, 2) → (-1, 0, 2) after 90° rotation about +z.
+            np.testing.assert_array_almost_equal(
+                pc.points[:3, 0], [-1.0, 0.0, 2.0]
+            )
