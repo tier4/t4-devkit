@@ -64,6 +64,17 @@ AdditionalInfo {
 }
 ```
 
+#### `TrafficLightElement`
+
+The `TrafficLightElement` represents a state of a traffic light:
+
+```json
+TrafficLightElement {
+  color: <enum["unknown", "red", "amber", "green", "white"]> -- Traffic light color.
+  shape: <enum["unknown", "circle", "left_arrow", "right_arrow", "up_arrow", "up_left_arrow", "up_right_arrow", "down_arrow", "down_left_arrow", "down_right_arrow", "cross"]> -- Traffic light shape.
+}
+```
+
 ## Mandatory Tables
 
 The following mandatory tables are required for the dataset, so `Tier` class raises runtime error if not found.
@@ -406,5 +417,20 @@ vehicle_state {
   "shift_state":              <option[enum["PARK", "REVERSE", "NEUTRAL", "HIGH", "FORWARD", "LOW", "NONE"]]> -- Shift state of the vehicle.
   "indicators":               <option[Indicators]> -- Indicator state of the vehicle.
   "additional_info":          <option[AdditionalInfo]> -- Additional information about the vehicle state.
+}
+```
+
+### TrafficLight
+
+- Filename: `traffic_light.json`
+
+This table provides information about the traffic light state at a given timestamp, including the color and shape of each light.
+
+```json
+traffic_light {
+  "token":                    <str> -- Unique record identifier.
+  "sample_token":             <str> -- Foreign key to the `Sample` table associated with this annotation.
+  "lane_connector_id":        <str> -- ID of the lane connector in the map.
+  "elements":                 <[TrafficLightElement;N]> -- List of the traffic light elements.
 }
 ```
