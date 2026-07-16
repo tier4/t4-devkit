@@ -81,3 +81,8 @@ def test_build_vehicle_state(vehicle_state_json) -> None:
 def test_build_visibility(visibility_json) -> None:
     """Test building visibility."""
     _ = build_schema(SchemaName.VISIBILITY, visibility_json)
+
+
+def test_build_traffic_light(traffic_light_json) -> None:
+    """Test building traffic light."""
+    _ = build_schema(SchemaName.TRAFFIC_LIGHT, traffic_light_json)

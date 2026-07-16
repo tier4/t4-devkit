@@ -403,3 +403,27 @@ def vehicle_state_json(vehicle_state_dict) -> Generator[str, Any, None]:
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
         save_json([vehicle_state_dict], f.name)
         yield f.name
+
+
+# === TrafficLight ===
+@pytest.fixture(scope="session")
+def traffic_light_dict() -> dict:
+    """Return a dummy traffic light as dictionary."""
+    return {
+        "token": "269572c280bd5cf9630ca542e6a60185",
+        "sample_token": "df2bee5733d8607e49bf792fac3014a3",
+        "lane_connector_id": "1234",
+        "elements": [
+            {"color": "red", "shape": "circle"},
+            {"color": "green", "shape": "up_arrow"},
+            {"color": "green", "shape": "left_arrow"},
+        ],
+    }
+
+
+@pytest.fixture(scope="session")
+def traffic_light_json(traffic_light_dict) -> Generator[str, Any, None]:
+    """Return a file path of dummy traffic light record."""
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+        save_json([traffic_light_dict], f.name)
+        yield f.name

@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         SchemaTable,
         Sensor,
         SurfaceAnn,
+        TrafficLight,
         VehicleState,
         Visibility,
     )
@@ -204,6 +205,9 @@ class T4Devkit:
             self.annotation_dir, SchemaName.VEHICLE_STATE
         )
         self.visibility: list[Visibility] = load_table(self.annotation_dir, SchemaName.VISIBILITY)
+        self.traffic_light: list[TrafficLight] = load_table(
+            self.annotation_dir, SchemaName.TRAFFIC_LIGHT
+        )
 
         # make reverse indexes for common lookups
         self.__make_reverse_index__(verbose)
