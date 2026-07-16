@@ -44,6 +44,8 @@
 | `REF010` | `instance-to-first-sample-annotation` | `ERROR`  | `N/A`   | `Instance.first_annotation_token` refers to `SampleAnnotation` record.    |
 | `REF011` | `instance-to-last-sample-annotation`  | `ERROR`  | `N/A`   | `Instance.last_annotation_token` refers to `SampleAnnotation` record.     |
 | `REF012` | `lidarseg-to-sample-data`             | `ERROR`  | `N/A`   | `LidarSeg.sample_data_token` refers to `SampleData` record.               |
+| `REF013` | `traffic-light-to-sample`             | `ERROR`  | `N/A`   | `TrafficLight.sample_token` refers to `Sample` record.                    |
+| `REF014` | `traffic-light-to-lanelet`            | `ERROR`  | `N/A`   | `TrafficLight.lane_connector_id` refers to a lanelet relation in the map. |
 
 ### Record Reference (A to A')
 
@@ -92,6 +94,7 @@
 | `FMT016` | `surface-ann-field`       | `ERROR`  | `N/A`   | All types of `SurfaceAnn` fields are valid.       |
 | `FMT017` | `keypoint-field`          | `ERROR`  | `N/A`   | All types of `Keypoint` fields are valid.         |
 | `FMT018` | `vehicle-state-field`     | `ERROR`  | `N/A`   | All types of `VehicleState` fields are valid.     |
+| `FMT019` | `traffic-light-field`     | `ERROR`  | `N/A`   | All types of `TrafficLight` fields are valid.     |
 
 ## TIER IV Instance (`TIV`)
 

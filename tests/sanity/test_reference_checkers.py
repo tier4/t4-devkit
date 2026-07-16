@@ -19,6 +19,8 @@ from t4_devkit.sanity.reference.ref009 import REF009
 from t4_devkit.sanity.reference.ref010 import REF010
 from t4_devkit.sanity.reference.ref011 import REF011
 from t4_devkit.sanity.reference.ref012 import REF012
+from t4_devkit.sanity.reference.ref013 import REF013
+from t4_devkit.sanity.reference.ref014 import REF014
 from t4_devkit.sanity.reference.ref201 import REF201
 from t4_devkit.sanity.reference.ref202 import REF202
 
@@ -86,6 +88,8 @@ def _ensure_is_valid(records: list[dict]) -> list[dict]:
         REF009,
         REF010,
         REF011,
+        REF013,
+        REF014,
         REF201,
         REF202,
     ],
@@ -122,6 +126,49 @@ def test_ref012_skipped_on_missing_sources() -> None:
     checker = REF012()
     report = checker(_context(SAMPLE_ROOT))
     assert report.is_skipped(), "REF012 should be skipped when source/target file missing"
+
+
+def test_ref013_skipped_on_missing_traffic_light() -> None:
+    """REF013 should be skipped because traffic_light.json is optional and absent."""
+    checker = REF013()
+    report = checker(_context(SAMPLE_ROOT))
+    assert report.is_skipped(), "REF013 should be skipped when traffic_light.json is missing"
+
+
+def test_ref014_skipped_on_missing_traffic_light() -> None:
+    """REF014 should be skipped because traffic_light.json is optional and absent."""
+    checker = REF014()
+    report = checker(_context(SAMPLE_ROOT))
+    assert report.is_skipped(), "REF014 should be skipped when traffic_light.json is missing"
+
+
+def test_ref014_pass_valid_lanelet_reference(tmp_path: Path) -> None:
+    """REF014 passes when traffic_light.lane_connector_id exists in lanelet2_map.osm."""
+    root = _copy_dataset(tmp_path / "dataset_ref014_pass")
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+
+    sample_records = _load_json(ann_dir / "sample.json")
+    (ann_dir / "traffic_light.json").write_text(
+        json.dumps(
+            [
+                {
+                    "token": "traffic_light_token",
+                    "sample_token": sample_records[0]["token"],
+                    "lane_connector_id": "1000",
+                    "elements": [{"color": "red", "shape": "circle"}],
+                }
+            ],
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    checker = REF014()
+    report = checker(_context(root))
+    assert report.is_passed(strict=True)
+    assert report.reasons is None
 
 
 # ---------------------------------------------------------------------------
@@ -234,3 +281,126 @@ def test_ref202_fail_missing_info_filename(tmp_path: Path) -> None:
     assert not report.is_passed(strict=True)
     assert report.reasons
     assert any("missing_info.json" in r for r in report.reasons)
+
+
+def test_ref013_fail_invalid_sample_reference(tmp_path: Path) -> None:
+    """REF013 failure by breaking traffic_light.sample_token."""
+    root = _copy_dataset(tmp_path / "dataset_ref013_fail")
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+
+    traffic_light_path = ann_dir / "traffic_light.json"
+    traffic_light_path.write_text(
+        json.dumps(
+            [
+                {
+                    "token": "traffic_light_token",
+                    "sample_token": "nonexistent_sample_token",
+                    "lane_connector_id": "lanelet_id",
+                    "elements": [{"color": "red", "shape": "circle"}],
+                }
+            ],
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    checker = REF013()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("nonexistent_sample_token" in r for r in report.reasons)
+
+
+def test_ref014_fail_invalid_lanelet_reference(tmp_path: Path) -> None:
+    """REF014 failure by breaking traffic_light.lane_connector_id."""
+    root = _copy_dataset(tmp_path / "dataset_ref014_fail")
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+
+    sample_records = _load_json(ann_dir / "sample.json")
+    (ann_dir / "traffic_light.json").write_text(
+        json.dumps(
+            [
+                {
+                    "token": "traffic_light_token",
+                    "sample_token": sample_records[0]["token"],
+                    "lane_connector_id": "nonexistent_lanelet_id",
+                    "elements": [{"color": "red", "shape": "circle"}],
+                }
+            ],
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    checker = REF014()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("nonexistent_lanelet_id" in r for r in report.reasons)
+
+
+def test_ref014_fail_missing_lanelet_file_with_traffic_light(tmp_path: Path) -> None:
+    """REF014 fails when traffic_light.json exists but lanelet2_map.osm is missing."""
+    root = _copy_dataset(tmp_path / "dataset_ref014_missing_lanelet")
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+
+    sample_records = _load_json(ann_dir / "sample.json")
+    (ann_dir / "traffic_light.json").write_text(
+        json.dumps(
+            [
+                {
+                    "token": "traffic_light_token",
+                    "sample_token": sample_records[0]["token"],
+                    "lane_connector_id": "1000",
+                    "elements": [{"color": "red", "shape": "circle"}],
+                }
+            ],
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    lanelet_path = root / "map" / "lanelet2_map.osm"
+    lanelet_path.unlink()
+
+    checker = REF014()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("Lanelet2 map file not found" in r for r in report.reasons)
+
+
+def test_ref014_fail_missing_map_dir_with_traffic_light(tmp_path: Path) -> None:
+    """REF014 fails when traffic_light.json exists but map directory is missing."""
+    root = _copy_dataset(tmp_path / "dataset_ref014_missing_map")
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+
+    sample_records = _load_json(ann_dir / "sample.json")
+    (ann_dir / "traffic_light.json").write_text(
+        json.dumps(
+            [
+                {
+                    "token": "traffic_light_token",
+                    "sample_token": sample_records[0]["token"],
+                    "lane_connector_id": "1000",
+                    "elements": [{"color": "red", "shape": "circle"}],
+                }
+            ],
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    shutil.rmtree(root / "map")
+
+    checker = REF014()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("Lanelet2 map file not found" in r for r in report.reasons)

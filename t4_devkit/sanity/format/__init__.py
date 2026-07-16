@@ -18,3 +18,4 @@ from .fmt015 import *  # noqa
 from .fmt016 import *  # noqa
 from .fmt017 import *  # noqa
 from .fmt018 import *  # noqa
+from .fmt019 import *  # noqa

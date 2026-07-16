@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -25,6 +27,7 @@ from t4_devkit.sanity.format.fmt015 import FMT015
 from t4_devkit.sanity.format.fmt016 import FMT016
 from t4_devkit.sanity.format.fmt017 import FMT017  # optional (keypoint) - missing in sample
 from t4_devkit.sanity.format.fmt018 import FMT018
+from t4_devkit.sanity.format.fmt019 import FMT019
 
 # Root of the provided sample dataset (non-versioned)
 SAMPLE_ROOT = Path(__file__).parent.parent.joinpath("sample", "t4dataset")
@@ -55,6 +58,7 @@ ALL_FORMAT_CHECKERS: list[type] = [
     FMT016,
     FMT017,
     FMT018,
+    FMT019,
 ]
 
 
@@ -78,8 +82,35 @@ def test_format_checker_passes(checker_cls: type) -> None:
 
 def test_optional_missing_schemas_present_in_param_list() -> None:
     """Sanity guard: ensure we explicitly covered optional missing schemas."""
-    optional_missing = {"FMT014": FMT014, "FMT017": FMT017}
+    optional_missing = {"FMT014": FMT014, "FMT017": FMT017, "FMT019": FMT019}
     for name, cls in optional_missing.items():
         report = cls()(_context())
         assert report.is_passed(strict=True), f"{name} (missing optional file) should pass"
         assert report.reasons is None
+
+
+def test_fmt019_fail_invalid_traffic_light_element(tmp_path: Path) -> None:
+    """FMT019 fails when traffic_light.json contains invalid element values."""
+    root = tmp_path / "dataset_fmt019_fail"
+
+    shutil.copytree(SAMPLE_ROOT, root)
+    sample_records = json.loads((root / "annotation" / "sample.json").read_text(encoding="utf-8"))
+    (root / "annotation" / "traffic_light.json").write_text(
+        json.dumps(
+            [
+                {
+                    "token": "traffic_light_token",
+                    "sample_token": sample_records[0]["token"],
+                    "lane_connector_id": "lanelet_id",
+                    "elements": [{"color": "blue", "shape": "circle"}],
+                }
+            ],
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    report = FMT019()(SanityContext.from_path(root.as_posix()))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("blue" in reason for reason in report.reasons)
