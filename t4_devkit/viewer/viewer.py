@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os.path as osp
 import warnings
-from typing import TYPE_CHECKING, Callable, Sequence, overload
+from typing import TYPE_CHECKING, Callable, Mapping, Sequence, overload
 
 import numpy as np
 import rerun as rr
@@ -11,7 +11,7 @@ from t4_devkit.common.converter import to_quaternion
 from t4_devkit.common.timestamp import microseconds2seconds
 from t4_devkit.dataclass import SegmentationPointCloud
 from t4_devkit.lanelet import LaneletParser
-from t4_devkit.schema import SensorModality
+from t4_devkit.schema import SensorModality, TrafficLightElement
 
 from .color import PointCloudColorMode, pointcloud_color
 from .config import EntityPath, ViewerConfig, format_entity
@@ -80,12 +80,12 @@ def _check_filepath(function: Callable) -> Callable:
         This function is supposed to be used as a decorator for methods of RerunViewer.
     """
 
-    def checker(viewer: RerunViewer, filepath: str):
+    def checker(viewer: RerunViewer, filepath: str, *args, **kwargs):
         if not osp.exists(filepath):
             warnings.warn(f"File not found: {filepath}")
             return
         else:
-            return function(viewer, filepath)
+            return function(viewer, filepath, *args, **kwargs)
 
     return checker
 
@@ -121,6 +121,7 @@ class RerunViewer:
         self.app_id = app_id
         self.config = config
         self.blueprint = self.config.to_blueprint()
+        self._lanelet_parsers: dict[str, LaneletParser] = {}
 
         rr.init(
             application_id=self.app_id,
@@ -622,20 +623,68 @@ class RerunViewer:
 
     @_check_filepath
     @_check_spatial3d
-    def render_map(self, filepath: str) -> None:
+    def render_map(
+        self,
+        filepath: str,
+        *,
+        traffic_light_elements: Mapping[str, list[TrafficLightElement]] | None = None,
+        traffic_lights_static: bool = True,
+        render_traffic_lights: bool = True,
+    ) -> None:
         """Render vector map.
 
         Args:
             filepath (str): Path to OSM file.
+            traffic_light_elements (Mapping[str, list[TrafficLightElement]] | None, optional):
+                Mapping from lane connector IDs to traffic light elements.
+            traffic_lights_static (bool, optional): Whether to log traffic light meshes as static.
+            render_traffic_lights (bool, optional): Whether to render traffic light meshes.
         """
-        parser = LaneletParser(filepath, verbose=False)
+        parser = self._load_lanelet_parser(filepath)
 
         root_entity = format_entity(EntityPath.MAP, EntityPath.VECTOR_MAP)
         render_lanelets(parser, root_entity)
-        render_traffic_elements(parser, root_entity)
+        render_traffic_elements(
+            parser,
+            root_entity,
+            traffic_light_elements=traffic_light_elements,
+            traffic_lights_static=traffic_lights_static,
+            render_traffic_lights=render_traffic_lights,
+        )
         render_ways(parser, root_entity)
 
         render_geographic_borders(parser, f"{EntityPath.GEOCOORDINATE}/{EntityPath.VECTOR_MAP}")
+
+    @_check_filepath
+    @_check_spatial3d
+    def render_traffic_lights(
+        self,
+        filepath: str,
+        seconds: float,
+        traffic_light_elements: Mapping[str, list[TrafficLightElement]],
+    ) -> None:
+        """Render traffic light meshes with sample-specific elements.
+
+        Args:
+            filepath (str): Path to OSM file.
+            seconds (float): Timestamp in [sec].
+            traffic_light_elements (Mapping[str, list[TrafficLightElement]]): Mapping from lane
+                connector IDs to traffic light elements.
+        """
+        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        root_entity = format_entity(EntityPath.MAP, EntityPath.VECTOR_MAP)
+        render_traffic_elements(
+            self._load_lanelet_parser(filepath),
+            root_entity,
+            traffic_light_elements=traffic_light_elements,
+            traffic_lights_static=False,
+            render_other_elements=False,
+        )
+
+    def _load_lanelet_parser(self, filepath: str) -> LaneletParser:
+        if filepath not in self._lanelet_parsers:
+            self._lanelet_parsers[filepath] = LaneletParser(filepath, verbose=False)
+        return self._lanelet_parsers[filepath]
 
 
 def _to_rerun_quaternion(rotation: RotationLike) -> rr.Quaternion:

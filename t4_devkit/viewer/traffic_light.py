@@ -3,7 +3,16 @@ from __future__ import annotations
 import numpy as np
 import rerun as rr
 
+from t4_devkit.schema import TrafficLightElementColor, TrafficLightElementShape, TrafficLightElement
+
 __all__ = ["traffic_light_kind", "traffic_light_mesh"]
+
+LENS_COLORS = {
+    TrafficLightElementColor.GREEN: [0.1, 0.9, 0.2],
+    TrafficLightElementColor.AMBER: [1.0, 0.8, 0.1],
+    TrafficLightElementColor.RED: [1.0, 0.1, 0.1],
+}
+INACTIVE_LENS_RGB_SCALE = 0.12
 
 
 def traffic_light_kind(way_subtype: str) -> str:
@@ -17,10 +26,11 @@ def traffic_light_mesh(
     direction: np.ndarray | None = None,
     *,
     kind: str = "vehicle",
+    elements: list[TrafficLightElement] | None = None,
 ) -> rr.Mesh3D:
     if kind == "pedestrian":
-        return _pedestrian_traffic_light_mesh(center, direction)
-    return _vehicle_traffic_light_mesh(center, direction)
+        return _pedestrian_traffic_light_mesh(center, direction, elements)
+    return _vehicle_traffic_light_mesh(center, direction, elements)
 
 
 def _cuboid_mesh(
@@ -115,20 +125,22 @@ def _orient_vertices(
 def _vehicle_traffic_light_mesh(
     center: np.ndarray,
     direction: np.ndarray | None = None,
+    elements: list[TrafficLightElement] | None = None,
 ) -> rr.Mesh3D:
     body_color = [0.05, 0.05, 0.05, 1.0]
     visor_color = [0.02, 0.02, 0.02, 1.0]
-    lens_colors = [
-        [0.1, 0.9, 0.2, 1.0],  # green
-        [1.0, 0.8, 0.1, 1.0],  # yellow
-        [1.0, 0.1, 0.1, 1.0],  # red
+    lens_names = [
+        TrafficLightElementColor.GREEN,
+        TrafficLightElementColor.AMBER,
+        TrafficLightElementColor.RED,
     ]
+    active_color = _circle_element_color(elements)
 
     parts = []
     # add body
     parts.append(_cuboid_mesh(np.array([0.0, 0.0, 1.0]), (1.8, 0.25, 0.6), body_color))
-    # add lens (green, yellow, red)
-    for x_offset, color in zip([-0.55, 0.0, 0.55], lens_colors, strict=True):
+    # add lens (green, amber, red)
+    for x_offset, lens_name in zip([-0.55, 0.0, 0.55], lens_names, strict=True):
         lens_center = np.array([x_offset, -0.13, 1.0])
         parts.append(
             _cuboid_mesh(
@@ -137,7 +149,13 @@ def _vehicle_traffic_light_mesh(
                 visor_color,
             )
         )
-        parts.append(_disc_mesh(lens_center + np.array([0.0, -0.055, 0.0]), 0.18, color))
+        parts.append(
+            _disc_mesh(
+                lens_center + np.array([0.0, -0.055, 0.0]),
+                0.18,
+                _lens_color(lens_name, active_color),
+            )
+        )
 
     return _combine_mesh_parts(parts, center, direction)
 
@@ -145,19 +163,18 @@ def _vehicle_traffic_light_mesh(
 def _pedestrian_traffic_light_mesh(
     center: np.ndarray,
     direction: np.ndarray | None = None,
+    elements: list[TrafficLightElement] | None = None,
 ) -> rr.Mesh3D:
     body_color = [0.05, 0.05, 0.05, 1.0]
     visor_color = [0.02, 0.02, 0.02, 1.0]
-    lens_colors = [
-        [1.0, 0.1, 0.1, 1.0],  # red
-        [0.1, 0.9, 0.2, 1.0],  # green
-    ]
+    lens_names = [TrafficLightElementColor.RED, TrafficLightElementColor.GREEN]
+    active_color = _circle_element_color(elements)
 
     parts = []
     # add body
     parts.append(_cuboid_mesh(np.array([0.0, 0.0, 1.0]), (0.55, 0.22, 1.0), body_color))
     # add lens (red, green)
-    for z_offset, color in zip([1.25, 0.75], lens_colors, strict=True):
+    for z_offset, lens_name in zip([1.25, 0.75], lens_names, strict=True):
         lens_center = np.array([0.0, -0.12, z_offset])
         parts.append(
             _cuboid_mesh(
@@ -166,9 +183,47 @@ def _pedestrian_traffic_light_mesh(
                 visor_color,
             )
         )
-        parts.append(_disc_mesh(lens_center + np.array([0.0, -0.055, 0.0]), 0.14, color))
+        parts.append(
+            _disc_mesh(
+                lens_center + np.array([0.0, -0.055, 0.0]),
+                0.14,
+                _lens_color(lens_name, active_color),
+            )
+        )
 
     return _combine_mesh_parts(parts, center, direction)
+
+
+def _circle_element_color(
+    elements: list[TrafficLightElement] | None,
+) -> TrafficLightElementColor | None:
+    if elements is None:
+        return None
+
+    for element in elements:
+        if element.shape == TrafficLightElementShape.CIRCLE:
+            return element.color
+    return None
+
+
+def _lens_color(
+    lens_name: TrafficLightElementColor,
+    active_color: TrafficLightElementColor | None,
+) -> list[float]:
+    if active_color is None:
+        return _inactive_lens_color(lens_name)
+
+    if active_color == lens_name:
+        return _active_lens_color(lens_name)
+    return _inactive_lens_color(lens_name)
+
+
+def _active_lens_color(lens_name: TrafficLightElementColor) -> list[float]:
+    return LENS_COLORS[lens_name]
+
+
+def _inactive_lens_color(lens_name: TrafficLightElementColor) -> list[float]:
+    return [component * INACTIVE_LENS_RGB_SCALE for component in LENS_COLORS[lens_name]]
 
 
 def _combine_mesh_parts(

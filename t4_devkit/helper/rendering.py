@@ -4,6 +4,7 @@ import concurrent
 import concurrent.futures
 import os.path as osp
 import warnings
+from collections import defaultdict
 from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Sequence
@@ -35,6 +36,8 @@ if TYPE_CHECKING:
         Scene,
         Sensor,
         SurfaceAnn,
+        TrafficLight,
+        TrafficLightElement,
     )
 
 __all__ = ["RenderingHelper"]
@@ -181,12 +184,16 @@ class RenderingHelper:
         contents = self._load_contents(RenderingMode.SCENE)
         viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
-        if show_map:
-            self._try_render_map(viewer)
-
         scene: Scene = self._t4.scene[0]
         first_sample: Sample = self._t4.get("sample", scene.first_sample_token)
         max_timestamp_us = first_sample.timestamp + seconds2microseconds(max_time_seconds)
+
+        if show_map:
+            self._try_render_map(
+                viewer,
+                first_sample_token=scene.first_sample_token,
+                max_timestamp_us=max_timestamp_us,
+            )
 
         pointcloud_color_mode = (
             PointCloudColorMode.SEGMENTATION
@@ -298,7 +305,11 @@ class RenderingHelper:
         viewer = self._init_viewer(app_id, contents=contents, render_ann=True, save_dir=save_dir)
 
         if show_map:
-            self._try_render_map(viewer)
+            self._try_render_map(
+                viewer,
+                first_sample_token=first_sample.token,
+                max_timestamp_us=max_timestamp_us,
+            )
 
         pointcloud_color_mode = (
             PointCloudColorMode.SEGMENTATION
@@ -387,7 +398,11 @@ class RenderingHelper:
         viewer = self._init_viewer(app_id, contents=contents, render_ann=False, save_dir=save_dir)
 
         if show_map:
-            self._try_render_map(viewer)
+            self._try_render_map(
+                viewer,
+                first_sample_token=first_lidar_sample_data.sample_token,
+                max_timestamp_us=max_timestamp_us,
+            )
 
         # TODO: support rendering segmentation pointcloud on camera
         futures = self._render_lidar_and_ego(
@@ -402,11 +417,53 @@ class RenderingHelper:
 
         _handle_futures(futures)
 
-    def _try_render_map(self, viewer: RerunViewer) -> None:
+    def _try_render_map(
+        self,
+        viewer: RerunViewer,
+        *,
+        first_sample_token: str | None = None,
+        max_timestamp_us: float | None = None,
+    ) -> None:
         lanelet_path = osp.join(self._t4.map_dir, "lanelet2_map.osm")
         if not osp.exists(lanelet_path):
             return
-        viewer.render_map(lanelet_path)
+
+        if not self._t4.traffic_light or first_sample_token is None or max_timestamp_us is None:
+            viewer.render_map(lanelet_path)
+            return
+
+        viewer.render_map(lanelet_path, render_traffic_lights=False)
+        self._render_traffic_light_elements(
+            viewer=viewer,
+            lanelet_path=lanelet_path,
+            first_sample_token=first_sample_token,
+            max_timestamp_us=max_timestamp_us,
+        )
+
+    def _render_traffic_light_elements(
+        self,
+        viewer: RerunViewer,
+        lanelet_path: str,
+        first_sample_token: str,
+        max_timestamp_us: float,
+    ) -> None:
+        traffic_light_elements_by_sample = _traffic_light_elements_by_sample(self._t4.traffic_light)
+        current_sample_token = first_sample_token
+        while current_sample_token != "":
+            sample: Sample = self._t4.get("sample", current_sample_token)
+
+            if max_timestamp_us < sample.timestamp:
+                break
+
+            elements = traffic_light_elements_by_sample.get(sample.token)
+            if elements:
+                viewer.render_traffic_lights(
+                    lanelet_path,
+                    microseconds2seconds(sample.timestamp),
+                    elements,
+                )
+
+            current_sample_token = sample.next
 
     def _render_sensor_calibration(self, viewer: RerunViewer, sample_data_token: str) -> None:
         sample_data: SampleData = self._t4.get("sample_data", sample_data_token)
@@ -671,6 +728,15 @@ def _append_mask(
         camera_masks[camera]["class_ids"] = [class_id]
         camera_masks[camera]["uuids"] = [uuid]
     return camera_masks
+
+
+def _traffic_light_elements_by_sample(
+    traffic_lights: Sequence[TrafficLight],
+) -> dict[str, dict[str, list[TrafficLightElement]]]:
+    output: dict[str, dict[str, list[TrafficLightElement]]] = defaultdict(dict)
+    for traffic_light in traffic_lights:
+        output[traffic_light.sample_token][traffic_light.lane_connector_id] = traffic_light.elements
+    return dict(output)
 
 
 def _handle_futures(futures: list[Future]) -> None:
