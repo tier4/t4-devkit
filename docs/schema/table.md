@@ -66,7 +66,7 @@ AdditionalInfo {
 
 #### `TrafficLightElement`
 
-The `TrafficLightElement` represents a state of a traffic light:
+The `TrafficLightElement` represents an individual light element:
 
 ```json
 TrafficLightElement {
@@ -424,7 +424,7 @@ vehicle_state {
 
 - Filename: `traffic_light.json`
 
-This table provides information about the traffic light state at a given timestamp, including the color and shape of each light.
+This table provides information about traffic light elements at a given sample, including the color and shape of each light.
 
 ```json
 traffic_light {
