@@ -68,6 +68,7 @@ More details, please refer to [`t4viz` CLI](./docs/cli/t4viz.md) or [API usage](
 |         | Raw Image                   |   ✅    |
 |         | Raw PointCloud on Image     |   ✅    |
 | Map     | Vector Map                  |   ✅    |
+|         | Traffic Lights              |   ✅    |
 |         | Ego Position on Street View |   ✅    |
 
 ### Sanity Checks

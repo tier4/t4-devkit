@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Mapping
 
 import numpy as np
 import rerun as rr
+
+from t4_devkit.schema import TrafficLightElement
 
 from .traffic_light import traffic_light_kind, traffic_light_mesh
 
@@ -75,13 +77,28 @@ def render_lanelets(parser: LaneletParser, root_entity: str) -> None:
             )
 
 
-def render_traffic_elements(parser: LaneletParser, root_entity: str) -> None:
+def render_traffic_elements(
+    parser: LaneletParser,
+    root_entity: str,
+    *,
+    traffic_light_elements: Mapping[str, list[TrafficLightElement]] | None = None,
+    traffic_lights_static: bool = True,
+    render_traffic_lights: bool = True,
+    render_other_elements: bool = True,
+) -> None:
     """Render traffic signs, lights, and other regulatory elements.
 
     Args:
         parser (LaneletParser): The lanelet parser.
         root_entity (str): The root entity to render.
+        traffic_light_elements (Mapping[str, list[TrafficLightElement]] | None, optional):
+            Mapping from lane connector IDs to traffic light elements.
+        traffic_lights_static (bool, optional): Whether to log traffic light meshes as static.
+        render_traffic_lights (bool, optional): Whether to render traffic light meshes.
+        render_other_elements (bool, optional): Whether to render non-traffic-light elements.
     """
+    traffic_light_regulatory_to_lanelet_ids = _traffic_light_regulatory_to_lanelet_ids(parser)
+
     for relation in parser.relations.values():
         if relation.tags.get("type") != "regulatory_element":
             continue
@@ -93,17 +110,18 @@ def render_traffic_elements(parser: LaneletParser, root_entity: str) -> None:
                 if not way:
                     continue
                 coords = parser.way_coordinates(way)
+                is_traffic_light = (
+                    "light" in subtype
+                    and member.role == "refers"
+                    and way.tags.get("type") == "traffic_light"
+                )
                 if "sign" in subtype:
                     color = LANELET_COLORS["traffic_sign"]
                     size = [0.8, 0.8, 0.8]
                     element_type = "sign"
-                elif (
-                    "light" in subtype
-                    and member.role == "refers"
-                    and way.tags.get("type") == "traffic_light"
-                ):
-                    color = LANELET_COLORS["traffic_light"]
-                    size = [0.6, 1.2, 0.6]
+                elif is_traffic_light:
+                    if not render_traffic_lights:
+                        continue
                     element_type = "light"
                 elif "light" in subtype:
                     continue
@@ -121,10 +139,24 @@ def render_traffic_elements(parser: LaneletParser, root_entity: str) -> None:
                     entity_path = (
                         f"{root_entity}/traffic_elements/{kind}_light/{relation.id}_{member.ref}"
                     )
+                    elements = _traffic_light_element(
+                        relation.id,
+                        traffic_light_elements,
+                        traffic_light_regulatory_to_lanelet_ids,
+                    )
                     rr.log(
-                        entity_path, traffic_light_mesh(center, direction, kind=kind), static=True
+                        entity_path,
+                        traffic_light_mesh(
+                            center,
+                            direction,
+                            kind=kind,
+                            elements=elements,
+                        ),
+                        static=traffic_lights_static,
                     )
                 else:
+                    if not render_other_elements:
+                        continue
                     for i, center in enumerate(coords):
                         entity_path = (
                             f"{root_entity}/traffic_elements/{element_type}/{relation.id}_{i}"
@@ -134,6 +166,49 @@ def render_traffic_elements(parser: LaneletParser, root_entity: str) -> None:
                             rr.Boxes3D(sizes=[size], centers=[center], colors=[color]),
                             static=True,
                         )
+
+
+def _traffic_light_regulatory_to_lanelet_ids(parser: LaneletParser) -> dict[str, set[str]]:
+    output: dict[str, set[str]] = {}
+    for relation in parser.relations.values():
+        if relation.tags.get("type") != "lanelet":
+            continue
+
+        for member in relation.members:
+            if member.type != "relation" or member.role != "regulatory_element":
+                continue
+
+            regulatory_relation = parser.relations.get(member.ref)
+            if regulatory_relation is None:
+                continue
+            if (
+                regulatory_relation.tags.get("type") != "regulatory_element"
+                or regulatory_relation.tags.get("subtype") != "traffic_light"
+            ):
+                continue
+
+            output.setdefault(member.ref, set()).add(relation.id)
+
+    return output
+
+
+def _traffic_light_element(
+    regulatory_relation_id: str,
+    traffic_light_elements: Mapping[str, list[TrafficLightElement]] | None,
+    regulatory_to_lanelet_ids: Mapping[str, set[str]],
+) -> list[TrafficLightElement] | None:
+    if traffic_light_elements is None:
+        return None
+
+    if regulatory_relation_id in traffic_light_elements:
+        return traffic_light_elements[regulatory_relation_id]
+
+    lanelet_ids = regulatory_to_lanelet_ids.get(regulatory_relation_id, set())
+    for lanelet_id in sorted(lanelet_ids):
+        if lanelet_id in traffic_light_elements:
+            return traffic_light_elements[lanelet_id]
+
+    return None
 
 
 def render_ways(parser: LaneletParser, root_entity: str) -> None:
