@@ -99,6 +99,14 @@ def _set_time_seconds(timeline: EntityPath, seconds: float) -> None:
         rr.set_time(timeline, timestamp=seconds)
 
 
+def _encoded_image(path: str):
+    """Create an encoded image archetype across supported Rerun SDK versions."""
+    if RERUN_SDK_VERSION < (0, 28):
+        return rr.ImageEncoded(path=path)
+    else:
+        return rr.EncodedImage(path=path)
+
+
 class RerunViewer:
     """A viewer class that renders some components powered by rerun."""
 
@@ -462,7 +470,7 @@ class RerunViewer:
         _set_time_seconds(EntityPath.TIMELINE, seconds)
 
         entity_path = format_entity(EntityPath.BASE_LINK, camera)
-        entity = rr.ImageEncoded(path=image) if isinstance(image, str) else rr.Image(image)
+        entity = _encoded_image(image) if isinstance(image, str) else rr.Image(image)
 
         rr.log(entity_path, entity)
 

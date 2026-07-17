@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from pyquaternion import Quaternion
 
 from t4_devkit.dataclass import LidarPointCloud
 from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
 from t4_devkit.viewer import EntityPath, format_entity
+from t4_devkit.viewer import viewer as viewer_module
 
 
 def test_format_entity() -> None:
@@ -89,6 +91,31 @@ def test_render_image(dummy_viewer, dummy_camera_calibration) -> None:
     (width, height), _ = dummy_camera_calibration
     dummy_image = np.zeros((height, width, 3), dtype=np.uint8)
     dummy_viewer.render_image(seconds=seconds, camera="camera", image=dummy_image)
+
+
+@pytest.mark.parametrize(
+    ("rerun_sdk_version", "archetype_name"),
+    [((0, 27), "ImageEncoded"), ((0, 28), "EncodedImage")],
+)
+def test_render_encoded_image(
+    dummy_viewer, monkeypatch, rerun_sdk_version: tuple[int, int], archetype_name: str
+) -> None:
+    """Test rendering encoded images with old and new Rerun archetype names."""
+    paths = []
+
+    class EncodedImage:
+        def __init__(self, *, path: str) -> None:
+            paths.append(path)
+
+    monkeypatch.delattr(viewer_module.rr, "EncodedImage", raising=False)
+    monkeypatch.delattr(viewer_module.rr, "ImageEncoded", raising=False)
+    monkeypatch.setattr(viewer_module.rr, archetype_name, EncodedImage, raising=False)
+    monkeypatch.setattr(viewer_module.rr, "log", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(viewer_module, "RERUN_SDK_VERSION", rerun_sdk_version)
+
+    dummy_viewer.render_image(seconds=1.0, camera="camera", image="image.jpg")
+
+    assert paths == ["image.jpg"]
 
 
 def test_render_ego(dummy_viewer) -> None:
