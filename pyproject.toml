@@ -22,6 +22,7 @@ dependencies = [
     "tqdm>=4.67.1",
     "returns>=0.26.0",
     "pyarrow<24.0.0", # NOTE: pyarrow==24.0.0 is only supported on macOS
+    "pypcd4>=1.4.3,<2",
 ]
 
 [dependency-groups]
