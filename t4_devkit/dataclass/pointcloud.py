@@ -6,6 +6,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, TypeVar
 
 import numpy as np
+import pypcd4
 from attrs import define, field
 
 from t4_devkit.common.io import load_json
@@ -261,16 +262,21 @@ class LidarPointCloud(PointCloud):
 
     @classmethod
     def from_file(cls, filepath: str, metainfo_filepath: str | None = None) -> Self:
-        assert filepath.endswith(".bin"), f"Unexpected filetype: {filepath}"
+        assert filepath.endswith((".bin", ".pcd")), f"Unexpected filetype: {filepath}"
 
         metainfo = (
             PointCloudMetainfo.from_file(metainfo_filepath)
             if metainfo_filepath is not None and osp.exists(metainfo_filepath)
             else None
         )
-        num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-        scan = np.fromfile(filepath, dtype=np.float32)
-        points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+
+        if filepath.endswith(".bin"):
+            num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
+            scan = np.fromfile(filepath, dtype=np.float32)
+            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+        else:
+            pcd = pypcd4.PointCloud.from_path(filepath)
+            points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)
 
         return cls(points.T, metainfo=metainfo)
 

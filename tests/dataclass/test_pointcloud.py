@@ -240,7 +240,7 @@ def test_segmentation_pointcloud_split_by_sensor_splits_labels_and_copies() -> N
     assert pointcloud.labels[0] != 255
 
 
-def test_lidar_pointcloud_from_file_reads_points_and_metainfo(tmp_path: Path) -> None:
+def test_lidar_pointcloud_from_file_reads_points_and_metainfo_from_bin(tmp_path: Path) -> None:
     bin_filepath = tmp_path / "pointcloud.bin"
     metainfo_filepath = tmp_path / "pointcloud.json"
     scan = np.array(
@@ -269,6 +269,53 @@ def test_lidar_pointcloud_from_file_reads_points_and_metainfo(tmp_path: Path) ->
     )
 
     pointcloud = LidarPointCloud.from_file(str(bin_filepath), str(metainfo_filepath))
+
+    assert np.array_equal(pointcloud.points, scan[:, :4].T)
+    assert pointcloud.metainfo is not None
+    assert pointcloud.metainfo.source_tokens == ["lidar_front"]
+
+
+def test_lidar_pointcloud_from_file_reads_points_and_metainfo_from_pcd(tmp_path: Path) -> None:
+    pcd_filepath = tmp_path / "pointcloud.pcd"
+    metainfo_filepath = tmp_path / "pointcloud.json"
+    scan = np.array(
+        [
+            [1.0, 2.0, 3.0, 4.0, 5.0],
+            [6.0, 7.0, 8.0, 9.0, 10.0],
+        ],
+        dtype=np.float32,
+    )
+    header = (
+        "VERSION 0.7\n"
+        "FIELDS x y z intensity ring\n"
+        "SIZE 4 4 4 4 4\n"
+        "TYPE F F F F F\n"
+        "COUNT 1 1 1 1 1\n"
+        "WIDTH 2\n"
+        "HEIGHT 1\n"
+        "VIEWPOINT 0 0 0 1 0 0 0\n"
+        "POINTS 2\n"
+        "DATA binary\n"
+    )
+    pcd_filepath.write_bytes(header.encode("utf-8") + scan.tobytes())
+    metainfo_filepath.write_text(
+        json.dumps(
+            {
+                "stamp": {"sec": 1, "nanosec": 2},
+                "sources": [
+                    {
+                        "sensor_token": "lidar_front",
+                        "idx_begin": 0,
+                        "length": 2,
+                        "stamp": {"sec": 3, "nanosec": 4},
+                    }
+                ],
+                "num_pts_feats": 5,
+            }
+        )
+    )
+
+    pointcloud = LidarPointCloud.from_file(str(pcd_filepath), str(metainfo_filepath))
 
     assert np.array_equal(pointcloud.points, scan[:, :4].T)
     assert pointcloud.metainfo is not None
