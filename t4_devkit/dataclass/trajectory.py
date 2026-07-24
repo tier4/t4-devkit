@@ -18,7 +18,7 @@ __all__ = ["Past", "Future"]
 class ObjectPath:
     """A dataclass to represent object path including timestamps, confidences, and waypoints."""
 
-    timestamps: NDArrayInt = field(converter=np.array)
+    relative_timestamps: NDArrayInt = field(converter=np.array)
     confidences: NDArrayFloat = field(
         converter=np.array,
         validator=validators.deep_iterable((validators.ge(0.0), validators.le(1.0))),
@@ -30,10 +30,10 @@ class ObjectPath:
 
     def _check_dims(self) -> None:
         # check timestamp length between timestamps and waypoints
-        if len(self.timestamps) != self.waypoints.shape[1]:
+        if len(self.relative_timestamps) != self.waypoints.shape[1]:
             raise ValueError(
-                "Timestamp length must be the same between `timestamps` and `waypoints`, "
-                f"but got timestamps={len(self.timestamps)} and waypoints={self.waypoints.shape[1]}"
+                "Timestamp length must be the same between `relative_timestamps` and `waypoints`, "
+                f"but got relative_timestamps={len(self.relative_timestamps)} and waypoints={self.waypoints.shape[1]}"
             )
 
         # check mode length between waypoints and confidences

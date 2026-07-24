@@ -62,7 +62,7 @@ def dummy_box3d() -> Box3D:
         num_points=1,
         visibility=VisibilityLevel.FULL,
     ).with_future(
-        timestamps=[101, 102, 103, 104],
+        relative_timestamps=[1, 2, 3, 4],
         confidences=[1.0, 0.5],
         waypoints=[
             np.array(
@@ -106,7 +106,7 @@ def dummy_box3ds() -> list[Box3D]:
             num_points=1,
             visibility=VisibilityLevel.FULL,
         ).with_future(
-            timestamps=[101, 102, 103, 104],
+            relative_timestamps=[1, 2, 3, 4],
             confidences=[1.0],
             waypoints=[
                 np.array(
@@ -132,7 +132,7 @@ def dummy_box3ds() -> list[Box3D]:
             num_points=1,
             visibility=VisibilityLevel.MOST,
         ).with_future(
-            timestamps=[101, 102, 103, 104],
+            relative_timestamps=[1, 2, 3, 4],
             confidences=[1.0, 0.5],
             waypoints=[
                 np.array(
@@ -166,7 +166,7 @@ def dummy_box3ds() -> list[Box3D]:
             num_points=1,
             visibility="none",  # str is also OK
         ).with_future(
-            timestamps=[101, 102, 103, 104],
+            relative_timestamps=[1, 2, 3, 4],
             confidences=[1.0, 0.5, 0.2],
             waypoints=[
                 np.array(
@@ -259,7 +259,7 @@ def dummy_future() -> Future:
     """
     # list item is converted to NDArray internally
     return Future(
-        timestamps=[101, 102],
+        relative_timestamps=[1, 2],
         confidences=[1.0],
         waypoints=[[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]],
     )
