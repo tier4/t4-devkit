@@ -15,6 +15,22 @@ By default, each file contains `(x, y, z, intensity, ring_idx(=-1))` as `float32
 
 Some datasets can store additional `float32` features for each point, such as `return_type` or `timestamp`. In that case, `sample_data.info_filename` should point to a pointcloud metainfo JSON file that includes `num_pts_feats`, which describes the total number of `float32` fields in each point.
 
+Point clouds can also be stored in the standard PCD format as `<FRAME_ID>.pcd`. In that case, the field layout is self-described by the PCD header with the same fields as the binary layout:
+
+```shell
+# .PCD v0.7 - Point Cloud Data file format
+VERSION 0.7
+FIELDS x y z intensity ring
+SIZE 4 4 4 4 4
+TYPE F F F F F
+COUNT 1 1 1 1 1
+WIDTH 297553
+HEIGHT 1
+VIEWPOINT 0.0 0.0 0.0 1.0 0.0 0.0 0.0
+POINTS 297553
+DATA binary
+```
+
 Each file can be loaded using as follows:
 
 ```python
@@ -32,7 +48,7 @@ def load_lidar_point_cloud_t4(file_path, metainfo_path: str | None = None) -> Li
     return LidarPointCloud.from_file(file_path, metainfo_filepath=metainfo_path)
 ```
 
-When `metainfo_filepath` is provided and the file exists, `t4-devkit` uses `num_pts_feats` from the metainfo JSON to reshape the binary pointcloud correctly. If the metainfo file is omitted or unavailable, `t4-devkit` falls back to the standard 5-feature layout.
+`LidarPointCloud.from_file()` and `SegmentationPointCloud.from_file()` accept both `.pcd.bin` and `.pcd` files. For binary (`.bin`) files, when `metainfo_filepath` is provided and the file exists, `t4-devkit` uses `num_pts_feats` from the metainfo JSON to reshape the binary pointcloud correctly. If the metainfo file is omitted or unavailable, `t4-devkit` falls back to the standard 5-feature layout. For `.pcd` files, the field layout is read from the PCD header instead.
 
 Current `LidarPointCloud` and `SegmentationPointCloud` readers keep the first 4 dimensions `(x, y, z, intensity)` after reshaping. Additional point features are used to determine the row width and are not exposed in the returned point matrix.
 
