@@ -249,9 +249,9 @@ def test_reference_checkers_fail(
 
     checker = checker_cls()
     report = checker(_context(root))
-    assert not report.is_passed(strict=True), (
-        f"{checker_cls.__name__} should fail with invalid reference"
-    )
+    assert not report.is_passed(
+        strict=True
+    ), f"{checker_cls.__name__} should fail with invalid reference"
     assert report.reasons, "Failed report must include reasons"
     # Confirm invalid token mentioned somewhere
     assert any(invalid_token in r for r in report.reasons), "Invalid token should appear in reasons"
