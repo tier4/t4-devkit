@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from returns.result import Result, safe
+from returns.result import safe
 
 from t4_devkit import DBMetadata, T4Devkit, load_metadata
 from t4_devkit.common.io import load_json
@@ -14,28 +14,25 @@ if TYPE_CHECKING:
 
 
 @safe
-def load_json_safe(filename: str) -> Result[list[dict], Exception]:
+def load_json_safe(filename: str) -> list[dict]:
     """Load JSON file safely."""
     return load_json(filename)
 
 
 @safe
-def load_schema_safe(module: type[SchemaBase], record: dict) -> Result[SchemaBase, Exception]:
+def load_schema_safe(module: type[SchemaBase], record: dict) -> SchemaBase:
     """Load schema from dict safely."""
     return module.from_dict(record)
 
 
 @safe
-def load_metadata_safe(
-    data_root: str,
-    revision: str | None = None,
-) -> Result[DBMetadata, Exception]:
+def load_metadata_safe(data_root: str, revision: str | None = None) -> DBMetadata:
     """Load DBMetadata safely."""
     return load_metadata(data_root, revision=revision)
 
 
 @safe
-def load_tier4_safe(context: SanityContext) -> Result[T4Devkit, Exception]:
+def load_tier4_safe(context: SanityContext) -> T4Devkit:
     """Load T4Devkit instance safely."""
     data_root = context.data_root.unwrap()
     revision = context.version.value_or(None)
