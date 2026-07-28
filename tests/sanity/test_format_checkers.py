@@ -25,6 +25,7 @@ from t4_devkit.sanity.format.fmt015 import FMT015
 from t4_devkit.sanity.format.fmt016 import FMT016
 from t4_devkit.sanity.format.fmt017 import FMT017  # optional (keypoint) - missing in sample
 from t4_devkit.sanity.format.fmt018 import FMT018
+from t4_devkit.sanity.format.fmt019 import FMT019
 
 # Root of the provided sample dataset (non-versioned)
 SAMPLE_ROOT = Path(__file__).parent.parent.joinpath("sample", "t4dataset")
@@ -55,6 +56,7 @@ ALL_FORMAT_CHECKERS: list[type] = [
     FMT016,
     FMT017,
     FMT018,
+    FMT019,
 ]
 
 

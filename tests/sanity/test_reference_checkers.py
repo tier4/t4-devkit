@@ -19,6 +19,8 @@ from t4_devkit.sanity.reference.ref009 import REF009
 from t4_devkit.sanity.reference.ref010 import REF010
 from t4_devkit.sanity.reference.ref011 import REF011
 from t4_devkit.sanity.reference.ref012 import REF012
+from t4_devkit.sanity.reference.ref013 import REF013
+from t4_devkit.sanity.reference.ref014 import REF014
 from t4_devkit.sanity.reference.ref201 import REF201
 from t4_devkit.sanity.reference.ref202 import REF202
 
@@ -86,6 +88,9 @@ def _ensure_is_valid(records: list[dict]) -> list[dict]:
         REF009,
         REF010,
         REF011,
+        REF012,
+        REF013,
+        REF014,
         REF201,
         REF202,
     ],
