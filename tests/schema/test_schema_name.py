@@ -26,6 +26,7 @@ def test_schema_name() -> None:
         "surface_ann": True,
         "keypoint": True,
         "vehicle_state": True,
+        "traffic_light": True,
     }
 
     # check all enum members are covered by above names

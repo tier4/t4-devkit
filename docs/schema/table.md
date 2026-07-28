@@ -408,3 +408,17 @@ vehicle_state {
   "additional_info":          <option[AdditionalInfo]> -- Additional information about the vehicle state.
 }
 ```
+
+### TrafficLight
+
+- Filename: `traffic_light.json`
+
+This table provides information about the traffic light at a given timestamp, including the state of the traffic light and the associated lanelet linestring ID.
+
+```json
+traffic_light {
+  "token":                      <str> -- Unique record identifier.
+  "instance_token":             <str> -- Foreign key to the `Instance` table associated with the instance of the object.
+  "traffic_light_linestring_id": <str> -- ID of the lanelet linestring associated with the traffic light.
+}
+```
