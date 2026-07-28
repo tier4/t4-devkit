@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from returns.result import safe
 
 from t4_devkit import DBMetadata, T4Devkit, load_metadata
-from t4_devkit.common.io import load_json
+from t4_devkit.common import load_json, save_json
 
 if TYPE_CHECKING:
     from t4_devkit.schema import SchemaBase
@@ -18,6 +18,12 @@ if TYPE_CHECKING:
 def load_json_safe(filename: PathLike) -> list[dict]:
     """Load JSON file safely."""
     return load_json(filename)
+
+
+@safe
+def save_json_safe(data: list[dict], filename: PathLike) -> None:
+    """Save JSON file safely."""
+    return save_json(data, filename)
 
 
 @safe

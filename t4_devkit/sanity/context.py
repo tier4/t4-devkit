@@ -8,10 +8,9 @@ from returns.pipeline import is_successful
 from typing_extensions import TYPE_CHECKING, Self
 
 from t4_devkit import DBMetadata
-from t4_devkit.common import save_json
-from t4_devkit.schema.name import SchemaName
+from t4_devkit.schema import SchemaName
 
-from .safety import load_metadata_safe
+from .safety import load_metadata_safe, save_json_safe
 
 if TYPE_CHECKING:
     from t4_devkit.typing import PathLike
@@ -75,10 +74,10 @@ class SanityContext:
         """Save schema data to file."""
         match self.to_schema_file(schema):
             case Some(filepath):
-                try:
-                    save_json(records, filepath)
+                result = save_json_safe(records, filepath)
+                if is_successful(result):
                     return True
-                except Exception as e:
-                    print(f"Error saving schema: {e}")
+                else:
+                    print(f"Error saving schema: {result.failure()}")
                     return False
         return False
