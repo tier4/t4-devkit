@@ -19,6 +19,7 @@ The aliases support the most common input patterns found in robotics and compute
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Sequence, Union
 
 import numpy as np
@@ -31,6 +32,7 @@ from .roi import Roi
 from .vector import Vector2, Vector3, Vector6
 
 __all__ = [
+    "PathLike",
     # Vector aliases
     "Vector2Like",
     "Vector3Like",
@@ -53,6 +55,9 @@ __all__ = [
     # Numeric aliases
     "ScalarLike",
 ]
+
+PathLike = Union[str, Path]
+"""Type alias for path-like inputs."""
 
 # =============================================================================
 # Vector type aliases

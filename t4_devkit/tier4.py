@@ -19,7 +19,7 @@ from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_
 from t4_devkit.schema.compatibility import fix_category_table
 
 if TYPE_CHECKING:
-    from t4_devkit.typing import CameraIntrinsicLike, Vector3
+    from t4_devkit.typing import CameraIntrinsicLike, PathLike, Vector3
 
     from .dataclass import BoxLike
     from .schema import (
@@ -62,7 +62,7 @@ class DBMetadata:
     version: str | None
 
 
-def load_metadata(db_root: str, revision: str | None = None) -> DBMetadata:
+def load_metadata(db_root: PathLike, revision: str | None = None) -> DBMetadata:
     """Load metadata of T4 dataset including root directory path, dataset ID, and version.
 
     Args:
@@ -123,14 +123,14 @@ class T4Devkit:
 
     def __init__(
         self,
-        data_root: str,
+        data_root: PathLike,
         revision: str | None = None,
         verbose: bool = True,
     ) -> None:
         """Load database and creates reverse indexes and shortcuts.
 
         Args:
-            data_root (str): Path to the root directory of dataset.
+            data_root (PathLike): Path to the root directory of dataset.
             revision (str | None, optional): You can specify any specific version if you want.
                 If None, search the latest one.
             verbose (bool, optional): Whether to display status during load.

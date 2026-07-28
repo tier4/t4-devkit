@@ -9,12 +9,13 @@ from t4_devkit.common.io import load_json
 
 if TYPE_CHECKING:
     from t4_devkit.schema import SchemaBase
+    from t4_devkit.typing import PathLike
 
     from .context import SanityContext
 
 
 @safe
-def load_json_safe(filename: str) -> list[dict]:
+def load_json_safe(filename: PathLike) -> list[dict]:
     """Load JSON file safely."""
     return load_json(filename)
 
@@ -26,7 +27,7 @@ def load_schema_safe(module: type[SchemaBase], record: dict) -> SchemaBase:
 
 
 @safe
-def load_metadata_safe(data_root: str, revision: str | None = None) -> DBMetadata:
+def load_metadata_safe(data_root: PathLike, revision: str | None = None) -> DBMetadata:
     """Load DBMetadata safely."""
     return load_metadata(data_root, revision=revision)
 

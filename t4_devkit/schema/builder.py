@@ -5,18 +5,20 @@ from typing import TYPE_CHECKING
 from .tables import SCHEMAS
 
 if TYPE_CHECKING:
+    from t4_devkit.typing import PathLike
+
     from .name import SchemaName
     from .tables import SchemaTable
 
 __all__ = ("build_schema",)
 
 
-def build_schema(name: str | SchemaName, filepath: str) -> list[SchemaTable]:
+def build_schema(name: str | SchemaName, filepath: PathLike) -> list[SchemaTable]:
     """Build schema dataclass from json file path.
 
     Args:
         name (str | SchemaName): Name of schema table.
-        filepath (str): Path to json file.
+        filepath (PathLike): Path to json file.
 
     Returns:
         List of schema dataclasses.
