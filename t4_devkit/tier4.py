@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         SchemaTable,
         Sensor,
         SurfaceAnn,
+        TrafficLightInstanceMap,
         VehicleState,
         Visibility,
     )
@@ -200,10 +201,16 @@ class T4Devkit:
         self.scene: list[Scene] = load_table(self.annotation_dir, SchemaName.SCENE)
         self.sensor: list[Sensor] = load_table(self.annotation_dir, SchemaName.SENSOR)
         self.surface_ann: list[SurfaceAnn] = load_table(self.annotation_dir, SchemaName.SURFACE_ANN)
+        self.traffic_light_instance_map: list[TrafficLightInstanceMap] = load_table(
+            self.annotation_dir, SchemaName.TRAFFIC_LIGHT_INSTANCE_MAP
+        )
         self.vehicle_state: list[VehicleState] = load_table(
             self.annotation_dir, SchemaName.VEHICLE_STATE
         )
         self.visibility: list[Visibility] = load_table(self.annotation_dir, SchemaName.VISIBILITY)
+
+        # lazily built, cached on first use by `regulatory_element_id_for_traffic_light_instance`
+        self.__linestring_to_regulatory_element: dict[str, str] | None = None
 
         # make reverse indexes for common lookups
         self.__make_reverse_index__(verbose)
@@ -329,6 +336,26 @@ class T4Devkit:
         for log_record in self.log:
             log_record.map_token = log_to_map[log_record.token]
 
+        # instance_token -> traffic_light_linestring_id, built once and reused.
+        # Fails loud (consistent with the other reverse indexes above) on a dangling
+        # `instance_token` or on one `instance_token` mapping to more than one LineString;
+        # see `TrafficLightInstanceMap` docstring for the cardinality rule.
+        self._traffic_light_linestring_by_instance: dict[str, str] = {}
+        for tl_record in self.traffic_light_instance_map:
+            instance_token = tl_record.instance_token
+            linestring_id = tl_record.traffic_light_linestring_id
+            existing = self._traffic_light_linestring_by_instance.get(instance_token)
+            if existing is not None:
+                if existing != linestring_id:
+                    raise ValueError(
+                        f"instance_token '{instance_token}' maps to multiple "
+                        "traffic_light_linestring_id values in "
+                        f"traffic_light_instance_map.json: '{existing}' and '{linestring_id}'."
+                    )
+                continue
+            self.get("instance", instance_token)  # raises KeyError if dangling
+            self._traffic_light_linestring_by_instance[instance_token] = linestring_id
+
         if verbose:
             elapsed_time = time.time() - start_time
             print(f"Done reverse indexing in {elapsed_time:.3f} seconds.\n======")
@@ -372,6 +399,81 @@ class T4Devkit:
         if self._token2idx[schema].get(token) is None:
             raise KeyError(f"{token} is not registered in {schema}.")
         return self._token2idx[schema][token]
+
+    def traffic_light_linestring_id(self, instance_token: str) -> str | None:
+        """Return the Lanelet2 traffic-light LineString ID related to `instance_token`.
+
+        Args:
+            instance_token (str): Token of the 2D/physical traffic-light `instance`.
+
+        Returns:
+            The related `traffic_light_linestring_id`, or `None` if this dataset has no
+            `traffic_light_instance_map.json` relation for `instance_token` (e.g. legacy
+            datasets, or an instance that was never map-matched).
+        """
+        return self._traffic_light_linestring_by_instance.get(instance_token)
+
+    def _linestring_to_regulatory_element_index(self) -> dict[str, str]:
+        """Return the cached `LineString ID -> Regulatory Element ID` reverse index.
+
+        Parses the Lanelet2 map lazily on first use, since not every `T4Devkit` caller
+        needs traffic-light Regulatory Element resolution.
+
+        Raises:
+            ValueError: If no `map` record is available.
+        """
+        if self.__linestring_to_regulatory_element is None:
+            from t4_devkit.lanelet import LaneletParser, build_linestring_to_regulatory_element_index
+
+            if not self.map:
+                raise ValueError(
+                    "No 'map' record is available in this dataset; cannot resolve "
+                    "Regulatory Elements for traffic lights."
+                )
+            map_path = osp.join(self.data_root, self.map[0].filename)
+            parser = LaneletParser(map_path)
+            self.__linestring_to_regulatory_element = build_linestring_to_regulatory_element_index(
+                parser
+            )
+        return self.__linestring_to_regulatory_element
+
+    def regulatory_element_id_for_traffic_light_instance(self, instance_token: str) -> str:
+        """Resolve a 2D traffic-light `instance_token` to a Regulatory Element ID.
+
+        Walks `object_ann.instance_token -> traffic_light_instance_map.json ->
+        traffic_light_linestring_id -> map Regulatory Element`, using
+        `traffic_light_instance_map.json` and the Lanelet2 map only (never
+        `instance.instance_name`). For datasets that only carry the legacy
+        `instance_name` convention, `traffic_light_instance_map.json` will be absent and
+        this method will raise; use `instance.instance_name` directly for those datasets
+        instead.
+
+        Args:
+            instance_token (str): Token of the 2D/physical traffic-light `instance`.
+
+        Returns:
+            The resolved Regulatory Element ID.
+
+        Raises:
+            KeyError: If `instance_token` has no `traffic_light_instance_map.json` relation.
+            ValueError: If the related LineString does not exist in the map, or is
+                referenced by more than one Regulatory Element.
+        """
+        linestring_id = self.traffic_light_linestring_id(instance_token)
+        if linestring_id is None:
+            raise KeyError(
+                "No traffic_light_instance_map.json relation for instance_token: "
+                f"'{instance_token}'."
+            )
+
+        index = self._linestring_to_regulatory_element_index()
+        if linestring_id not in index:
+            raise ValueError(
+                f"LineString '{linestring_id}' (instance_token='{instance_token}') does not "
+                "resolve to a Regulatory Element: either it is missing from the map, or it "
+                "is not referred to by any traffic-light Regulatory Element."
+            )
+        return index[linestring_id]
 
     def get_sample_data_path(self, sample_data_token: str) -> str:
         """Return the file path to a raw data recorded in `sample_data`.

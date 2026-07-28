@@ -357,6 +357,25 @@ def object_ann_json(object_ann_dict) -> Generator[str, Any, None]:
         yield f.name
 
 
+# === TrafficLightInstanceMap ===
+@pytest.fixture(scope="session")
+def traffic_light_instance_map_dict() -> dict:
+    """Return a dummy traffic-light instance-map relation record as dictionary."""
+    return {
+        "token": "9a1f6a0b6f8b4c9f8f5f6a0b6f8b4c9f",
+        "instance_token": "8f37d145617ec022386982a2b43f1539",
+        "traffic_light_linestring_id": "501",
+    }
+
+
+@pytest.fixture(scope="session")
+def traffic_light_instance_map_json(traffic_light_instance_map_dict) -> Generator[str, Any, None]:
+    """Return a file path of dummy traffic-light instance-map relation record."""
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+        save_json([traffic_light_instance_map_dict], f.name)
+        yield f.name
+
+
 # === SurfaceAnn ===
 @pytest.fixture(scope="session")
 def surface_ann_dict() -> dict:

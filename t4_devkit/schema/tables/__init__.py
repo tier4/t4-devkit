@@ -17,5 +17,6 @@ from .sample_data import *  # noqa
 from .scene import *  # noqa
 from .sensor import *  # noqa
 from .surface_ann import *  # noqa
+from .traffic_light_instance_map import *  # noqa
 from .vehicle_state import *  # noqa
 from .visibility import *  # noqa

@@ -19,6 +19,8 @@ from t4_devkit.sanity.reference.ref009 import REF009
 from t4_devkit.sanity.reference.ref010 import REF010
 from t4_devkit.sanity.reference.ref011 import REF011
 from t4_devkit.sanity.reference.ref012 import REF012
+from t4_devkit.sanity.reference.ref015 import REF015
+from t4_devkit.sanity.reference.ref016 import REF016
 from t4_devkit.sanity.reference.ref201 import REF201
 from t4_devkit.sanity.reference.ref202 import REF202
 
@@ -234,3 +236,193 @@ def test_ref202_fail_missing_info_filename(tmp_path: Path) -> None:
     assert not report.is_passed(strict=True)
     assert report.reasons
     assert any("missing_info.json" in r for r in report.reasons)
+
+
+# ---------------------------------------------------------------------------
+# REF015 / REF016: traffic-light instance-map relation
+# (traffic_light_instance_map.json + Lanelet2 map)
+# ---------------------------------------------------------------------------
+
+_EXISTING_INSTANCE_TOKEN = "90f0c98d1a040d5360847f576c5528f8"  # car_001, from instance.json
+
+
+def _annotation_dir(root: Path) -> Path:
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+    return ann_dir
+
+
+def _write_traffic_light_instance_map_json(root: Path, records: list[dict]) -> None:
+    _dump_json(_annotation_dir(root) / "traffic_light_instance_map.json", records)
+
+
+def _inject_before_osm_close(root: Path, xml_snippet: str) -> None:
+    """Insert extra `<way>`/`<relation>` elements into the copied Lanelet2 map."""
+    map_path = root / "map" / "lanelet2_map.osm"
+    text = map_path.read_text(encoding="utf-8")
+    assert "</osm>" in text
+    map_path.write_text(text.replace("</osm>", xml_snippet + "</osm>"), encoding="utf-8")
+
+
+def test_ref015_skipped_when_traffic_light_instance_map_json_missing() -> None:
+    """REF015 is skipped on the base sample dataset (no traffic_light_instance_map.json)."""
+    checker = REF015()
+    report = checker(_context(SAMPLE_ROOT))
+    assert report.is_skipped()
+
+
+def test_ref015_pass(tmp_path: Path) -> None:
+    """REF015 passes when `instance_token` refers to an existing `Instance` record."""
+    root = _copy_dataset(tmp_path / "dataset_ref015_pass")
+    _write_traffic_light_instance_map_json(
+        root,
+        [
+            {
+                "token": "tl_relation_0",
+                "instance_token": _EXISTING_INSTANCE_TOKEN,
+                "traffic_light_linestring_id": "400",
+            }
+        ],
+    )
+
+    checker = REF015()
+    report = checker(_context(root))
+    assert report.is_passed(strict=True)
+    assert report.reasons is None
+
+
+def test_ref015_fail_invalid_instance_token(tmp_path: Path) -> None:
+    """REF015 fails when `instance_token` doesn't refer to any `Instance` record."""
+    root = _copy_dataset(tmp_path / "dataset_ref015_fail")
+    _write_traffic_light_instance_map_json(
+        root,
+        [
+            {
+                "token": "tl_relation_0",
+                "instance_token": "invalid_instance_token",
+                "traffic_light_linestring_id": "400",
+            }
+        ],
+    )
+
+    checker = REF015()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("invalid_instance_token" in r for r in report.reasons)
+
+
+def _regulatory_element_xml(re_id: str, way_ids: list[str]) -> str:
+    members = "\n".join(
+        f'    <member type="way" ref="{way_id}" role="ref_line"/>' for way_id in way_ids
+    )
+    return (
+        f'  <relation id="{re_id}">\n{members}\n'
+        '    <tag k="type" v="regulatory_element"/>\n'
+        '    <tag k="subtype" v="traffic_light"/>\n'
+        "  </relation>\n"
+    )
+
+
+def _way_xml(way_id: str) -> str:
+    # Reuse existing map nodes 1/2 (see tests/sample/t4dataset/map/lanelet2_map.osm).
+    return f'  <way id="{way_id}"><nd ref="1"/><nd ref="2"/></way>\n'
+
+
+def test_ref016_skipped_when_traffic_light_instance_map_json_missing() -> None:
+    """REF016 is skipped on the base sample dataset (no traffic_light_instance_map.json)."""
+    checker = REF016()
+    report = checker(_context(SAMPLE_ROOT))
+    assert report.is_skipped()
+
+
+def test_ref016_pass(tmp_path: Path) -> None:
+    """REF016 passes when the LineString exists and resolves to exactly one RE."""
+    root = _copy_dataset(tmp_path / "dataset_ref016_pass")
+    _inject_before_osm_close(root, _way_xml("400") + _regulatory_element_xml("2000", ["400"]))
+    _write_traffic_light_instance_map_json(
+        root,
+        [
+            {
+                "token": "tl_relation_0",
+                "instance_token": _EXISTING_INSTANCE_TOKEN,
+                "traffic_light_linestring_id": "400",
+            }
+        ],
+    )
+
+    checker = REF016()
+    report = checker(_context(root))
+    assert report.is_passed(strict=True)
+    assert report.reasons is None
+
+
+def test_ref016_fail_linestring_not_in_map(tmp_path: Path) -> None:
+    """REF016 fails when `traffic_light_linestring_id` doesn't exist in the map at all."""
+    root = _copy_dataset(tmp_path / "dataset_ref016_fail_missing")
+    _write_traffic_light_instance_map_json(
+        root,
+        [
+            {
+                "token": "tl_relation_0",
+                "instance_token": _EXISTING_INSTANCE_TOKEN,
+                "traffic_light_linestring_id": "999999",
+            }
+        ],
+    )
+
+    checker = REF016()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("999999" in r and "does not exist" in r for r in report.reasons)
+
+
+def test_ref016_fail_not_referenced_by_any_re(tmp_path: Path) -> None:
+    """REF016 fails when the LineString exists but no Regulatory Element refers to it."""
+    root = _copy_dataset(tmp_path / "dataset_ref016_fail_orphan")
+    _inject_before_osm_close(root, _way_xml("400"))  # no regulatory_element referring to it
+    _write_traffic_light_instance_map_json(
+        root,
+        [
+            {
+                "token": "tl_relation_0",
+                "instance_token": _EXISTING_INSTANCE_TOKEN,
+                "traffic_light_linestring_id": "400",
+            }
+        ],
+    )
+
+    checker = REF016()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("400" in r and "not referenced" in r for r in report.reasons)
+
+
+def test_ref016_fail_ambiguous(tmp_path: Path) -> None:
+    """REF016 fails when the LineString is referred to by more than one Regulatory Element."""
+    root = _copy_dataset(tmp_path / "dataset_ref016_fail_ambiguous")
+    _inject_before_osm_close(
+        root,
+        _way_xml("400") + _regulatory_element_xml("2000", ["400"]) + _regulatory_element_xml(
+            "2001", ["400"]
+        ),
+    )
+    _write_traffic_light_instance_map_json(
+        root,
+        [
+            {
+                "token": "tl_relation_0",
+                "instance_token": _EXISTING_INSTANCE_TOKEN,
+                "traffic_light_linestring_id": "400",
+            }
+        ],
+    )
+
+    checker = REF016()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any("400" in r and "multiple" in r for r in report.reasons)

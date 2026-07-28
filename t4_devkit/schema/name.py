@@ -28,6 +28,11 @@ class SchemaName(str, Enum):
         SURFACE_ANN (optional): The annotation of a background object in an image.
         KEYPOINT (optional): The annotation of pose keypoints of an object in an image.
         VEHICLE_STATE (optional): The annotation of ego vehicle states.
+        TRAFFIC_LIGHT_INSTANCE_MAP (optional): The relation from a 2D traffic-light
+            instance to a map Lanelet2 traffic-light LineString. Not a per-frame state
+            table; RE/group relations are resolved from the map, not stored here.
+            Deliberately not named `traffic_light` / `TRAFFIC_LIGHT` to avoid colliding
+            with a per-frame traffic-light state table of that name.
     """
 
     ATTRIBUTE = "attribute"
@@ -48,6 +53,7 @@ class SchemaName(str, Enum):
     SURFACE_ANN = "surface_ann"  # optional
     KEYPOINT = "keypoint"  # optional
     VEHICLE_STATE = "vehicle_state"  # optional
+    TRAFFIC_LIGHT_INSTANCE_MAP = "traffic_light_instance_map"  # optional
 
     @property
     def filename(self) -> str:
@@ -70,4 +76,5 @@ class SchemaName(str, Enum):
             SchemaName.SURFACE_ANN,
             SchemaName.KEYPOINT,
             SchemaName.VEHICLE_STATE,
+            SchemaName.TRAFFIC_LIGHT_INSTANCE_MAP,
         )
