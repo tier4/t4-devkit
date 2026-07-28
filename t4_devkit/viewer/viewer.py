@@ -688,7 +688,7 @@ class RerunViewer:
             traffic_light_elements (Mapping[str, list[TrafficLightElement]]): Mapping from lane
                 connector IDs to traffic light elements.
         """
-        rr.set_time_seconds(EntityPath.TIMELINE, seconds)
+        _set_time_seconds(EntityPath.TIMELINE, seconds)
         root_entity = format_entity(EntityPath.MAP, EntityPath.VECTOR_MAP)
         render_traffic_elements(
             self._load_lanelet_parser(filepath),
