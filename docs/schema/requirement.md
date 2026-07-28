@@ -30,20 +30,20 @@
 
 ### Record Reference (A to B)
 
-| ID       | Name                                  | Severity | Fixable | Description                                                               |
-| -------- | ------------------------------------- | -------- | ------- | ------------------------------------------------------------------------- |
-| `REF001` | `scene-to-log`                        | `ERROR`  | `N/A`   | `Scene.log_token` refers to `Log` record.                                 |
-| `REF002` | `scene-to-first-sample`               | `ERROR`  | `N/A`   | `Scene.first_sample_token` refers to `Sample` record.                     |
-| `REF003` | `scene-to-last-sample`                | `ERROR`  | `N/A`   | `Scene.last_sample_token` refers to `Sample` record.                      |
-| `REF004` | `sample-to-scene`                     | `ERROR`  | `N/A`   | `Sample.scene_token` refers to `Scene` record.                            |
-| `REF005` | `sample-data-to-sample`               | `ERROR`  | `N/A`   | `SampleData.sample_token` refers to `Sample` record.                      |
-| `REF006` | `sample-data-to-ego-pose`             | `ERROR`  | `N/A`   | `SampleData.ego_pose_token` refers to `EgoPose` record.                   |
-| `REF007` | `sample-data-to-calibrated-sensor`    | `ERROR`  | `N/A`   | `SampleData.calibrated_sensor_token` refers to `CalibratedSensor` record. |
-| `REF008` | `calibrated-sensor-to-sensor`         | `ERROR`  | `N/A`   | `CalibratedSensor.sensor_token` refers to `Sensor` record.                |
-| `REF009` | `instance-to-category`                | `ERROR`  | `N/A`   | `Instance.category_token` refers to `Category` record.                    |
-| `REF010` | `instance-to-first-sample-annotation` | `ERROR`  | `N/A`   | `Instance.first_annotation_token` refers to `SampleAnnotation` record.    |
-| `REF011` | `instance-to-last-sample-annotation`  | `ERROR`  | `N/A`   | `Instance.last_annotation_token` refers to `SampleAnnotation` record.     |
-| `REF012` | `lidarseg-to-sample-data`             | `ERROR`  | `N/A`   | `LidarSeg.sample_data_token` refers to `SampleData` record.               |
+| ID       | Name                                  | Severity | Fixable | Description                                                                           |
+| -------- | ------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------- |
+| `REF001` | `scene-to-log`                        | `ERROR`  | `N/A`   | `Scene.log_token` refers to `Log` record.                                             |
+| `REF002` | `scene-to-first-sample`               | `ERROR`  | `N/A`   | `Scene.first_sample_token` refers to `Sample` record.                                 |
+| `REF003` | `scene-to-last-sample`                | `ERROR`  | `N/A`   | `Scene.last_sample_token` refers to `Sample` record.                                  |
+| `REF004` | `sample-to-scene`                     | `ERROR`  | `N/A`   | `Sample.scene_token` refers to `Scene` record.                                        |
+| `REF005` | `sample-data-to-sample`               | `ERROR`  | `N/A`   | `SampleData.sample_token` refers to `Sample` record.                                  |
+| `REF006` | `sample-data-to-ego-pose`             | `ERROR`  | `N/A`   | `SampleData.ego_pose_token` refers to `EgoPose` record.                               |
+| `REF007` | `sample-data-to-calibrated-sensor`    | `ERROR`  | `N/A`   | `SampleData.calibrated_sensor_token` refers to `CalibratedSensor` record.             |
+| `REF008` | `calibrated-sensor-to-sensor`         | `ERROR`  | `N/A`   | `CalibratedSensor.sensor_token` refers to `Sensor` record.                            |
+| `REF009` | `instance-to-category`                | `ERROR`  | `N/A`   | `Instance.category_token` refers to `Category` record.                                |
+| `REF010` | `instance-to-first-sample-annotation` | `ERROR`  | `N/A`   | `Instance.first_annotation_token` refers to `SampleAnnotation` or `ObjectAnn` record. |
+| `REF011` | `instance-to-last-sample-annotation`  | `ERROR`  | `N/A`   | `Instance.last_annotation_token` refers to `SampleAnnotation` or `ObjectAnn` record.  |
+| `REF012` | `lidarseg-to-sample-data`             | `ERROR`  | `N/A`   | `LidarSeg.sample_data_token` refers to `SampleData` record.                           |
 
 ### Record Reference (A to A')
 

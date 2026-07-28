@@ -16,7 +16,9 @@ class REF010(RecordReferenceChecker):
     id = RuleID("REF010")
     name = RuleName("instance-to-first-sample-annotation")
     severity = Severity.ERROR
-    description = "'Instance.first_annotation_token' refers to 'SampleAnnotation' record."
+    description = (
+        "'Instance.first_annotation_token' refers to 'SampleAnnotation' or 'ObjectAnn' record."
+    )
     source = SchemaName.INSTANCE
-    target = SchemaName.SAMPLE_ANNOTATION
+    target = [SchemaName.SAMPLE_ANNOTATION, SchemaName.OBJECT_ANN]
     reference = "first_annotation_token"

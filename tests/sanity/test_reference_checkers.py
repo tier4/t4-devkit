@@ -124,6 +124,40 @@ def test_ref012_skipped_on_missing_sources() -> None:
     assert report.is_skipped(), "REF012 should be skipped when source/target file missing"
 
 
+@pytest.mark.parametrize(
+    "checker_cls, reference_key, object_ann_index",
+    [
+        (REF010, "first_annotation_token", 0),
+        (REF011, "last_annotation_token", 1),
+    ],
+)
+def test_instance_annotation_reference_uses_existing_target_when_one_target_missing(
+    checker_cls: type,
+    reference_key: str,
+    object_ann_index: int,
+    tmp_path: Path,
+) -> None:
+    """REF010/REF011 should read existing targets when sample_annotation.json is absent."""
+    root = _copy_dataset(tmp_path / f"dataset_{checker_cls.__name__}_missing_sample_ann")
+    ann_dir = root / "annotation"
+    if not ann_dir.exists():
+        ann_dir = root / "sample" / "t4dataset" / "annotation"
+
+    object_ann_records = _load_json(ann_dir / "object_ann.json")
+    instance_records = _load_json(ann_dir / "instance.json")
+    for index, record in enumerate(instance_records):
+        object_ann = object_ann_records[(index + object_ann_index) % len(object_ann_records)]
+        record[reference_key] = object_ann["token"]
+    _dump_json(ann_dir / "instance.json", instance_records)
+    (ann_dir / "sample_annotation.json").unlink()
+
+    checker = checker_cls()
+    report = checker(_context(root))
+
+    assert report.is_passed(strict=True)
+    assert report.reasons is None
+
+
 # ---------------------------------------------------------------------------
 # FAIL (invalid references) tests
 # ---------------------------------------------------------------------------
