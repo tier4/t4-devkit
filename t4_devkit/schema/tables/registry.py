@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Callable, KeysView
 from ..name import SchemaName
 
 if TYPE_CHECKING:
+    from t4_devkit.typing import PathLike
+
     from .base import SchemaTable
 
 __all__ = ["SCHEMAS"]
@@ -60,12 +62,12 @@ class SchemaRegistry:
 
         self.__schemas[name.value] = module
 
-    def build_from_json(self, key: str | SchemaName, filepath: str) -> list[SchemaTable]:
+    def build_from_json(self, key: str | SchemaName, filepath: PathLike) -> list[SchemaTable]:
         """Build schema dataclass from json.
 
         Args:
             key (str): Name of schema field.
-            filepath (str): Path to schema json file.
+            filepath (PathLike): Path to schema json file.
 
         Returns:
             Instantiated dataclass.
