@@ -21,8 +21,8 @@ Point clouds can also be stored in the standard PCD format as `<FRAME_ID>.pcd`. 
 # .PCD v0.7 - Point Cloud Data file format
 VERSION 0.7
 FIELDS x y z intensity ring
-SIZE 4 4 4 4 4
-TYPE F F F F F
+SIZE 4 4 4 4 2
+TYPE F F F F U
 COUNT 1 1 1 1 1
 WIDTH 297553
 HEIGHT 1
@@ -30,6 +30,8 @@ VIEWPOINT 0.0 0.0 0.0 1.0 0.0 0.0 0.0
 POINTS 297553
 DATA binary
 ```
+
+Field types follow [autoware_point_types](https://github.com/autowarefoundation/autoware_core/blob/main/common/autoware_point_types/include/autoware/point_types/types.hpp): `ring` is `uint16` and `return_type` is `uint8`, while `x/y/z/intensity` are `float32` and `time_stamp` is `float64`. The exact layout is always self-described by the header.
 
 Each file can be loaded using as follows:
 
