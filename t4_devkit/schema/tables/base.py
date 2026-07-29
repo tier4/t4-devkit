@@ -5,8 +5,12 @@ from secrets import token_hex
 from typing import Any, Sized, TypeVar
 
 from attrs import define, field, validators
+from typing_extensions import TYPE_CHECKING
 
 from t4_devkit.common.io import load_json
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import PathLike
 
 __all__ = ["SchemaBase", "SchemaTable"]
 
@@ -30,11 +34,11 @@ class SchemaBase(ABC):
     token: str = field(validator=(validators.instance_of(str), impossible_empty()))
 
     @classmethod
-    def from_json(cls, filepath: str) -> list[SchemaTable]:
+    def from_json(cls, filepath: PathLike) -> list[SchemaTable]:
         """Construct dataclass from json file.
 
         Args:
-            filepath (str): Filepath to json.
+            filepath (PathLike): Filepath to json.
 
         Returns:
             List of instantiated schema dataclasses.
