@@ -45,7 +45,7 @@
 | `REF011` | `instance-to-last-sample-annotation`  | `ERROR`  | `N/A`   | `Instance.last_annotation_token` refers to `SampleAnnotation` or `ObjectAnn` record.  |
 | `REF012` | `lidarseg-to-sample-data`             | `ERROR`  | `N/A`   | `LidarSeg.sample_data_token` refers to `SampleData` record.                           |
 | `REF013` | `traffic-light-to-instance`           | `ERROR`  | `N/A`   | `TrafficLight.instance_token` refers to `Instance` record.                            |
-| `REF014` | `traffic-light-to-lanelet`            | `ERROR`  | `N/A`   | `TrafficLight.traffic_light_linestring_id` refers to a lanelet relation in the map.   |
+| `REF014` | `traffic-light-to-lanelet`            | `ERROR`  | `N/A`   | `TrafficLight.primitive_id` refers to a corresponding ID in a lanelet.                |
 
 ### Record Reference (A to A')
 

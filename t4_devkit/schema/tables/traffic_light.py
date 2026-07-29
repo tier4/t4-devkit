@@ -17,10 +17,8 @@ class TrafficLight(SchemaBase):
     Attributes:
         token (str): Unique record identifier.
         instance_token (str): Foreign key pointing to the instance.
-        traffic_light_linestring_id (str): Lane connector ID of the traffic light.
+        primitive_id (str): Primitive ID of the traffic light representing.
     """
 
     instance_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
-    traffic_light_linestring_id: str = field(
-        validator=(validators.instance_of(str), impossible_empty())
-    )
+    primitive_id: str = field(validator=(validators.instance_of(str), impossible_empty()))

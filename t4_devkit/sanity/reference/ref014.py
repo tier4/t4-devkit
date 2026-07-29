@@ -25,9 +25,7 @@ class REF014(Checker):
     id = RuleID("REF014")
     name = RuleName("traffic-light-to-lanelet")
     severity = Severity.ERROR
-    description = (
-        "'TrafficLight.traffic_light_linestring_id' refers to a lanelet relation in the map."
-    )
+    description = "'TrafficLight.primitive_id' refers to a corresponding ID in a lanelet."
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
         traffic_light_file = context.to_schema_file(SchemaName.TRAFFIC_LIGHT)
@@ -54,15 +52,13 @@ class REF014(Checker):
         traffic_light_ids = _traffic_light_ids(lanelet_path.as_posix())
 
         return [
-            Reason(
-                "No lanelet relation for "
-                f"'TrafficLight.traffic_light_linestring_id': {record['traffic_light_linestring_id']}"
-            )
+            Reason(f"No lanelet relation for 'TrafficLight.primitive_id': {record['primitive_id']}")
             for record in traffic_light_records
-            if record["traffic_light_linestring_id"] not in traffic_light_ids
+            if record["primitive_id"] not in traffic_light_ids
         ] or None
 
 
 def _traffic_light_ids(lanelet_path: str) -> set[str]:
+    """Returns the set of traffic light primitive IDs from the lanelet map."""
     parser = LaneletParser(lanelet_path, verbose=False)
     return {way.id for way in parser.ways.values() if way.tags.get("type") == "traffic_light"}

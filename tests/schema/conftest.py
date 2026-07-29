@@ -412,7 +412,7 @@ def traffic_light_dict() -> dict:
     return {
         "token": "269572c280bd5cf9630ca542e6a60185",
         "instance_token": "8f37d145617ec022386982a2b43f1539",
-        "traffic_light_linestring_id": "1234",
+        "primitive_id": "1234",
     }
 
 

@@ -28,7 +28,7 @@ def test_new_traffic_light(traffic_light_dict) -> None:
     assert ret.token != traffic_light_dict["token"]
 
 
-@pytest.mark.parametrize("field", ["token", "instance_token", "traffic_light_linestring_id"])
+@pytest.mark.parametrize("field", ["token", "instance_token", "primitive_id"])
 def test_traffic_light_required_fields(traffic_light_dict, field: str) -> None:
     """Test traffic light required fields."""
     invalid = traffic_light_dict.copy()
