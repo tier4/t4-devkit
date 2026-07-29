@@ -5,13 +5,15 @@ from pathlib import Path
 from attrs import define
 from returns.maybe import Maybe, Some
 from returns.pipeline import is_successful
-from typing_extensions import Self
+from typing_extensions import TYPE_CHECKING, Self
 
 from t4_devkit import DBMetadata
-from t4_devkit.common import save_json
-from t4_devkit.schema.name import SchemaName
+from t4_devkit.schema import SchemaName
 
-from .safety import load_metadata_safe
+from .safety import load_metadata_safe, save_json_safe
+
+if TYPE_CHECKING:
+    from t4_devkit.typing import PathLike
 
 
 @define
@@ -19,7 +21,7 @@ class SanityContext:
     metadata: Maybe[DBMetadata]
 
     @classmethod
-    def from_path(cls, data_root: str, revision: str | None = None) -> Self:
+    def from_path(cls, data_root: PathLike, revision: str | None = None) -> Self:
         metadata_result = load_metadata_safe(data_root, revision=revision)
         metadata = metadata_result.unwrap() if is_successful(metadata_result) else None
         return cls(Maybe.from_optional(metadata))
@@ -72,10 +74,10 @@ class SanityContext:
         """Save schema data to file."""
         match self.to_schema_file(schema):
             case Some(filepath):
-                try:
-                    save_json(records, filepath)
+                result = save_json_safe(records, filepath)
+                if is_successful(result):
                     return True
-                except Exception as e:
-                    print(f"Error saving schema: {e}")
+                else:
+                    print(f"Error saving schema: {result.failure()}")
                     return False
         return False
