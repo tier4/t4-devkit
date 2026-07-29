@@ -16,7 +16,9 @@ class REF011(RecordReferenceChecker):
     id = RuleID("REF011")
     name = RuleName("instance-to-last-sample-annotation")
     severity = Severity.ERROR
-    description = "'Instance.last_annotation_token' refers to 'SampleAnnotation' record."
+    description = (
+        "'Instance.last_annotation_token' refers to 'SampleAnnotation' or 'ObjectAnn' record."
+    )
     source = SchemaName.INSTANCE
-    target = SchemaName.SAMPLE_ANNOTATION
+    target = [SchemaName.SAMPLE_ANNOTATION, SchemaName.OBJECT_ANN]
     reference = "last_annotation_token"
