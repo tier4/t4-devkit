@@ -31,7 +31,7 @@ POINTS 297553
 DATA binary
 ```
 
-Field types follow [autoware_point_types](https://github.com/autowarefoundation/autoware_core/blob/main/common/autoware_point_types/include/autoware/point_types/types.hpp): `ring` is `uint16` and `return_type` is `uint8`, while `x/y/z/intensity` are `float32` and `time_stamp` is `float64`. The exact layout is always self-described by the header.
+Field types follow [autoware_point_types](https://github.com/autowarefoundation/autoware_core/blob/main/common/autoware_point_types/include/autoware/point_types/types.hpp): `ring` is `uint16` and `return_type` is `uint8`, while `x/y/z/intensity` and `time_stamp` are `float32`. The exact layout is always self-described by the header.
 
 Each file can be loaded using as follows:
 
