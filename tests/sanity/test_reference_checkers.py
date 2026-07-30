@@ -19,6 +19,8 @@ from t4_devkit.sanity.reference.ref009 import REF009
 from t4_devkit.sanity.reference.ref010 import REF010
 from t4_devkit.sanity.reference.ref011 import REF011
 from t4_devkit.sanity.reference.ref012 import REF012
+from t4_devkit.sanity.reference.ref013 import REF013
+from t4_devkit.sanity.reference.ref014 import REF014, _traffic_light_ids
 from t4_devkit.sanity.reference.ref201 import REF201
 from t4_devkit.sanity.reference.ref202 import REF202
 
@@ -86,6 +88,9 @@ def _ensure_is_valid(records: list[dict]) -> list[dict]:
         REF009,
         REF010,
         REF011,
+        REF012,
+        REF013,
+        REF014,
         REF201,
         REF202,
     ],
@@ -230,6 +235,69 @@ def test_ref005_fail_invalid_sample_reference(tmp_path: Path) -> None:
     assert not report.is_passed(strict=True)
     assert report.reasons
     assert any("nonexistent_sample_token" in r for r in report.reasons)
+
+
+def test_ref014_fail_invalid_primitive_ids(tmp_path: Path) -> None:
+    """Check that REF014 rejects an ID belonging to a non-traffic-light primitive."""
+
+    osm = """<osm version="0.6">
+      <node id="1" lat="0.0" lon="0.0"/>
+      <node id="2" lat="0.0" lon="0.0001"/>
+      <node id="3" lat="0.0" lon="0.0002"/>
+
+      <way id="100">
+        <nd ref="1"/>
+        <nd ref="2"/>
+        <tag k="type" v="traffic_light"/>
+      </way>
+
+      <way id="200">
+        <nd ref="2"/>
+        <nd ref="3"/>
+        <tag k="type" v="stop_line"/>
+      </way>
+    </osm>"""
+
+    root = _copy_dataset(tmp_path / "dataset_ref014_fail")
+    (root / "map" / "lanelet2_map.osm").write_text(osm, encoding="utf-8")
+
+    instance_token = _load_json(root / "annotation" / "instance.json")[0]["token"]
+    invalid_primitive_id = "200"
+    _dump_json(
+        root / "annotation" / "traffic_light.json",
+        [
+            {
+                "token": "traffic_light_token",
+                "instance_token": instance_token,
+                "primitive_id": invalid_primitive_id,
+            }
+        ],
+    )
+
+    checker = REF014()
+    report = checker(_context(root))
+
+    assert not report.is_passed(strict=True)
+    assert report.reasons
+    assert any(invalid_primitive_id in reason for reason in report.reasons)
+
+
+def test_ref014_normalizes_integer_way_ids(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Normalize numeric Lanelet way IDs before comparing them with primitive_id strings."""
+
+    class Way:
+        id = 100
+        tags = {"type": "traffic_light"}
+
+    class Parser:
+        ways = {100: Way()}
+
+    monkeypatch.setattr(
+        "t4_devkit.sanity.reference.ref014.LaneletParser",
+        lambda *_args, **_kwargs: Parser(),
+    )
+
+    assert _traffic_light_ids("lanelet2_map.osm") == {"100"}
 
 
 def test_ref201_fail_missing_filename(tmp_path: Path) -> None:

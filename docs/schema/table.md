@@ -408,3 +408,26 @@ vehicle_state {
   "additional_info":          <option[AdditionalInfo]> -- Additional information about the vehicle state.
 }
 ```
+
+### TrafficLight
+
+- Filename: `traffic_light.json`
+
+This table provides relationships between traffic light annotations and lanelet primitives.
+
+```json
+traffic_light {
+  "token":                    <str> -- Unique record identifier.
+  "instance_token":           <str> -- Foreign key to the `Instance` table associated with the instance of the object.
+  "primitive_id":             <str> -- ID of the lanelet primitive representing the physical lamp unit.
+}
+```
+
+The following table explains the overview of traffic light related ID types on Lanelet2:
+
+| ID Type               | OSM Element                           | Description                                              |
+| --------------------- | ------------------------------------- | -------------------------------------------------------- |
+| Primitive ID          | `way` (`type: traffic_light`)         | ID of the linestring representing the physical lamp unit |
+| Light Bulbs ID        | `way` (`type: light_bulbs`)           | ID of the linestring grouping individual bulb nodes      |
+| Regulatory Element ID | `relation` (`subtype: traffic_light`) | ID of the relation that binds a traffic control unit     |
+| Stop Line ID          | `way` (`type: stop_line`)             | ID of the linestring representing the stop line          |
