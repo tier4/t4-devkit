@@ -61,4 +61,6 @@ class REF014(Checker):
 def _traffic_light_ids(lanelet_path: str) -> set[str]:
     """Returns the set of traffic light primitive IDs from the lanelet map."""
     parser = LaneletParser(lanelet_path, verbose=False)
-    return {way.id for way in parser.ways.values() if way.tags.get("type") == "traffic_light"}
+
+    # Some Lanelet parsers expose way IDs as integers, while primitive_id is stored as a string.
+    return {str(way.id) for way in parser.ways.values() if way.tags.get("type") == "traffic_light"}

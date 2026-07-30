@@ -20,7 +20,7 @@ from t4_devkit.sanity.reference.ref010 import REF010
 from t4_devkit.sanity.reference.ref011 import REF011
 from t4_devkit.sanity.reference.ref012 import REF012
 from t4_devkit.sanity.reference.ref013 import REF013
-from t4_devkit.sanity.reference.ref014 import REF014
+from t4_devkit.sanity.reference.ref014 import REF014, _traffic_light_ids
 from t4_devkit.sanity.reference.ref201 import REF201
 from t4_devkit.sanity.reference.ref202 import REF202
 
@@ -280,6 +280,24 @@ def test_ref014_fail_invalid_primitive_ids(tmp_path: Path) -> None:
     assert not report.is_passed(strict=True)
     assert report.reasons
     assert any(invalid_primitive_id in reason for reason in report.reasons)
+
+
+def test_ref014_normalizes_integer_way_ids(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Normalize numeric Lanelet way IDs before comparing them with primitive_id strings."""
+
+    class Way:
+        id = 100
+        tags = {"type": "traffic_light"}
+
+    class Parser:
+        ways = {100: Way()}
+
+    monkeypatch.setattr(
+        "t4_devkit.sanity.reference.ref014.LaneletParser",
+        lambda *_args, **_kwargs: Parser(),
+    )
+
+    assert _traffic_light_ids("lanelet2_map.osm") == {"100"}
 
 
 def test_ref201_fail_missing_filename(tmp_path: Path) -> None:
