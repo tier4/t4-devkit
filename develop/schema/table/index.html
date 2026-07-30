@@ -899,6 +899,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#trafficlight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrafficLight
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2142,6 +2153,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#trafficlight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrafficLight
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2530,6 +2552,49 @@ In T4 format, only one scene is included in a single dataset.</p>
 </span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="w">  </span><span class="nt">&quot;additional_info&quot;</span><span class="p">:</span><span class="w">          </span><span class="err">&lt;op</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="p">[</span><span class="err">Addi</span><span class="kc">t</span><span class="err">io</span><span class="kc">nal</span><span class="err">I</span><span class="kc">nf</span><span class="err">o</span><span class="p">]</span><span class="err">&gt;</span><span class="w"> </span><span class="mi">--</span><span class="w"> </span><span class="err">Addi</span><span class="kc">t</span><span class="err">io</span><span class="kc">nal</span><span class="w"> </span><span class="err">i</span><span class="kc">nf</span><span class="err">orma</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="w"> </span><span class="err">abou</span><span class="kc">t</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">vehicle</span><span class="w"> </span><span class="err">s</span><span class="kc">tate</span><span class="err">.</span>
 </span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="p">}</span>
 </span></code></pre></div>
+<h3 id="trafficlight">TrafficLight</h3>
+<ul>
+<li>Filename: <code>traffic_light.json</code></li>
+</ul>
+<p>This table provides relationships between traffic light annotations and lanelet primitives.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kc">traff</span><span class="err">ic_ligh</span><span class="kc">t</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w">                    </span><span class="err">&lt;s</span><span class="kc">tr</span><span class="err">&gt;</span><span class="w"> </span><span class="mi">--</span><span class="w"> </span><span class="err">U</span><span class="kc">n</span><span class="err">ique</span><span class="w"> </span><span class="err">record</span><span class="w"> </span><span class="err">ide</span><span class="kc">nt</span><span class="err">i</span><span class="kc">f</span><span class="err">ier.</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span><span class="nt">&quot;instance_token&quot;</span><span class="p">:</span><span class="w">           </span><span class="err">&lt;s</span><span class="kc">tr</span><span class="err">&gt;</span><span class="w"> </span><span class="mi">--</span><span class="w"> </span><span class="err">Foreig</span><span class="kc">n</span><span class="w"> </span><span class="err">key</span><span class="w"> </span><span class="kc">t</span><span class="err">o</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">`I</span><span class="kc">nstan</span><span class="err">ce`</span><span class="w"> </span><span class="kc">ta</span><span class="err">ble</span><span class="w"> </span><span class="err">associa</span><span class="kc">te</span><span class="err">d</span><span class="w"> </span><span class="err">wi</span><span class="kc">t</span><span class="err">h</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">i</span><span class="kc">nstan</span><span class="err">ce</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">objec</span><span class="kc">t</span><span class="err">.</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="nt">&quot;primitive_id&quot;</span><span class="p">:</span><span class="w">             </span><span class="err">&lt;s</span><span class="kc">tr</span><span class="err">&gt;</span><span class="w"> </span><span class="mi">--</span><span class="w"> </span><span class="err">ID</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">la</span><span class="kc">nelet</span><span class="w"> </span><span class="err">primi</span><span class="kc">t</span><span class="err">ive</span><span class="w"> </span><span class="err">represe</span><span class="kc">nt</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">physical</span><span class="w"> </span><span class="err">lamp</span><span class="w"> </span><span class="err">u</span><span class="kc">n</span><span class="err">i</span><span class="kc">t</span><span class="err">.</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The following table explains the overview of traffic light related ID types on Lanelet2:</p>
+<table>
+<thead>
+<tr>
+<th>ID Type</th>
+<th>OSM Element</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primitive ID</td>
+<td><code>way</code> (<code>type: traffic_light</code>)</td>
+<td>ID of the linestring representing the physical lamp unit</td>
+</tr>
+<tr>
+<td>Light Bulbs ID</td>
+<td><code>way</code> (<code>type: light_bulbs</code>)</td>
+<td>ID of the linestring grouping individual bulb nodes</td>
+</tr>
+<tr>
+<td>Regulatory Element ID</td>
+<td><code>relation</code> (<code>subtype: traffic_light</code>)</td>
+<td>ID of the relation that binds a traffic control unit</td>
+</tr>
+<tr>
+<td>Stop Line ID</td>
+<td><code>way</code> (<code>type: stop_line</code>)</td>
+<td>ID of the linestring representing the stop line</td>
+</tr>
+</tbody>
+</table>
 
 
 
