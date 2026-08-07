@@ -18,6 +18,7 @@ nav:
       - Sanity Check: tutorials/sanity.md
   - CLI:
       - Home: cli/index.md
+      - t4ann: cli/t4ann.md
       - t4viz: cli/t4viz.md
       - t4sanity: cli/t4sanity.md
   - API References:
