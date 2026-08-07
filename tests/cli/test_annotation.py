@@ -48,6 +48,17 @@ def test_clear_empties_annotation_tables(tmp_path: Path) -> None:
         assert _load_table(data_root, schema) == []
 
 
+def test_clear_excludes_schema(tmp_path: Path) -> None:
+    data_root = _copy_sample_dataset(tmp_path)
+    instances_before = _load_table(data_root, SchemaName.INSTANCE)
+
+    result = runner.invoke(cli, ["clear", str(data_root), "--exclude", "instance", "--force"])
+
+    assert result.exit_code == 0, result.output
+    assert _load_table(data_root, SchemaName.INSTANCE) == instances_before
+    assert _load_table(data_root, SchemaName.SAMPLE_ANNOTATION) == []
+
+
 def test_clear_new_version_preserves_source(tmp_path: Path) -> None:
     data_root = _copy_sample_dataset(tmp_path)
     instances_before = _load_table(data_root, SchemaName.INSTANCE)

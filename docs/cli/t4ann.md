@@ -36,10 +36,16 @@ For options, run `t4ann clear -h`.
     t4ann clear <DATA_ROOT>
     ```
 
+Use `--exclude; -e` repeatedly to preserve selected annotation tables.
+
 !!! warning
 
     This command overwrites annotation tables. Referenced files such as lidar segmentation
     binaries and statistics in `status.json` are not removed or updated.
+
+    ```shell
+    t4ann clear <DATA_ROOT> -e <SCHEMA>
+    ```
 
 ### Create a New Version
 
@@ -47,7 +53,7 @@ Use `--new-version; -n` to preserve the source dataset and clear annotations in 
 version.
 
     ```shell
-    t4ann clear <DATA_ROOT> --new-version
+    t4ann clear <DATA_ROOT> -n
     ```
 
 The version number is incremented from the highest existing numeric version. Version `0` is

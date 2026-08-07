@@ -45,6 +45,10 @@ def clear(
         bool,
         typer.Option(..., "-f", "--force", help="Force the clear operation without confirmation."),
     ] = False,
+    exclude: Annotated[
+        list[str] | None,
+        typer.Option(..., "-e", "--exclude", help="Exclude specific schema names from clearing."),
+    ] = None,
 ) -> None:
     """Clear annotation-related records while preserving the dataset structure."""
 
@@ -60,7 +64,19 @@ def clear(
     if not osp.isdir(t4.annotation_dir):
         _abort(f"Annotation directory is not found: {t4.annotation_dir}")
 
-    annotated_schemas = [schema for schema in SchemaName if schema.is_annotated()]
+    excluded_schemas: set[SchemaName] = set()
+    for name in exclude or []:
+        try:
+            schema = SchemaName(name.removesuffix(".json"))
+        except ValueError:
+            _abort(f"Unknown schema name: {name}")
+        if not schema.is_annotated():
+            _abort(f"Schema is not an annotation table: {name}")
+        excluded_schemas.add(schema)
+
+    annotated_schemas = [
+        schema for schema in SchemaName if schema.is_annotated() and schema not in excluded_schemas
+    ]
     target_root = _next_version_path(Path(data_root)) if new_version else Path(t4.data_root)
 
     if not new_version and not force:
