@@ -46,7 +46,7 @@ class TimeseriesHelper:
             seconds (float): Time seconds until. If `>=0` explore future, otherwise past.
 
         Returns:
-            List of timestamps and associated sample annotation records of the specified instance.
+            List of relative timestamps and associated sample annotation records of the specified instance.
         """
         start_sample: Sample = self._t4.get("sample", sample_token)
 
@@ -71,7 +71,9 @@ class TimeseriesHelper:
 
             current_sample_token = current_sample.next if is_successor else current_sample.prev
 
-        return timestamps, anns
+        relative_timestamps = [t - start_sample.timestamp for t in timestamps]
+
+        return relative_timestamps, anns
 
     def get_object_anns_until(
         self,
@@ -89,7 +91,7 @@ class TimeseriesHelper:
             seconds (float): Time seconds until. If `>=0` explore future, otherwise past.
 
         Returns:
-            List of timestamps and associated object annotation records of the specified instance.
+            List of relative timestamps and associated object annotation records of the specified instance.
         """
         start_sample_data: SampleData = self._t4.get("sample_data", sample_data_token)
 
@@ -118,4 +120,6 @@ class TimeseriesHelper:
                 current_sample_data.next if is_successor else current_sample_data.prev
             )
 
-        return timestamps, anns
+        relative_timestamps = [t - start_sample_data.timestamp for t in timestamps]
+
+        return relative_timestamps, anns
