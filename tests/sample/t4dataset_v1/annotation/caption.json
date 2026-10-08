@@ -1,0 +1,17 @@
+[
+  {
+    "token": "caption0",
+    "log_token": "log",
+    "start_timestamp": 1704067200000000,
+    "end_timestamp": 1704067200100000,
+    "sample_data_token": null,
+    "scenario_token": "scenario0",
+    "instance_tokens": ["instance_car"],
+    "caption_type": "description",
+    "text": "The ego vehicle follows a car.",
+    "language": "en",
+    "annotation_type": "manual",
+    "provenance": null,
+    "confidence": null
+  }
+]

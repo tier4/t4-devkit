@@ -1,0 +1,27 @@
+[
+  {
+    "token": "route0",
+    "log_token": "log",
+    "map_token": "map",
+    "valid_from": 1704067200000000,
+    "valid_until": null,
+    "route_uuid": null,
+    "start_pose": {
+      "translation": [0.0, 0.0, 0.0],
+      "rotation": [1.0, 0.0, 0.0, 0.0]
+    },
+    "goal_pose": {
+      "translation": [100.0, 0.0, 0.0],
+      "rotation": [1.0, 0.0, 0.0, 0.0]
+    },
+    "segments": [
+      {
+        "preferred_primitive_id": 1,
+        "primitive_ids": [1]
+      }
+    ],
+    "allow_modification": false,
+    "source": "mission_planner",
+    "provenance": "own_bag"
+  }
+]

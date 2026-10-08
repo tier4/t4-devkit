@@ -1,0 +1,14 @@
+[
+  {
+    "token": "surface_ann0",
+    "sample_data_token": "cam0",
+    "category_token": "category_road",
+    "mask": {
+      "size": [48, 64],
+      "counts": "0"
+    },
+    "annotation_type": "manual",
+    "provenance": null,
+    "confidence": null
+  }
+]
