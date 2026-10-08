@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Manual">
+  <!-- Simple road intersection with borders for testing RerunViewer map rendering -->
+
+  <!-- Nodes defining the road intersection -->
+  <!-- Main road running East-West -->
+  <node id="1" lat="35.681236" lon="139.767125" ele="10.0">
+    <tag k="local_x" v="0.0"/>
+    <tag k="local_y" v="0.0"/>
+    <tag k="ele" v="10.0"/>
+  </node>
+  <node id="2" lat="35.681236" lon="139.768125" ele="10.2">
+    <tag k="local_x" v="100.0"/>
+    <tag k="local_y" v="0.0"/>
+    <tag k="ele" v="10.2"/>
+  </node>
+  <node id="3" lat="35.681236" lon="139.769125" ele="10.4">
+    <tag k="local_x" v="200.0"/>
+    <tag k="local_y" v="0.0"/>
+    <tag k="ele" v="10.4"/>
+  </node>
+
+  <!-- Secondary road running North-South -->
+  <node id="4" lat="35.680236" lon="139.768125" ele="10.1">
+    <tag k="local_x" v="100.0"/>
+    <tag k="local_y" v="-100.0"/>
+    <tag k="ele" v="10.1"/>
+  </node>
+  <node id="5" lat="35.682236" lon="139.768125" ele="10.3">
+    <tag k="local_x" v="100.0"/>
+    <tag k="local_y" v="100.0"/>
+    <tag k="ele" v="10.3"/>
+  </node>
+
+  <!-- Road border nodes for main road (north side) -->
+  <node id="10" lat="35.681336" lon="139.767125" ele="10.5">
+    <tag k="local_x" v="0.0"/>
+    <tag k="local_y" v="10.0"/>
+    <tag k="ele" v="10.5"/>
+  </node>
+  <node id="11" lat="35.681336" lon="139.768125" ele="10.7">
+    <tag k="local_x" v="100.0"/>
+    <tag k="local_y" v="10.0"/>
+    <tag k="ele" v="10.7"/>
+  </node>
+  <node id="12" lat="35.681336" lon="139.769125" ele="10.9">
+    <tag k="local_x" v="200.0"/>
+    <tag k="local_y" v="10.0"/>
+    <tag k="ele" v="10.9"/>
+  </node>
+
+  <!-- Road border nodes for main road (south side) -->
+  <node id="20" lat="35.681136" lon="139.767125" ele="10.5">
+    <tag k="local_x" v="0.0"/>
+    <tag k="local_y" v="-10.0"/>
+    <tag k="ele" v="10.5"/>
+  </node>
+  <node id="21" lat="35.681136" lon="139.768125" ele="10.7">
+    <tag k="local_x" v="100.0"/>
+    <tag k="local_y" v="-10.0"/>
+    <tag k="ele" v="10.7"/>
+  </node>
+  <node id="22" lat="35.681136" lon="139.769125" ele="10.9">
+    <tag k="local_x" v="200.0"/>
+    <tag k="local_y" v="-10.0"/>
+    <tag k="ele" v="10.9"/>
+  </node>
+
+  <!-- Road border nodes for secondary road (east side) -->
+  <node id="30" lat="35.680236" lon="139.768225" ele="10.6">
+    <tag k="local_x" v="110.0"/>
+    <tag k="local_y" v="-100.0"/>
+    <tag k="ele" v="10.6"/>
+  </node>
+  <node id="31" lat="35.682236" lon="139.768225" ele="10.8">
+    <tag k="local_x" v="110.0"/>
+    <tag k="local_y" v="100.0"/>
+    <tag k="ele" v="10.8"/>
+  </node>
+
+  <!-- Road border nodes for secondary road (west side) -->
+  <node id="40" lat="35.680236" lon="139.768025" ele="10.6">
+    <tag k="local_x" v="90.0"/>
+    <tag k="local_y" v="-100.0"/>
+    <tag k="ele" v="10.6"/>
+  </node>
+  <node id="41" lat="35.682236" lon="139.768025" ele="10.8">
+    <tag k="local_x" v="90.0"/>
+    <tag k="local_y" v="100.0"/>
+    <tag k="ele" v="10.8"/>
+  </node>
+
+  <!-- Curb nodes around intersection -->
+  <node id="50" lat="35.681286" lon="139.768075" ele="11.0">
+    <tag k="local_x" v="90.0"/>
+    <tag k="local_y" v="5.0"/>
+    <tag k="ele" v="11.0"/>
+  </node>
+  <node id="51" lat="35.681286" lon="139.768175" ele="11.0">
+    <tag k="local_x" v="110.0"/>
+    <tag k="local_y" v="5.0"/>
+    <tag k="ele" v="11.0"/>
+  </node>
+  <node id="52" lat="35.681186" lon="139.768175" ele="11.0">
+    <tag k="local_x" v="110.0"/>
+    <tag k="local_y" v="-5.0"/>
+    <tag k="ele" v="11.0"/>
+  </node>
+  <node id="53" lat="35.681186" lon="139.768075" ele="11.0">
+    <tag k="local_x" v="90.0"/>
+    <tag k="local_y" v="-5.0"/>
+    <tag k="ele" v="11.0"/>
+  </node>
+
+  <!-- Ways defining road borders -->
+  <!-- Main road north border -->
+  <way id="100">
+    <nd ref="10"/>
+    <nd ref="11"/>
+    <nd ref="12"/>
+    <tag k="type" v="road_border"/>
+    <tag k="subtype" v="solid"/>
+    <tag k="side" v="north"/>
+  </way>
+
+  <!-- Main road south border -->
+  <way id="101">
+    <nd ref="20"/>
+    <nd ref="21"/>
+    <nd ref="22"/>
+    <tag k="type" v="road_border"/>
+    <tag k="subtype" v="solid"/>
+    <tag k="side" v="south"/>
+  </way>
+
+  <!-- Secondary road east border -->
+  <way id="102">
+    <nd ref="30"/>
+    <nd ref="31"/>
+    <tag k="type" v="road_border"/>
+    <tag k="subtype" v="solid"/>
+    <tag k="side" v="east"/>
+  </way>
+
+  <!-- Secondary road west border -->
+  <way id="103">
+    <nd ref="40"/>
+    <nd ref="41"/>
+    <tag k="type" v="road_border"/>
+    <tag k="subtype" v="solid"/>
+    <tag k="side" v="west"/>
+  </way>
+
+  <!-- Curbstone around intersection -->
+  <way id="200">
+    <nd ref="50"/>
+    <nd ref="51"/>
+    <nd ref="52"/>
+    <nd ref="53"/>
+    <nd ref="50"/>
+    <tag k="type" v="curbstone"/>
+    <tag k="subtype" v="high"/>
+    <tag k="location" v="intersection"/>
+  </way>
+
+  <!-- Example fence along main road -->
+  <way id="300">
+    <nd ref="10"/>
+    <nd ref="11"/>
+    <tag k="type" v="fence"/>
+    <tag k="subtype" v="solid"/>
+    <tag k="material" v="metal"/>
+  </way>
+
+  <!-- Lanelet relation for main road -->
+  <relation id="1000">
+    <member type="way" ref="100" role="left"/>
+    <member type="way" ref="101" role="right"/>
+    <tag k="type" v="lanelet"/>
+    <tag k="subtype" v="road"/>
+    <tag k="location" v="urban"/>
+    <tag k="speed_limit" v="50"/>
+  </relation>
+
+  <!-- Lanelet relation for secondary road -->
+  <relation id="1001">
+    <member type="way" ref="102" role="left"/>
+    <member type="way" ref="103" role="right"/>
+    <tag k="type" v="lanelet"/>
+    <tag k="subtype" v="road"/>
+    <tag k="location" v="urban"/>
+    <tag k="speed_limit" v="40"/>
+  </relation>
+
+</osm>

@@ -1,0 +1,21 @@
+[
+  {
+    "token": "vehicle_state0",
+    "timestamp": 1704067200000000,
+    "accel_pedal": 0.0,
+    "brake_pedal": 0.0,
+    "steer_pedal": null,
+    "steering_tire_angle": 0.0,
+    "steering_wheel_angle": null,
+    "shift_state": "DRIVE",
+    "indicators": {
+      "left": "off",
+      "right": "off",
+      "hazard": "off"
+    },
+    "longitudinal_velocity": 1.0,
+    "lateral_velocity": 0.0,
+    "heading_rate": 0.0,
+    "source": "vehicle_interface"
+  }
+]
