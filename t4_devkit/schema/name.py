@@ -74,3 +74,21 @@ class SchemaName(str, Enum):
             SchemaName.VEHICLE_STATE,
             SchemaName.TRAFFIC_LIGHT,
         )
+
+    def is_annotated(self) -> bool:
+        """Indicate whether this table contains annotation records.
+
+        Returns:
+            True for annotations and records that only exist to support annotations.
+        """
+        return self in (
+            SchemaName.ATTRIBUTE,
+            SchemaName.CATEGORY,
+            SchemaName.INSTANCE,
+            SchemaName.SAMPLE_ANNOTATION,
+            SchemaName.OBJECT_ANN,
+            SchemaName.SURFACE_ANN,
+            SchemaName.KEYPOINT,
+            SchemaName.LIDARSEG,
+            SchemaName.TRAFFIC_LIGHT,
+        )
