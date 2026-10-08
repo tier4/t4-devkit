@@ -53,7 +53,7 @@ manifest {
   "capabilities":                   <Capabilities> -- What the dataset contains.
   "annotation_specifications":      <{str: AnnotationSpecification}> -- Annotation specification per task.
   "tables":                         <{str: TableEntry}> -- Every table file, keyed by table name.
-  "assets":                         <[AssetEntry;N]> -- Every sensor and map file.
+  "assets":                         <[AssetEntry;N]> -- Every sensor, map and input bag file.
   "provenance":                     <Provenance> -- Where the data came from.
   "project_id":                     <option[str]> -- Web.Auto project ID.
   "source_project_id":              <option[str]> -- Web.Auto source project ID.
@@ -117,7 +117,7 @@ AssetEntry {
 }
 ```
 
-There is one `AssetEntry` per file.
+There is one `AssetEntry` per file, including each file in `input_bag/`.
 
 ### `Provenance`
 

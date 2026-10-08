@@ -14,12 +14,12 @@ data/
     └── CAM_FRONT.mp4
 ```
 
-| Setting        | Value                                                         |
-| -------------- | ------------------------------------------------------------- |
-| Container      | MP4                                                           |
-| Codec          | AV1, encoded with SVT-AV1 (preset 6, CRF 26)                  |
-| Frame types    | Intra-only: every frame is a keyframe (`-g 1`)                |
-| Pixel format   | `yuv420p`, full range, BT.601                                 |
+| Setting         | Value                                                              |
+| --------------- | ------------------------------------------------------------------ |
+| Container       | MP4                                                                |
+| Codec           | AV1, encoded with SVT-AV1 (preset 6, CRF 26)                       |
+| Frame types     | Intra-only: every frame is a keyframe (`-g 1`)                     |
+| Pixel format    | `yuv420p`, full range, BT.601                                      |
 | Track timescale | Equal to the frame rate, so a frame's pts equals its `frame_index` |
 
 Because every frame is a keyframe, any frame can be decoded without decoding its neighbours. Readers seek by `frame_index`.
@@ -40,6 +40,19 @@ data/
 - Each row is one point. Row group `frame_index` holds all points of that frame.
 - Compression is lossless (zstd), so values are bit-exact.
 - Frame of reference is given in `sensor.lidar.frame_id` (`base_link` by default).
+
+### Point-wise Labels
+
+When `manifest.json` lists `segmentation3d` in `capabilities.tasks`, the LiDAR file has two extra columns for panoptic labels, listed in `sensor.lidar.fields` like any other field:
+
+| Column     | Type     | Value                                                                                                    |
+| ---------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category                                          |
+| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `null` for points with no object |
+
+Frames without labels have `null` in both columns.
+
+This replaces the `lidarseg` table and the `lidarseg/` folder of 0.x.
 
 Datasets migrated from 0.x without conversion keep one `.pcd.bin` or `.pcd` file per frame, as described in [Sensor Data](../data.md). In that case `lidar.container.format` is `bin` or `pcd` and `sample_data.frame_index` is `null`.
 
