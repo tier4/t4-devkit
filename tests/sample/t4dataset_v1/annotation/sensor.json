@@ -1,0 +1,86 @@
+[
+  {
+    "token": "sensor_cam",
+    "channel": "CAM_FRONT",
+    "modality": "camera",
+    "translation": [1.0, 0.0, 1.5],
+    "rotation": [0.5, -0.5, 0.5, -0.5],
+    "camera": {
+      "width": 64,
+      "height": 48,
+      "intrinsic": [
+        [50.0, 0.0, 32.0],
+        [0.0, 50.0, 24.0],
+        [0.0, 0.0, 1.0]
+      ],
+      "distortion": [0.0, 0.0, 0.0, 0.0, 0.0],
+      "distortion_model": "plumb_bob",
+      "is_rectified": false,
+      "video": {
+        "path": "data/CAM_FRONT/CAM_FRONT.mp4",
+        "format": "av1_mp4",
+        "codec_profile": "svt-av1 preset6 crf26 intra",
+        "pixel_format": "yuv420p full-range bt601",
+        "bit_depth": 8,
+        "frame_count": 2,
+        "timescale": 10
+      }
+    },
+    "lidar": null,
+    "radar": null,
+    "hardware": {
+      "make": "Sony",
+      "model": "IMX728",
+      "serial_number": null,
+      "firmware_version": null
+    }
+  },
+  {
+    "token": "sensor_lidar",
+    "channel": "LIDAR_TOP",
+    "modality": "lidar",
+    "translation": [0.0, 0.0, 2.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "camera": null,
+    "lidar": {
+      "container": {
+        "format": "parquet",
+        "path": "data/LIDAR_TOP/LIDAR_TOP.parquet",
+        "frame_count": 2,
+        "compression": "zstd"
+      },
+      "fields": [
+        {
+          "name": "x",
+          "dtype": "float32"
+        },
+        {
+          "name": "y",
+          "dtype": "float32"
+        },
+        {
+          "name": "z",
+          "dtype": "float32"
+        },
+        {
+          "name": "intensity",
+          "dtype": "float32"
+        },
+        {
+          "name": "ring",
+          "dtype": "uint16"
+        }
+      ],
+      "source_channels": [],
+      "frame_id": "base_link",
+      "is_undistorted": true
+    },
+    "radar": null,
+    "hardware": {
+      "make": "Hesai",
+      "model": "OT128",
+      "serial_number": null,
+      "firmware_version": null
+    }
+  }
+]
