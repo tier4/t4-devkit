@@ -1,0 +1,11 @@
+[
+  {
+    "token": "scene",
+    "name": "sample_scene",
+    "description": null,
+    "log_token": "log",
+    "nbr_samples": 2,
+    "first_sample_token": "sample0",
+    "last_sample_token": "sample1"
+  }
+]

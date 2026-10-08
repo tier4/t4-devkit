@@ -1,0 +1,62 @@
+[
+  {
+    "token": "cam0",
+    "sample_token": "sample0",
+    "ego_pose_token": "ego_cam0",
+    "sensor_token": "sensor_cam",
+    "filename": "data/CAM_FRONT/CAM_FRONT.mp4",
+    "frame_index": 0,
+    "fileformat": "av1_mp4",
+    "num_points": null,
+    "timestamp": 1704067200000000,
+    "is_key_frame": true,
+    "is_valid": true,
+    "next": "cam1",
+    "prev": null
+  },
+  {
+    "token": "cam1",
+    "sample_token": "sample1",
+    "ego_pose_token": "ego_cam1",
+    "sensor_token": "sensor_cam",
+    "filename": "data/CAM_FRONT/CAM_FRONT.mp4",
+    "frame_index": 1,
+    "fileformat": "av1_mp4",
+    "num_points": null,
+    "timestamp": 1704067200100000,
+    "is_key_frame": true,
+    "is_valid": true,
+    "next": null,
+    "prev": "cam0"
+  },
+  {
+    "token": "lidar0",
+    "sample_token": "sample0",
+    "ego_pose_token": "ego_lidar0",
+    "sensor_token": "sensor_lidar",
+    "filename": "data/LIDAR_TOP/LIDAR_TOP.parquet",
+    "frame_index": 0,
+    "fileformat": "parquet",
+    "num_points": 8,
+    "timestamp": 1704067200000000,
+    "is_key_frame": true,
+    "is_valid": true,
+    "next": "lidar1",
+    "prev": null
+  },
+  {
+    "token": "lidar1",
+    "sample_token": "sample1",
+    "ego_pose_token": "ego_lidar1",
+    "sensor_token": "sensor_lidar",
+    "filename": "data/LIDAR_TOP/LIDAR_TOP.parquet",
+    "frame_index": 1,
+    "fileformat": "parquet",
+    "num_points": 8,
+    "timestamp": 1704067200100000,
+    "is_key_frame": true,
+    "is_valid": true,
+    "next": null,
+    "prev": "lidar0"
+  }
+]

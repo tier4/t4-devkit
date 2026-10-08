@@ -1,0 +1,50 @@
+[
+  {
+    "token": "ego_cam0",
+    "translation": [0.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "timestamp": 1704067200000000,
+    "twist": null,
+    "acceleration": null,
+    "geocoordinate": null,
+    "source": "localization",
+    "frame": "map",
+    "covariance": null
+  },
+  {
+    "token": "ego_cam1",
+    "translation": [1.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "timestamp": 1704067200100000,
+    "twist": null,
+    "acceleration": null,
+    "geocoordinate": null,
+    "source": "localization",
+    "frame": "map",
+    "covariance": null
+  },
+  {
+    "token": "ego_lidar0",
+    "translation": [0.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "timestamp": 1704067200000000,
+    "twist": null,
+    "acceleration": null,
+    "geocoordinate": null,
+    "source": "localization",
+    "frame": "map",
+    "covariance": null
+  },
+  {
+    "token": "ego_lidar1",
+    "translation": [1.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "timestamp": 1704067200100000,
+    "twist": null,
+    "acceleration": null,
+    "geocoordinate": null,
+    "source": "localization",
+    "frame": "map",
+    "covariance": null
+  }
+]

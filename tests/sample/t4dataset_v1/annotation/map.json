@@ -1,0 +1,22 @@
+[
+  {
+    "token": "map",
+    "log_tokens": ["log"],
+    "format": "lanelet2_osm",
+    "filename": "map/lanelet2_map.osm",
+    "sha256": "fcb070e447b1d6b529b2b641b9a42bb2f628447a76e571566ec4b5beeba423c2",
+    "map_id": "sample_map",
+    "version_id": "sample_map_version",
+    "projector": {
+      "type": "MGRS",
+      "mgrs_grid": "54SUE",
+      "origin": {
+        "lat": null,
+        "lon": null,
+        "alt": null
+      }
+    },
+    "source": "manual",
+    "name": null
+  }
+]

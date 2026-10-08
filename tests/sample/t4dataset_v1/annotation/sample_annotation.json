@@ -1,0 +1,40 @@
+[
+  {
+    "token": "box0",
+    "sample_token": "sample0",
+    "instance_token": "instance_car",
+    "attribute_tokens": ["attribute_moving"],
+    "visibility_token": "visibility_full",
+    "translation": [10.0, 0.0, 1.0],
+    "size": [1.9, 4.5, 1.6],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "velocity": [1.0, 0.0, 0.0],
+    "acceleration": null,
+    "num_lidar_pts": 0,
+    "num_radar_pts": 0,
+    "next": "box1",
+    "prev": null,
+    "annotation_type": "manual",
+    "provenance": null,
+    "confidence": null
+  },
+  {
+    "token": "box1",
+    "sample_token": "sample1",
+    "instance_token": "instance_car",
+    "attribute_tokens": ["attribute_moving"],
+    "visibility_token": "visibility_full",
+    "translation": [11.0, 0.0, 1.0],
+    "size": [1.9, 4.5, 1.6],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "velocity": [1.0, 0.0, 0.0],
+    "acceleration": null,
+    "num_lidar_pts": 0,
+    "num_radar_pts": 0,
+    "next": null,
+    "prev": "box0",
+    "annotation_type": "interpolated",
+    "provenance": null,
+    "confidence": null
+  }
+]

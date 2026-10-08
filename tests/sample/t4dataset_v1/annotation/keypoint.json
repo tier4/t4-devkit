@@ -1,0 +1,13 @@
+[
+  {
+    "token": "keypoint0",
+    "sample_data_token": "cam0",
+    "instance_token": "instance_car",
+    "category_tokens": ["category_car"],
+    "keypoints": [[12.0, 18.0]],
+    "num_keypoints": 1,
+    "annotation_type": "manual",
+    "provenance": null,
+    "confidence": null
+  }
+]

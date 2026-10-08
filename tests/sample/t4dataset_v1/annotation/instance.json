@@ -1,0 +1,14 @@
+[
+  {
+    "token": "instance_car",
+    "category_token": "category_car",
+    "instance_name": "sample::0",
+    "nbr_annotations": 2,
+    "first_annotation_token": "box0",
+    "last_annotation_token": "box1",
+    "map_element": {
+      "id": null,
+      "type": null
+    }
+  }
+]

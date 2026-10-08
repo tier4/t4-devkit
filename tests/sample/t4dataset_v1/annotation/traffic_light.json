@@ -1,0 +1,20 @@
+[
+  {
+    "token": "traffic_light0",
+    "timestamp": 1704067200000000,
+    "regulatory_element_id": 1,
+    "elements": [
+      {
+        "color": "green",
+        "shape": "circle",
+        "status": "solid_on",
+        "confidence": 1.0
+      }
+    ],
+    "object_ann_token": null,
+    "instance_token": null,
+    "annotation_type": "auto",
+    "provenance": null,
+    "confidence": null
+  }
+]

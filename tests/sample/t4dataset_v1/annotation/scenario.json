@@ -1,0 +1,24 @@
+[
+  {
+    "token": "scenario0",
+    "log_token": "log",
+    "start_timestamp": 1704067200000000,
+    "end_timestamp": 1704067200200000,
+    "key_timestamp": null,
+    "status": null,
+    "lateral_decision": null,
+    "longitudinal_decision": null,
+    "events": ["following"],
+    "scenery": null,
+    "dynamic_entities": null,
+    "justification": null,
+    "taxonomy": {
+      "id": "cod-scene",
+      "version": "0.1.1"
+    },
+    "annotation_type": "auto",
+    "provenance": null,
+    "confidence": null,
+    "raw": null
+  }
+]
