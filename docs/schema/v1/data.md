@@ -45,10 +45,10 @@ data/
 
 When `manifest.json` lists `segmentation3d` in `capabilities.tasks`, the LiDAR file has two extra columns for panoptic labels, listed in `sensor.lidar.fields` like any other field:
 
-| Column     | Type     | Value                                                                                                    |
-| ---------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category                                          |
-| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `null` for points with no object |
+| Column     | Type     | Value                                                                                                            |
+| ---------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category                                                  |
+| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `null` for categories without `is_thing` |
 
 Frames without labels have `null` in both columns.
 
