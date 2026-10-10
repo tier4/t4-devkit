@@ -289,7 +289,7 @@ class RadarPointCloud(PointCloud):
     """A dataclass to represent radar pointcloud.
 
     Placeholder carried over from nuScenes: `from_file` reads the nuScenes radar PCD layout
-    (18 fields). tier4_perception_dataset stores radar as `RadarTracks` JSON, which it does 
+    (18 fields). tier4_perception_dataset stores radar as `RadarTracks` JSON, which it does
     not read, and radar is not part of 1.0 yet.
 
     Attributes:
