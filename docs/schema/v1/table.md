@@ -37,15 +37,6 @@ They replace `automatic_annotation` and `autolabel_metadata` from 0.x. For 0.x r
 
 Labels sit on annotated frames (key frames): a `sample_annotation` on a `Sample` with `has_key_frame`, and an `object_ann` or `keypoint` on a `SampleData` with `is_key_frame`. Labeling a frame makes it a key frame, whatever the `annotation_type` (e.g. an interpolated box). An annotated frame may have no labels, e.g. when nothing was found or the labels are point-wise.
 
-### `Pose`
-
-```json
-Pose {
-  "translation":      <[float;3]> -- (x, y, z) in meters.
-  "rotation":         <[float;4]> -- Quaternion (w, x, y, z).
-}
-```
-
 ## Required Tables
 
 ### Sample
@@ -473,12 +464,17 @@ route {
   "valid_from":           <int> -- Start of validity, Unix microseconds (inclusive).
   "valid_until":          <option[int]> -- End of validity, Unix microseconds (exclusive). `null` if valid until the end.
   "route_uuid":           <option[str]> -- `LaneletRoute.uuid`.
-  "start_pose":           <Pose> -- Start pose in the map frame.
-  "goal_pose":            <Pose> -- Goal pose in the map frame.
+  "start_pose":           <RoutePose> -- Start pose in the map frame.
+  "goal_pose":            <RoutePose> -- Goal pose in the map frame.
   "segments":             <[RouteSegment;N]> -- Route segments, in order.
   "allow_modification":   <option[bool]> -- `LaneletRoute.allow_modification`.
   "source":               <enum["mission_planner", "manual", "derived"]> -- Where the route came from.
   "provenance":           <option[str]> -- Where the message was found, e.g. "own_bag", "route_json".
+}
+
+RoutePose {
+  "translation":              <[float;3]> -- (x, y, z) in meters.
+  "rotation":                 <[float;4]> -- Quaternion (w, x, y, z).
 }
 
 RouteSegment {
