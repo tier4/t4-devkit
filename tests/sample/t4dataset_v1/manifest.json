@@ -44,7 +44,7 @@
     },
     "sensor": {
       "path": "annotation/sensor.json",
-      "sha256": "56b122b2c67f5a804a0f2bbb78f2cfc002837fbc1fe7b89f4748b97031042cf9"
+      "sha256": "0cfe0f9494f9509ec117465edb6b8a3482739272597a529c4bd73df122bc7d67"
     },
     "scene": {
       "path": "annotation/scene.json",
@@ -56,11 +56,11 @@
     },
     "vehicle": {
       "path": "annotation/vehicle.json",
-      "sha256": "4b5c8a3a3103bc07cbe9ce5ef9d23d689a3b5a66d8c583d5120e5bceb38ca3da"
+      "sha256": "c86da3382dbaa41d0e3bd9cd0f0e11469b4adf7031a787f49da0e97b12a0c9cb"
     },
     "map": {
       "path": "annotation/map.json",
-      "sha256": "ec6c68a5052e32d3f130c4b7c0649d2502c9ad5dc9031f4fac2d562f8ae86a56"
+      "sha256": "a77271964d953ac5ddfce7aed69cb7d66937ac30017be38f341626ec0776e23c"
     },
     "vehicle_state": {
       "path": "annotation/vehicle_state.json",
@@ -68,7 +68,7 @@
     },
     "category": {
       "path": "annotation/category.json",
-      "sha256": "6b227c324308ff52c6c0ca8bb5f676fe1e745999d6c4cb5e0cf3a00ca269c447"
+      "sha256": "aa251dcf936e13aad1aff82eda3fc400b3b3616ad88134564bed56fac6cb3320"
     },
     "attribute": {
       "path": "annotation/attribute.json",
@@ -80,7 +80,7 @@
     },
     "instance": {
       "path": "annotation/instance.json",
-      "sha256": "72014dd531d0bb32fa26654fe7aa8b0b87a4de130f4b454a6ab3d3ba439e8aa7"
+      "sha256": "24d47c256084e7a11edee8eca5c24c9b88e28fc3f59d54aedfbabe640673839f"
     },
     "sample_annotation": {
       "path": "annotation/sample_annotation.json",

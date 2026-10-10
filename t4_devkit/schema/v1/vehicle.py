@@ -17,6 +17,7 @@ class Vehicle(SchemaBase):
 
     Attributes:
         token (str): Unique record identifier.
+        name (str | None): Vehicle name, e.g. "j6_gen2_04".
         model (str): Vehicle model.
         length (float): Length [m].
         width (float): Width [m].
@@ -24,9 +25,9 @@ class Vehicle(SchemaBase):
         wheel_base (float): Wheel base [m].
         rear_axle_to_center (float | None): Distance from the rear axle to the vehicle center [m].
         sensor_rig_id (str | None): Sensor rig ID.
-        name (str | None): Vehicle name, e.g. "j6_gen2_04".
     """
 
+    name: str | None = field(validator=validators.optional(validators.instance_of(str)))
     model: str = field(validator=validators.instance_of(str))
     length: float = field(validator=(validators.instance_of((int, float)), validators.gt(0)))
     width: float = field(validator=(validators.instance_of((int, float)), validators.gt(0)))
@@ -36,4 +37,3 @@ class Vehicle(SchemaBase):
         validator=validators.optional(validators.instance_of((int, float)))
     )
     sensor_rig_id: str | None = field(validator=validators.optional(validators.instance_of(str)))
-    name: str | None = field(validator=validators.optional(validators.instance_of(str)))

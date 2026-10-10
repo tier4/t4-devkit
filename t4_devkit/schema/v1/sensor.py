@@ -209,6 +209,8 @@ class Sensor(SchemaBase):
     Attributes:
         token (str): Unique record identifier.
         channel (str): Sensor channel name.
+        index (int): Sensor index, unique within the dataset; value of the LiDAR `source_index`
+            field for points from this sensor.
         modality (SensorModality): Sensor modality.
         translation (Vector3): Sensor position relative to base_link [m].
         rotation (Quaternion): Sensor orientation relative to base_link, as [w, x, y, z].
@@ -219,6 +221,9 @@ class Sensor(SchemaBase):
     """
 
     channel: str = field(validator=validators.instance_of(str))
+    index: int = field(
+        validator=(validators.instance_of(int), validators.ge(0), validators.le(255))
+    )
     modality: SensorModality = field(converter=SensorModality)
     translation: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)

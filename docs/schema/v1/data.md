@@ -45,14 +45,27 @@ data/
 
 When `manifest.json` lists `segmentation3d` in `capabilities.tasks`, the LiDAR file has two extra columns for panoptic labels, listed in `sensor.lidar.fields` like any other field:
 
-| Column     | Type     | Value                                                                                                            |
-| ---------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
-| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category                                                  |
-| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `null` for categories without `is_thing` |
+| Column     | Type     | Value                                                                                                   |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category                                         |
+| `instance` | `uint32` | [`instance.index`](./table.md#instance) of the point's object; `null` for categories without `is_thing` |
 
 Frames without labels have `null` in both columns.
 
 This replaces the `lidarseg` table and the `lidarseg/` folder of 0.x.
+
+### Merged Sources
+
+When `sensor.lidar.source_channels` is not empty, the channel merges several LiDARs and the file has two extra columns, listed in `sensor.lidar.fields` like any other field:
+
+| Column             | Type    | Value                                                                |
+| ------------------ | ------- | -------------------------------------------------------------------- |
+| `source_index`     | `uint8` | [`sensor.index`](./table.md#sensor) of the LiDAR the point came from |
+| `source_timestamp` | `int64` | Timestamp of that LiDAR's scan, in microseconds                      |
+
+Each source LiDAR has its own `sensor` row (with its calibration) and no `sample_data`. Points are grouped by source, so both columns are runs of equal values and cost almost nothing to store.
+
+This replaces the per-frame `.info` metainfo files of 0.x.
 
 Datasets migrated from 0.x without conversion keep one `.pcd.bin` or `.pcd` file per frame, as described in [Sensor Data](../data.md). In that case `lidar.container.format` is `bin` or `pcd` and `sample_data.frame_index` is `null`.
 

@@ -169,6 +169,7 @@ def tables() -> dict[str, list[dict]]:
             {
                 "token": "sensor_cam",
                 "channel": "CAM_FRONT",
+                "index": 0,
                 "modality": "camera",
                 "translation": [1.0, 0.0, 1.5],
                 "rotation": [0.5, -0.5, 0.5, -0.5],
@@ -201,6 +202,7 @@ def tables() -> dict[str, list[dict]]:
             {
                 "token": "sensor_lidar",
                 "channel": "LIDAR_TOP",
+                "index": 1,
                 "modality": "lidar",
                 "translation": [0.0, 0.0, 2.0],
                 "rotation": identity,
@@ -256,6 +258,7 @@ def tables() -> dict[str, list[dict]]:
         "vehicle": [
             {
                 "token": "vehicle",
+                "name": None,
                 "model": "sample_vehicle",
                 "length": 4.9,
                 "width": 1.9,
@@ -263,12 +266,12 @@ def tables() -> dict[str, list[dict]]:
                 "wheel_base": 2.8,
                 "rear_axle_to_center": None,
                 "sensor_rig_id": None,
-                "name": None,
             }
         ],
         "map": [
             {
                 "token": "map",
+                "name": None,
                 "log_tokens": ["log"],
                 "format": "lanelet2_osm",
                 "filename": MAP_PATH,
@@ -281,7 +284,6 @@ def tables() -> dict[str, list[dict]]:
                     "origin": {"lat": None, "lon": None, "alt": None},
                 },
                 "source": "manual",
-                "name": None,
             }
         ],
         "vehicle_state": [
@@ -305,18 +307,18 @@ def tables() -> dict[str, list[dict]]:
             {
                 "token": "category_car",
                 "name": "car",
+                "index": None,
                 "description": None,
                 "is_thing": True,
-                "index": None,
                 "has_orientation": False,
                 "has_number": False,
             },
             {
                 "token": "category_road",
                 "name": "road",
+                "index": None,
                 "description": None,
                 "is_thing": False,
-                "index": None,
                 "has_orientation": False,
                 "has_number": False,
             },
@@ -328,9 +330,9 @@ def tables() -> dict[str, list[dict]]:
         "instance": [
             {
                 "token": "instance_car",
+                "name": "sample::0",
+                "index": None,
                 "category_token": "category_car",
-                "instance_name": "sample::0",
-                "instance_index": None,
                 "nbr_annotations": NUM_FRAMES,
                 "first_annotation_token": sample_annotations[0],
                 "last_annotation_token": sample_annotations[-1],
