@@ -1,6 +1,7 @@
 [
   {
     "token": "map",
+    "name": null,
     "log_tokens": ["log"],
     "format": "lanelet2_osm",
     "filename": "map/lanelet2_map.osm",
@@ -16,7 +17,6 @@
         "alt": null
       }
     },
-    "source": "manual",
-    "name": null
+    "source": "manual"
   }
 ]
