@@ -1,8 +1,16 @@
+from .annotation_type import *  # noqa
+from .attribute import *  # noqa
+from .category import *  # noqa
 from .ego_pose import *  # noqa
+from .instance import *  # noqa
+from .keypoint import *  # noqa
 from .log import *  # noqa
 from .manifest import *  # noqa
 from .map import *  # noqa
+from .object_ann import *  # noqa
 from .sample import *  # noqa
+from .sample_annotation import *  # noqa
 from .sample_data import *  # noqa
 from .scene import *  # noqa
 from .sensor import *  # noqa
+from .visibility import *  # noqa

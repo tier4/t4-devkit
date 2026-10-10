@@ -3,6 +3,7 @@
     "token": "category_car",
     "name": "car",
     "description": null,
+    "is_thing": true,
     "index": null,
     "has_orientation": false,
     "has_number": false
@@ -11,6 +12,7 @@
     "token": "category_road",
     "name": "road",
     "description": null,
+    "is_thing": false,
     "index": null,
     "has_orientation": false,
     "has_number": false
