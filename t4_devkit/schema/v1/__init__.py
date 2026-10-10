@@ -5,6 +5,7 @@ from .category import *  # noqa
 from .ego_pose import *  # noqa
 from .instance import *  # noqa
 from .keypoint import *  # noqa
+from .loader import *  # noqa
 from .log import *  # noqa
 from .manifest import *  # noqa
 from .map import *  # noqa
