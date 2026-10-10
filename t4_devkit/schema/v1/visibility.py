@@ -6,6 +6,9 @@ from attrs import define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["VisibilityLevel", "Visibility"]
 
 
@@ -27,6 +30,7 @@ class VisibilityLevel(str, Enum):
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.VISIBILITY)
 class Visibility(SchemaBase):
     """A dataclass to represent schema table of `visibility.json` in T4Dataset 1.0.
 

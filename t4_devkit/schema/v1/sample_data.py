@@ -6,6 +6,9 @@ from attrs import define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["FileFormat", "SampleData"]
 
 
@@ -33,6 +36,7 @@ class FileFormat(str, Enum):
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.SAMPLE_DATA)
 class SampleData(SchemaBase):
     """`sample_data.json` dataclass.
 
