@@ -35,15 +35,6 @@ Every label table (`sample_annotation`, `object_ann`, `keypoint`, `traffic_light
 
 They replace `automatic_annotation` and `autolabel_metadata` from 0.x. For 0.x readers, `automatic_annotation = (annotation_type != "manual")`.
 
-### `Pose`
-
-```json
-Pose {
-  "translation":      <[float;3]> -- (x, y, z) in meters.
-  "rotation":         <[float;4]> -- Quaternion (w, x, y, z).
-}
-```
-
 ## Required Tables
 
 ### Sample
@@ -469,12 +460,17 @@ route {
   "valid_from":           <int> -- Start of validity, Unix microseconds (inclusive).
   "valid_until":          <option[int]> -- End of validity, Unix microseconds (exclusive). `null` if valid until the end.
   "route_uuid":           <option[str]> -- `LaneletRoute.uuid`.
-  "start_pose":           <Pose> -- Start pose in the map frame.
-  "goal_pose":            <Pose> -- Goal pose in the map frame.
+  "start_pose":           <RoutePose> -- Start pose in the map frame.
+  "goal_pose":            <RoutePose> -- Goal pose in the map frame.
   "segments":             <[RouteSegment;N]> -- Route segments, in order.
   "allow_modification":   <option[bool]> -- `LaneletRoute.allow_modification`.
   "source":               <enum["mission_planner", "manual", "derived"]> -- Where the route came from.
   "provenance":           <option[str]> -- Where the message was found, e.g. "own_bag", "route_json".
+}
+
+RoutePose {
+  "translation":              <[float;3]> -- (x, y, z) in meters.
+  "rotation":                 <[float;4]> -- Quaternion (w, x, y, z).
 }
 
 RouteSegment {
