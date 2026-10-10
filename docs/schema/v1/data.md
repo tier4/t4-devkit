@@ -45,19 +45,32 @@ data/
 
 When `manifest.json` lists `segmentation3d` in `capabilities.tasks`, the LiDAR file has two extra columns for panoptic labels, listed in `sensor.lidar.fields` like any other field:
 
-| Column     | Type    | Value                                                                                                  |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------ |
-| `label`    | `uint8` | [`category.index`](./table.md#category) of the point's category; `0` for unpainted points              |
-| `instance` | `int16` | [`instance.instance_index`](./table.md#instance) of the point's object; `-1` for points with no object |
+| Column     | Type    | Value                                                                                         |
+| ---------- | ------- | --------------------------------------------------------------------------------------------- |
+| `label`    | `uint8` | [`category.index`](./table.md#category) of the point's category; `0` for unpainted points     |
+| `instance` | `int16` | [`instance.index`](./table.md#instance) of the point's object; `-1` for points with no object |
 
 Each column reserves one value:
 
 - `label` `0` is the `unpainted` category: points the annotator did not label. When point-wise labels are present, `category.json` has a category named `unpainted` with `index` `0`.
-- `instance` `-1` means no object: points of categories without `is_thing` (road, vegetation) and unpainted points. `instance_index` runs from `0` to `32767`.
+- `instance` `-1` means no object: points of categories without `is_thing` (road, vegetation) and unpainted points. `instance.index` runs from `0` to `32767`.
 
 Labeled frames have a value for every point. Frames without labels (for example, non-key frames) have `null` in both columns for every point, because a Parquet file has the same columns in every frame. Readers leave out a column that is `null` for the whole frame.
 
 This replaces the `lidarseg` table and the `lidarseg/` folder of 0.x.
+
+### Merged Sources
+
+When `sensor.lidar.source_channels` is not empty, the channel merges several LiDARs and the file has two extra columns, listed in `sensor.lidar.fields` like any other field:
+
+| Column             | Type    | Value                                                                |
+| ------------------ | ------- | -------------------------------------------------------------------- |
+| `source_index`     | `uint8` | [`sensor.index`](./table.md#sensor) of the LiDAR the point came from |
+| `source_timestamp` | `int64` | Timestamp of that LiDAR's scan, in microseconds                      |
+
+Each source LiDAR has its own `sensor` row (with its calibration) and no `sample_data`. Points are grouped by source, so both columns are runs of equal values and cost almost nothing to store.
+
+This replaces the per-frame `.info` metainfo files of 0.x.
 
 0.x datasets loaded without migration keep one `.pcd.bin` or `.pcd` file per frame, as described in [Sensor Data](../data.md). In that case `lidar.container.format` is `bin` or `pcd` and `sample_data.frame_index` is `null`.
 

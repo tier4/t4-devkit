@@ -109,6 +109,7 @@ class Map(SchemaBase):
 
     Attributes:
         token (str): Unique record identifier.
+        name (str | None): Map name.
         log_tokens (list[str]): Foreign keys pointing to the logs.
         format (MapFormat): Map file format.
         filename (str): Path to the map file.
@@ -117,9 +118,9 @@ class Map(SchemaBase):
         version_id (str): Web.Auto area map version ID.
         projector (Projector): Map projection.
         source (MapSource): Where the map came from.
-        name (str | None): Map name.
     """
 
+    name: str | None = field(validator=validators.optional(validators.instance_of(str)))
     log_tokens: list[str] = field(
         validator=validators.deep_iterable(
             (validators.instance_of(str), impossible_empty()), validators.instance_of(list)
@@ -135,4 +136,3 @@ class Map(SchemaBase):
         validator=validators.instance_of(Projector),
     )
     source: MapSource = field(converter=MapSource)
-    name: str | None = field(validator=validators.optional(validators.instance_of(str)))
