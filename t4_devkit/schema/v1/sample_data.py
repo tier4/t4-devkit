@@ -5,6 +5,7 @@ from enum import Enum, unique
 from attrs import define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
+from t4_devkit.schema.tables.sensor import SensorModality
 
 from .name import SchemaName
 from .registry import SCHEMAS
@@ -55,6 +56,11 @@ class SampleData(SchemaBase):
         is_valid (bool): False if the frame has a sensor drop or synchronization failure.
         next (str | None): Foreign key pointing to the next sample data of the same channel.
         prev (str | None): Foreign key pointing to the previous sample data of the same channel.
+
+    Shortcuts (filled by `T4Tables`):
+    ---------
+        modality (SensorModality | None): Modality of the sensor.
+        channel (str | None): Channel of the sensor.
     """
 
     sample_token: str | None = field(
@@ -89,3 +95,7 @@ class SampleData(SchemaBase):
             validators.and_(validators.instance_of(str), impossible_empty())
         )
     )
+
+    # shortcuts
+    modality: SensorModality | None = field(init=False, default=None)
+    channel: str | None = field(init=False, default=None)
