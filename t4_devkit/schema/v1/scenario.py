@@ -8,6 +8,8 @@ from attrs import converters, define, field, validators
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
 from .annotation_type import AnnotationType
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = ["ScenarioStatus", "Taxonomy", "Scenario"]
 
@@ -34,6 +36,7 @@ class Taxonomy:
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.SCENARIO)
 class Scenario(SchemaBase):
     """`scenario.json` dataclass.
 

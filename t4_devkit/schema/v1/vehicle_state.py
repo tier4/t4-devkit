@@ -7,6 +7,9 @@ from attrs import converters, define, field, validators
 from t4_devkit.schema.tables.base import SchemaBase
 from t4_devkit.schema.tables.vehicle_state import Indicators
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["ShiftState", "VehicleStateSource", "VehicleState"]
 
 
@@ -33,6 +36,7 @@ class VehicleStateSource(str, Enum):
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.VEHICLE_STATE)
 class VehicleState(SchemaBase):
     """`vehicle_state.json` dataclass.
 

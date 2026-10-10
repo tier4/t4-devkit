@@ -8,6 +8,9 @@ from t4_devkit.common.converter import to_quaternion
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 from t4_devkit.typing import Quaternion, Vector3
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["RouteSource", "RoutePose", "RouteSegment", "Route"]
 
 
@@ -51,6 +54,7 @@ class RouteSegment:
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.ROUTE)
 class Route(SchemaBase):
     """`route.json` dataclass.
 
