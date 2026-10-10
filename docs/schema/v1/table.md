@@ -14,6 +14,17 @@ Types follow the notation in [Schema Tables](../table.md#type-definition). In ad
 
 How a label was made: `enum["manual", "auto", "pseudo", "corrected", "interpolated", "synthetic"]`.
 
+| Value          | Meaning                                                                                                  | Example `provenance`              |
+| -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `manual`       | Made by a human annotator.                                                                               | `"kognic"`, `"fastlabel"`         |
+| `auto`         | Made by an auto-labeling model or pipeline, not reviewed by a human.                             | `"autolabel v2.3"`    |
+| `pseudo`       | Taken from another system's output and used as a weak label, e.g. onboard perception or tracker results. | `"autoware multi_object_tracker"` |
+| `corrected`    | Made automatically (`auto`, `pseudo` or `interpolated`), then reviewed and corrected by a human.         | `"autolabel v2.3 + kognic"`       |
+| `interpolated` | Computed between labeled frames, e.g. a box between two manual keyframes, not reviewed frame by frame.   | `"t4-devkit interpolation"`       |
+| `synthetic`    | Known by construction, from simulation or generated data (VLM, copy-paste).                                                | `"carla 0.9.15"`                  |
+
+`confidence` is the producer's score for `auto` and `pseudo` labels, and `null` for `manual` labels. For other values it is optional.
+
 Every label table (`sample_annotation`, `object_ann`, `keypoint`, `traffic_light`, `scenario`, `caption`) has these three fields:
 
 ```json
