@@ -14,7 +14,7 @@ Types follow the notation in [Schema Tables](../table.md#type-definition). In ad
 
 How a label was made: `enum["manual", "auto", "pseudo", "corrected", "interpolated", "synthetic"]`.
 
-Every label table (`sample_annotation`, `object_ann`, `surface_ann`, `keypoint`, `traffic_light`, `scenario`, `caption`) has these three fields:
+Every label table (`sample_annotation`, `object_ann`, `keypoint`, `traffic_light`, `scenario`, `caption`) has these three fields:
 
 ```json
 "annotation_type":    <AnnotationType> -- How the label was made.
@@ -288,6 +288,7 @@ category {
   "token":            <str> -- Unique record identifier.
   "name":             <str> -- Category name.
   "description":      <option[str]> -- Description.
+  "is_thing":         <bool> -- Whether annotations of this category are individual objects with an instance (car, pedestrian) rather than regions without one (road, sky).
   "index":            <option[int]> -- Value of the LiDAR `label` field for this category. Required when point-wise labels are present. `0` is reserved for the `unpainted` category.
   "has_orientation":  <bool> -- Whether annotations of this category may have `orientation`.
   "has_number":       <bool> -- Whether annotations of this category may have `number`.
@@ -376,17 +377,22 @@ sample_annotation {
 
 - Filename: `object_ann.json`
 
-A 2D box with an optional instance mask, linked to an instance.
+A 2D semantic/panoptic annotation in an image: a box with an optional mask.
+
+- For categories with `is_thing` (car, pedestrian), the mask is an instance mask and `instance_token` is set.
+- For other categories (road, sidewalk, sky), the mask is a semantic mask of the region and `instance_token` is `null`.
+
+This absorbed both `surface_ann` from 0.x.
 
 ```json
 object_ann {
   "token":              <str> -- Unique record identifier.
   "sample_data_token":  <str> -- Foreign key to the `SampleData` table.
-  "instance_token":     <str> -- Foreign key to the `Instance` table.
+  "instance_token":     <option[str]> -- Foreign key to the `Instance` table. `null` for categories without `is_thing`.
   "category_token":     <str> -- Foreign key to the `Category` table.
   "attribute_tokens":   <[str;N]> -- Foreign keys to the `Attribute` table.
   "bbox":               <[float;4]> -- (xmin, ymin, xmax, ymax) in pixels.
-  "mask":               <option[RLE]> -- Instance mask.
+  "mask":               <option[RLE]> -- Instance mask, or semantic mask for categories without `is_thing`.
   "orientation":        <option[float]> -- Arrow orientation in radians, for categories with `has_orientation`.
   "number":             <option[int]> -- Displayed digit, for categories with `has_number`.
   "annotation_type":    <AnnotationType>
@@ -396,24 +402,6 @@ object_ann {
 ```
 
 `RLE` is defined in [Schema Tables](../table.md#rle).
-
-### SurfaceAnn
-
-- Filename: `surface_ann.json`
-
-A 2D semantic mask of a region without object identity (road, sidewalk, sky).
-
-```json
-surface_ann {
-  "token":              <str> -- Unique record identifier.
-  "sample_data_token":  <str> -- Foreign key to the `SampleData` table.
-  "category_token":     <str> -- Foreign key to the `Category` table.
-  "mask":               <option[RLE]> -- Semantic mask.
-  "annotation_type":    <AnnotationType>
-  "provenance":         <option[str]>
-  "confidence":         <option[float]>
-}
-```
 
 ### Keypoint
 
