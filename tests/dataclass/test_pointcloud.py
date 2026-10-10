@@ -275,6 +275,26 @@ def test_lidar_pointcloud_from_file_reads_points_and_metainfo_from_bin(tmp_path:
     assert pointcloud.metainfo.source_tokens == ["lidar_front"]
 
 
+@pytest.mark.parametrize(("num_pts_feats", "raises"), [(7, False), (8, True)])
+def test_lidar_pointcloud_from_v0_bin_layout(
+    tmp_path: Path, num_pts_feats: int, raises: bool
+) -> None:
+    bin_filepath = tmp_path / "pointcloud.bin"
+    metainfo_filepath = tmp_path / "pointcloud.json"
+    scan = np.arange(2 * num_pts_feats, dtype=np.float32).reshape(2, num_pts_feats)
+    scan.tofile(bin_filepath)
+    metainfo_filepath.write_text(
+        json.dumps({"stamp": {"sec": 1, "nanosec": 2}, "num_pts_feats": num_pts_feats})
+    )
+
+    if raises:
+        with pytest.raises(ValueError):
+            LidarPointCloud.from_file(str(bin_filepath), str(metainfo_filepath))
+    else:
+        pointcloud = LidarPointCloud.from_file(str(bin_filepath), str(metainfo_filepath))
+        assert np.array_equal(pointcloud.points, scan[:, :4].T)
+
+
 def test_lidar_pointcloud_from_file_reads_points_and_metainfo_from_pcd(tmp_path: Path) -> None:
     pcd_filepath = tmp_path / "pointcloud.pcd"
     metainfo_filepath = tmp_path / "pointcloud.json"
@@ -418,3 +438,19 @@ def test_segmentation_pointcloud_from_file_reads_points_labels_and_metainfo_from
     assert np.array_equal(pointcloud.labels, labels)
     assert pointcloud.metainfo is not None
     assert pointcloud.metainfo.source_tokens == ["lidar_front"]
+
+
+def test_lidar_pointcloud_from_parquet() -> None:
+    """A T4Dataset 1.x LiDAR frame is read from its row group by `frame_index`."""
+    filepath = str(
+        Path(__file__).parents[1] / "sample/t4dataset_v1/data/LIDAR_TOP/LIDAR_TOP.parquet"
+    )
+    frame0 = LidarPointCloud.from_file(filepath, frame_index=0)
+    frame1 = LidarPointCloud.from_file(filepath, frame_index=1)
+
+    assert frame0.points.shape == (4, 8)
+    assert frame0.points.dtype == np.float32
+    assert not np.array_equal(frame0.points, frame1.points)
+
+    with pytest.raises(ValueError, match="frame_index"):
+        LidarPointCloud.from_file(filepath)
