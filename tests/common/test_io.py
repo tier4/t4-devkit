@@ -6,10 +6,12 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pypcd4
 import pytest
+from PIL import Image
 
-from t4_devkit.common.io import load_json, load_pointcloud, save_json
+from t4_devkit.common.io import load_image, load_json, load_pointcloud, save_json
 
 SAMPLE_PARQUET = Path(__file__).parents[1] / "sample/t4dataset_v1/data/LIDAR_TOP/LIDAR_TOP.parquet"
+SAMPLE_VIDEO = Path(__file__).parents[1] / "sample/t4dataset_v1/data/CAM_FRONT/CAM_FRONT.mp4"
 
 
 def test_json_io() -> None:
@@ -73,3 +75,24 @@ def test_load_pointcloud_pcd(tmp_path: Path) -> None:
     frame = load_pointcloud(tmp_path / "frame.pcd")
     assert list(frame) == ["x", "y", "z", "intensity", "ring"]
     assert frame["ring"].dtype == np.uint16
+
+
+def test_load_image_video() -> None:
+    """Sample frames: red ramps 0..255 across the width, green is 128 * frame_index."""
+    for frame_index in (1, 0):
+        image = load_image(SAMPLE_VIDEO, frame_index=frame_index)
+        assert image.shape == (48, 64, 3)
+        assert image.dtype == np.uint8
+        assert abs(image[..., 1].mean() - 128 * frame_index) < 4
+        assert image[:, 0, 0].mean() < 8 and image[:, -1, 0].mean() > 240
+
+    with pytest.raises(IndexError):
+        load_image(SAMPLE_VIDEO, frame_index=2)
+
+
+def test_load_image_file(tmp_path: Path) -> None:
+    path = tmp_path / "frame.png"
+    pixels = np.random.default_rng(0).integers(0, 256, (4, 6, 3), dtype=np.uint8)
+    Image.fromarray(pixels).save(path)
+
+    assert np.array_equal(load_image(path), pixels)
