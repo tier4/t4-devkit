@@ -4,10 +4,14 @@ from attrs import define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["Vehicle"]
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.VEHICLE)
 class Vehicle(SchemaBase):
     """`vehicle.json` dataclass.
 

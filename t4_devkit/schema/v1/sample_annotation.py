@@ -7,11 +7,14 @@ from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 from t4_devkit.typing import Quaternion, Vector3
 
 from .annotation_type import AnnotationType
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = ["SampleAnnotation"]
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.SAMPLE_ANNOTATION)
 class SampleAnnotation(SchemaBase):
     """`sample_annotation.json` dataclass.
 

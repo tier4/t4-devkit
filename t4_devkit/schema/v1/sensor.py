@@ -10,6 +10,9 @@ from t4_devkit.schema.tables.base import SchemaBase
 from t4_devkit.schema.tables.sensor import SensorModality
 from t4_devkit.typing import CameraDistortion, CameraIntrinsic, Quaternion, Vector3
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = [
     "DistortionModel",
     "VideoFormat",
@@ -199,6 +202,7 @@ class Hardware:
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.SENSOR)
 class Sensor(SchemaBase):
     """`sensor.json` dataclass.
 

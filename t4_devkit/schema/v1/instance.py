@@ -5,11 +5,14 @@ from attrs import define, field, validators
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
 from .map import MapElement
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = ["Instance"]
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.INSTANCE)
 class Instance(SchemaBase):
     """`instance.json` dataclass.
 
