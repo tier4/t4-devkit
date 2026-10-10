@@ -306,6 +306,7 @@ def tables() -> dict[str, list[dict]]:
                 "token": "category_car",
                 "name": "car",
                 "description": None,
+                "is_thing": True,
                 "index": None,
                 "has_orientation": False,
                 "has_number": False,
@@ -314,6 +315,7 @@ def tables() -> dict[str, list[dict]]:
                 "token": "category_road",
                 "name": "road",
                 "description": None,
+                "is_thing": False,
                 "index": None,
                 "has_orientation": False,
                 "has_number": False,
@@ -328,6 +330,7 @@ def tables() -> dict[str, list[dict]]:
                 "token": "instance_car",
                 "category_token": "category_car",
                 "instance_name": "sample::0",
+                "instance_index": None,
                 "nbr_annotations": NUM_FRAMES,
                 "first_annotation_token": sample_annotations[0],
                 "last_annotation_token": sample_annotations[-1],
@@ -347,7 +350,7 @@ def tables() -> dict[str, list[dict]]:
                 "velocity": [1.0, 0.0, 0.0],
                 "acceleration": None,
                 "num_lidar_pts": 0,
-                "num_radar_pts": 0,
+                "num_radar_pts": None,
                 **link(sample_annotations, i),
                 **label("manual" if i == 0 else "interpolated"),
             }
@@ -365,16 +368,19 @@ def tables() -> dict[str, list[dict]]:
                 "orientation": None,
                 "number": None,
                 **label(),
-            }
-        ],
-        "surface_ann": [
+            },
             {
-                "token": "surface_ann0",
+                "token": "object_ann1",
                 "sample_data_token": "cam0",
+                "instance_token": None,
                 "category_token": "category_road",
+                "attribute_tokens": [],
+                "bbox": [0.0, 24.0, float(WIDTH), float(HEIGHT)],
                 "mask": {"size": [HEIGHT, WIDTH], "counts": "0"},
+                "orientation": None,
+                "number": None,
                 **label(),
-            }
+            },
         ],
         "keypoint": [
             {

@@ -68,7 +68,7 @@
     },
     "category": {
       "path": "annotation/category.json",
-      "sha256": "473845fda559ef098a7b521ce13c169ad5a9435b1799d0a4fc5bd913da45daee"
+      "sha256": "6b227c324308ff52c6c0ca8bb5f676fe1e745999d6c4cb5e0cf3a00ca269c447"
     },
     "attribute": {
       "path": "annotation/attribute.json",
@@ -80,19 +80,15 @@
     },
     "instance": {
       "path": "annotation/instance.json",
-      "sha256": "40c10c31e7036aa221af9f34cf63b600380bcc52af0e9318486583216e238670"
+      "sha256": "72014dd531d0bb32fa26654fe7aa8b0b87a4de130f4b454a6ab3d3ba439e8aa7"
     },
     "sample_annotation": {
       "path": "annotation/sample_annotation.json",
-      "sha256": "054eb9fef72f2299a2c16185dfeea4513de1249f3eb8b43e267d8ddb55d89d13"
+      "sha256": "7e5147fcc0ce7c7e8c829290c5569783f3cb605c78aa2e75b2bf709d593fb1ac"
     },
     "object_ann": {
       "path": "annotation/object_ann.json",
-      "sha256": "54273c7005b3d32499d254d23194d5096f32250b8846ce1fb5c1045cfcc3c6a5"
-    },
-    "surface_ann": {
-      "path": "annotation/surface_ann.json",
-      "sha256": "8f9f4871fea5a1466244335f3eae87f29eb5681e035ac03b42ae4d6c00315d27"
+      "sha256": "37d5ad8200e17bcc0e6fdc4f7c47648f33a6a21b5fa115830751f1b4eec39dba"
     },
     "keypoint": {
       "path": "annotation/keypoint.json",
