@@ -218,6 +218,10 @@ class Sensor(SchemaBase):
         lidar (Lidar | None): LiDAR block, set when modality is lidar.
         radar (dict[str, Any] | None): Radar block, not defined in 1.0.
         hardware (Hardware | None): Sensor hardware identity.
+
+    Shortcuts (filled by `T4Tables`):
+    ---------
+        first_sd_token (str | None): Token of the earliest sample data of this sensor.
     """
 
     channel: str = field(validator=validators.instance_of(str))
@@ -242,6 +246,9 @@ class Sensor(SchemaBase):
         converter=lambda x: Hardware(**x) if isinstance(x, dict) else x,
         validator=validators.optional(validators.instance_of(Hardware)),
     )
+
+    # shortcuts
+    first_sd_token: str | None = field(init=False, default=None)
 
     def __attrs_post_init__(self) -> None:
         """Post-initialization validation: only the block matching `modality` is set."""
