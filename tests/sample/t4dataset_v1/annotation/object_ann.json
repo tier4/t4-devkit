@@ -12,5 +12,22 @@
     "annotation_type": "manual",
     "provenance": null,
     "confidence": null
+  },
+  {
+    "token": "object_ann1",
+    "sample_data_token": "cam0",
+    "instance_token": null,
+    "category_token": "category_road",
+    "attribute_tokens": [],
+    "bbox": [0.0, 24.0, 64.0, 48.0],
+    "mask": {
+      "size": [48, 64],
+      "counts": "0"
+    },
+    "orientation": null,
+    "number": null,
+    "annotation_type": "manual",
+    "provenance": null,
+    "confidence": null
   }
 ]

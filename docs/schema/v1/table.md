@@ -17,11 +17,11 @@ How a label was made: `enum["manual", "auto", "pseudo", "corrected", "interpolat
 | Value          | Meaning                                                                                                  | Example `provenance`              |
 | -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------- |
 | `manual`       | Made by a human annotator.                                                                               | `"kognic"`, `"fastlabel"`         |
-| `auto`         | Made by an auto-labeling model or pipeline, not reviewed by a human.                             | `"autolabel v2.3"`    |
+| `auto`         | Made by an auto-labeling model or pipeline, not reviewed by a human.                                     | `"autolabel v2.3"`                |
 | `pseudo`       | Taken from another system's output and used as a weak label, e.g. onboard perception or tracker results. | `"autoware multi_object_tracker"` |
 | `corrected`    | Made automatically (`auto`, `pseudo` or `interpolated`), then reviewed and corrected by a human.         | `"autolabel v2.3 + kognic"`       |
 | `interpolated` | Computed between labeled frames, e.g. a box between two manual keyframes, not reviewed frame by frame.   | `"t4-devkit interpolation"`       |
-| `synthetic`    | Known by construction, from simulation or generated data (VLM, copy-paste).                                                | `"carla 0.9.15"`                  |
+| `synthetic`    | Known by construction, from simulation or generated data (VLM, copy-paste).                              | `"carla 0.9.15"`                  |
 
 `confidence` is the producer's score for `auto` and `pseudo` labels, and `null` for `manual` labels. For other values it is optional.
 
@@ -374,8 +374,8 @@ sample_annotation {
   "rotation":         <[float;4]> -- Quaternion (w, x, y, z).
   "velocity":         <option[[float;3]]> -- (vx, vy, vz) in m/s.
   "acceleration":     <option[[float;3]]> -- (ax, ay, az) in m/s².
-  "num_lidar_pts":    <int> -- Number of LiDAR points in the box.
-  "num_radar_pts":    <int> -- Number of radar points in the box.
+  "num_lidar_pts":    <option[int]> -- Number of LiDAR points in the box. `null` if not counted, e.g. no LiDAR data.
+  "num_radar_pts":    <option[int]> -- Number of radar points in the box. `null` if not counted, e.g. no radar data.
   "next":             <option[str]> -- Foreign key to the next `SampleAnnotation` of the instance.
   "prev":             <option[str]> -- Foreign key to the previous `SampleAnnotation` of the instance.
   "annotation_type":  <AnnotationType> -- See [AnnotationType](#annotationtype).
