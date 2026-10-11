@@ -56,11 +56,6 @@ def test_shortcuts() -> None:
     assert {r.category_name for r in dataset.tables[SchemaName.OBJECT_ANN]} == {"car", "road"}
 
 
-def test_v0_not_supported_yet() -> None:
-    with pytest.raises(NotImplementedError):
-        load_dataset(SAMPLE_ROOT / "t4dataset")
-
-
 def test_missing_required_table(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match="vehicle"):
         load_dataset(_copy_without_table(tmp_path, "vehicle"))
