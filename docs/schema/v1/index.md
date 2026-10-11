@@ -130,3 +130,23 @@ Provenance {
   "process_config_version_id":  <option[int]> -- Web.Auto processing configuration version.
 }
 ```
+
+## Loading 0.x Datasets
+
+`load_dataset()` reads a 0.x dataset (no `manifest.json`) by converting its tables to 1.0 records when loading, on a best-effort basis. Sensor data files stay as they are: one file per frame, and `sample_data.frame_index` is `null`.
+
+Each 0.x `calibrated_sensor` row becomes a `sensor` row, keeping its token. The camera block takes its intrinsics and distortion from it, its size from `sample_data`, and the distortion model from the number of coefficients (0: `none`, 5: `plumb_bob`, 8: `rational_polynomial`). The LiDAR block is described from the first frame. Map `sha256` and `projector` are read from `map/lanelet2_map.osm` and `map/map_projector_info.yaml`.
+
+1.0 requires some values that 0.x never stored. They are filled with these placeholders (`V0_FALLBACKS`), which keep the dataset loadable but say nothing about it. In particular, `vehicle.model == "unknown"` means the vehicle dimensions are placeholders and must not be used, and `"unknown"` map IDs mean the map is not identified:
+
+| Table / block   | Field                                                 | Placeholder                                                                                         |
+| --------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `vehicle`       | `model`                                               | `"unknown"`                                                                                         |
+| `vehicle`       | `length`, `width`, `height`, `wheel_base`             | `1.0`                                                                                               |
+| `vehicle`       | `name`                                                | 0.x `log.vehicle`, `null` if empty                                                                  |
+| `map`           | `map_id`, `version_id`                                | `"unknown"`                                                                                         |
+| `map`           | `source`                                              | `"webauto"`                                                                                         |
+| `ego_pose`      | `source`, `frame`                                     | `"localization"`, `"map"`                                                                           |
+| `sensor.camera` | `is_rectified`                                        | `true`                                                                                              |
+| `sensor.lidar`  | `frame_id`, `is_undistorted`, `container.compression` | `"base_link"`, `true`, `"none"`                                                                     |
+| `sensor.lidar`  | `fields` (`.bin`)                                     | `x y z intensity channel return_type time_stamp`, cut to `num_pts_feats` (default 5), all `float32` |

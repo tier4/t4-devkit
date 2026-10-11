@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, ClassVar, Sequence, TypeVar
 import numpy as np
 from attrs import define, field
 
-from t4_devkit.common.io import load_json, load_pointcloud
+from t4_devkit.common.io import V0_BIN_FIELDS, load_json, load_pointcloud
 from t4_devkit.common.timestamp import Stamp
 
 if TYPE_CHECKING:
@@ -30,9 +30,6 @@ __all__ = [
 
 # Point fields of `LidarPointCloud.points`, in row order.
 XYZI = ("x", "y", "z", "intensity")
-
-# 0.x `.bin` layout: this list cut to `num_pts_feats`, all float32 (as written by the converter).
-V0_BIN_FIELDS = ("x", "y", "z", "intensity", "ring", "return_type", "time_stamp")
 
 
 @define
