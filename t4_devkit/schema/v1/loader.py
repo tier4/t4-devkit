@@ -7,7 +7,7 @@ from attrs import define, field
 
 from t4_devkit.common.io import load_json
 
-from .convert_v0 import convert_v0
+from .convert_v0 import V0Converter
 from .manifest import Manifest, load_manifest
 from .name import SchemaName
 from .registry import SCHEMAS
@@ -101,7 +101,9 @@ def load_dataset(data_root: PathLike) -> T4Tables:
         FileNotFoundError: If `manifest.json` does not list a required table.
     """
     manifest = load_manifest(data_root)
-    raw_tables = convert_v0(data_root) if manifest is None else _read_tables(data_root, manifest)
+    raw_tables = (
+        V0Converter(data_root).convert() if manifest is None else _read_tables(data_root, manifest)
+    )
     tables = {
         name: [SCHEMAS.get(name).from_dict(data) for data in records]
         for name, records in raw_tables.items()
