@@ -41,6 +41,14 @@ class DistortionModel(str, Enum):
         """Number of distortion coefficients of this model."""
         return {"plumb_bob": 5, "rational_polynomial": 8, "equidistant": 4, "none": 0}[self.value]
 
+    @classmethod
+    def from_num_coefficients(cls, num_coefficients: int) -> DistortionModel:
+        """The model with this number of coefficients (each model has a different count)."""
+        for model in cls:
+            if model.num_coefficients == num_coefficients:
+                return model
+        raise ValueError(f"No distortion model has {num_coefficients} coefficients")
+
 
 @unique
 class VideoFormat(str, Enum):
