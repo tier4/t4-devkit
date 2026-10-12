@@ -25,7 +25,7 @@ class SampleAnnotation(SchemaBase):
         sample_token (str): Foreign key pointing to the sample.
         instance_token (str): Foreign key pointing to the instance.
         attribute_tokens (list[str]): Foreign keys pointing to the attributes.
-        visibility_token (str): Foreign key pointing to the visibility level.
+        visibility_token (str | None): Foreign key pointing to the visibility level, or None if unknown.
         translation (Vector3): Box center [x, y, z] in [m].
         size (Vector3): Box size [width, length, height] in [m].
         rotation (Quaternion): Box orientation as quaternion [w, x, y, z].
@@ -52,7 +52,11 @@ class SampleAnnotation(SchemaBase):
             validators.instance_of(list),
         )
     )
-    visibility_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    visibility_token: str | None = field(
+        validator=validators.optional(
+            validators.and_(validators.instance_of(str), impossible_empty())
+        )
+    )
     translation: Vector3 = field(converter=Vector3)
     size: Vector3 = field(converter=Vector3)
     rotation: Quaternion = field(converter=to_quaternion)
