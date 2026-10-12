@@ -1,300 +1,470 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import os.path as osp
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any
+from glob import glob
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import pypcd4
 import yaml
 from PIL import Image
+from pycocotools import mask as cocomask
 
 from t4_devkit.common.io import V0_BIN_FIELDS, load_json
+from t4_devkit.schema.tables.visibility import VisibilityLevel as V0VisibilityLevel
 
 from .name import SchemaName
+from .sensor import DistortionModel
 
 if TYPE_CHECKING:
     from t4_devkit.typing import PathLike
 
-__all__ = ["V0_FALLBACKS", "convert_v0"]
+__all__ = ["V0Converter"]
 
-# Values 1.0 requires that 0.x never stored. The conversion is best effort: these placeholders
-# keep a converted dataset loadable, they are not facts about the dataset.
-# `vehicle.model == "unknown"` marks placeholder vehicle dimensions.
-V0_FALLBACKS: dict[str, Any] = {
-    "vehicle": {
-        "model": "unknown",
-        "length": 1.0,
-        "width": 1.0,
-        "height": 1.0,
-        "wheel_base": 1.0,
-        "rear_axle_to_center": None,
-        "sensor_rig_id": None,
-    },
-    "map": {"map_id": "unknown", "version_id": "unknown", "source": "webauto"},
-    "map_filename": "map/lanelet2_map.osm",
-    "map_projector_filename": "map/map_projector_info.yaml",
-    "ego_pose": {"source": "localization", "frame": "map"},
-    "lidar": {"frame_id": "base_link", "is_undistorted": True, "compression": "none"},
-    "camera": {"is_rectified": True},
-}
-
-# 0.x distortion coefficient count -> 1.0 distortion model.
-_DISTORTION_MODELS = {0: "none", 5: "plumb_bob", 8: "rational_polynomial"}
+Record = dict[str, Any]
 
 
-def convert_v0(data_root: PathLike) -> dict[SchemaName, list[dict[str, Any]]]:
+class V0Converter:
     """Read a 0.x dataset as 1.0 table dicts, best effort.
 
     Only the table files are read (plus one header per LiDAR channel and the map files); sensor
     data files are not rewritten, so frames keep one file each and `frame_index` is None.
-    Values that 0.x never stored come from `V0_FALLBACKS`.
+    Values that 0.x never stored come from `FALLBACKS`.
 
-    Args:
-        data_root (PathLike): Dataset root, i.e. the `<DATASET_ID>/<DATASET_VERSION>` directory.
-
-    Returns:
-        Raw 1.0 records per table; empty for tables not converted.
+    Examples:
+        >>> tables = V0Converter(data_root).convert()
     """
-    v0 = defaultdict(list)
-    for name in ("log", "map", "scene", "sample", "sample_data", "ego_pose", "sensor"):
-        v0[name] = _read_v0_table(data_root, name)
-    v0["calibrated_sensor"] = _read_v0_table(data_root, "calibrated_sensor")
 
-    maps = [_convert_map(data_root, record) for record in v0["map"]]
-    maps = [record for record in maps if record is not None]
-    vehicles, logs = _convert_logs(v0["log"], maps)
-
-    tables: dict[SchemaName, list[dict[str, Any]]] = {name: [] for name in SchemaName}
-    tables[SchemaName.LOG] = logs
-    tables[SchemaName.VEHICLE] = vehicles
-    tables[SchemaName.MAP] = maps
-    tables[SchemaName.SCENE] = [_convert_scene(record) for record in v0["scene"]]
-    tables[SchemaName.SAMPLE] = [_convert_sample(record) for record in v0["sample"]]
-    tables[SchemaName.EGO_POSE] = [_convert_ego_pose(record) for record in v0["ego_pose"]]
-    tables[SchemaName.SENSOR] = _convert_sensors(data_root, v0)
-    tables[SchemaName.SAMPLE_DATA] = [_convert_sample_data(record) for record in v0["sample_data"]]
-    return tables
-
-
-def _read_v0_table(data_root: PathLike, name: str) -> list[dict[str, Any]]:
-    filepath = osp.join(data_root, "annotation", f"{name}.json")
-    return load_json(filepath) if osp.exists(filepath) else []
-
-
-def _none_if_empty(value: Any) -> Any:
-    """0.x writes "" for missing values; 1.0 uses None."""
-    return None if value == "" else value
-
-
-def _token(*parts: str) -> str:
-    """Deterministic token for a record 0.x does not have."""
-    return hashlib.md5("/".join(parts).encode()).hexdigest()
-
-
-def _convert_map(data_root: PathLike, record: dict[str, Any]) -> dict[str, Any] | None:
-    filename = record["filename"] or V0_FALLBACKS["map_filename"]
-    filepath = osp.join(data_root, filename)
-    if not osp.exists(filepath):
-        return None
-    with open(filepath, "rb") as f:
-        sha256 = hashlib.sha256(f.read()).hexdigest()
-    return {
-        "token": record["token"],
-        "name": None,
-        "log_tokens": record["log_tokens"],
-        "format": "lanelet2_osm",
-        "filename": filename,
-        "sha256": sha256,
-        "projector": _read_projector(data_root),
-        **V0_FALLBACKS["map"],
-    }
-
-
-def _read_projector(data_root: PathLike) -> dict[str, Any]:
-    """Read Autoware's `map_projector_info.yaml`, if any."""
-    filepath = osp.join(data_root, V0_FALLBACKS["map_projector_filename"])
-    info = {}
-    if osp.exists(filepath):
-        with open(filepath) as f:
-            info = yaml.safe_load(f) or {}
-    origin = info.get("map_origin") or {}
-    return {
-        "type": info.get("projector_type"),
-        "mgrs_grid": info.get("mgrs_grid"),
-        "origin": {
-            "lat": origin.get("latitude"),
-            "lon": origin.get("longitude"),
-            "alt": origin.get("altitude"),
+    # Values 1.0 requires that 0.x never stored. These placeholders keep a converted dataset
+    # loadable, they are not facts about the dataset (listed in `docs/schema/v1/index.md`).
+    # `vehicle.model == "unknown"` marks placeholder vehicle dimensions.
+    FALLBACKS: ClassVar[dict[str, Any]] = {
+        "vehicle": {
+            "model": "unknown",
+            "length": 1.0,
+            "width": 1.0,
+            "height": 1.0,
+            "wheel_base": 1.0,
         },
+        "map": {"map_id": "unknown", "version_id": "unknown", "source": "webauto"},
+        "map_filename": "map/lanelet2_map.osm",
+        "map_projector_filename": "map/map_projector_info.yaml",
+        "ego_pose": {"source": "localization", "frame": "map"},
+        "lidar": {"frame_id": "base_link", "is_undistorted": True, "compression": "none"},
+        "camera": {"is_rectified": True},
     }
 
+    def __init__(self, data_root: PathLike) -> None:
+        """
+        Args:
+            data_root (PathLike): Dataset root, i.e. the `<DATASET_ID>/<DATASET_VERSION>` directory.
+        """
+        self.data_root = data_root
+        # Every 0.x table file present, by table name; a missing table reads as empty.
+        self.v0: dict[str, list[Record]] = defaultdict(list)
+        for filepath in glob(osp.join(data_root, "annotation", "*.json")):
+            self.v0[osp.splitext(osp.basename(filepath))[0]] = load_json(filepath)
 
-def _convert_logs(
-    logs: list[dict[str, Any]], maps: list[dict[str, Any]]
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Convert logs; each gets a `vehicle` row from its 0.x vehicle name."""
-    log2map = {log_token: record["token"] for record in maps for log_token in record["log_tokens"]}
-    vehicles, converted = [], []
-    for record in logs:
-        vehicle_token = _token(record["token"], "vehicle")
-        vehicles.append(
-            {
-                "token": vehicle_token,
-                "name": _none_if_empty(record["vehicle"]),
-                **V0_FALLBACKS["vehicle"],
-            }
-        )
-        converted.append(
-            {
-                "token": record["token"],
-                "logfile": _none_if_empty(record["logfile"]),
-                "vehicle_token": vehicle_token,
-                "data_captured": record["data_captured"],
-                "location": _none_if_empty(record["location"]),
-                "map_token": log2map.get(record["token"]),
-            }
-        )
-    return vehicles, converted
+        # Lookups shared by several tables.
+        self.sensors = {record["token"]: record for record in self.v0["sensor"]}
+        self.frames: dict[str, list[Record]] = defaultdict(list)
+        for record in self.v0["sample_data"]:
+            self.frames[record["calibrated_sensor_token"]].append(record)
+        self.thing_categories = {
+            record["category_token"] for record in self.v0["object_ann"] + self.v0["instance"]
+        }
+        self.surface_categories = {record["category_token"] for record in self.v0["surface_ann"]}
 
+    def convert(self) -> dict[SchemaName, list[Record]]:
+        """Convert every table.
 
-def _convert_scene(record: dict[str, Any]) -> dict[str, Any]:
-    return {**record, "description": _none_if_empty(record["description"])}
+        Returns:
+            Raw 1.0 records per table; empty for tables not converted.
+        """
+        v0 = self.v0
+        maps = [self.convert_map(record) for record in v0["map"]]
+        maps = [record for record in maps if record is not None]
+        log2map = {token: record["token"] for record in maps for token in record["log_tokens"]}
+        visibilities = self.convert_visibilities()
+        known_visibility = {record["token"] for record in visibilities}
 
+        tables: dict[SchemaName, list[Record]] = {name: [] for name in SchemaName}
+        tables[SchemaName.MAP] = maps
+        tables[SchemaName.VEHICLE] = [self.convert_vehicle(record) for record in v0["log"]]
+        tables[SchemaName.LOG] = [self.convert_log(record, log2map) for record in v0["log"]]
+        tables[SchemaName.SCENE] = [self.convert_scene(record) for record in v0["scene"]]
+        tables[SchemaName.SAMPLE] = [self.convert_sample(record) for record in v0["sample"]]
+        tables[SchemaName.EGO_POSE] = [self.convert_ego_pose(record) for record in v0["ego_pose"]]
+        tables[SchemaName.SENSOR] = [
+            self.convert_sensor(index, record)
+            for index, record in enumerate(v0["calibrated_sensor"])
+        ]
+        tables[SchemaName.SAMPLE_DATA] = [
+            self.convert_sample_data(record) for record in v0["sample_data"]
+        ]
 
-def _convert_sample(record: dict[str, Any]) -> dict[str, Any]:
-    return {
-        **record,
-        "next": _none_if_empty(record["next"]),
-        "prev": _none_if_empty(record["prev"]),
-    }
+        tables[SchemaName.CATEGORY] = [self.convert_category(record) for record in v0["category"]]
+        tables[SchemaName.ATTRIBUTE] = [
+            self.convert_attribute(record) for record in v0["attribute"]
+        ]
+        tables[SchemaName.VISIBILITY] = visibilities
+        tables[SchemaName.INSTANCE] = [self.convert_instance(record) for record in v0["instance"]]
+        tables[SchemaName.SAMPLE_ANNOTATION] = [
+            self.convert_sample_annotation(record, known_visibility)
+            for record in v0["sample_annotation"]
+        ]
+        tables[SchemaName.OBJECT_ANN] = [
+            self.convert_object_ann(record) for record in v0["object_ann"]
+        ] + [self.convert_surface_ann(record) for record in v0["surface_ann"]]
+        tables[SchemaName.KEYPOINT] = [self.convert_keypoint(record) for record in v0["keypoint"]]
+        return tables
 
+    # --- core tables ---
 
-def _convert_ego_pose(record: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "token": record["token"],
-        "translation": record["translation"],
-        "rotation": record["rotation"],
-        "timestamp": record["timestamp"],
-        "twist": record.get("twist"),
-        "acceleration": record.get("acceleration"),
-        "geocoordinate": record.get("geocoordinate"),
-        "covariance": None,
-        **V0_FALLBACKS["ego_pose"],
-    }
+    def convert_map(self, record: Record) -> Record | None:
+        """`sha256` from the map file, `projector` from its yaml; None if the map file is missing."""
+        filename = record["filename"] or self.FALLBACKS["map_filename"]
+        filepath = osp.join(self.data_root, filename)
+        if not osp.exists(filepath):
+            return None
+        with open(filepath, "rb") as f:
+            sha256 = hashlib.sha256(f.read()).hexdigest()
+        fallbacks = self.FALLBACKS["map"]
+        return {
+            "token": record["token"],
+            "name": None,
+            "log_tokens": record["log_tokens"],
+            "map_id": fallbacks["map_id"],
+            "version_id": fallbacks["version_id"],
+            "source": fallbacks["source"],
+            "format": "lanelet2_osm",
+            "filename": filename,
+            "sha256": sha256,
+            "projector": self._read_projector(),
+        }
 
+    def convert_vehicle(self, log: Record) -> Record:
+        """One vehicle per log, named after the 0.x `log.vehicle`, with placeholder dimensions."""
+        fallbacks = self.FALLBACKS["vehicle"]
+        return {
+            "token": self._vehicle_token(log),
+            "name": self._none_if_empty(log["vehicle"]),
+            "model": fallbacks["model"],
+            "length": fallbacks["length"],
+            "width": fallbacks["width"],
+            "height": fallbacks["height"],
+            "wheel_base": fallbacks["wheel_base"],
+            "rear_axle_to_center": None,
+            "sensor_rig_id": None,
+        }
 
-def _convert_sample_data(record: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "token": record["token"],
-        "sample_token": _none_if_empty(record["sample_token"]),
-        "ego_pose_token": record["ego_pose_token"],
-        # 0.x calibrated_sensor rows become 1.0 sensor rows, with the same tokens.
-        "sensor_token": record["calibrated_sensor_token"],
-        "filename": record["filename"],
-        "frame_index": None,
-        "fileformat": record["fileformat"],
-        "num_points": None,
-        "timestamp": record["timestamp"],
-        "is_key_frame": record["is_key_frame"],
-        "is_valid": record.get("is_valid", True),
-        "next": _none_if_empty(record["next"]),
-        "prev": _none_if_empty(record["prev"]),
-    }
+    def convert_log(self, record: Record, log2map: dict[str, str]) -> Record:
+        return {
+            "token": record["token"],
+            "logfile": self._none_if_empty(record["logfile"]),
+            "vehicle_token": self._vehicle_token(record),
+            "data_captured": record["data_captured"],
+            "location": self._none_if_empty(record["location"]),
+            "map_token": log2map.get(record["token"]),
+        }
 
+    def convert_scene(self, record: Record) -> Record:
+        return {
+            "token": record["token"],
+            "name": record["name"],
+            "description": self._none_if_empty(record["description"]),
+            "log_token": record["log_token"],
+            "nbr_samples": record["nbr_samples"],
+            "first_sample_token": record["first_sample_token"],
+            "last_sample_token": record["last_sample_token"],
+        }
 
-def _convert_sensors(
-    data_root: PathLike, v0: dict[str, list[dict[str, Any]]]
-) -> list[dict[str, Any]]:
-    """Merge 0.x `sensor` (per channel) and `calibrated_sensor` (per calibration) into 1.0 rows.
+    def convert_sample(self, record: Record) -> Record:
+        return {
+            "token": record["token"],
+            "timestamp": record["timestamp"],
+            "scene_token": record["scene_token"],
+            "next": self._none_if_empty(record["next"]),
+            "prev": self._none_if_empty(record["prev"]),
+        }
 
-    One row per calibration, keeping the `calibrated_sensor` token, indexed in file order.
-    """
-    sensors = {record["token"]: record for record in v0["sensor"]}
-    frames = defaultdict(list)
-    for record in v0["sample_data"]:
-        frames[record["calibrated_sensor_token"]].append(record)
+    def convert_ego_pose(self, record: Record) -> Record:
+        fallbacks = self.FALLBACKS["ego_pose"]
+        return {
+            "token": record["token"],
+            "translation": record["translation"],
+            "rotation": record["rotation"],
+            "timestamp": record["timestamp"],
+            "twist": record.get("twist"),
+            "acceleration": record.get("acceleration"),
+            "geocoordinate": record.get("geocoordinate"),
+            "covariance": None,
+            "source": fallbacks["source"],
+            "frame": fallbacks["frame"],
+        }
 
-    converted = []
-    for index, calibration in enumerate(v0["calibrated_sensor"]):
-        sensor = sensors[calibration["sensor_token"]]
-        sensor_frames = frames[calibration["token"]]
+    def convert_sensor(self, index: int, calibration: Record) -> Record:
+        """Merge 0.x `sensor` (per channel) and `calibrated_sensor` (per calibration).
+
+        One row per calibration, keeping the `calibrated_sensor` token, indexed in file order.
+        """
+        sensor = self.sensors[calibration["sensor_token"]]
         modality = sensor["modality"]
-        converted.append(
-            {
-                "token": calibration["token"],
-                "channel": sensor["channel"],
-                "index": index,
-                "modality": modality,
-                "translation": calibration["translation"],
-                "rotation": calibration["rotation"],
-                "camera": _convert_camera(data_root, calibration, sensor_frames)
-                if modality == "camera"
-                else None,
-                "lidar": _convert_lidar(data_root, sensors, sensor_frames)
-                if modality == "lidar"
-                else None,
-                "radar": None,
-                "hardware": None,
-            }
+        return {
+            "token": calibration["token"],
+            "channel": sensor["channel"],
+            "index": index,
+            "modality": modality,
+            "translation": calibration["translation"],
+            "rotation": calibration["rotation"],
+            "camera": self.convert_camera(calibration) if modality == "camera" else None,
+            "lidar": self.convert_lidar(calibration) if modality == "lidar" else None,
+            "radar": None,
+            "hardware": None,
+        }
+
+    def convert_camera(self, calibration: Record) -> Record:
+        """Size from `sample_data`, or from the first image if 0.x stored none."""
+        distortion = calibration["camera_distortion"]
+        distortion_model = DistortionModel.from_num_coefficients(len(distortion))
+        frames = self.frames[calibration["token"]]
+        sized = [record for record in frames if record.get("width") and record.get("height")]
+        if sized:
+            width, height = sized[0]["width"], sized[0]["height"]
+        else:
+            with Image.open(osp.join(self.data_root, frames[0]["filename"])) as image:
+                width, height = image.size
+        return {
+            "width": width,
+            "height": height,
+            "intrinsic": calibration["camera_intrinsic"],
+            "distortion": distortion,
+            "distortion_model": distortion_model.value,
+            "is_rectified": self.FALLBACKS["camera"]["is_rectified"],
+            "video": None,
+        }
+
+    def convert_lidar(self, calibration: Record) -> Record:
+        """From the first frame: its format, its `.info` file (if any) and its header."""
+        frames = self.frames[calibration["token"]]
+        first = frames[0] if frames else {}
+        info_filename = first.get("info_filename")
+        info = (
+            load_json(osp.join(self.data_root, info_filename))
+            if info_filename and osp.exists(osp.join(self.data_root, info_filename))
+            else {}
         )
-    return converted
+        if first.get("fileformat") == "pcd":
+            filepath = osp.join(self.data_root, first["filename"])
+            data = pypcd4.PointCloud.from_path(filepath).pc_data
+            container_format = "pcd"
+            fields = [{"name": name, "dtype": str(data.dtype[name])} for name in data.dtype.names]
+        else:
+            container_format = "bin"
+            num_pts_feats = info.get("num_pts_feats", 5)
+            fields = [{"name": name, "dtype": "float32"} for name in V0_BIN_FIELDS[:num_pts_feats]]
+        fallbacks = self.FALLBACKS["lidar"]
+        return {
+            "container": {
+                "format": container_format,
+                "path": None,
+                "frame_count": len(frames),
+                "compression": fallbacks["compression"],
+            },
+            "fields": fields,
+            "source_channels": [
+                self.sensors[source["sensor_token"]]["channel"]
+                for source in info.get("sources", [])
+            ],
+            "frame_id": fallbacks["frame_id"],
+            "is_undistorted": fallbacks["is_undistorted"],
+        }
 
+    def convert_sample_data(self, record: Record) -> Record:
+        return {
+            "token": record["token"],
+            "sample_token": self._none_if_empty(record["sample_token"]),
+            "ego_pose_token": record["ego_pose_token"],
+            # 0.x calibrated_sensor rows become 1.0 sensor rows, with the same tokens.
+            "sensor_token": record["calibrated_sensor_token"],
+            "filename": record["filename"],
+            "frame_index": None,
+            "fileformat": record["fileformat"],
+            "num_points": None,
+            "timestamp": record["timestamp"],
+            "is_key_frame": record["is_key_frame"],
+            "is_valid": record.get("is_valid", True),
+            "next": self._none_if_empty(record["next"]),
+            "prev": self._none_if_empty(record["prev"]),
+        }
 
-def _convert_camera(
-    data_root: PathLike, calibration: dict[str, Any], frames: list[dict[str, Any]]
-) -> dict[str, Any]:
-    distortion = calibration["camera_distortion"]
-    if len(distortion) not in _DISTORTION_MODELS:
-        raise ValueError(f"Unknown 0.x distortion with {len(distortion)} coefficients")
-    sized = [record for record in frames if record.get("width") and record.get("height")]
-    if sized:
-        width, height = sized[0]["width"], sized[0]["height"]
-    else:
-        with Image.open(osp.join(data_root, frames[0]["filename"])) as image:
-            width, height = image.size
-    return {
-        "width": width,
-        "height": height,
-        "intrinsic": calibration["camera_intrinsic"],
-        "distortion": distortion,
-        "distortion_model": _DISTORTION_MODELS[len(distortion)],
-        "video": None,
-        **V0_FALLBACKS["camera"],
-    }
+    # --- label tables ---
 
+    def convert_category(self, record: Record) -> Record:
+        """`is_thing` is false only for categories used by `surface_ann` (road, sky) and nothing else."""
+        token = record["token"]
+        return {
+            "token": token,
+            "name": record["name"],
+            "index": record.get("index"),
+            "description": self._none_if_empty(record.get("description")),
+            "is_thing": token in self.thing_categories or token not in self.surface_categories,
+            "has_orientation": record.get("has_orientation", False),
+            "has_number": record.get("has_number", False),
+        }
 
-def _convert_lidar(
-    data_root: PathLike, sensors: dict[str, dict[str, Any]], frames: list[dict[str, Any]]
-) -> dict[str, Any]:
-    """LiDAR block from the first frame: its format, its `.info` file (if any) and its header."""
-    first = frames[0] if frames else {}
-    info_filename = first.get("info_filename")
-    info = (
-        load_json(osp.join(data_root, info_filename))
-        if info_filename and osp.exists(osp.join(data_root, info_filename))
-        else {}
-    )
-    if first.get("fileformat") == "pcd":
-        data = pypcd4.PointCloud.from_path(osp.join(data_root, first["filename"])).pc_data
-        container_format = "pcd"
-        fields = [{"name": name, "dtype": str(data.dtype[name])} for name in data.dtype.names]
-    else:
-        container_format = "bin"
-        num_pts_feats = info.get("num_pts_feats", 5)
-        fields = [{"name": name, "dtype": "float32"} for name in V0_BIN_FIELDS[:num_pts_feats]]
-    fallbacks = V0_FALLBACKS["lidar"]
-    return {
-        "container": {
-            "format": container_format,
-            "path": None,
-            "frame_count": len(frames),
-            "compression": fallbacks["compression"],
-        },
-        "fields": fields,
-        "source_channels": [
-            sensors[source["sensor_token"]]["channel"] for source in info.get("sources", [])
-        ],
-        "frame_id": fallbacks["frame_id"],
-        "is_undistorted": fallbacks["is_undistorted"],
-    }
+    def convert_attribute(self, record: Record) -> Record:
+        return {
+            "token": record["token"],
+            "name": record["name"],
+            "description": self._none_if_empty(record.get("description")),
+        }
+
+    def convert_visibilities(self) -> list[Record]:
+        """Levels as read by 0.x (aliases mapped); `unavailable` rows are dropped (visibility unknown)."""
+        rows = []
+        for record in self.v0["visibility"]:
+            level = V0VisibilityLevel.from_value(record["level"])
+            if level != V0VisibilityLevel.UNAVAILABLE:
+                rows.append(
+                    {
+                        "token": record["token"],
+                        "level": level.value,
+                        "description": self._none_if_empty(record.get("description")),
+                    }
+                )
+        return rows
+
+    def convert_instance(self, record: Record) -> Record:
+        return {
+            "token": record["token"],
+            "name": record["instance_name"],
+            "index": None,
+            "category_token": record["category_token"],
+            "nbr_annotations": record["nbr_annotations"],
+            "first_annotation_token": self._none_if_empty(record["first_annotation_token"]),
+            "last_annotation_token": self._none_if_empty(record["last_annotation_token"]),
+            "map_element": {"id": None, "type": None},
+        }
+
+    def convert_sample_annotation(self, record: Record, known_visibility: set[str]) -> Record:
+        """Visibility levels dropped by `convert_visibilities` become a null `visibility_token`."""
+        visibility_token = record["visibility_token"]
+        annotation_type, provenance, confidence = self._label_origin(record)
+        return {
+            "token": record["token"],
+            "sample_token": record["sample_token"],
+            "instance_token": record["instance_token"],
+            "attribute_tokens": record["attribute_tokens"],
+            "visibility_token": visibility_token if visibility_token in known_visibility else None,
+            "translation": record["translation"],
+            "size": record["size"],
+            "rotation": record["rotation"],
+            "velocity": record.get("velocity"),
+            "acceleration": record.get("acceleration"),
+            "num_lidar_pts": record["num_lidar_pts"],
+            "num_radar_pts": record["num_radar_pts"],
+            "next": self._none_if_empty(record["next"]),
+            "prev": self._none_if_empty(record["prev"]),
+            "annotation_type": annotation_type,
+            "provenance": provenance,
+            "confidence": confidence,
+        }
+
+    def convert_object_ann(self, record: Record) -> Record:
+        annotation_type, provenance, confidence = self._label_origin(record)
+        return {
+            "token": record["token"],
+            "sample_data_token": record["sample_data_token"],
+            "instance_token": record["instance_token"],
+            "category_token": record["category_token"],
+            "attribute_tokens": record["attribute_tokens"],
+            "bbox": record["bbox"],
+            "mask": record.get("mask"),
+            "orientation": record.get("orientation"),
+            "number": record.get("number"),
+            "annotation_type": annotation_type,
+            "provenance": provenance,
+            "confidence": confidence,
+        }
+
+    def convert_surface_ann(self, record: Record) -> Record:
+        """A 0.x semantic mask becomes an `object_ann` without instance; its box is the mask's."""
+        mask = record["mask"]
+        rle = {"counts": base64.b64decode(mask["counts"]), "size": mask["size"]}
+        x, y, w, h = (float(v) for v in cocomask.toBbox(rle))
+        annotation_type, provenance, confidence = self._label_origin(record)
+        return {
+            "token": record["token"],
+            "sample_data_token": record["sample_data_token"],
+            "instance_token": None,
+            "category_token": record["category_token"],
+            "attribute_tokens": [],
+            "bbox": [x, y, x + w, y + h],
+            "mask": mask,
+            "orientation": None,
+            "number": None,
+            "annotation_type": annotation_type,
+            "provenance": provenance,
+            "confidence": confidence,
+        }
+
+    def convert_keypoint(self, record: Record) -> Record:
+        annotation_type, provenance, confidence = self._label_origin(record)
+        return {
+            "token": record["token"],
+            "sample_data_token": record["sample_data_token"],
+            "instance_token": record["instance_token"],
+            "category_tokens": record["category_tokens"],
+            "keypoints": record["keypoints"],
+            "num_keypoints": record["num_keypoints"],
+            "annotation_type": annotation_type,
+            "provenance": provenance,
+            "confidence": confidence,
+        }
+
+    # --- helpers ---
+
+    def _read_projector(self) -> Record:
+        """Read Autoware's `map_projector_info.yaml`, if any."""
+        filepath = osp.join(self.data_root, self.FALLBACKS["map_projector_filename"])
+        info = {}
+        if osp.exists(filepath):
+            with open(filepath) as f:
+                info = yaml.safe_load(f) or {}
+        origin = info.get("map_origin") or {}
+        return {
+            "type": info.get("projector_type"),
+            "mgrs_grid": info.get("mgrs_grid"),
+            "origin": {
+                "lat": origin.get("latitude"),
+                "lon": origin.get("longitude"),
+                "alt": origin.get("altitude"),
+            },
+        }
+
+    @staticmethod
+    def _vehicle_token(log: Record) -> str:
+        """Deterministic token: 0.x has no vehicle table."""
+        return hashlib.md5(f"{log['token']}/vehicle".encode()).hexdigest()
+
+    @staticmethod
+    def _none_if_empty(value: Any) -> Any:
+        """0.x writes "" for missing values; 1.0 uses None."""
+        return None if value == "" else value
+
+    @staticmethod
+    def _label_origin(record: Record) -> tuple[str, str | None, float | None]:
+        """`annotation_type`, `provenance` and `confidence` from the 0.x autolabel fields.
+
+        Manual unless 0.x marks the label as automatic. `provenance` lists the autolabel models;
+        `confidence` is the model score when there is exactly one model.
+        """
+        if not record.get("automatic_annotation", False):
+            return "manual", None, None
+        models = record.get("autolabel_metadata") or []
+        provenance = ", ".join(model["name"] for model in models) or None
+        confidence = models[0]["score"] if len(models) == 1 else None
+        return "auto", provenance, confidence
