@@ -3,7 +3,9 @@ from __future__ import annotations
 import base64
 import hashlib
 import os.path as osp
+import warnings
 from collections import defaultdict
+from datetime import datetime, timezone
 from glob import glob
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -76,6 +78,8 @@ class V0Converter:
             record["category_token"] for record in self.v0["object_ann"] + self.v0["instance"]
         }
         self.surface_categories = {record["category_token"] for record in self.v0["surface_ann"]}
+        self.infos: dict[str, list[Record]] = {}  # filled by `_frame_infos`
+        self.traffic_light_ways = self._traffic_light_ways()
 
     def convert(self) -> dict[SchemaName, list[Record]]:
         """Convert every table.
@@ -119,6 +123,9 @@ class V0Converter:
             self.convert_object_ann(record) for record in v0["object_ann"]
         ] + [self.convert_surface_ann(record) for record in v0["surface_ann"]]
         tables[SchemaName.KEYPOINT] = [self.convert_keypoint(record) for record in v0["keypoint"]]
+        tables[SchemaName.VEHICLE_STATE] = [
+            self.convert_vehicle_state(record) for record in v0["vehicle_state"]
+        ]
         return tables
 
     # --- core tables ---
@@ -165,7 +172,7 @@ class V0Converter:
             "token": record["token"],
             "logfile": self._none_if_empty(record["logfile"]),
             "vehicle_token": self._vehicle_token(record),
-            "data_captured": record["data_captured"],
+            "data_captured": record["data_captured"] or self._capture_time(record["token"]),
             "location": self._none_if_empty(record["location"]),
             "map_token": log2map.get(record["token"]),
         }
@@ -249,14 +256,11 @@ class V0Converter:
     def convert_lidar(self, calibration: Record) -> Record:
         """From the first frame: its format, its `.info` file (if any) and its header."""
         frames = self.frames[calibration["token"]]
-        first = frames[0] if frames else {}
-        info_filename = first.get("info_filename")
-        info = (
-            load_json(osp.join(self.data_root, info_filename))
-            if info_filename and osp.exists(osp.join(self.data_root, info_filename))
-            else {}
-        )
-        if first.get("fileformat") == "pcd":
+        if not frames:
+            return self._convert_source_lidar(calibration)
+        first = frames[0]
+        info = self._frame_infos(calibration["token"])[0]
+        if first["fileformat"] == "pcd":
             filepath = osp.join(self.data_root, first["filename"])
             data = pypcd4.PointCloud.from_path(filepath).pc_data
             container_format = "pcd"
@@ -338,6 +342,8 @@ class V0Converter:
         return rows
 
     def convert_instance(self, record: Record) -> Record:
+        """A lamp listed in 0.x traffic_light points to its lanelet2 way in `map_element`."""
+        way_id = self.traffic_light_ways.get(record["token"])
         return {
             "token": record["token"],
             "name": record["instance_name"],
@@ -346,7 +352,7 @@ class V0Converter:
             "nbr_annotations": record["nbr_annotations"],
             "first_annotation_token": self._none_if_empty(record["first_annotation_token"]),
             "last_annotation_token": self._none_if_empty(record["last_annotation_token"]),
-            "map_element": {"id": None, "type": None},
+            "map_element": {"id": way_id, "type": "way" if way_id is not None else None},
         }
 
     def convert_sample_annotation(self, record: Record, known_visibility: set[str]) -> Record:
@@ -381,8 +387,9 @@ class V0Converter:
             "instance_token": record["instance_token"],
             "category_token": record["category_token"],
             "attribute_tokens": record["attribute_tokens"],
-            "bbox": record["bbox"],
-            "mask": record.get("mask"),
+            # 0.x leaves bbox out for mask-only labels; 1.0 requires it.
+            "bbox": record.get("bbox") or self._mask_bbox(record["mask"]),
+            "mask": self._non_empty_mask(record.get("mask")),
             "orientation": record.get("orientation"),
             "number": record.get("number"),
             "annotation_type": annotation_type,
@@ -393,8 +400,6 @@ class V0Converter:
     def convert_surface_ann(self, record: Record) -> Record:
         """A 0.x semantic mask becomes an `object_ann` without instance; its box is the mask's."""
         mask = record["mask"]
-        rle = {"counts": base64.b64decode(mask["counts"]), "size": mask["size"]}
-        x, y, w, h = (float(v) for v in cocomask.toBbox(rle))
         annotation_type, provenance, confidence = self._label_origin(record)
         return {
             "token": record["token"],
@@ -402,7 +407,7 @@ class V0Converter:
             "instance_token": None,
             "category_token": record["category_token"],
             "attribute_tokens": [],
-            "bbox": [x, y, x + w, y + h],
+            "bbox": self._mask_bbox(mask),
             "mask": mask,
             "orientation": None,
             "number": None,
@@ -425,6 +430,34 @@ class V0Converter:
             "confidence": confidence,
         }
 
+    # --- planning tables ---
+
+    def convert_vehicle_state(self, record: Record) -> Record:
+        """0.x vehicle states come from the Autoware vehicle interface (`/vehicle/status/*`).
+
+        `additional_info.speed` (norm of the longitudinal and lateral velocity) is dropped: it can't
+        be split back into the 1.0 velocities.
+        """
+        shift_state = record.get("shift_state")
+        # The 0.x devkit names forward gears FORWARD or HIGH; the 0.x converter writes DRIVE.
+        if shift_state in ("FORWARD", "HIGH"):
+            shift_state = "DRIVE"
+        return {
+            "token": record["token"],
+            "timestamp": record["timestamp"],
+            "accel_pedal": record.get("accel_pedal"),
+            "brake_pedal": record.get("brake_pedal"),
+            "steer_pedal": record.get("steer_pedal"),
+            "steering_tire_angle": record.get("steering_tire_angle"),
+            "steering_wheel_angle": record.get("steering_wheel_angle"),
+            "shift_state": shift_state,
+            "indicators": record.get("indicators"),
+            "longitudinal_velocity": None,
+            "lateral_velocity": None,
+            "heading_rate": None,
+            "source": "vehicle_interface",
+        }
+
     # --- helpers ---
 
     def _read_projector(self) -> Record:
@@ -444,6 +477,110 @@ class V0Converter:
                 "alt": origin.get("altitude"),
             },
         }
+
+    def _convert_source_lidar(self, calibration: Record) -> Record:
+        """A LiDAR without frames of its own: a source of a concatenated channel.
+
+        Its points are stored in the concatenated files, so it has their format and fields; it
+        counts a frame wherever the `.info` file of a concatenated frame lists points from it.
+        """
+        sensor_token = calibration["sensor_token"]
+        fallbacks = self.FALLBACKS["lidar"]
+        container_format, fields, frame_count = "bin", [], 0
+        for concat in self.v0["calibrated_sensor"]:
+            infos = self._frame_infos(concat["token"])
+            lengths = [
+                sum(
+                    s["length"]
+                    for s in info.get("sources", [])
+                    if s["sensor_token"] == sensor_token
+                )
+                for info in infos
+            ]
+            if any(lengths):
+                concat_lidar = self.convert_lidar(concat)
+                container_format = concat_lidar["container"]["format"]
+                fields = concat_lidar["fields"]
+                frame_count = sum(length > 0 for length in lengths)
+                break
+        return {
+            "container": {
+                "format": container_format,
+                "path": None,
+                "frame_count": frame_count,
+                "compression": fallbacks["compression"],
+            },
+            "fields": fields,
+            "source_channels": [],
+            "frame_id": fallbacks["frame_id"],
+            "is_undistorted": fallbacks["is_undistorted"],
+        }
+
+    def _capture_time(self, log_token: str) -> str:
+        """The log's first sample time, ISO 8601 UTC, for logs without `data_captured`."""
+        scenes = {
+            record["token"] for record in self.v0["scene"] if record["log_token"] == log_token
+        }
+        timestamp = min(
+            record["timestamp"] for record in self.v0["sample"] if record["scene_token"] in scenes
+        )
+        return datetime.fromtimestamp(timestamp / 1e6, tz=timezone.utc).isoformat()
+
+    def _traffic_light_ways(self) -> dict[str, int]:
+        """The lanelet2 way (`type=traffic_light`) each lamp instance shows, by instance token.
+
+        Two 0.x tables hold this link: `traffic_light` (`primitive_id`, #288) and
+        `traffic_light_instance_map` (`traffic_light_linestring_id`, from the unmerged
+        `feat/traffic-light-instance-map` branch), which wins when both list a lamp.
+        `traffic_light` rows without `primitive_id` are skipped, as no 0.x devkit reads them.
+        """
+        ways = {}
+        skipped = 0
+        for record in self.v0["traffic_light"]:
+            if "primitive_id" in record:
+                ways[record["instance_token"]] = int(record["primitive_id"])
+            else:
+                skipped += 1
+        if skipped:
+            warnings.warn(f"Skipped {skipped} traffic_light rows without primitive_id")
+        for record in self.v0["traffic_light_instance_map"]:
+            ways[record["instance_token"]] = int(record["traffic_light_linestring_id"])
+        return ways
+
+    def _frame_infos(self, calibration_token: str) -> list[Record]:
+        """The 0.x `.info` file of each frame of a channel ({} where there is none), read once."""
+        if calibration_token not in self.infos:
+            self.infos[calibration_token] = [
+                load_json(osp.join(self.data_root, frame["info_filename"]))
+                if frame.get("info_filename")
+                and osp.exists(osp.join(self.data_root, frame["info_filename"]))
+                else {}
+                for frame in self.frames[calibration_token]
+            ]
+        return self.infos[calibration_token]
+
+    @staticmethod
+    def _non_empty_mask(mask: Record | None) -> Record | None:
+        """None for a mask without pixels.
+
+        Some 0.x tools give box-only labels a placeholder: an empty RLE whose `size` is
+        (width, height) instead of the (height, width) of real masks.
+        """
+        if mask is None or "counts" not in mask:
+            return None
+        rle = {"counts": base64.b64decode(mask["counts"]), "size": mask["size"]}
+        return mask if cocomask.area(rle) > 0 else None
+
+    @staticmethod
+    def _mask_bbox(mask: Record) -> list[float]:
+        """Box around a 0.x RLE mask, as (xmin, ymin, xmax, ymax) on pixel edges.
+
+        Same convention as 0.x boxes, which the 0.x converter writes as (x, y, x + w, y + h)
+        clipped to the image size. Mask `size` is (height, width), as in COCO.
+        """
+        rle = {"counts": base64.b64decode(mask["counts"]), "size": mask["size"]}
+        x, y, w, h = (float(v) for v in cocomask.toBbox(rle))
+        return [x, y, x + w, y + h]
 
     @staticmethod
     def _vehicle_token(log: Record) -> str:
