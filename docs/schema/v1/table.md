@@ -316,7 +316,7 @@ attribute {
 
 - Filename: `visibility.json`
 
-0.x `unavailable` is dropped: unknown visibility is `sample_annotation.visibility_token: null`.
+Unknown visibility is `sample_annotation.visibility_token: null`; the 0.x level `unavailable` is dropped.
 
 ```json
 visibility {
