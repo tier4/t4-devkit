@@ -67,6 +67,21 @@ def test_load_v0_labels() -> None:
         assert tuple(record.bbox) == (cols.min(), rows.min(), cols.max() + 1, rows.max() + 1)
 
 
+def test_load_v0_category_index(tmp_path: Path) -> None:
+    """Categories without index get their list position; a partly set index is rejected."""
+    categories = load_dataset(SAMPLE_V0).tables[SchemaName.CATEGORY]
+    assert [category.index for category in categories] == list(range(len(categories)))
+
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    category_path = data_root / "annotation" / "category.json"
+    records = json.loads(category_path.read_text())
+    records[0]["index"] = 5
+    category_path.write_text(json.dumps(records))
+    with pytest.raises(ValueError, match="index"):
+        load_dataset(data_root)
+
+
 def test_load_v0_autolabel(tmp_path: Path) -> None:
     """A 0.x autolabel becomes annotation_type auto, with the model as provenance."""
     data_root = tmp_path / "dataset"
