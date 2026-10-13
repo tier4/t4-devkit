@@ -390,7 +390,7 @@ A 2D semantic/panoptic annotation in an image: a box with an optional mask.
 - For categories with `is_thing` (car, pedestrian), the mask is an instance mask and `instance_token` is set.
 - For other categories (road, sidewalk, sky), the mask is a semantic mask of the region and `instance_token` is `null`.
 
-This absorbed both `surface_ann` from 0.x.
+It replaces the 0.x `surface_ann` table.
 
 ```json
 object_ann {
