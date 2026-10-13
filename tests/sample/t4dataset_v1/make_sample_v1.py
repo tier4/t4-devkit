@@ -11,6 +11,7 @@ as pre-commit (so committing does not change the hashes in manifest.json):
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -20,6 +21,7 @@ from pathlib import Path
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+from pycocotools import mask as cocomask
 
 ROOT = Path(__file__).parent
 FFMPEG = os.environ.get("FFMPEG", "ffmpeg")
@@ -45,6 +47,14 @@ def write_json(path: Path, data: object) -> None:
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def road_mask() -> dict[str, object]:
+    """RLE mask of the road: the bottom half of the image (rows 24-47), as pycocotools writes it."""
+    mask = np.zeros((HEIGHT, WIDTH), dtype=np.uint8, order="F")
+    mask[24:, :] = 1
+    rle = cocomask.encode(mask)
+    return {"size": [HEIGHT, WIDTH], "counts": base64.b64encode(rle["counts"]).decode()}
 
 
 def write_camera() -> None:
@@ -378,7 +388,7 @@ def tables() -> dict[str, list[dict]]:
                 "category_token": "category_road",
                 "attribute_tokens": [],
                 "bbox": [0.0, 24.0, float(WIDTH), float(HEIGHT)],
-                "mask": {"size": [HEIGHT, WIDTH], "counts": "0"},
+                "mask": road_mask(),
                 "orientation": None,
                 "number": None,
                 **label(),

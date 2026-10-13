@@ -88,7 +88,7 @@
     },
     "object_ann": {
       "path": "annotation/object_ann.json",
-      "sha256": "37d5ad8200e17bcc0e6fdc4f7c47648f33a6a21b5fa115830751f1b4eec39dba"
+      "sha256": "d3a84be002e1b8db8ed98d4e547e8baf6a43b1aa101ba6fcd3773a70ddfc7c9e"
     },
     "keypoint": {
       "path": "annotation/keypoint.json",
