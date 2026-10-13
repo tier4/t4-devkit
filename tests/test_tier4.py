@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import os
+import shutil
 from pathlib import Path
 from unittest.mock import patch
 
@@ -8,8 +10,8 @@ import numpy as np
 import pytest
 
 from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel
-from t4_devkit.schema import SchemaName
-from t4_devkit.tier4 import DBMetadata, T4Devkit, load_metadata, load_table
+from t4_devkit.schema import VisibilityLevel
+from t4_devkit.tier4 import DBMetadata, T4Devkit, load_metadata
 from t4_devkit.typing import Quaternion
 
 
@@ -67,30 +69,19 @@ class TestLoadMetadata:
         assert metadata.version == "v2.0.0"
 
 
-class TestLoadTable:
-    """Test cases for load_table function."""
+def test_unknown_visibility(tmp_path):
+    """A box whose visibility is unknown (0.x `unavailable`) gets `UNAVAILABLE`."""
+    data_root = tmp_path / "t4dataset"
+    shutil.copytree(Path(__file__).parent / "sample/t4dataset", data_root)
+    visibility_path = data_root / "annotation" / "visibility.json"
+    visibilities = json.loads(visibility_path.read_text())
+    visibilities[0]["level"] = "unavailable"  # the level of the first annotation
+    visibility_path.write_text(json.dumps(visibilities))
 
-    def test_load_table_success(self, sample_dataset_path):
-        """Test successful table loading."""
-        if not sample_dataset_path.exists():
-            pytest.skip("Sample dataset not available")
-
-        # Create a dummy annotation file
-        annotation_dir = sample_dataset_path.joinpath("annotation")
-
-        result = load_table(annotation_dir.as_posix(), SchemaName.ATTRIBUTE)
-
-        # The result should be the return value of the schema class, not its length
-        assert isinstance(result, list)
-
-    def test_load_table_file_not_exists(self, tmp_path):
-        """Test table loading when file doesn't exist for optional schema."""
-        annotation_dir = tmp_path / "annotation"
-        annotation_dir.mkdir()
-
-        # Use an optional schema for this test (keypoint is actually optional)
-        result = load_table(str(annotation_dir), SchemaName.KEYPOINT)
-        assert result == []
+    t4 = T4Devkit(data_root.as_posix(), verbose=False)
+    annotation = t4.sample_annotation[0]
+    assert annotation.visibility_token is None
+    assert t4.get_box3d(annotation.token).visibility == VisibilityLevel.UNAVAILABLE
 
 
 class TestT4Devkit:
@@ -106,25 +97,48 @@ class TestT4Devkit:
     - Testing performance with realistic data sizes
     """
 
-    @pytest.fixture(scope="class")
-    def sample_t4(self):
-        """Create a T4Devkit instance using the real sample dataset."""
-        sample_dataset_path = Path(__file__).parent / "sample/t4dataset"
-        if not sample_dataset_path.exists():
-            pytest.skip("Sample dataset not available")
-        return T4Devkit(sample_dataset_path.as_posix(), verbose=False)
+    # Expected contents of each sample dataset: the 0.x one (converted on loading) and the 1.0 one.
+    EXPECTED = {
+        "t4dataset": {
+            "samples": 3,
+            "sample_data": 9,
+            "categories": 4,
+            "cameras": 2,
+            "scene_name": "minimal_test_scene",
+            "dataset_id": "t4dataset",
+            "version": None,
+        },
+        "t4dataset_v1": {
+            "samples": 2,
+            "sample_data": 4,
+            "categories": 2,
+            "cameras": 1,
+            "scene_name": "sample_scene",
+            "dataset_id": "sample",
+            "version": "0",
+        },
+    }
+
+    @pytest.fixture(scope="class", params=sorted(EXPECTED))
+    def sample_t4(self, request):
+        """Create a T4Devkit instance for each sample dataset."""
+        sample_dataset_path = Path(__file__).parent / "sample" / request.param
+        t4 = T4Devkit(sample_dataset_path.as_posix(), verbose=False)
+        t4.expected = self.EXPECTED[request.param]
+        return t4
 
     def test_dataset_structure_validation(self, sample_t4):
         """Validate the complete structure of the sample dataset."""
         t4 = sample_t4
+        expected = t4.expected
 
-        # Verify expected data counts from status.json
         assert len(t4.scene) == 1, "Expected exactly 1 scene"
-        assert len(t4.sample) == 3, "Expected exactly 3 samples"
-        assert len(t4.sample_data) == 9, "Expected exactly 9 sample data entries"
-        assert len(t4.category) == 4, "Expected exactly 4 categories"
-        assert len(t4.sensor) == 3, "Expected exactly 3 sensors"
-        assert len(t4.instance) >= 3, "Expected at least 3 instances"
+        assert len(t4.sample) == expected["samples"]
+        assert len(t4.sample_data) == expected["sample_data"]
+        assert len(t4.category) == expected["categories"]
+        assert len(t4.instance) >= 1, "Expected at least 1 instance"
+        assert t4.dataset_id == expected["dataset_id"]
+        assert t4.version == expected["version"]
 
         # Verify sensor modalities
         sensor_modalities = {sensor.modality for sensor in t4.sensor}
@@ -136,7 +150,7 @@ class TestT4Devkit:
         # Verify camera count
         camera_count = sum(1 for sensor in t4.sensor if sensor.modality == "camera")
         lidar_count = sum(1 for sensor in t4.sensor if sensor.modality == "lidar")
-        assert camera_count == 2, "Expected 2 cameras"
+        assert camera_count == expected["cameras"]
         assert lidar_count == 1, "Expected 1 LiDAR"
 
     def test_schema_reference_integrity(self, sample_t4):
@@ -151,8 +165,8 @@ class TestT4Devkit:
         for sample_data in t4.sample_data:
             _ = t4.get("sample", sample_data.sample_token)
 
-            # Test calibrated_sensor reference
-            _ = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
+            # Test sensor reference
+            _ = t4.get("sensor", sample_data.sensor_token)
 
             # Test ego_pose reference
             _ = t4.get("ego_pose", sample_data.ego_pose_token)
@@ -166,7 +180,8 @@ class TestT4Devkit:
             _ = t4.get("instance", annotation.instance_token)
 
             # Test visibility reference
-            _ = t4.get("visibility", annotation.visibility_token)
+            if annotation.visibility_token is not None:
+                _ = t4.get("visibility", annotation.visibility_token)
 
         # Test instance -> category references
         for instance in t4.instance:
@@ -185,8 +200,7 @@ class TestT4Devkit:
             # Process each sensor type
             for sample_data in sample_data_list:
                 # Get sensor information
-                calibrated_sensor = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
-                sensor = t4.get("sensor", calibrated_sensor.sensor_token)
+                sensor = t4.get("sensor", sample_data.sensor_token)
 
                 # Test sample data retrieval
                 path, boxes, intrinsic = t4.get_sample_data(sample_data.token)
@@ -196,8 +210,8 @@ class TestT4Devkit:
                 # Verify sensor-specific properties
                 if sensor.modality == "camera":
                     assert intrinsic is not None, "Camera should have intrinsic matrix"
-                    assert sample_data.width > 0, "Camera should have width"
-                    assert sample_data.height > 0, "Camera should have height"
+                    assert sensor.camera.width > 0, "Camera should have width"
+                    assert sensor.camera.height > 0, "Camera should have height"
                 elif sensor.modality == "lidar":
                     assert intrinsic is None, "LiDAR should not have intrinsic matrix"
 
@@ -255,8 +269,7 @@ class TestT4Devkit:
 
             # Test 3D boxes for keyframe using sample data
             for sample_data in keyframe_sample_data:
-                calibrated_sensor = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
-                sensor = t4.get("sensor", calibrated_sensor.sensor_token)
+                sensor = t4.get("sensor", sample_data.sensor_token)
 
                 if sensor.modality == "lidar":
                     boxes_3d = t4.get_box3ds(sample_data.token)
@@ -268,8 +281,7 @@ class TestT4Devkit:
 
             # Test 2D boxes for camera data
             for sample_data in keyframe_sample_data:
-                calibrated_sensor = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
-                sensor = t4.get("sensor", calibrated_sensor.sensor_token)
+                sensor = t4.get("sensor", sample_data.sensor_token)
 
                 if sensor.modality == "camera":
                     boxes_2d = t4.get_box2ds(sample_data.token)
@@ -312,22 +324,12 @@ class TestT4Devkit:
         t4 = sample_t4
 
         for sample_data in t4.sample_data:
-            calibrated_sensor = t4.get("calibrated_sensor", sample_data.calibrated_sensor_token)
+            sensor = t4.get("sensor", sample_data.sensor_token)
             ego_pose = t4.get("ego_pose", sample_data.ego_pose_token)
 
-            # Verify coordinate transformations exist
-            assert hasattr(
-                calibrated_sensor, "translation"
-            ), "Calibrated sensor should have translation"
-            assert hasattr(calibrated_sensor, "rotation"), "Calibrated sensor should have rotation"
-            assert hasattr(ego_pose, "translation"), "Ego pose should have translation"
-            assert hasattr(ego_pose, "rotation"), "Ego pose should have rotation"
-
             # Verify coordinate dimensions
-            assert len(calibrated_sensor.translation) == 3, "Translation should be 3D"
-            assert isinstance(
-                calibrated_sensor.rotation, Quaternion
-            ), "Rotation should be quaternion"
+            assert len(sensor.translation) == 3, "Translation should be 3D"
+            assert isinstance(sensor.rotation, Quaternion), "Rotation should be quaternion"
             assert len(ego_pose.translation) == 3, "Translation should be 3D"
             assert isinstance(ego_pose.rotation, Quaternion), "Rotation should be quaternion"
 
@@ -353,8 +355,7 @@ class TestT4Devkit:
         # For render_pointcloud: need LiDAR data
         lidar_data = []
         for sd in t4.sample_data:
-            calibrated_sensor = t4.get("calibrated_sensor", sd.calibrated_sensor_token)
-            sensor = t4.get("sensor", calibrated_sensor.sensor_token)
+            sensor = t4.get("sensor", sd.sensor_token)
             if sensor.modality == "lidar":
                 lidar_data.append(sd)
         assert len(lidar_data) > 0, "Need LiDAR data for pointcloud rendering"
@@ -419,7 +420,7 @@ class TestT4Devkit:
             assert path.startswith(t4.data_root), f"Path should start with data root: {path}"
 
             # Should end with expected file extension
-            expected_extensions = [".jpg", ".png", ".pcd.bin", ".bin"]
+            expected_extensions = [".jpg", ".png", ".pcd.bin", ".bin", ".mp4", ".parquet"]
             assert any(
                 path.endswith(ext) for ext in expected_extensions
             ), f"Unexpected file extension: {path}"
@@ -434,7 +435,7 @@ class TestT4Devkit:
 
         # Start with scene
         scene = t4.scene[0]
-        assert scene.name == "minimal_test_scene"
+        assert scene.name == t4.expected["scene_name"]
 
         # Get first sample
         first_sample = t4.get("sample", scene.first_sample_token)
@@ -447,8 +448,7 @@ class TestT4Devkit:
         # Process camera data
         camera_data = None
         for sd in sample_data_list:
-            calibrated_sensor = t4.get("calibrated_sensor", sd.calibrated_sensor_token)
-            sensor = t4.get("sensor", calibrated_sensor.sensor_token)
+            sensor = t4.get("sensor", sd.sensor_token)
             if sensor.modality == "camera":
                 camera_data = sd
                 break
@@ -456,7 +456,7 @@ class TestT4Devkit:
         if camera_data:
             # Get camera sample data
             path, boxes, intrinsic = t4.get_sample_data(camera_data.token)
-            assert path.endswith(".jpg")
+            assert path.endswith((".jpg", ".mp4"))
             assert intrinsic is not None
 
             # Get 2D boxes for this camera
@@ -466,8 +466,7 @@ class TestT4Devkit:
         # Process LiDAR data
         lidar_data = None
         for sd in sample_data_list:
-            calibrated_sensor = t4.get("calibrated_sensor", sd.calibrated_sensor_token)
-            sensor = t4.get("sensor", calibrated_sensor.sensor_token)
+            sensor = t4.get("sensor", sd.sensor_token)
             if sensor.modality == "lidar":
                 lidar_data = sd
                 break
@@ -475,7 +474,7 @@ class TestT4Devkit:
         if lidar_data:
             # Get LiDAR sample data
             path, boxes, intrinsic = t4.get_sample_data(lidar_data.token)
-            assert path.endswith((".pcd.bin", ".bin"))
+            assert path.endswith((".pcd.bin", ".bin", ".parquet"))
             assert intrinsic is None
 
         # Get 3D boxes for this sample using LiDAR data
