@@ -84,6 +84,21 @@ def test_unknown_visibility(tmp_path):
     assert t4.get_box3d(annotation.token).visibility == VisibilityLevel.UNAVAILABLE
 
 
+def test_autolabel_confidence(tmp_path):
+    """A box takes the confidence of its label; manual labels keep 1.0."""
+    data_root = tmp_path / "t4dataset"
+    shutil.copytree(Path(__file__).parent / "sample/t4dataset", data_root)
+    annotation_path = data_root / "annotation" / "sample_annotation.json"
+    annotations = json.loads(annotation_path.read_text())
+    annotations[0]["automatic_annotation"] = True
+    annotations[0]["autolabel_metadata"] = [{"name": "centerpoint-v2", "score": 0.8}]
+    annotation_path.write_text(json.dumps(annotations))
+
+    t4 = T4Devkit(data_root.as_posix(), verbose=False)
+    assert t4.get_box3d(t4.sample_annotation[0].token).confidence == 0.8
+    assert t4.get_box3d(t4.sample_annotation[1].token).confidence == 1.0
+
+
 class TestT4Devkit:
     """Comprehensive integration tests using the sample T4 dataset.
 
@@ -256,6 +271,14 @@ class TestT4Devkit:
             # Verify semantic label
             assert hasattr(box2d, "semantic_label"), "Box should have semantic label"
             assert isinstance(box2d.semantic_label, SemanticLabel), "Label should be SemanticLabel"
+
+    def test_future_trajectory(self, sample_t4):
+        """A box gets a future path when a later annotation of its instance exists."""
+        t4 = sample_t4
+
+        for annotation in t4.sample_annotation:
+            box = t4.get_box3d(annotation.token, future_seconds=10.0)
+            assert (box.future is not None) == (annotation.next is not None)
 
     def test_keyframe_data_retrieval(self, sample_t4):
         """Test keyframe-specific data retrieval."""
