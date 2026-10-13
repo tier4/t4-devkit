@@ -120,7 +120,7 @@ class V0Converter:
             self.convert_sample_data(record) for record in v0["sample_data"]
         ]
 
-        tables[SchemaName.CATEGORY] = [self.convert_category(record) for record in v0["category"]]
+        tables[SchemaName.CATEGORY] = self.convert_categories()
         tables[SchemaName.ATTRIBUTE] = [
             self.convert_attribute(record) for record in v0["attribute"]
         ]
@@ -314,13 +314,27 @@ class V0Converter:
 
     # --- label tables ---
 
-    def convert_category(self, record: Record) -> Record:
+    def convert_categories(self) -> list[Record]:
+        """Categories without `index` get their list position, as the 0.x devkit reads them.
+
+        Raises:
+            ValueError: If some categories have an `index` and others do not.
+        """
+        records = self.v0["category"]
+        indices = [record.get("index") for record in records]
+        if None in indices:
+            if any(index is not None for index in indices):
+                raise ValueError("Category index is not set for some categories.")
+            indices = list(range(len(records)))
+        return [self.convert_category(record, index) for record, index in zip(records, indices)]
+
+    def convert_category(self, record: Record, index: int) -> Record:
         """`is_thing` is false only for categories used by `surface_ann` (road, sky) and nothing else."""
         token = record["token"]
         return {
             "token": token,
             "name": record["name"],
-            "index": record.get("index"),
+            "index": index,
             "description": self._none_if_empty(record.get("description")),
             "is_thing": token in self.thing_categories or token not in self.surface_categories,
             "has_orientation": record.get("has_orientation", False),
