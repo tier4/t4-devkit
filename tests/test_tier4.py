@@ -356,32 +356,20 @@ class TestT4Devkit:
             assert len(ego_pose.translation) == 3, "Translation should be 3D"
             assert isinstance(ego_pose.rotation, Quaternion), "Rotation should be quaternion"
 
-    def test_rendering_methods_integration(self, sample_t4):
-        """Test that rendering methods work with real data (without actually rendering)."""
+    def test_rendering(self, sample_t4, tmp_path):
+        """Scene, instance and pointcloud render to recording files (no viewer window)."""
         t4 = sample_t4
+        save_dirs = {name: tmp_path / name for name in ("scene", "instance", "pointcloud")}
+        for save_dir in save_dirs.values():
+            save_dir.mkdir()
 
-        # Test that methods exist and are callable
-        assert hasattr(t4, "render_scene") and callable(t4.render_scene)
-        assert hasattr(t4, "render_instance") and callable(t4.render_instance)
-        assert hasattr(t4, "render_pointcloud") and callable(t4.render_pointcloud)
+        t4.render_scene(future_seconds=1.0, save_dir=str(save_dirs["scene"]))
+        t4.render_instance(t4.instance[0].token, save_dir=str(save_dirs["instance"]))
+        t4.render_pointcloud(save_dir=str(save_dirs["pointcloud"]))
 
-        # We don't actually call these methods to avoid opening GUI windows
-        # but we can test that the data they would need is available
-
-        # For render_scene: need sample data
-        assert len(t4.sample_data) > 0, "Need sample data for scene rendering"
-
-        # For render_instance: need instances and annotations
-        assert len(t4.instance) > 0, "Need instances for instance rendering"
-        assert len(t4.sample_annotation) > 0, "Need annotations for instance rendering"
-
-        # For render_pointcloud: need LiDAR data
-        lidar_data = []
-        for sd in t4.sample_data:
-            sensor = t4.get("sensor", sd.sensor_token)
-            if sensor.modality == "lidar":
-                lidar_data.append(sd)
-        assert len(lidar_data) > 0, "Need LiDAR data for pointcloud rendering"
+        for save_dir in save_dirs.values():
+            recordings = list(save_dir.glob("*.rrd"))
+            assert recordings and all(path.stat().st_size > 0 for path in recordings)
 
     def test_semantic_label_consistency(self, sample_t4):
         """Test semantic label consistency across annotations."""

@@ -26,7 +26,7 @@ from .record import BatchBox2D, BatchBox3D, BatchSegmentation2D
 
 if TYPE_CHECKING:
     from t4_devkit.dataclass import Box2D, Box3D, Future, PointCloudLike
-    from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
+    from t4_devkit.schema.v1 import EgoPose, Sensor
     from t4_devkit.typing import (
         CameraIntrinsicLike,
         NDArrayU8,
@@ -545,18 +545,12 @@ class RerunViewer:
             rr.log(entity_path, rr.GeoPoints(lat_lon=(latitude, longitude)))
 
     @overload
-    def render_calibration(
-        self,
-        sensor: Sensor,
-        calibration: CalibratedSensor,
-        resolution: Vector2Like | None = None,
-    ) -> None:
+    def render_calibration(self, sensor: Sensor) -> None:
         """Render a sensor calibration.
 
         Args:
-            sensor (Sensor): `Sensor` object.
-            calibration (CalibratedSensor): `CalibratedSensor` object.
-            resolution (Vector2Like | None, optional): Camera resolution (width, height).
+            sensor (Sensor): `Sensor` record, with its extrinsics and, for a camera, its
+                intrinsics and image size.
         """
         pass
 
@@ -585,24 +579,20 @@ class RerunViewer:
     @_check_spatial3d
     def render_calibration(self, *args, **kwargs) -> None:
         """Render a sensor calibration."""
-        if len(args) + len(kwargs) <= 3:
+        if len(args) + len(kwargs) == 1:
             self._render_calibration_with_schema(*args, **kwargs)
         else:
             self._render_calibration_without_schema(*args, **kwargs)
 
-    def _render_calibration_with_schema(
-        self,
-        sensor: Sensor,
-        calibration: CalibratedSensor,
-        resolution: Vector2Like | None = None,
-    ) -> None:
+    def _render_calibration_with_schema(self, sensor: Sensor) -> None:
+        camera = sensor.camera
         self._render_calibration_without_schema(
             channel=sensor.channel,
             modality=sensor.modality,
-            translation=calibration.translation,
-            rotation=calibration.rotation,
-            camera_intrinsic=calibration.camera_intrinsic,
-            resolution=resolution,
+            translation=sensor.translation,
+            rotation=sensor.rotation,
+            camera_intrinsic=None if camera is None else camera.intrinsic,
+            resolution=None if camera is None else (camera.width, camera.height),
         )
 
     def _render_calibration_without_schema(
