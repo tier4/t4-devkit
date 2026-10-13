@@ -52,7 +52,26 @@ class T4Tables:
             The record.
         """
         name = SchemaName(name)
-        return self.tables[name][self._token2idx[name][token]]
+        return self.tables[name][self.get_idx(name, token)]
+
+    def get_idx(self, name: str | SchemaName, token: str) -> int:
+        """Return the position of a record in its table by its token.
+
+        Args:
+            name (str | SchemaName): Table name.
+            token (str): Record token.
+
+        Returns:
+            The position in `tables[name]`.
+
+        Raises:
+            KeyError: If no record of the table has this token.
+        """
+        name = SchemaName(name)
+        idx = self._token2idx[name].get(token)
+        if idx is None:
+            raise KeyError(f"{token} is not registered in {name.value}.")
+        return idx
 
     def _fill_shortcuts(self) -> None:
         """Fill the shortcut fields (`init=False`) of the records, from their links."""

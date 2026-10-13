@@ -15,37 +15,38 @@ from typing_extensions import deprecated
 from t4_devkit.common.geometry import is_box_in_image
 from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel, Shape, ShapeType
 from t4_devkit.helper import RenderingHelper, TimeseriesHelper
-from t4_devkit.schema import SchemaName, SensorModality, VisibilityLevel, build_schema
-from t4_devkit.schema.compatibility import fix_category_table
+from t4_devkit.schema import SensorModality, VisibilityLevel
+from t4_devkit.schema.v1 import SchemaName, load_dataset
 
 if TYPE_CHECKING:
+    from t4_devkit.schema import SchemaTable
     from t4_devkit.typing import CameraIntrinsicLike, PathLike, Vector3
 
     from .dataclass import BoxLike
-    from .schema import (
+    from .schema.v1 import (
         Attribute,
-        CalibratedSensor,
+        Caption,
         Category,
         EgoPose,
         Instance,
         Keypoint,
-        LidarSeg,
         Log,
         Map,
         ObjectAnn,
+        Route,
         Sample,
         SampleAnnotation,
         SampleData,
+        Scenario,
         Scene,
-        SchemaTable,
         Sensor,
-        SurfaceAnn,
         TrafficLight,
+        Vehicle,
         VehicleState,
         Visibility,
     )
 
-__all__ = ["DBMetadata", "load_metadata", "load_table", "Tier4", "T4Devkit"]
+__all__ = ["DBMetadata", "load_metadata", "Tier4", "T4Devkit"]
 
 
 @define
@@ -96,29 +97,6 @@ def load_metadata(db_root: PathLike, revision: str | None = None) -> DBMetadata:
     return DBMetadata(data_root=data_root, dataset_id=dataset_id, version=version)
 
 
-def load_table(annotation_dir: str, schema: SchemaName) -> list[SchemaTable]:
-    """Load schema table from a JSON file.
-
-    If the schema is optional and there is no corresponding JSON file in dataset,
-    returns empty list.
-
-    Args:
-        annotation_dir (str): Path to the directory of JSON annotation schema files.
-        schema (SchemaName): An enum member of `SchemaName`.
-
-    Returns:
-        Loaded table data saved in `.json`.
-    """
-    filepath = osp.join(annotation_dir, schema.filename)
-    if not osp.exists(filepath) and schema.is_optional():
-        return []
-
-    if not osp.exists(filepath):
-        raise FileNotFoundError(f"{schema.value} is mandatory.")
-
-    return build_schema(schema, filepath)
-
-
 class T4Devkit:
     """Database class for T4 dataset to help query and retrieve information from the database."""
 
@@ -140,26 +118,16 @@ class T4Devkit:
             >>> from t4_devkit import T4Devkit
             >>> t4 = T4Devkit("data/tier4")
             ======
-            Loading T4 tables in `annotation`...
-            Reverse indexing...
-            Done reverse indexing in 0.010 seconds.
-            ======
-            21 category
-            8 attribute
-            4 visibility
-            31 instance
-            7 sensor
-            7 calibrated_sensor
-            2529 ego_pose
-            1 log
-            1 scene
+            Loading T4 tables...
             88 sample
             2529 sample_data
-            1919 sample_annotation
-            0 object_ann
-            0 surface_ann
-            0 keypoint
+            2529 ego_pose
+            7 sensor
+            1 scene
+            1 log
+            1 vehicle
             1 map
+            ...
             Done loading in 0.046 seconds.
             ======
 
@@ -169,48 +137,41 @@ class T4Devkit:
         if not osp.exists(self.data_root):
             raise FileNotFoundError(f"Database directory is not found: {self.data_root}")
 
-        if self.version is None:
+        if self._metadata.version is None:
             warnings.warn(
-                f"DatasetID: {self.dataset_id} does't contain any versions.", DeprecationWarning
+                f"DatasetID: {self._metadata.dataset_id} does't contain any versions.",
+                DeprecationWarning,
             )
 
         start_time = time.time()
         if verbose:
             print("======\nLoading T4 tables...")
 
+        # 0.x datasets are converted to 1.0 records on loading.
+        self._tables = load_dataset(self.data_root)
+        tables = self._tables.tables
+
         # assign tables explicitly
-        self.attribute: list[Attribute] = load_table(self.annotation_dir, SchemaName.ATTRIBUTE)
-        self.calibrated_sensor: list[CalibratedSensor] = load_table(
-            self.annotation_dir, SchemaName.CALIBRATED_SENSOR
-        )
-        self.category: list[Category] = load_table(self.annotation_dir, SchemaName.CATEGORY)
-        self.category = fix_category_table(self.category)
-
-        self.ego_pose: list[EgoPose] = load_table(self.annotation_dir, SchemaName.EGO_POSE)
-        self.instance: list[Instance] = load_table(self.annotation_dir, SchemaName.INSTANCE)
-        self.keypoint: list[Keypoint] = load_table(self.annotation_dir, SchemaName.KEYPOINT)
-        self.lidarseg: list[LidarSeg] = load_table(self.annotation_dir, SchemaName.LIDARSEG)
-        self.log: list[Log] = load_table(self.annotation_dir, SchemaName.LOG)
-        self.map: list[Map] = load_table(self.annotation_dir, SchemaName.MAP)
-        self.object_ann: list[ObjectAnn] = load_table(self.annotation_dir, SchemaName.OBJECT_ANN)
-        self.sample_annotation: list[SampleAnnotation] = load_table(
-            self.annotation_dir, SchemaName.SAMPLE_ANNOTATION
-        )
-        self.sample_data: list[SampleData] = load_table(self.annotation_dir, SchemaName.SAMPLE_DATA)
-        self.sample: list[Sample] = load_table(self.annotation_dir, SchemaName.SAMPLE)
-        self.scene: list[Scene] = load_table(self.annotation_dir, SchemaName.SCENE)
-        self.sensor: list[Sensor] = load_table(self.annotation_dir, SchemaName.SENSOR)
-        self.surface_ann: list[SurfaceAnn] = load_table(self.annotation_dir, SchemaName.SURFACE_ANN)
-        self.vehicle_state: list[VehicleState] = load_table(
-            self.annotation_dir, SchemaName.VEHICLE_STATE
-        )
-        self.visibility: list[Visibility] = load_table(self.annotation_dir, SchemaName.VISIBILITY)
-        self.traffic_light: list[TrafficLight] = load_table(
-            self.annotation_dir, SchemaName.TRAFFIC_LIGHT
-        )
-
-        # make reverse indexes for common lookups
-        self.__make_reverse_index__(verbose)
+        self.sample: list[Sample] = tables[SchemaName.SAMPLE]
+        self.sample_data: list[SampleData] = tables[SchemaName.SAMPLE_DATA]
+        self.ego_pose: list[EgoPose] = tables[SchemaName.EGO_POSE]
+        self.sensor: list[Sensor] = tables[SchemaName.SENSOR]
+        self.scene: list[Scene] = tables[SchemaName.SCENE]
+        self.log: list[Log] = tables[SchemaName.LOG]
+        self.vehicle: list[Vehicle] = tables[SchemaName.VEHICLE]
+        self.map: list[Map] = tables[SchemaName.MAP]
+        self.vehicle_state: list[VehicleState] = tables[SchemaName.VEHICLE_STATE]
+        self.category: list[Category] = tables[SchemaName.CATEGORY]
+        self.attribute: list[Attribute] = tables[SchemaName.ATTRIBUTE]
+        self.visibility: list[Visibility] = tables[SchemaName.VISIBILITY]
+        self.instance: list[Instance] = tables[SchemaName.INSTANCE]
+        self.sample_annotation: list[SampleAnnotation] = tables[SchemaName.SAMPLE_ANNOTATION]
+        self.object_ann: list[ObjectAnn] = tables[SchemaName.OBJECT_ANN]
+        self.keypoint: list[Keypoint] = tables[SchemaName.KEYPOINT]
+        self.traffic_light: list[TrafficLight] = tables[SchemaName.TRAFFIC_LIGHT]
+        self.route: list[Route] = tables[SchemaName.ROUTE]
+        self.scenario: list[Scenario] = tables[SchemaName.SCENARIO]
+        self.caption: list[Caption] = tables[SchemaName.CAPTION]
 
         if verbose:
             for schema in SchemaName:
@@ -229,13 +190,16 @@ class T4Devkit:
 
     @property
     def dataset_id(self) -> str:
-        """Return the dataset ID."""
-        return self._metadata.dataset_id
+        """Return the dataset ID: from `manifest.json`, or the folder name for 0.x."""
+        manifest = self._tables.manifest
+        return manifest.dataset_id if manifest is not None else self._metadata.dataset_id
 
     @property
     def version(self) -> str | None:
-        """Return the dataset version, or None if it is failed to lookup."""
-        return self._metadata.version
+        """Return the dataset version: from `manifest.json`, or the folder name for 0.x (None if
+        there is no version folder)."""
+        manifest = self._tables.manifest
+        return str(manifest.version) if manifest is not None else self._metadata.version
 
     @property
     def annotation_dir(self) -> str:
@@ -252,91 +216,6 @@ class T4Devkit:
         """Return the path to ROS bag directory."""
         return osp.join(self.data_root, "input_bag")
 
-    def __make_reverse_index__(self, verbose: bool) -> None:
-        """De-normalize database to create reverse indices for common cases.
-
-        Args:
-            verbose (bool): Whether to display outputs.
-
-        Raises:
-            ValueError: Expecting `map` table has `log_tokens` key.
-        """
-        start_time = time.time()
-        if verbose:
-            print("Reverse indexing...")
-
-        self._token2idx: dict[str, dict[str, int]] = {
-            schema.value: {
-                table.token: idx for idx, table in enumerate(self.get_table(schema.value))
-            }
-            for schema in SchemaName
-        }
-
-        self._label2id: dict[str, int] = {
-            category.name: category.index for category in self.category
-        }
-
-        # add shortcuts
-        for record in self.sample_annotation:
-            instance: Instance = self.get("instance", record.instance_token)
-            category: Category = self.get("category", instance.category_token)
-            record.category_name = category.name
-
-        for record in self.object_ann:
-            category: Category = self.get("category", record.category_token)
-            record.category_name = category.name
-
-        for record in self.surface_ann:
-            if record.category_token == "":  # NOTE: Some database contains this case
-                warnings.warn(f"Category token is empty for surface ann: {record.token}")
-                continue
-            category: Category = self.get("category", record.category_token)
-            record.category_name = category.name
-
-        registered_channels: list[str] = []
-        for record in self.sample_data:
-            cs_record: CalibratedSensor = self.get(
-                "calibrated_sensor", record.calibrated_sensor_token
-            )
-            sensor_record: Sensor = self.get("sensor", cs_record.sensor_token)
-            record.modality = sensor_record.modality
-            record.channel = sensor_record.channel
-            # set first sample data token to the corresponding sensor channel,
-            # as premise for sample data is ordered by time stamp order.
-            if sensor_record.channel not in registered_channels:
-                sensor_record.first_sd_token = record.token
-                registered_channels.append(sensor_record.channel)
-
-            # set sample data
-            if record.is_key_frame:
-                sample_record: Sample = self.get("sample", record.sample_token)
-                sample_record.data[record.channel] = record.token
-
-        for ann_record in self.sample_annotation:
-            sample_record: Sample = self.get("sample", ann_record.sample_token)
-            sample_record.ann_3ds.append(ann_record.token)
-
-        for ann_record in self.object_ann:
-            sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
-            sample_record: Sample = self.get("sample", sd_record.sample_token)
-            sample_record.ann_2ds.append(ann_record.token)
-
-        for ann_record in self.surface_ann:
-            sd_record: SampleData = self.get("sample_data", ann_record.sample_data_token)
-            sample_record: Sample = self.get("sample", sd_record.sample_token)
-            sample_record.surface_anns.append(ann_record.token)
-
-        log_to_map: dict[str, str] = {}
-        for map_record in self.map:
-            for log_token in map_record.log_tokens:
-                log_to_map[log_token] = map_record.token
-        for log_record in self.log:
-            log_record.map_token = log_to_map[log_record.token]
-
-        if verbose:
-            elapsed_time = time.time() - start_time
-            print(f"Done reverse indexing in {elapsed_time:.3f} seconds.\n======")
-
     def get_table(self, schema: str | SchemaName) -> list[SchemaTable]:
         """Return the list of dataclasses corresponding to the schema table.
 
@@ -346,7 +225,7 @@ class T4Devkit:
         Returns:
             List of dataclasses.
         """
-        return getattr(self, SchemaName(schema))
+        return self._tables.tables[SchemaName(schema)]
 
     def get(self, schema: str | SchemaName, token: str) -> SchemaTable:
         """Return a record identified by the associated token.
@@ -358,7 +237,7 @@ class T4Devkit:
         Returns:
             Table record of the corresponding token.
         """
-        return self.get_table(schema)[self.get_idx(schema, token)]
+        return self._tables.get(schema, token)
 
     def get_idx(self, schema: str | SchemaName, token: str) -> int:
         """Return the index of the record in a table in constant runtime.
@@ -370,12 +249,7 @@ class T4Devkit:
         Returns:
             The index of the record in table.
         """
-        schema = SchemaName(schema)
-        if self._token2idx.get(schema) is None:
-            raise KeyError(f"{schema} is not registered.")
-        if self._token2idx[schema].get(token) is None:
-            raise KeyError(f"{token} is not registered in {schema}.")
-        return self._token2idx[schema][token]
+        return self._tables.get_idx(schema, token)
 
     def get_sample_data_path(self, sample_data_token: str) -> str:
         """Return the file path to a raw data recorded in `sample_data`.
@@ -416,17 +290,14 @@ class T4Devkit:
         """
         # Retrieve sensor & pose records
         sd_record: SampleData = self.get("sample_data", sample_data_token)
-        cs_record: CalibratedSensor = self.get(
-            "calibrated_sensor", sd_record.calibrated_sensor_token
-        )
-        sensor_record: Sensor = self.get("sensor", cs_record.sensor_token)
+        sensor_record: Sensor = self.get("sensor", sd_record.sensor_token)
         pose_record: EgoPose = self.get("ego_pose", sd_record.ego_pose_token)
 
         data_path = self.get_sample_data_path(sample_data_token)
 
         if sensor_record.modality == SensorModality.CAMERA:
-            cam_intrinsic = cs_record.camera_intrinsic
-            img_size = (sd_record.width, sd_record.height)
+            cam_intrinsic = sensor_record.camera.intrinsic
+            img_size = (sensor_record.camera.width, sensor_record.camera.height)
         else:
             cam_intrinsic = None
             img_size = None
@@ -462,8 +333,8 @@ class T4Devkit:
 
             if as_sensor_coord:
                 #  Move box to sensor coord system.
-                box.translate(-cs_record.translation)
-                box.rotate(cs_record.rotation.inverse)
+                box.translate(-sensor_record.translation)
+                box.rotate(sensor_record.rotation.inverse)
                 box.frame_id = sensor_record.channel
 
             if sensor_record.modality == SensorModality.CAMERA and not is_box_in_image(
@@ -513,7 +384,6 @@ class T4Devkit:
         ann: SampleAnnotation = self.get("sample_annotation", sample_annotation_token)
         instance: Instance = self.get("instance", ann.instance_token)
         sample: Sample = self.get("sample", ann.sample_token)
-        visibility: Visibility = self.get("visibility", ann.visibility_token)
 
         # semantic label
         semantic_label = self.get_semantic_label(
@@ -535,9 +405,9 @@ class T4Devkit:
             shape=shape,
             velocity=velocity,
             confidence=1.0,
-            uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+            uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance.name`.
             num_points=ann.num_lidar_pts,
-            visibility=visibility.level,
+            visibility=self._box_visibility(ann),
         )
 
         if future_seconds > 0.0:
@@ -562,7 +432,6 @@ class T4Devkit:
             Instantiated Box2D.
         """
         ann: ObjectAnn = self.get("object_ann", object_ann_token)
-        instance: Instance = self.get("instance", ann.instance_token)
         sample_data: SampleData = self.get("sample_data", ann.sample_data_token)
 
         semantic_label = self.get_semantic_label(
@@ -576,7 +445,8 @@ class T4Devkit:
             semantic_label=semantic_label,
             roi=ann.bbox,
             confidence=1.0,
-            uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+            # regions without an instance (road, sky) have no uuid
+            uuid=ann.instance_token,  # TODO(ktro2828): extract uuid from `instance.name`.
         )
 
     def get_box3ds(self, sample_data_token: str, *, future_seconds: float = 0.0) -> list[Box3D]:
@@ -594,7 +464,7 @@ class T4Devkit:
         sd_record: SampleData = self.get("sample_data", sample_data_token)
         curr_sample_record: Sample = self.get("sample", sd_record.sample_token)
 
-        if curr_sample_record.prev == "" or sd_record.is_key_frame:
+        if curr_sample_record.prev is None or sd_record.is_key_frame:
             # If no previous annotations available, or if sample_data is keyframe just return the current ones.
             boxes = [
                 self.get_box3d(token, future_seconds=future_seconds)
@@ -649,7 +519,6 @@ class T4Devkit:
                         instance.category_token, curr_ann.attribute_tokens
                     )
                     velocity = self.box_velocity(curr_ann.token)
-                    visibility: Visibility = self.get("visibility", curr_ann.visibility_token)
 
                     box = Box3D(
                         unix_time=t,
@@ -660,9 +529,9 @@ class T4Devkit:
                         shape=Shape(ShapeType.BOUNDING_BOX, curr_ann.size),
                         velocity=velocity,
                         confidence=1.0,
-                        uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance_name`.
+                        uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance.name`.
                         num_points=curr_ann.num_lidar_pts,
-                        visibility=visibility.level,
+                        visibility=self._box_visibility(curr_ann),
                     )
                 else:
                     # If not, simply grab the current annotation.
@@ -710,8 +579,8 @@ class T4Devkit:
         if current.velocity is not None:
             return current.velocity
 
-        has_prev = current.prev != ""
-        has_next = current.next != ""
+        has_prev = current.prev is not None
+        has_next = current.next is not None
 
         # Cannot estimate velocity for a single annotation.
         if not has_prev and not has_next:
@@ -813,6 +682,13 @@ class T4Devkit:
             save_dir=save_dir,
             show_map=show_map,
         )
+
+    def _box_visibility(self, ann: SampleAnnotation) -> VisibilityLevel:
+        """Visibility of a 3D box; `UNAVAILABLE` when the annotation's visibility is unknown."""
+        if ann.visibility_token is None:
+            return VisibilityLevel.UNAVAILABLE
+        visibility: Visibility = self.get("visibility", ann.visibility_token)
+        return VisibilityLevel(visibility.level.value)
 
 
 @deprecated("Tier4 is deprecated. Use T4Devkit instead.")
