@@ -404,7 +404,7 @@ class T4Devkit:
             rotation=ann.rotation,
             shape=shape,
             velocity=velocity,
-            confidence=1.0,
+            confidence=self._box_confidence(ann),
             uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance.name`.
             num_points=ann.num_lidar_pts,
             visibility=self._box_visibility(ann),
@@ -444,7 +444,7 @@ class T4Devkit:
             frame_id=sample_data.channel,
             semantic_label=semantic_label,
             roi=ann.bbox,
-            confidence=1.0,
+            confidence=self._box_confidence(ann),
             # regions without an instance (road, sky) have no uuid
             uuid=ann.instance_token,  # TODO(ktro2828): extract uuid from `instance.name`.
         )
@@ -528,7 +528,7 @@ class T4Devkit:
                         rotation=rotation,
                         shape=Shape(ShapeType.BOUNDING_BOX, curr_ann.size),
                         velocity=velocity,
-                        confidence=1.0,
+                        confidence=self._box_confidence(curr_ann),
                         uuid=instance.token,  # TODO(ktro2828): extract uuid from `instance.name`.
                         num_points=curr_ann.num_lidar_pts,
                         visibility=self._box_visibility(curr_ann),
@@ -689,6 +689,11 @@ class T4Devkit:
             return VisibilityLevel.UNAVAILABLE
         visibility: Visibility = self.get("visibility", ann.visibility_token)
         return VisibilityLevel(visibility.level.value)
+
+    @staticmethod
+    def _box_confidence(ann: SampleAnnotation | ObjectAnn) -> float:
+        """Confidence of a box: the label's, or 1.0 for labels without one (manual)."""
+        return 1.0 if ann.confidence is None else ann.confidence
 
 
 @deprecated("Tier4 is deprecated. Use T4Devkit instead.")
