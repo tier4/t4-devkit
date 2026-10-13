@@ -1,9 +1,5 @@
 # Dataset Schema 1.0
 
-!!! warning
-
-    T4Dataset 1.0 is under development. This page is the agreed specification; `t4-devkit` support is being added step by step.
-
 T4Dataset 1.0 is the next major version of the dataset format. Datasets written before 1.0 are referred to as **0.x** and are described in [Dataset Schema](../index.md).
 
 Main changes from 0.x:
