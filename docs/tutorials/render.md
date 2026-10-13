@@ -36,7 +36,9 @@ If you want to visualize annotation results, `T4Devkit` supports some rendering 
 >>> t4.render_pointcloud()
 ```
 
-If `SampleData.info_filename` points to a pointcloud metainfo JSON file, `T4Devkit.render_pointcloud()` loads it automatically. This allows rendering pointclouds with extended per-point features such as `return_type` or `timestamp`. When no metainfo file is available, the standard 5-feature layout is assumed.
+Frames are read by their own format: point layouts come from the file (Parquet, PCD) or from `sensor.lidar.fields` (`.bin`; for 0.x datasets it is taken from the `.info` files when loading), and camera frames from per-frame images or from the channel's AV1 video (`sample_data.frame_index`).
+
+0.x LiDAR segmentation (`lidarseg`) is not rendered by `T4Devkit`.
 
 ![Render PointCloud GIF](../assets/render_pointcloud.gif)
 
@@ -129,11 +131,11 @@ from t4_devkit.dataclass import LidarPointCloud
 from t4_devkit.viewer import PointCloudColorMode
 # Point cloud channel name
 >>> lidar_channel = "LIDAR_TOP"
-# Load point cloud from file.
-# Pass metainfo_filepath when the binary stores more than 5 float32 values per point.
+# Load point cloud from file: one frame of a Parquet file, or a .pcd / .bin file.
+# A .bin file has no header: pass its layout, e.g. from `sensor.lidar.fields`.
 >>> pointcloud = LidarPointCloud.from_file(
-...     <PATH_TO_POINTCLOUD.pcd.bin>,
-...     metainfo_filepath=<PATH_TO_POINTCLOUD_INFO.json>,
+...     <PATH_TO_LIDAR.parquet>,
+...     frame_index=<FRAME_INDEX>,
 ... )
 >>> color_mode = PointCloudColorMode.DISTANCE
 >>> viewer.render_pointcloud(seconds, lidar_channel, pointcloud, color_mode)
