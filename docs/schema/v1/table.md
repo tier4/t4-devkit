@@ -24,6 +24,8 @@ Every label table (`sample_annotation`, `object_ann`, `surface_ann`, `keypoint`,
 
 They replace `automatic_annotation` and `autolabel_metadata` from 0.x. For 0.x readers, `automatic_annotation = (annotation_type != "manual")`.
 
+Labels sit on annotated frames (key frames): a `sample_annotation` on a `Sample` with `has_key_frame`, and an `object_ann` or `keypoint` on a `SampleData` with `is_key_frame`. Labeling a frame makes it a key frame, whatever the `annotation_type` (e.g. an interpolated box). An annotated frame may have no labels, e.g. when nothing was found or the labels are point-wise.
+
 ### `Pose`
 
 ```json
@@ -39,13 +41,14 @@ Pose {
 
 - Filename: `sample.json`
 
-An annotation keyframe. Unchanged from 0.x, except that missing links are `null`.
+One frame of the recording: the observations of all channels at that moment, one `SampleData` per channel at most. Every frame is a sample, annotated or not; `has_key_frame` marks the annotated ones. In 0.x, only annotated frames were samples.
 
 ```json
 sample {
   "token":            <str> -- Unique record identifier.
-  "timestamp":        <int> -- Unix timestamp in microseconds.
+  "timestamp":        <int> -- Unix timestamp in microseconds: the time of the sample's LiDAR frame, or of its earliest frame if it has no LiDAR.
   "scene_token":      <str> -- Foreign key to the `Scene` table.
+  "has_key_frame":    <bool> -- Whether any of its `SampleData` is a key frame (annotated).
   "next":             <option[str]> -- Foreign key to the next `Sample`. `null` for the last sample.
   "prev":             <option[str]> -- Foreign key to the previous `Sample`. `null` for the first sample.
 }
@@ -55,12 +58,12 @@ sample {
 
 - Filename: `sample_data.json`
 
-One observation of one sensor channel. Channel-level facts (calibration, image size, file encoding) are on the `Sensor` table.
+One observation of one sensor channel, in one frame (`Sample`). Channel-level facts (calibration, image size, file encoding) are on the `Sensor` table.
 
 ```json
 sample_data {
   "token":            <str> -- Unique record identifier.
-  "sample_token":     <option[str]> -- Foreign key to the `Sample` table. `null` if this is not a key frame.
+  "sample_token":     <str> -- Foreign key to the `Sample` (frame) this observation belongs to.
   "ego_pose_token":   <str> -- Foreign key to the `EgoPose` table.
   "sensor_token":     <str> -- Foreign key to the `Sensor` table. Replaces `calibrated_sensor_token`.
   "filename":         <option[str]> -- Path to the channel file (video or point cloud container), or to a per-frame file for datasets that keep 0.x files.
@@ -68,7 +71,7 @@ sample_data {
   "fileformat":       <enum["jpg", "png", "pcd", "bin", "pcd.bin", "av1_mp4", "parquet"]> -- Format of the file.
   "num_points":       <option[int]> -- Number of points in the frame. LiDAR only.
   "timestamp":        <int> -- Unix timestamp in microseconds (ROS header stamp of this observation).
-  "is_key_frame":     <bool> -- Whether this is an annotation keyframe.
+  "is_key_frame":     <bool> -- Whether this frame was annotated. Per channel: in one sample, a camera may be annotated and another not.
   "is_valid":         <bool> -- `false` if the frame has a sensor drop or synchronization failure.
   "next":             <option[str]> -- Foreign key to the next `SampleData` of the same channel.
   "prev":             <option[str]> -- Foreign key to the previous `SampleData` of the same channel.
@@ -176,7 +179,7 @@ scene {
   "name":               <str> -- Name of the scene.
   "description":        <option[str]> -- Description of the scene.
   "log_token":          <str> -- Foreign key to the `Log` table.
-  "nbr_samples":        <int> -- Number of samples in the scene.
+  "nbr_samples":        <int> -- Number of samples (frames) in the scene.
   "first_sample_token": <str> -- Foreign key to the first `Sample`.
   "last_sample_token":  <str> -- Foreign key to the last `Sample`.
 }
@@ -446,6 +449,7 @@ traffic_light {
   "instance_token":         <option[str]> -- Foreign key to the lamp `Instance`, for states read from 2D labels.
   "annotation_type":        <AnnotationType>
   "provenance":             <option[str]> -- e.g. vendor, recognition model and version, "v2x".
+  "confidence":             <option[float]> -- Confidence in [0, 1]. `null` for manual labels.
 }
 
 TrafficLightElement {

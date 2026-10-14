@@ -6,6 +6,7 @@ Main changes from 0.x:
 
 - Every dataset has a `manifest.json` that declares the schema version, identity, contents and checksums. It replaces `status.json`.
 - `sensor` and `calibrated_sensor` are merged into a single `sensor` table with a modality-specific block (`camera` or `lidar`).
+- `sample` lists every frame of the recording, not only the annotated ones; `sample.has_key_frame` and `sample_data.is_key_frame` mark the annotated ones. Every `sample_data` belongs to a sample.
 - Camera images are stored as one AV1 video per channel, and LiDAR point clouds as one Parquet file per channel. `sample_data.frame_index` addresses a frame inside that file.
 - Every label row records how it was made: `annotation_type`, `provenance` and `confidence`.
 - New tables for planning and language data: `vehicle`, `route`, `scenario`, `caption`. `traffic_light` is keyed by the lanelet2 regulatory element.
