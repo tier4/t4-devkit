@@ -6,7 +6,7 @@ from returns.maybe import Maybe, Nothing, Some
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName, Severity
+from ..checker import RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_json_safe
@@ -25,6 +25,7 @@ class REC006(RecordCountChecker):
     id = RuleID("REC006")
     name = RuleName("instance-not-empty")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = (
         "'Instance' record is not empty if either 'SampleAnnotation' or 'ObjectAnn' is not empty."
     )
@@ -45,8 +46,8 @@ class REC006(RecordCountChecker):
             case (None, _) | (_, None):
                 return Maybe.from_value(Reason("Missing 'annotation' directory"))
             case (s, o):
-                sample_ann_count = len(load_json_safe(s).unwrap()) if s.exists() else 0
-                object_ann_count = len(load_json_safe(o).unwrap()) if o.exists() else 0
+                sample_ann_count = len(load_json_safe(s).value_or([])) if s.exists() else 0
+                object_ann_count = len(load_json_safe(o).value_or([])) if o.exists() else 0
                 return (
                     Maybe.from_value(
                         Reason(

@@ -9,6 +9,8 @@ from returns.maybe import Maybe, Nothing, Some
 from .result import Reason, make_report, make_skipped
 
 if TYPE_CHECKING:
+    from t4_devkit.schema.v1 import SchemaName as V1SchemaName
+
     from .context import SanityContext
     from .result import Report
 
@@ -119,3 +121,23 @@ class ManifestChecker(Checker):
             case Some(_):
                 return Nothing
         return Maybe.from_value(Reason("No valid 'manifest.json' (see STR010, FMT020)"))
+
+
+class RecordsChecker(ManifestChecker):
+    """Base class for 1.0 rules on records: skipped unless every table they read is listed (or
+    optional) and builds (reported by STR014 and the format rules).
+
+    Attributes:
+        tables (tuple[V1SchemaName, ...]): The tables the rule reads.
+    """
+
+    tables: tuple[V1SchemaName, ...]
+
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        skip = super().can_skip(context)
+        if skip != Nothing:
+            return skip
+        invalid = [table.value for table in self.tables if context.load_records(table) == Nothing]
+        if invalid:
+            return Maybe.from_value(Reason(f"Tables not listed or not valid: {', '.join(invalid)}"))
+        return Nothing
