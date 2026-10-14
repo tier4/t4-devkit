@@ -64,7 +64,8 @@ class RecordCountChecker(Checker):
 
 
 def channel_file(sensor: Sensor) -> tuple[str, int] | None:
-    """The file and frame count of a channel stored in one file, or None for one file per frame."""
+    """Return the file and frame count of a channel stored in one file, or None for one file per
+    frame."""
     if sensor.camera is not None and sensor.camera.video is not None:
         return sensor.camera.video.path, sensor.camera.video.frame_count
     if sensor.lidar is not None and sensor.lidar.container.path is not None:
@@ -81,7 +82,8 @@ LIDAR_FRAME_FORMATS = {
 
 
 def frame_formats(sensor: Sensor) -> set[str]:
-    """The `sample_data.fileformat` values a sensor's storage allows (any for radar, undefined)."""
+    """Return the `sample_data.fileformat` values a sensor's storage allows (any for radar,
+    undefined in 1.0)."""
     if sensor.camera is not None:
         if sensor.camera.video is not None:
             return {FileFormat.AV1_MP4.value}
@@ -103,7 +105,7 @@ CHECKED_TASKS = (
 
 
 def declared_capabilities(context: SanityContext) -> set[str]:
-    """What `manifest.json` `capabilities` declares, as items like "camera:CAM_FRONT", "map",
+    """Return what `manifest.json` `capabilities` declares, as items like "camera:CAM_FRONT", "map",
     "task:detection3d"."""
     capabilities = context.manifest.unwrap().capabilities
     items = {
@@ -121,7 +123,7 @@ def declared_capabilities(context: SanityContext) -> set[str]:
 
 
 def present_capabilities(context: SanityContext) -> set[str]:
-    """What the dataset contains, as the same items as `declared_capabilities`."""
+    """Return what the dataset contains, as the same items as `declared_capabilities`."""
 
     def records(table: V1SchemaName) -> list:
         return context.load_records(table).unwrap()

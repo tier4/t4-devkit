@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import SchemaName
 
-from ..checker import RecordsChecker, RuleID, RuleName, Severity
+from ..checker import RecordsChecker, RuleID, RuleName, Severity, record_name
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -55,7 +55,7 @@ class REC014(RecordsChecker):
                 if category in is_thing and not is_thing[category]:
                     failures.append(
                         Reason(
-                            f"{table.value} {ann.token}: instance of a category without 'is_thing'"
+                            f"{record_name(table)} {ann.token}: instance of a category without 'is_thing'"
                         )
                     )
         return failures or None

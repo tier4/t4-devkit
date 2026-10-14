@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, NewType
 
 from returns.maybe import Maybe, Nothing, Some
 
+from t4_devkit.schema.v1 import SCHEMAS as V1_SCHEMAS
+
 from .result import Reason, make_report, make_skipped
 
 if TYPE_CHECKING:
@@ -17,6 +19,11 @@ if TYPE_CHECKING:
 
 RuleID = NewType("RuleID", str)
 RuleName = NewType("RuleName", str)
+
+
+def record_name(table: V1SchemaName) -> str:
+    """Return the class name of a 1.0 table's records (e.g. "SampleAnnotation"), for reasons."""
+    return V1_SCHEMAS.get(table).__name__
 
 
 class SchemaVersion(str, Enum):

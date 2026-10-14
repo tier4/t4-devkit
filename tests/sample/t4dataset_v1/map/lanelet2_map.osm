@@ -192,4 +192,17 @@
     <tag k="speed_limit" v="40"/>
   </relation>
 
+  <!-- Traffic light and its regulatory element (added for the 1.0 sample) -->
+  <way id="200">
+    <nd ref="1"/>
+    <nd ref="2"/>
+    <tag k="type" v="traffic_light"/>
+    <tag k="subtype" v="red_yellow_green"/>
+  </way>
+  <relation id="2000">
+    <member type="way" ref="200" role="refers"/>
+    <tag k="type" v="regulatory_element"/>
+    <tag k="subtype" v="traffic_light"/>
+  </relation>
+
 </osm>

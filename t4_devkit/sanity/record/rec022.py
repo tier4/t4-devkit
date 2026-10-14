@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import SchemaName
 
-from ..checker import RecordsChecker, RuleID, RuleName, Severity
+from ..checker import RecordsChecker, RuleID, RuleName, Severity, record_name
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -44,7 +44,9 @@ class REC022(RecordsChecker):
                 for name in fields:
                     value = getattr(record, name)
                     if value is not None and not MIN_TIMESTAMP <= value < MAX_TIMESTAMP:
-                        failures.append(Reason(f"{table.value} {record.token}: '{name}' {value}"))
+                        failures.append(
+                            Reason(f"{record_name(table)} {record.token}: '{name}' {value}")
+                        )
         return failures or None
 
 

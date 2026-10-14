@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import SchemaName
 
-from ..checker import RecordsChecker, RuleID, RuleName, Severity
+from ..checker import RecordsChecker, RuleID, RuleName, Severity, record_name
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -34,11 +34,11 @@ class REC027(RecordsChecker):
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         rotations = [
-            (table.value, record.token, record.rotation)
+            (record_name(table), record.token, record.rotation)
             for table in (SchemaName.SENSOR, SchemaName.EGO_POSE, SchemaName.SAMPLE_ANNOTATION)
             for record in context.load_records(table).unwrap()
         ] + [
-            ("route", route.token, pose.rotation)
+            (record_name(SchemaName.ROUTE), route.token, pose.rotation)
             for route in context.load_records(SchemaName.ROUTE).unwrap()
             for pose in (route.start_pose, route.goal_pose)
         ]

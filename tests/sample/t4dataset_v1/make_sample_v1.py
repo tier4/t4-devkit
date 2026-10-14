@@ -108,10 +108,34 @@ def write_lidar() -> None:
             writer.write_table(table, row_group_size=NUM_POINTS)
 
 
+# Added to the 0.x sample's map: a traffic light (way) and its regulatory element, controlling
+# the main road lanelet 1000.
+TRAFFIC_LIGHT_WAY = 200
+TRAFFIC_LIGHT_REGULATORY_ELEMENT = 2000
+LANELETS = [1000, 1001]
+MAP_ADDITIONS = f"""
+  <!-- Traffic light and its regulatory element (added for the 1.0 sample) -->
+  <way id="{TRAFFIC_LIGHT_WAY}">
+    <nd ref="1"/>
+    <nd ref="2"/>
+    <tag k="type" v="traffic_light"/>
+    <tag k="subtype" v="red_yellow_green"/>
+  </way>
+  <relation id="{TRAFFIC_LIGHT_REGULATORY_ELEMENT}">
+    <member type="way" ref="{TRAFFIC_LIGHT_WAY}" role="refers"/>
+    <tag k="type" v="regulatory_element"/>
+    <tag k="subtype" v="traffic_light"/>
+  </relation>
+
+</osm>
+"""
+
+
 def write_map() -> None:
     path = ROOT / MAP_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes((ROOT.parent / "t4dataset" / MAP_PATH).read_bytes())
+    osm = (ROOT.parent / "t4dataset" / MAP_PATH).read_text()
+    path.write_text(osm.replace("\n</osm>\n", MAP_ADDITIONS))
 
 
 def label(
@@ -426,7 +450,7 @@ def tables() -> dict[str, list[dict]]:
             {
                 "token": "traffic_light0",
                 "timestamp": timestamps[0],
-                "regulatory_element_id": 1,
+                "regulatory_element_id": TRAFFIC_LIGHT_REGULATORY_ELEMENT,
                 "elements": [
                     {"color": "green", "shape": "circle", "status": "solid_on", "confidence": 1.0}
                 ],
@@ -445,7 +469,7 @@ def tables() -> dict[str, list[dict]]:
                 "route_uuid": None,
                 "start_pose": {"translation": zero, "rotation": identity},
                 "goal_pose": {"translation": [100.0, 0.0, 0.0], "rotation": identity},
-                "segments": [{"preferred_primitive_id": 1, "primitive_ids": [1]}],
+                "segments": [{"preferred_primitive_id": LANELETS[0], "primitive_ids": LANELETS}],
                 "allow_modification": False,
                 "source": "mission_planner",
                 "provenance": "own_bag",

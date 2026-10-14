@@ -69,7 +69,7 @@ class REC013(RecordsChecker):
 
 
 def _expected_annotations(context: SanityContext) -> dict[str, tuple[int, str, str]]:
-    """Count, first and last annotation token in time of each instance with annotations.
+    """Return the count, first and last annotation token in time of each instance with annotations.
 
     A `SampleAnnotation` is at its sample's time, an `ObjectAnn` at its frame's time.
     """
