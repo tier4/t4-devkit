@@ -4,7 +4,7 @@ from typing_extensions import Any
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName, Severity
+from ..checker import RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
@@ -18,6 +18,7 @@ class REF005(RecordReferenceChecker):
     id = RuleID("REF005")
     name = RuleName("sample-data-to-sample")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = "'SampleData.sample_token' refers to 'Sample' record."
     source = SchemaName.SAMPLE_DATA
     target = SchemaName.SAMPLE

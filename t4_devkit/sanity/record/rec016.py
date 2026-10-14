@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import AnnotationType, SchemaName
 
-from ..checker import RecordsChecker, RuleID, RuleName, Severity
+from ..checker import RecordsChecker, RuleID, RuleName, Severity, record_name
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -35,7 +35,7 @@ class REC016(RecordsChecker):
     def check(self, context: SanityContext) -> list[Reason] | None:
         return [
             Reason(
-                f"{table.value} {label.token}: manual label with 'confidence' {label.confidence}"
+                f"{record_name(table)} {label.token}: manual label with 'confidence' {label.confidence}"
             )
             for table in self.tables
             for label in context.load_records(table).unwrap()

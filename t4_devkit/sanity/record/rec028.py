@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import SchemaName
 
-from ..checker import RecordsChecker, RuleID, RuleName, Severity
+from ..checker import RecordsChecker, RuleID, RuleName, Severity, record_name
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -52,7 +52,7 @@ class REC028(RecordsChecker):
         ]
         for table in (SchemaName.OBJECT_ANN, SchemaName.KEYPOINT):
             failures += [
-                Reason(f"{table.value} {ann.token}: not on a key frame")
+                Reason(f"{record_name(table)} {ann.token}: not on a key frame")
                 for ann in context.load_records(table).unwrap()
                 if ann.sample_data_token not in key_frames
             ]

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import AnnotationType, SchemaName
 
-from ..checker import RecordsChecker, RuleID, RuleName, Severity
+from ..checker import RecordsChecker, RuleID, RuleName, Severity, record_name
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -42,9 +42,9 @@ class REC017(RecordsChecker):
                 if label.annotation_type == AnnotationType.MANUAL:
                     continue
                 if label.provenance is None:
-                    failures.append(Reason(f"{table.value} {label.token}: no 'provenance'"))
+                    failures.append(Reason(f"{record_name(table)} {label.token}: no 'provenance'"))
                 scored = label.annotation_type in (AnnotationType.AUTO, AnnotationType.PSEUDO)
                 # `traffic_light` has no record-level confidence
                 if scored and hasattr(label, "confidence") and label.confidence is None:
-                    failures.append(Reason(f"{table.value} {label.token}: no 'confidence'"))
+                    failures.append(Reason(f"{record_name(table)} {label.token}: no 'confidence'"))
         return failures or None

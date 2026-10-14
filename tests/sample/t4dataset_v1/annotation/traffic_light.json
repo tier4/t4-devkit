@@ -2,7 +2,7 @@
   {
     "token": "traffic_light0",
     "timestamp": 1704067200000000,
-    "regulatory_element_id": 1,
+    "regulatory_element_id": 2000,
     "elements": [
       {
         "color": "green",

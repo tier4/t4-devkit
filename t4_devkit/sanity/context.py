@@ -5,12 +5,14 @@ from functools import cached_property
 from pathlib import Path
 
 from attrs import define, field
+from returns.converters import result_to_maybe
 from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
 from returns.result import safe
 from typing_extensions import TYPE_CHECKING, Self
 
 from t4_devkit import DBMetadata
+from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SchemaName
 from t4_devkit.schema.v1 import MANIFEST_FILENAME, SCHEMAS, Manifest
 from t4_devkit.schema.v1 import SchemaName as V1SchemaName
@@ -109,25 +111,27 @@ class SanityContext:
     @cached_property
     def manifest(self) -> Maybe[Manifest]:
         """Return the manifest, or Nothing if it cannot be read or is not valid."""
-        return self.raw_manifest.bind(
-            lambda data: Maybe.from_optional(load_manifest_safe(data).value_or(None))
-        )
+        match self.raw_manifest:
+            case Some(data):
+                return result_to_maybe(load_manifest_safe(data))
+        return Nothing
 
     def to_table_file(self, table: V1SchemaName) -> Maybe[Path]:
         """Return the path of a 1.0 table file listed in `manifest.json`, or Nothing if unlisted."""
-        return self.manifest.bind(
-            lambda m: Maybe.from_optional(m.tables.get(table.value)).map(
-                lambda entry: Path(self.data_root.unwrap()).joinpath(entry.path)
-            )
-        )
+        match self.manifest, self.data_root:
+            case Some(manifest), Some(data_root) if table.value in manifest.tables:
+                return Some(data_root.joinpath(manifest.tables[table.value].path))
+        return Nothing
 
     def load_table(self, table: V1SchemaName) -> Maybe[list[dict]]:
         """Return the raw records of a 1.0 table as read (read once), or Nothing if unlisted or
         unreadable."""
         if table not in self._tables:
-            self._tables[table] = self.to_table_file(table).bind(
-                lambda path: Maybe.from_optional(load_json_safe(path).value_or(None))
-            )
+            match self.to_table_file(table):
+                case Some(path):
+                    self._tables[table] = result_to_maybe(load_json_safe(path))
+                case _:
+                    self._tables[table] = Nothing
         return self._tables[table]
 
     def load_records(self, table: V1SchemaName) -> Maybe[list]:
@@ -135,15 +139,17 @@ class SanityContext:
         Nothing if the table is required and unlisted, unreadable, or has an invalid record
         (reported by STR014 and the format rules)."""
         if table not in self._records:
-            if self.manifest.map(lambda m: table.value in m.tables).value_or(False):
-                self._records[table] = self.load_table(table).bind(
-                    lambda records: Maybe.from_optional(_build_safe(table, records).value_or(None))
-                )
-            elif table.is_optional() and self.manifest != Nothing:
-                self._records[table] = Some([])
-            else:
-                self._records[table] = Nothing
+            self._records[table] = self._build_records(table)
         return self._records[table]
+
+    @cached_property
+    def lanelet_map(self) -> Maybe[LaneletParser]:
+        """Return the lanelet2 map of the dataset (read once): the file of the first `Map`
+        record, or Nothing if there is none or it cannot be read."""
+        match self.load_records(V1SchemaName.MAP), self.data_root:
+            case Some([map_record, *_]), Some(data_root):
+                return result_to_maybe(_parse_lanelet_safe(data_root.joinpath(map_record.filename)))
+        return Nothing
 
     def save_table(self, table: V1SchemaName, records: list[dict]) -> bool:
         """Save the raw records of a 1.0 table, and its new SHA-256 in `manifest.json`.
@@ -182,8 +188,23 @@ class SanityContext:
                     return False
         return False
 
+    def _build_records(self, table: V1SchemaName) -> Maybe[list]:
+        match self.manifest:
+            case Some(manifest):
+                if table.value not in manifest.tables:
+                    return Some([]) if table.is_optional() else Nothing
+                match self.load_table(table):
+                    case Some(records):
+                        return result_to_maybe(_build_safe(table, records))
+        return Nothing
+
 
 @safe
 def _build_safe(table: V1SchemaName, records: list[dict]) -> list:
     """Build the 1.0 records of a table; fails on the first invalid record."""
     return [SCHEMAS.get(table).from_dict(record) for record in records]
+
+
+@safe
+def _parse_lanelet_safe(path: Path) -> LaneletParser:
+    return LaneletParser(path.as_posix(), verbose=False)
