@@ -1,5 +1,7 @@
 # Dataset Requirements
 
+The rules `t4sanity` checks on 0.x datasets. For T4Dataset 1.0, see [Dataset Requirements 1.0](./v1/requirement.md).
+
 ## Structure (`STR`)
 
 | ID       | Name                          | Severity  | Fixable | Description                                                          |
