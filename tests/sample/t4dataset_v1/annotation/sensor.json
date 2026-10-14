@@ -46,7 +46,7 @@
       "container": {
         "format": "parquet",
         "path": "data/LIDAR_TOP/LIDAR_TOP.parquet",
-        "frame_count": 2,
+        "frame_count": 3,
         "compression": "zstd"
       },
       "fields": [

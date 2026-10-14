@@ -14,7 +14,7 @@
     "object_ann_token": null,
     "instance_token": null,
     "annotation_type": "auto",
-    "provenance": null,
-    "confidence": null
+    "provenance": "sample recognizer",
+    "confidence": 0.9
   }
 ]

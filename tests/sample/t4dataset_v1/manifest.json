@@ -32,23 +32,23 @@
   "tables": {
     "sample": {
       "path": "annotation/sample.json",
-      "sha256": "d280eff0005ad70b7d9065502ff6ddaaad249e39390f2b69db07f57e51510cf0"
+      "sha256": "beede65ca85b04597d5b29a71d48df9d983daa75778f9ffb6bbd6b03c838d45c"
     },
     "sample_data": {
       "path": "annotation/sample_data.json",
-      "sha256": "a1ab64af4553e9e7ea1f256c5f8e4482be26c3376f2c5dc8b888e47f6447de38"
+      "sha256": "cb66c0f4bd72a2e08452ba79f6424887c199d53d2c611830640ca4961271694c"
     },
     "ego_pose": {
       "path": "annotation/ego_pose.json",
-      "sha256": "e7319a8310adbd4b56ba3c88b90ae7917f9c1ae6071569ab9071cf649bb8b479"
+      "sha256": "5743a2253f46acfec636b04375939ab9ec494ddc9643cf529e8ff1c5658939cc"
     },
     "sensor": {
       "path": "annotation/sensor.json",
-      "sha256": "56b122b2c67f5a804a0f2bbb78f2cfc002837fbc1fe7b89f4748b97031042cf9"
+      "sha256": "9e75b5d2b39798e8200fd169e55ced95dbafe2dbd8d0d13a0e278186f60dfda3"
     },
     "scene": {
       "path": "annotation/scene.json",
-      "sha256": "b64e8967753d7151e8903419fe07a611b2dbfd5fc4f368fdd73250673ca54d51"
+      "sha256": "8b6223870fbfa4c49cc771c8f79f8acfbd1656a54146b0b8e4814384304989f5"
     },
     "log": {
       "path": "annotation/log.json",
@@ -80,11 +80,11 @@
     },
     "instance": {
       "path": "annotation/instance.json",
-      "sha256": "40c10c31e7036aa221af9f34cf63b600380bcc52af0e9318486583216e238670"
+      "sha256": "88c7e55bd2b6edc80fe2272084597410c96036ec0b9fd1076528966b73574ce9"
     },
     "sample_annotation": {
       "path": "annotation/sample_annotation.json",
-      "sha256": "054eb9fef72f2299a2c16185dfeea4513de1249f3eb8b43e267d8ddb55d89d13"
+      "sha256": "98256e98ea2c48cf69350647af660f76c28b16a86c0227d62d7dd979509a8951"
     },
     "object_ann": {
       "path": "annotation/object_ann.json",
@@ -100,7 +100,7 @@
     },
     "traffic_light": {
       "path": "annotation/traffic_light.json",
-      "sha256": "e72ad48f42bcef86f3350d239bcd78e1541f683424afcccd1b33ce2343863477"
+      "sha256": "0d5284ca4ed203a941390215c6f2cd5f311c1ed04d1afb077dbbdbba0777b7c4"
     },
     "route": {
       "path": "annotation/route.json",
@@ -108,11 +108,11 @@
     },
     "scenario": {
       "path": "annotation/scenario.json",
-      "sha256": "f0ca710f7671086114f0c2fb26e7ee98c13edacc2c0e8d7271ee50fa67627c7d"
+      "sha256": "7d751a7b093765efda5bdde70dbfc61d20bc58de00e7f17a7e6dc68e92a4d068"
     },
     "caption": {
       "path": "annotation/caption.json",
-      "sha256": "cf1017e9ed381b35960bcba6ee6ca104b927e769ee53f7097b10881ef2da73f9"
+      "sha256": "6871b347a5f918a007ede1b3719512764c7ecda05eb8238959dcf5bd52279f03"
     }
   },
   "assets": [
@@ -123,8 +123,8 @@
     },
     {
       "path": "data/LIDAR_TOP/LIDAR_TOP.parquet",
-      "sha256": "7b01670f556ed7c49c91d1e6e5aa50b8880999b79b528dc33db81e3f7c6caac4",
-      "bytes": 2660
+      "sha256": "837f92226dabd8dbdcc27141dbae5e69ae0e487a55a2d1117fc2997e24e3fa8b",
+      "bytes": 3701
     },
     {
       "path": "map/lanelet2_map.osm",

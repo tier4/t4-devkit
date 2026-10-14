@@ -56,7 +56,22 @@
     "timestamp": 1704067200100000,
     "is_key_frame": true,
     "is_valid": true,
-    "next": null,
+    "next": "lidar2",
     "prev": "lidar0"
+  },
+  {
+    "token": "lidar2",
+    "sample_token": "sample2",
+    "ego_pose_token": "ego_lidar2",
+    "sensor_token": "sensor_lidar",
+    "filename": "data/LIDAR_TOP/LIDAR_TOP.parquet",
+    "frame_index": 2,
+    "fileformat": "parquet",
+    "num_points": 8,
+    "timestamp": 1704067200200000,
+    "is_key_frame": false,
+    "is_valid": true,
+    "next": null,
+    "prev": "lidar1"
   }
 ]

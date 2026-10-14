@@ -3,7 +3,7 @@
     "token": "scenario0",
     "log_token": "log",
     "start_timestamp": 1704067200000000,
-    "end_timestamp": 1704067200200000,
+    "end_timestamp": 1704067200300000,
     "key_timestamp": null,
     "status": null,
     "lateral_decision": null,
@@ -17,8 +17,8 @@
       "version": "0.1.1"
     },
     "annotation_type": "auto",
-    "provenance": null,
-    "confidence": null,
+    "provenance": "sample classifier",
+    "confidence": 0.9,
     "raw": null
   }
 ]

@@ -4,8 +4,8 @@
     "name": "sample_scene",
     "description": null,
     "log_token": "log",
-    "nbr_samples": 2,
+    "nbr_samples": 3,
     "first_sample_token": "sample0",
-    "last_sample_token": "sample1"
+    "last_sample_token": "sample2"
   }
 ]

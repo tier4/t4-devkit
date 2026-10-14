@@ -46,5 +46,17 @@
     "source": "localization",
     "frame": "map",
     "covariance": null
+  },
+  {
+    "token": "ego_lidar2",
+    "translation": [2.0, 0.0, 0.0],
+    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "timestamp": 1704067200200000,
+    "twist": null,
+    "acceleration": null,
+    "geocoordinate": null,
+    "source": "localization",
+    "frame": "map",
+    "covariance": null
   }
 ]

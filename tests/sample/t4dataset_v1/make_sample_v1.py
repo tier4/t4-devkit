@@ -1,7 +1,8 @@
 """Generate the T4Dataset 1.0 sample in this directory.
 
-Two keyframes, one camera (CAM_FRONT, AV1) and one LiDAR (LIDAR_TOP, Parquet), and one record
-in every optional table. All data is synthetic and deterministic.
+Three samples (frames): two key frames with one camera (CAM_FRONT, AV1) and one LiDAR
+(LIDAR_TOP, Parquet) frame each, then a non-key frame with a LiDAR frame only (a channel can be
+missing). One record in every optional table. All data is synthetic and deterministic.
 
 Requires an ffmpeg build with libsvtav1, and npx to format JSON with the same prettier version
 as pre-commit (so committing does not change the hashes in manifest.json):
@@ -25,7 +26,8 @@ ROOT = Path(__file__).parent
 FFMPEG = os.environ.get("FFMPEG", "ffmpeg")
 PRETTIER = ["npx", "--yes", "prettier@4.0.0-alpha.8", "--write", "--log-level", "warn"]
 
-NUM_FRAMES = 2
+NUM_FRAMES = 2  # key frames, with a camera and a LiDAR frame each
+NUM_SAMPLES = NUM_FRAMES + 1  # the last sample is a non-key frame with a LiDAR frame only
 FPS = 10
 WIDTH, HEIGHT = 64, 48
 NUM_POINTS = 8
@@ -73,7 +75,7 @@ def write_camera() -> None:
 
 
 def write_lidar() -> None:
-    """Write NUM_FRAMES frames of NUM_POINTS points, one row group per frame."""
+    """Write NUM_SAMPLES frames of NUM_POINTS points, one row group per frame."""
     rng = np.random.default_rng(0)
     path = ROOT / LIDAR_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -87,7 +89,7 @@ def write_lidar() -> None:
         ]
     )
     with pq.ParquetWriter(path, schema, compression="zstd") as writer:
-        for _ in range(NUM_FRAMES):
+        for _ in range(NUM_SAMPLES):
             xyzi = rng.uniform(-10, 10, (NUM_POINTS, 4)).astype(np.float32)
             ring = np.arange(NUM_POINTS, dtype=np.uint16)
             table = pa.table(
@@ -102,15 +104,19 @@ def write_map() -> None:
     path.write_bytes((ROOT.parent / "t4dataset" / MAP_PATH).read_bytes())
 
 
-def label(annotation_type: str = "manual") -> dict:
-    return {"annotation_type": annotation_type, "provenance": None, "confidence": None}
+def label(
+    annotation_type: str = "manual",
+    provenance: str | None = None,
+    confidence: float | None = None,
+) -> dict:
+    return {"annotation_type": annotation_type, "provenance": provenance, "confidence": confidence}
 
 
 def tables() -> dict[str, list[dict]]:
     identity = [1.0, 0.0, 0.0, 0.0]
     zero = [0.0, 0.0, 0.0]
-    samples = [f"sample{i}" for i in range(NUM_FRAMES)]
-    timestamps = [T0 + i * DT for i in range(NUM_FRAMES)]
+    samples = [f"sample{i}" for i in range(NUM_SAMPLES)]
+    timestamps = [T0 + i * DT for i in range(NUM_SAMPLES)]
 
     def link(tokens: list[str], i: int) -> dict:
         return {
@@ -120,11 +126,11 @@ def tables() -> dict[str, list[dict]]:
 
     sample_data = []
     ego_pose = []
-    for channel, sensor, path, fileformat, num_points in (
-        ("cam", "sensor_cam", CAMERA_PATH, "av1_mp4", None),
-        ("lidar", "sensor_lidar", LIDAR_PATH, "parquet", NUM_POINTS),
+    for channel, sensor, path, fileformat, num_points, num_frames in (
+        ("cam", "sensor_cam", CAMERA_PATH, "av1_mp4", None, NUM_FRAMES),
+        ("lidar", "sensor_lidar", LIDAR_PATH, "parquet", NUM_POINTS, NUM_SAMPLES),
     ):
-        tokens = [f"{channel}{i}" for i in range(NUM_FRAMES)]
+        tokens = [f"{channel}{i}" for i in range(num_frames)]
         for i, token in enumerate(tokens):
             sample_data.append(
                 {
@@ -137,7 +143,7 @@ def tables() -> dict[str, list[dict]]:
                     "fileformat": fileformat,
                     "num_points": num_points,
                     "timestamp": timestamps[i],
-                    "is_key_frame": True,
+                    "is_key_frame": i < NUM_FRAMES,
                     "is_valid": True,
                     **link(tokens, i),
                 }
@@ -160,7 +166,13 @@ def tables() -> dict[str, list[dict]]:
     sample_annotations = [f"box{i}" for i in range(NUM_FRAMES)]
     return {
         "sample": [
-            {"token": s, "timestamp": timestamps[i], "scene_token": "scene", **link(samples, i)}
+            {
+                "token": s,
+                "timestamp": timestamps[i],
+                "scene_token": "scene",
+                "has_key_frame": i < NUM_FRAMES,
+                **link(samples, i),
+            }
             for i, s in enumerate(samples)
         ],
         "sample_data": sample_data,
@@ -209,7 +221,7 @@ def tables() -> dict[str, list[dict]]:
                     "container": {
                         "format": "parquet",
                         "path": LIDAR_PATH,
-                        "frame_count": NUM_FRAMES,
+                        "frame_count": NUM_SAMPLES,
                         "compression": "zstd",
                     },
                     "fields": [
@@ -238,7 +250,7 @@ def tables() -> dict[str, list[dict]]:
                 "name": "sample_scene",
                 "description": None,
                 "log_token": "log",
-                "nbr_samples": NUM_FRAMES,
+                "nbr_samples": NUM_SAMPLES,
                 "first_sample_token": samples[0],
                 "last_sample_token": samples[-1],
             }
@@ -328,7 +340,8 @@ def tables() -> dict[str, list[dict]]:
                 "token": "instance_car",
                 "category_token": "category_car",
                 "instance_name": "sample::0",
-                "nbr_annotations": NUM_FRAMES,
+                # its 3D boxes and its 2D label
+                "nbr_annotations": NUM_FRAMES + 1,
                 "first_annotation_token": sample_annotations[0],
                 "last_annotation_token": sample_annotations[-1],
                 "map_element": {"id": None, "type": None},
@@ -349,7 +362,11 @@ def tables() -> dict[str, list[dict]]:
                 "num_lidar_pts": 0,
                 "num_radar_pts": 0,
                 **link(sample_annotations, i),
-                **label("manual" if i == 0 else "interpolated"),
+                **(
+                    label()
+                    if i == 0
+                    else label("interpolated", provenance="t4-devkit interpolation")
+                ),
             }
             for i, token in enumerate(sample_annotations)
         ],
@@ -397,7 +414,7 @@ def tables() -> dict[str, list[dict]]:
                 ],
                 "object_ann_token": None,
                 "instance_token": None,
-                **label("auto"),
+                **label("auto", provenance="sample recognizer", confidence=0.9),
             }
         ],
         "route": [
@@ -431,7 +448,7 @@ def tables() -> dict[str, list[dict]]:
                 "dynamic_entities": None,
                 "justification": None,
                 "taxonomy": {"id": "cod-scene", "version": "0.1.1"},
-                **label("auto"),
+                **label("auto", provenance="sample classifier", confidence=0.9),
                 "raw": None,
             }
         ],
