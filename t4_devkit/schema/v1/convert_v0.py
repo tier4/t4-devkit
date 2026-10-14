@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import os.path as osp
+import re
 from collections import defaultdict
 from glob import glob
 from typing import TYPE_CHECKING, Any, ClassVar
@@ -56,6 +57,10 @@ class V0Converter:
         "camera": {"is_rectified": True},
     }
 
+    # The 0.x converter names the files of one frame by its frame number, e.g. `00042.jpg` and
+    # `00042.pcd.bin`: it groups the channels of a frame (their timestamps differ by up to ~90 ms).
+    FRAME_NUMBER: ClassVar[re.Pattern] = re.compile(r"^(\d+)\.")
+
     def __init__(self, data_root: PathLike) -> None:
         """
         Args:
@@ -76,6 +81,12 @@ class V0Converter:
             record["category_token"] for record in self.v0["object_ann"] + self.v0["instance"]
         }
         self.surface_categories = {record["category_token"] for record in self.v0["surface_ann"]}
+        # A labeled frame is a key frame (0.x has a few labels on non-key frames).
+        self.labeled_frames = {
+            record["sample_data_token"] for record in self.v0["object_ann"] + self.v0["keypoint"]
+        }
+        # 0.x samples are annotated frames only; 1.0 has one sample per frame.
+        self.samples, self.sample_of_frame, self.sample_remap = self._frame_samples()
 
     def convert(self) -> dict[SchemaName, list[Record]]:
         """Convert every table.
@@ -95,7 +106,7 @@ class V0Converter:
         tables[SchemaName.VEHICLE] = [self.convert_vehicle(record) for record in v0["log"]]
         tables[SchemaName.LOG] = [self.convert_log(record, log2map) for record in v0["log"]]
         tables[SchemaName.SCENE] = [self.convert_scene(record) for record in v0["scene"]]
-        tables[SchemaName.SAMPLE] = [self.convert_sample(record) for record in v0["sample"]]
+        tables[SchemaName.SAMPLE] = self.samples
         tables[SchemaName.EGO_POSE] = [self.convert_ego_pose(record) for record in v0["ego_pose"]]
         tables[SchemaName.SENSOR] = [
             self.convert_sensor(index, record)
@@ -171,23 +182,16 @@ class V0Converter:
         }
 
     def convert_scene(self, record: Record) -> Record:
+        """Counts and first / last sample over the 1.0 samples (every frame)."""
+        samples = [sample for sample in self.samples if sample["scene_token"] == record["token"]]
         return {
             "token": record["token"],
             "name": record["name"],
             "description": self._none_if_empty(record["description"]),
             "log_token": record["log_token"],
-            "nbr_samples": record["nbr_samples"],
-            "first_sample_token": record["first_sample_token"],
-            "last_sample_token": record["last_sample_token"],
-        }
-
-    def convert_sample(self, record: Record) -> Record:
-        return {
-            "token": record["token"],
-            "timestamp": record["timestamp"],
-            "scene_token": record["scene_token"],
-            "next": self._none_if_empty(record["next"]),
-            "prev": self._none_if_empty(record["prev"]),
+            "nbr_samples": len(samples),
+            "first_sample_token": next(s["token"] for s in samples if s["prev"] is None),
+            "last_sample_token": next(s["token"] for s in samples if s["next"] is None),
         }
 
     def convert_ego_pose(self, record: Record) -> Record:
@@ -285,7 +289,7 @@ class V0Converter:
     def convert_sample_data(self, record: Record) -> Record:
         return {
             "token": record["token"],
-            "sample_token": self._none_if_empty(record["sample_token"]),
+            "sample_token": self.sample_of_frame[record["token"]],
             "ego_pose_token": record["ego_pose_token"],
             # 0.x calibrated_sensor rows become 1.0 sensor rows, with the same tokens.
             "sensor_token": record["calibrated_sensor_token"],
@@ -294,7 +298,7 @@ class V0Converter:
             "fileformat": record["fileformat"],
             "num_points": None,
             "timestamp": record["timestamp"],
-            "is_key_frame": record["is_key_frame"],
+            "is_key_frame": self._is_key_frame(record),
             "is_valid": record.get("is_valid", True),
             "next": self._none_if_empty(record["next"]),
             "prev": self._none_if_empty(record["prev"]),
@@ -355,7 +359,7 @@ class V0Converter:
         annotation_type, provenance, confidence = self._label_origin(record)
         return {
             "token": record["token"],
-            "sample_token": record["sample_token"],
+            "sample_token": self.sample_remap.get(record["sample_token"], record["sample_token"]),
             "instance_token": record["instance_token"],
             "attribute_tokens": record["attribute_tokens"],
             "visibility_token": visibility_token if visibility_token in known_visibility else None,
@@ -426,6 +430,89 @@ class V0Converter:
         }
 
     # --- helpers ---
+
+    def _frame_samples(self) -> tuple[list[Record], dict[str, str], dict[str, str]]:
+        """One 1.0 sample per 0.x frame: the frames of all channels with the same frame number.
+
+        A frame with 0.x key samples keeps the earliest one's token; camera-only 0.x datasets have
+        one sample per camera image, merged here. Other frames get a new deterministic token.
+
+        Returns:
+            The sample rows (chained by `next` / `prev` per scene), the sample token of each
+            `sample_data` token, and the token kept for each merged 0.x sample.
+        """
+        v0_samples = {record["token"]: record for record in self.v0["sample"]}
+        annotated = {record["sample_token"] for record in self.v0["sample_annotation"]}
+        lidars = {
+            calibration["token"]
+            for calibration in self.v0["calibrated_sensor"]
+            if self.sensors[calibration["sensor_token"]]["modality"] == "lidar"
+        }
+
+        rows: list[Record] = []
+        sample_of_frame: dict[str, str] = {}
+        remap: dict[str, str] = {}
+        for frames in self._frame_groups().values():
+            key_samples = sorted(
+                {
+                    frame["sample_token"]
+                    for frame in frames
+                    if frame["is_key_frame"] and frame["sample_token"] in v0_samples
+                },
+                key=lambda token: (v0_samples[token]["timestamp"], token),
+            )
+            if key_samples:
+                token = key_samples[0]
+                remap.update({merged: token for merged in key_samples})
+            else:
+                first = min(frame["token"] for frame in frames)
+                token = hashlib.md5(f"{first}/sample".encode()).hexdigest()
+            # 0.x non-key frames point to the next sample: same scene
+            linked = [
+                frame["sample_token"] for frame in frames if frame["sample_token"] in v0_samples
+            ]
+            scene_token = (
+                v0_samples[linked[0]]["scene_token"] if linked else self.v0["scene"][0]["token"]
+            )
+            lidar_frames = [frame for frame in frames if frame["calibrated_sensor_token"] in lidars]
+            rows.append(
+                {
+                    "token": token,
+                    "timestamp": min(frame["timestamp"] for frame in lidar_frames or frames),
+                    "scene_token": scene_token,
+                    "has_key_frame": any(self._is_key_frame(frame) for frame in frames)
+                    or bool(annotated & set(key_samples)),
+                    "next": None,
+                    "prev": None,
+                }
+            )
+            sample_of_frame.update({frame["token"]: token for frame in frames})
+
+        by_scene: dict[str, list[Record]] = defaultdict(list)
+        for row in sorted(rows, key=lambda row: (row["timestamp"], row["token"])):
+            by_scene[row["scene_token"]].append(row)
+        for chain in by_scene.values():
+            for row, following in zip(chain, chain[1:]):
+                row["next"], following["prev"] = following["token"], row["token"]
+        return [row for chain in by_scene.values() for row in chain], sample_of_frame, remap
+
+    def _frame_groups(self) -> dict[int, list[Record]]:
+        """0.x `sample_data` grouped by frame number (`FRAME_NUMBER` in the file name), or by
+        position in each channel's frames in time if a file name has no number."""
+        records = self.v0["sample_data"]
+        numbers = [self.FRAME_NUMBER.match(osp.basename(record["filename"])) for record in records]
+        groups: dict[int, list[Record]] = defaultdict(list)
+        if all(numbers):
+            for record, number in zip(records, numbers):
+                groups[int(number.group(1))].append(record)
+        else:
+            for frames in self.frames.values():
+                for position, record in enumerate(sorted(frames, key=lambda r: r["timestamp"])):
+                    groups[position].append(record)
+        return groups
+
+    def _is_key_frame(self, record: Record) -> bool:
+        return record["is_key_frame"] or record["token"] in self.labeled_frames
 
     def _read_projector(self) -> Record:
         """Read Autoware's `map_projector_info.yaml`, if any."""

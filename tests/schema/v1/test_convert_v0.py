@@ -93,3 +93,75 @@ def test_load_v0_visibility(tmp_path: Path) -> None:
     tables = load_dataset(data_root).tables
     assert [r.level for r in tables[SchemaName.VISIBILITY]] == ["full", "partial", "none"]
     assert tables[SchemaName.SAMPLE_ANNOTATION][0].visibility_token is None
+
+
+def _copy_v0(tmp_path: Path) -> Path:
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    return data_root
+
+
+def _edit_v0(data_root: Path, name: str, change) -> None:
+    path = data_root / "annotation" / f"{name}.json"
+    path.write_text(json.dumps(change(json.loads(path.read_text()))))
+
+
+def test_load_v0_frames(tmp_path: Path) -> None:
+    """Every 0.x frame is a 1.0 sample, grouped by frame number; 0.x key samples keep their token."""
+    data_root = _copy_v0(tmp_path)
+    sample_data = json.loads((data_root / "annotation" / "sample_data.json").read_text())
+    lidar2 = next(r for r in sample_data if r["filename"] == "data/LIDAR_TOP/002.pcd.bin")
+    lidar3 = next(r for r in sample_data if r["filename"] == "data/LIDAR_TOP/003.pcd.bin")
+
+    def sweep(records: list[dict]) -> list[dict]:
+        # as the 0.x converter writes a non-key frame: linked to the next sample
+        for record in records:
+            if record["token"] == lidar2["token"]:
+                record.update(is_key_frame=False, sample_token=lidar3["sample_token"])
+        return records
+
+    _edit_v0(data_root, "sample_data", sweep)
+    dataset = load_dataset(data_root)
+    frame = dataset.get(SchemaName.SAMPLE_DATA, lidar2["token"])
+    assert frame.sample_token == lidar2["sample_token"]  # its own frame's sample, not the next
+    assert not frame.is_key_frame
+    assert dataset.get(SchemaName.SAMPLE, frame.sample_token).has_key_frame  # cameras are key
+    samples = dataset.tables[SchemaName.SAMPLE]
+    assert len(samples) == 3 and all(len(sample.data) == 3 for sample in samples)
+
+
+def test_load_v0_per_camera_samples(tmp_path: Path) -> None:
+    """0.x samples of one frame (one per camera image) merge into one 1.0 sample."""
+    data_root = _copy_v0(tmp_path)
+    samples = json.loads((data_root / "annotation" / "sample.json").read_text())
+    first = samples[0]["token"]
+    extra = {**samples[0], "token": "f" * 32}  # sorts after `first`
+    _edit_v0(data_root, "sample", lambda records: [*records, extra])
+    _edit_v0(
+        data_root,
+        "sample_data",
+        lambda records: [
+            {**r, "sample_token": extra["token"]} if r["filename"] == "data/CAM_BACK/001.jpg" else r
+            for r in records
+        ],
+    )
+
+    dataset = load_dataset(data_root)
+    assert len(dataset.tables[SchemaName.SAMPLE]) == 3
+    assert set(dataset.get(SchemaName.SAMPLE, first).data) == {"LIDAR_TOP", "CAM_FRONT", "CAM_BACK"}
+
+
+def test_load_v0_labeled_frame_is_key(tmp_path: Path) -> None:
+    """A 0.x 2D label on a non-key frame makes it a key frame."""
+    data_root = _copy_v0(tmp_path)
+    labeled = json.loads((data_root / "annotation" / "object_ann.json").read_text())[0]
+    _edit_v0(
+        data_root,
+        "sample_data",
+        lambda records: [
+            {**r, "is_key_frame": False} if r["token"] == labeled["sample_data_token"] else r
+            for r in records
+        ],
+    )
+    frame = load_dataset(data_root).get(SchemaName.SAMPLE_DATA, labeled["sample_data_token"])
+    assert frame.is_key_frame
