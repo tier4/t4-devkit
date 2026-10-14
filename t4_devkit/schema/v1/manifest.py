@@ -295,6 +295,16 @@ class Manifest:
         )
     )
 
+    def listed_paths(self) -> list[str]:
+        """Return the path of every file listed: tables, then assets.
+
+        Returns:
+            Paths relative to the dataset root.
+        """
+        return [entry.path for entry in self.tables.values()] + [
+            entry.path for entry in self.assets
+        ]
+
     @schema_version.validator
     def _check_schema_version(self, attribute, value: str) -> None:
         major = value.split(".")[0]

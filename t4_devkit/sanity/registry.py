@@ -4,7 +4,7 @@ import inspect
 from collections.abc import Callable, Sequence
 from enum import Enum, unique
 
-from .checker import Checker, RuleID
+from .checker import Checker, RuleID, SchemaVersion
 
 
 @unique
@@ -69,11 +69,17 @@ class CheckerRegistry(dict[RuleGroup, dict[RuleID, type[Checker]]]):
 
         self[group][module.id] = module
 
-    def build(self, excludes: Sequence[str] | None = None) -> list[Checker]:
+    def build(
+        self,
+        excludes: Sequence[str] | None = None,
+        version: SchemaVersion | None = None,
+    ) -> list[Checker]:
         """Build a list of checkers from the registry.
 
         Args:
             excludes (Sequence[str] | None, optional): A list of rule IDs or rule groups to exclude.
+            version (SchemaVersion | None, optional): Keep only the rules of this schema version;
+                all rules if None.
 
         Returns:
             A list of checkers.
@@ -85,7 +91,9 @@ class CheckerRegistry(dict[RuleGroup, dict[RuleID, type[Checker]]]):
             checker()
             for group, values in self.items()
             for id, checker in values.items()
-            if id not in excludes and group.value not in excludes
+            if id not in excludes
+            and group.value not in excludes
+            and (version is None or version in checker.versions)
         ]
 
 

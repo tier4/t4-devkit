@@ -6,6 +6,7 @@ from returns.result import safe
 
 from t4_devkit import DBMetadata, T4Devkit, load_metadata
 from t4_devkit.common import load_json, save_json
+from t4_devkit.schema.v1 import Manifest
 
 if TYPE_CHECKING:
     from t4_devkit.schema import SchemaBase
@@ -30,6 +31,12 @@ def save_json_safe(data: list[dict], filename: PathLike) -> None:
 def load_schema_safe(module: type[SchemaBase], record: dict) -> SchemaBase:
     """Load schema from dict safely."""
     return module.from_dict(record)
+
+
+@safe
+def load_manifest_safe(data: dict) -> Manifest:
+    """Build the 1.0 manifest from its dict safely."""
+    return Manifest(**data)
 
 
 @safe
