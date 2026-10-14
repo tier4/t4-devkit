@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import hashlib
 from functools import cached_property
 from pathlib import Path
 
 from attrs import define, field
 from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
+from returns.result import safe
 from typing_extensions import TYPE_CHECKING, Self
 
 from t4_devkit import DBMetadata
 from t4_devkit.schema import SchemaName
-from t4_devkit.schema.v1 import MANIFEST_FILENAME, Manifest
+from t4_devkit.schema.v1 import MANIFEST_FILENAME, SCHEMAS, Manifest
 from t4_devkit.schema.v1 import SchemaName as V1SchemaName
 
 from .checker import SchemaVersion
@@ -32,6 +34,7 @@ class SanityContext:
     metadata: Maybe[DBMetadata]
     checksum: bool = field(default=False, kw_only=True)
     _tables: dict[V1SchemaName, Maybe[list[dict]]] = field(factory=dict, init=False, repr=False)
+    _records: dict[V1SchemaName, Maybe[list]] = field(factory=dict, init=False, repr=False)
 
     @classmethod
     def from_path(
@@ -127,12 +130,48 @@ class SanityContext:
             )
         return self._tables[table]
 
+    def load_records(self, table: V1SchemaName) -> Maybe[list]:
+        """Return the 1.0 records of a table (built once): empty for an unlisted optional table,
+        Nothing if the table is required and unlisted, unreadable, or has an invalid record
+        (reported by STR014 and the format rules)."""
+        if table not in self._records:
+            if self.manifest.map(lambda m: table.value in m.tables).value_or(False):
+                self._records[table] = self.load_table(table).bind(
+                    lambda records: Maybe.from_optional(_build_safe(table, records).value_or(None))
+                )
+            elif table.is_optional() and self.manifest != Nothing:
+                self._records[table] = Some([])
+            else:
+                self._records[table] = Nothing
+        return self._records[table]
+
+    def save_table(self, table: V1SchemaName, records: list[dict]) -> bool:
+        """Save the raw records of a 1.0 table, and its new SHA-256 in `manifest.json`.
+
+        Returns:
+            True if both files were written.
+        """
+        filepath = self.to_table_file(table).value_or(None)
+        if filepath is None or not is_successful(save_json_safe(records, filepath)):
+            return False
+        manifest = self.raw_manifest.unwrap()
+        manifest["tables"][table.value]["sha256"] = hashlib.sha256(
+            filepath.read_bytes()
+        ).hexdigest()
+        saved = is_successful(save_json_safe(manifest, self.manifest_json.unwrap()))
+        # read again on next use
+        self._tables.pop(table, None)
+        self._records.pop(table, None)
+        return saved
+
     def to_schema_file(self, schema: SchemaName) -> Maybe[Path]:
         """Convert schema name to file path, which is <data_root>/annotation/<schema_name>.json."""
         return self.annotation_dir.map(lambda ann: ann.joinpath(schema.filename))
 
     def save_records(self, schema: SchemaName, records: list[dict]) -> bool:
-        """Save schema data to file."""
+        """Save schema data to file (for 1.0, also its SHA-256 in `manifest.json`)."""
+        if self.schema_version == SchemaVersion.V1:
+            return self.save_table(V1SchemaName(schema.value), records)
         match self.to_schema_file(schema):
             case Some(filepath):
                 result = save_json_safe(records, filepath)
@@ -142,3 +181,9 @@ class SanityContext:
                     print(f"Error saving schema: {result.failure()}")
                     return False
         return False
+
+
+@safe
+def _build_safe(table: V1SchemaName, records: list[dict]) -> list:
+    """Build the 1.0 records of a table; fails on the first invalid record."""
+    return [SCHEMAS.get(table).from_dict(record) for record in records]

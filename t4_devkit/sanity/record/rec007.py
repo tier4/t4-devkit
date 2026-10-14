@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from returns.maybe import Maybe, Nothing, Some
+from returns.pipeline import is_successful
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import Checker, RuleID, RuleName, Severity
+from ..checker import Checker, RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_json_safe
@@ -24,6 +25,7 @@ class REC007(Checker):
     id = RuleID("REC007")
     name = RuleName("category-indices-consistent")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = "All categories must either have a unique 'index' or all have a 'null' index."
     schema = SchemaName.CATEGORY
 
@@ -32,6 +34,8 @@ class REC007(Checker):
             case Some(x):
                 if not x.exists():
                     return Maybe.from_value(Reason(f"Missing {self.schema.filename}"))
+                elif not is_successful(load_json_safe(x)):
+                    return Maybe.from_value(Reason(f"Cannot read {self.schema.filename}"))
                 else:
                     return Nothing
             case _:
