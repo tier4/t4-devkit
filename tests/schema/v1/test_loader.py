@@ -47,6 +47,11 @@ def test_shortcuts() -> None:
     assert sample_data.channel == "LIDAR_TOP"
     assert dataset.get("sensor", sample_data.sensor_token).first_sd_token is not None
 
+    # a non-key frame is a sample too, with the channels it has
+    non_key = next(s for s in dataset.tables[SchemaName.SAMPLE] if not s.has_key_frame)
+    assert set(non_key.data) == {"LIDAR_TOP"}
+    assert not non_key.ann_3ds and not non_key.ann_2ds
+
     assert dataset.tables[SchemaName.SAMPLE_ANNOTATION][0].category_name == "car"
     assert {r.category_name for r in dataset.tables[SchemaName.OBJECT_ANN]} == {"car", "road"}
 
