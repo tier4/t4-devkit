@@ -263,6 +263,52 @@ class T4Devkit:
         sd_record: SampleData = self.get("sample_data", sample_data_token)
         return osp.join(self.data_root, sd_record.filename)
 
+    def get_prev_key_frame(self, sample_data_token: str) -> str | None:
+        """Return the key frame at or before a frame, walking `prev` along its channel.
+
+        Args:
+            sample_data_token (str): Token of `sample_data`.
+
+        Returns:
+            Token of the key frame `sample_data`, or None if there is none before.
+        """
+        return self._walk_to_key_frame(sample_data_token, forward=False)
+
+    def get_next_key_frame(self, sample_data_token: str) -> str | None:
+        """Return the key frame at or after a frame, walking `next` along its channel.
+
+        Args:
+            sample_data_token (str): Token of `sample_data`.
+
+        Returns:
+            Token of the key frame `sample_data`, or None if there is none after.
+        """
+        return self._walk_to_key_frame(sample_data_token, forward=True)
+
+    def get_nearest_key_frame(self, sample_data_token: str) -> str | None:
+        """Return the key frame of a frame's channel closest in time (the earlier one on a tie).
+
+        Args:
+            sample_data_token (str): Token of `sample_data`.
+
+        Returns:
+            Token of the key frame `sample_data`, or None if the channel has no key frame.
+        """
+        timestamp = self.get("sample_data", sample_data_token).timestamp
+        candidates = [
+            token
+            for token in (
+                self.get_prev_key_frame(sample_data_token),
+                self.get_next_key_frame(sample_data_token),
+            )
+            if token is not None
+        ]
+        if not candidates:
+            return None
+        return min(
+            candidates, key=lambda token: abs(self.get("sample_data", token).timestamp - timestamp)
+        )
+
     def get_sample_data(
         self,
         sample_data_token: str,
@@ -452,6 +498,8 @@ class T4Devkit:
     def get_box3ds(self, sample_data_token: str, *, future_seconds: float = 0.0) -> list[Box3D]:
         """Rerun a list of Box3D classes for all annotations of a particular `sample_data` record.
         It the `sample_data` is a keyframe, this returns annotations for the corresponding `sample`.
+        Otherwise, boxes are interpolated between the sample of the next key frame and its
+        previous sample; after the last key frame, the previous key frame's boxes are returned.
 
         Args:
             sample_data_token (str): Token of `sample_data`.
@@ -462,9 +510,16 @@ class T4Devkit:
         """
         # Retrieve sensor & pose records
         sd_record: SampleData = self.get("sample_data", sample_data_token)
-        curr_sample_record: Sample = self.get("sample", sd_record.sample_token)
+        key_frame_token = self.get_next_key_frame(sample_data_token)
+        after_last_key_frame = key_frame_token is None
+        if after_last_key_frame:
+            key_frame_token = self.get_prev_key_frame(sample_data_token)
+            if key_frame_token is None:
+                return []
+        key_frame: SampleData = self.get("sample_data", key_frame_token)
+        curr_sample_record: Sample = self.get("sample", key_frame.sample_token)
 
-        if curr_sample_record.prev is None or sd_record.is_key_frame:
+        if curr_sample_record.prev is None or sd_record.is_key_frame or after_last_key_frame:
             # If no previous annotations available, or if sample_data is keyframe just return the current ones.
             boxes = [
                 self.get_box3d(token, future_seconds=future_seconds)
@@ -543,6 +598,7 @@ class T4Devkit:
     def get_box2ds(self, sample_data_token: str) -> list[Box2D]:
         """Rerun a list of Box2D classes for all annotations of a particular `sample_data` record.
         It the `sample_data` is a keyframe, this returns annotations for the corresponding `sample`.
+        Otherwise, it returns the annotations of that frame (a non-key frame has no sample).
 
         Args:
             sample_data_token (str): Token of `sample_data`.
@@ -551,6 +607,12 @@ class T4Devkit:
             List of instantiated Box2D classes.
         """
         sd_record: SampleData = self.get("sample_data", sample_data_token)
+        if not sd_record.is_key_frame:
+            return [
+                self.get_box2d(ann.token)
+                for ann in self.object_ann
+                if ann.sample_data_token == sample_data_token
+            ]
         sample_record: Sample = self.get("sample", sd_record.sample_token)
         return list(map(self.get_box2d, sample_record.ann_2ds))
 
@@ -682,6 +744,16 @@ class T4Devkit:
             save_dir=save_dir,
             show_map=show_map,
         )
+
+    def _walk_to_key_frame(self, sample_data_token: str, *, forward: bool) -> str | None:
+        """The first key frame from a frame (included), following `next` or `prev`."""
+        token = sample_data_token
+        while token is not None:
+            sample_data: SampleData = self.get("sample_data", token)
+            if sample_data.is_key_frame:
+                return token
+            token = sample_data.next if forward else sample_data.prev
+        return None
 
     def _box_visibility(self, ann: SampleAnnotation) -> VisibilityLevel:
         """Visibility of a 3D box; `UNAVAILABLE` when the annotation's visibility is unknown."""

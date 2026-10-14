@@ -289,7 +289,10 @@ class V0Converter:
     def convert_sample_data(self, record: Record) -> Record:
         return {
             "token": record["token"],
-            "sample_token": self._none_if_empty(record["sample_token"]),
+            # 0.x points non-key frames to the next sample (nuScenes); 1.0 links key frames only.
+            "sample_token": (
+                self._none_if_empty(record["sample_token"]) if record["is_key_frame"] else None
+            ),
             "ego_pose_token": record["ego_pose_token"],
             # 0.x calibrated_sensor rows become 1.0 sensor rows, with the same tokens.
             "sensor_token": record["calibrated_sensor_token"],

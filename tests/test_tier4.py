@@ -99,6 +99,30 @@ def test_autolabel_confidence(tmp_path):
     assert t4.get_box3d(t4.sample_annotation[1].token).confidence == 1.0
 
 
+def test_non_key_frame(tmp_path):
+    """A non-key frame has no sample; its key frames are found along its channel."""
+    data_root = tmp_path / "t4dataset"
+    shutil.copytree(Path(__file__).parent / "sample/t4dataset", data_root)
+    sample_data_path = data_root / "annotation" / "sample_data.json"
+    records = json.loads(sample_data_path.read_text())
+    first, middle, last = [r for r in records if r["filename"].startswith("data/LIDAR_TOP/")]
+    middle["is_key_frame"] = False
+    middle["sample_token"] = last["sample_token"]  # 0.x points it to the next sample
+    middle["timestamp"] = first["timestamp"] + 1_400_000  # closer to the last frame
+    sample_data_path.write_text(json.dumps(records))
+
+    t4 = T4Devkit(data_root.as_posix(), verbose=False)
+    assert t4.get("sample_data", middle["token"]).sample_token is None
+    assert t4.get_prev_key_frame(middle["token"]) == first["token"]
+    assert t4.get_next_key_frame(middle["token"]) == last["token"]
+    assert t4.get_nearest_key_frame(middle["token"]) == last["token"]
+    assert t4.get_next_key_frame(first["token"]) == first["token"]
+
+    # interpolated towards the sample of the next key frame
+    next_sample = t4.get("sample", last["sample_token"])
+    assert len(t4.get_box3ds(middle["token"])) == len(next_sample.ann_3ds)
+
+
 class TestT4Devkit:
     """Comprehensive integration tests using the sample T4 dataset.
 
