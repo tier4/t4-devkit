@@ -37,6 +37,15 @@ def test_empty_string_link_is_rejected() -> None:
         Sample.from_dict(data)
 
 
+def test_sample_data_needs_sample() -> None:
+    """Every frame belongs to a sample, key frame or not."""
+    records = json.loads((ANNOTATION_DIR / "sample_data.json").read_text())
+    non_key = next(record for record in records if not record["is_key_frame"])
+    SampleData.from_dict(non_key)
+    with pytest.raises(TypeError):
+        SampleData.from_dict({**non_key, "sample_token": None})
+
+
 def test_invalid_covariance_length() -> None:
     data = json.loads((ANNOTATION_DIR / "ego_pose.json").read_text())[0]
     data["covariance"] = [0.0] * 35

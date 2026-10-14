@@ -38,7 +38,7 @@ class SampleData(SchemaBase):
 
     Attributes:
         token (str): Unique record identifier.
-        sample_token (str | None): Foreign key pointing to the sample, or None if not a key frame.
+        sample_token (str): Foreign key pointing to the sample (frame) this observation belongs to.
         ego_pose_token (str): Foreign key pointing to the ego pose.
         sensor_token (str): Foreign key pointing to the sensor.
         filename (str | None): Path to the channel file, or to a per-frame file.
@@ -47,17 +47,13 @@ class SampleData(SchemaBase):
         fileformat (FileFormat): Format of the file.
         num_points (int | None): Number of points in the frame. LiDAR only.
         timestamp (int): Unix time stamp [us].
-        is_key_frame (bool): Whether this is an annotation key frame.
+        is_key_frame (bool): Whether this frame was annotated (per channel).
         is_valid (bool): False if the frame has a sensor drop or synchronization failure.
         next (str | None): Foreign key pointing to the next sample data of the same channel.
         prev (str | None): Foreign key pointing to the previous sample data of the same channel.
     """
 
-    sample_token: str | None = field(
-        validator=validators.optional(
-            validators.and_(validators.instance_of(str), impossible_empty())
-        )
-    )
+    sample_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     ego_pose_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     filename: str | None = field(validator=validators.optional(validators.instance_of(str)))
