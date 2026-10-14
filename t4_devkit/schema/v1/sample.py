@@ -29,7 +29,7 @@ class Sample(SchemaBase):
 
     Shortcuts (filled by `T4Tables`):
     ---------
-        data (dict[str, str]): Key frame sample data token per sensor channel.
+        data (dict[str, str]): Sample data token per sensor channel (the channels of this frame).
         ann_3ds (list[str]): Tokens of the sample annotations of this sample.
         ann_2ds (list[str]): Tokens of the object annotations of this sample.
     """

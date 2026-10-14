@@ -72,16 +72,15 @@ class T4Tables:
                 or record.timestamp < self.get(SchemaName.SAMPLE_DATA, first).timestamp
             ):
                 sensor.first_sd_token = record.token
-            if record.is_key_frame:
-                self.get(SchemaName.SAMPLE, record.sample_token).data[sensor.channel] = record.token
+            # every frame belongs to its sample, key frame or not
+            self.get(SchemaName.SAMPLE, record.sample_token).data[sensor.channel] = record.token
 
         for record in self.tables[SchemaName.SAMPLE_ANNOTATION]:
             self.get(SchemaName.SAMPLE, record.sample_token).ann_3ds.append(record.token)
 
         for record in self.tables[SchemaName.OBJECT_ANN]:
             sample_data = self.get(SchemaName.SAMPLE_DATA, record.sample_data_token)
-            if sample_data.sample_token is not None:
-                self.get(SchemaName.SAMPLE, sample_data.sample_token).ann_2ds.append(record.token)
+            self.get(SchemaName.SAMPLE, sample_data.sample_token).ann_2ds.append(record.token)
 
 
 def load_dataset(data_root: PathLike) -> T4Tables:
