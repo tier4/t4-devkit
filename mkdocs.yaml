@@ -16,6 +16,7 @@ nav:
           - Home: schema/v1/index.md
           - Schema Tables: schema/v1/table.md
           - Sensor Data: schema/v1/data.md
+          - Requirements: schema/v1/requirement.md
   - Tutorials:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
