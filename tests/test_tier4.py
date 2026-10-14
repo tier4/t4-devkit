@@ -99,6 +99,18 @@ def test_autolabel_confidence(tmp_path):
     assert t4.get_box3d(t4.sample_annotation[1].token).confidence == 1.0
 
 
+def test_non_key_sample_boxes():
+    """A frame after the last key sample gets that sample's boxes; a key frame its own."""
+    t4 = T4Devkit((Path(__file__).parent / "sample/t4dataset_v1").as_posix(), verbose=False)
+    non_key = next(
+        sd for sd in t4.sample_data if not t4.get("sample", sd.sample_token).has_key_frame
+    )
+    last_key = t4.get("sample", t4.get("sample", non_key.sample_token).prev)
+    assert last_key.has_key_frame
+    boxes = t4.get_box3ds(non_key.token)
+    assert len(boxes) == len(last_key.ann_3ds) > 0
+
+
 class TestT4Devkit:
     """Comprehensive integration tests using the sample T4 dataset.
 
@@ -124,8 +136,8 @@ class TestT4Devkit:
             "version": None,
         },
         "t4dataset_v1": {
-            "samples": 2,
-            "sample_data": 4,
+            "samples": 3,
+            "sample_data": 5,
             "categories": 2,
             "cameras": 1,
             "scene_name": "sample_scene",

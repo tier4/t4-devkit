@@ -93,7 +93,7 @@ By specifying `revision=<VERSION>`, you can load the specific version of the dat
 
 ### `sample`
 
-`sample` is an annotated keyframe of a scene at a given timestamp.
+`sample` is one frame of a scene: the observations of all channels at that moment. Every frame is a sample; `sample.has_key_frame` marks the annotated ones (key frames), which carry the labels.
 
 ```python
 >>> first_sample_token = my_scene.first_sample_token

@@ -451,7 +451,9 @@ class T4Devkit:
 
     def get_box3ds(self, sample_data_token: str, *, future_seconds: float = 0.0) -> list[Box3D]:
         """Rerun a list of Box3D classes for all annotations of a particular `sample_data` record.
-        It the `sample_data` is a keyframe, this returns annotations for the corresponding `sample`.
+        It the `sample` of the `sample_data` has a key frame, this returns its annotations.
+        Otherwise, boxes are interpolated between the next key sample and the previous one; after
+        the last key sample, the boxes of the last one are returned.
 
         Args:
             sample_data_token (str): Token of `sample_data`.
@@ -462,18 +464,27 @@ class T4Devkit:
         """
         # Retrieve sensor & pose records
         sd_record: SampleData = self.get("sample_data", sample_data_token)
-        curr_sample_record: Sample = self.get("sample", sd_record.sample_token)
+        sample_record: Sample = self.get("sample", sd_record.sample_token)
+        curr_sample_record = self._key_sample(sample_record.token, forward=True)
+        after_last_key_sample = curr_sample_record is None
+        if after_last_key_sample:
+            curr_sample_record = self._key_sample(sample_record.token, forward=False)
+            if curr_sample_record is None:
+                return []
+        prev_sample_record = (
+            None
+            if sample_record.has_key_frame or after_last_key_sample
+            else self._key_sample(curr_sample_record.prev, forward=False)
+        )
 
-        if curr_sample_record.prev is None or sd_record.is_key_frame:
-            # If no previous annotations available, or if sample_data is keyframe just return the current ones.
+        if prev_sample_record is None:
+            # A key sample, or no key sample on one side: just return the key sample's boxes.
             boxes = [
                 self.get_box3d(token, future_seconds=future_seconds)
                 for token in curr_sample_record.ann_3ds
             ]
 
         else:
-            prev_sample_record: Sample = self.get("sample", curr_sample_record.prev)
-
             curr_ann_recs: list[SampleAnnotation] = [
                 self.get("sample_annotation", token) for token in curr_sample_record.ann_3ds
             ]
@@ -682,6 +693,16 @@ class T4Devkit:
             save_dir=save_dir,
             show_map=show_map,
         )
+
+    def _key_sample(self, sample_token: str | None, *, forward: bool) -> Sample | None:
+        """The first sample with a key frame from a sample (included), following `next` or
+        `prev`, or None."""
+        while sample_token is not None:
+            sample: Sample = self.get("sample", sample_token)
+            if sample.has_key_frame:
+                return sample
+            sample_token = sample.next if forward else sample.prev
+        return None
 
     def _box_visibility(self, ann: SampleAnnotation) -> VisibilityLevel:
         """Visibility of a 3D box; `UNAVAILABLE` when the annotation's visibility is unknown."""

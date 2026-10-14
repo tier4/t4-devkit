@@ -496,6 +496,11 @@ class RenderingHelper:
             if max_timestamp_us < sample.timestamp:
                 break
 
+            # labels are on key frames only; logging none in between would clear them
+            if not sample.has_key_frame:
+                current_sample_token = sample.next
+                continue
+
             if instance_tokens is not None:
                 boxes = []
                 for ann_token in sample.ann_3ds:
@@ -525,6 +530,11 @@ class RenderingHelper:
 
             if max_timestamp_us < sample.timestamp:
                 break
+
+            # labels are on key frames only; logging none in between would clear them
+            if not sample.has_key_frame:
+                current_sample_token = sample.next
+                continue
 
             boxes = []
             # For segmentation masks
