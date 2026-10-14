@@ -136,6 +136,8 @@ Provenance {
 
 `load_dataset()` reads a 0.x dataset (no `manifest.json`) by converting its tables to 1.0 records when loading, on a best-effort basis. Sensor data files stay as they are: one file per frame, and `sample_data.frame_index` is `null`.
 
+Every 0.x frame becomes a `sample`: the files of all channels with the same frame number (e.g. `00042.jpg` and `00042.pcd.bin`, as the 0.x converter names them) form one frame. 0.x samples, which are annotated frames only, keep their tokens; 0.x samples of the same frame (one per camera image in camera-only datasets) are merged into the earliest one. A frame with a 2D label is a key frame.
+
 Each 0.x `calibrated_sensor` row becomes a `sensor` row, keeping its token. The camera block takes its intrinsics and distortion from it, its size from `sample_data`, and the distortion model from the number of coefficients (0: `none`, 5: `plumb_bob`, 8: `rational_polynomial`). The LiDAR block is described from the first frame. Map `sha256` and `projector` are read from `map/lanelet2_map.osm` and `map/map_projector_info.yaml`.
 
 Labels are `manual` unless 0.x marks them as autolabel (`provenance` = model names). `surface_ann` rows become `object_ann` rows without an instance, with `bbox` computed from the mask. 0.x visibility `unavailable` (or any unknown level) becomes `visibility_token: null`, and the aliases `v0-40`, `v40-60`, `v60-80`, `v80-100` map to `none`, `partial`, `most`, `full`.
