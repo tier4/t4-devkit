@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from returns.maybe import Some
 
-from ..checker import Checker, RuleID, RuleName, Severity
+from ..checker import Checker, RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 
@@ -23,6 +23,7 @@ class STR001(Checker):
     name = RuleName("version-dir-presence")
     severity = Severity.WARNING
     description = "'version/' directory exists under the dataset root directory."
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         match context.version:

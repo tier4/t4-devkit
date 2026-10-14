@@ -1,4 +1,4 @@
-`t4sanity` performs sanity checks on T4 datasets, reporting any issues regarding the [dataset requirements](../schema/requirement.md).
+`t4sanity` performs sanity checks on T4 datasets, reporting any issues regarding the dataset requirements: [0.x](../schema/requirement.md) or [1.0](../schema/v1/requirement.md), chosen by the dataset (1.0 if it has a `manifest.json`).
 
 ```shell
 $ t4sanity -h
@@ -15,6 +15,7 @@ $ t4sanity -h
 │ --exclude             -e       TEXT  Exclude specific rules or rule groups. [default: None]                           │
 │ --strict              -s             Indicates whether warnings are treated as failures.                              │
 │ --fix                 -f             Attempt to fix the issues reported by the sanity check.                          │
+│ --checksum            -c             Verify the SHA-256 of every file listed in manifest.json (1.0 datasets).          │
 │ --install-completion                 Install completion for the current shell.                                        │
 │ --show-completion                    Show completion for the current shell, to copy it or customize the installation. │
 │ --help                -h             Show this message and exit.                                                      │
