@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 import os
 import threading
+from fractions import Fraction
 from functools import lru_cache
-from typing import Any, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 import av
 import numpy as np
+import pyarrow as pa
 import pyarrow.parquet as pq
 import pypcd4
 from PIL import Image
@@ -16,7 +18,15 @@ from typing_extensions import TYPE_CHECKING
 if TYPE_CHECKING:
     from t4_devkit.typing import PathLike
 
-__all__ = ("load_json", "save_json", "load_pointcloud", "load_image", "V0_BIN_FIELDS")
+__all__ = (
+    "load_json",
+    "save_json",
+    "load_pointcloud",
+    "save_pointcloud",
+    "load_image",
+    "save_video",
+    "V0_BIN_FIELDS",
+)
 
 # 0.x `.bin` layout: this list cut to `num_pts_feats`, all float32 (as written by the converter).
 # `.bin` stores no names; these are the 1.0 names (0.x calls `channel` "ring"), all float32.
@@ -99,6 +109,49 @@ def load_pointcloud(
     return {name: data[name] for name in names}
 
 
+def save_pointcloud(
+    filepath: PathLike,
+    frames: Iterable[Mapping[str, np.ndarray]],
+    fields: Sequence[tuple[str, str]],
+    *,
+    compression: str = "zstd",
+) -> int:
+    """Save the frames of a LiDAR channel as one Parquet file, one row group per frame.
+
+    Columns are `fields`, in order. Floats use BYTE_STREAM_SPLIT and no dictionary encoding, the
+    smallest in the 1.0 benchmark; readers do not depend on it.
+
+    Args:
+        filepath (PathLike): `.parquet` file to write.
+        frames (Iterable[Mapping[str, np.ndarray]]): Arrays of shape (N,) keyed by field name,
+            one mapping per frame. A frame may have no points.
+        fields (Sequence[tuple[str, str]]): (name, dtype) of each column, e.g. from
+            `sensor.lidar.fields`.
+        compression (str, optional): Parquet compression codec.
+
+    Returns:
+        The number of frames written.
+    """
+    schema = pa.schema([(name, pa.from_numpy_dtype(np.dtype(dtype))) for name, dtype in fields])
+    floats = [field.name for field in schema if pa.types.is_floating(field.type)]
+    num_frames = 0
+    with pq.ParquetWriter(
+        os.fspath(filepath),
+        schema,
+        compression=compression,
+        use_dictionary=False,
+        column_encoding={name: "BYTE_STREAM_SPLIT" for name in floats},
+    ) as writer:
+        for frame in frames:
+            columns = [np.asarray(frame[name], dtype=dtype) for name, dtype in fields]
+            # one row group per frame, also for a frame without points
+            writer.write_table(
+                pa.table(columns, schema=schema), row_group_size=max(len(columns[0]), 1)
+            )
+            num_frames += 1
+    return num_frames
+
+
 @lru_cache(maxsize=32)
 def _open_parquet(filepath: str, mtime: int, pid: int) -> pq.ParquetFile:
     """Open a Parquet file once per process and file version, memory-mapped.
@@ -150,6 +203,95 @@ def load_image(filepath: PathLike, *, frame_index: int | None = None) -> np.ndar
         if frame.pts > pts:
             break
     raise IndexError(f"Frame {frame_index} not found in {filepath}")
+
+
+def save_video(
+    filepath: PathLike,
+    frames: Iterable[np.ndarray],
+    frame_rate: int,
+    *,
+    preset: int = 6,
+    crf: int = 26,
+) -> dict[str, Any]:
+    """Save the frames of a camera channel as one AV1 MP4 video, with PyAV's SVT-AV1.
+
+    Every frame is a keyframe. The track timescale is the frame rate, so a frame's pts is its
+    `frame_index`. Colors are YUV 4:2:0, full range, BT.601.
+
+    Args:
+        filepath (PathLike): `.mp4` file to write.
+        frames (Iterable[np.ndarray]): RGB images of shape (H, W, 3), all the same size: uint8 for
+            8-bit video, uint16 for 10-bit video.
+        frame_rate (int): Frames per second.
+        preset (int, optional): SVT-AV1 preset (speed vs size).
+        crf (int, optional): SVT-AV1 quality (lower is better).
+
+    Returns:
+        The values of `sensor.camera.video`, except `path`.
+    """
+    container = av.open(
+        os.fspath(filepath),
+        mode="w",
+        options={"movflags": "+faststart", "video_track_timescale": str(frame_rate)},
+    )
+    stream = None
+    num_frames = 0
+    bit_depth, pixel_format = 8, "yuv420p"
+    with container:
+        for image in frames:
+            if stream is None:
+                # uint16 frames: 10-bit video
+                if image.dtype == np.uint16:
+                    bit_depth, pixel_format = 10, "yuv420p10le"
+                stream = _add_video_stream(container, image, frame_rate, pixel_format, preset, crf)
+            rgb = av.VideoFrame.from_ndarray(image, format="rgb48le" if bit_depth > 8 else "rgb24")
+            frame = rgb.reformat(
+                format=pixel_format,
+                dst_colorspace=av.video.reformatter.Colorspace.ITU601,
+                dst_color_range=av.video.reformatter.ColorRange.JPEG,
+            )
+            frame.pts = num_frames
+            container.mux(stream.encode(frame))
+            num_frames += 1
+        if stream is not None:
+            container.mux(stream.encode())
+    return {
+        "format": "av1_mp4",
+        "codec_profile": f"svt-av1 preset{preset} crf{crf} intra",
+        "pixel_format": f"{pixel_format} full-range bt601",
+        "bit_depth": bit_depth,
+        "frame_count": num_frames,
+        "timescale": frame_rate,
+    }
+
+
+def _add_video_stream(
+    container: av.container.OutputContainer,
+    image: np.ndarray,
+    frame_rate: int,
+    pixel_format: str,
+    preset: int,
+    crf: int,
+) -> av.video.stream.VideoStream:
+    """The AV1 stream of a camera video, sized by its first image."""
+    stream = container.add_stream("libsvtav1", rate=frame_rate)
+    stream.height, stream.width = image.shape[:2]
+    stream.pix_fmt = pixel_format
+    stream.time_base = Fraction(1, frame_rate)
+    context = stream.codec_context
+    context.gop_size = 1  # every frame a keyframe
+    context.options = {
+        "preset": str(preset),
+        "crf": str(crf),
+        # all intra, no scene detection or film grain, quiet
+        "svtav1-params": "pred-struct=0:scd=0:film-grain=0:fast-decode=2:lp=0:log-level=1",
+    }
+    # full range, BT.601 matrix, BT.709 primaries, sRGB transfer (FFmpeg enum values)
+    context.color_range = 2
+    context.colorspace = 5
+    context.color_primaries = 1
+    context.color_trc = 13
+    return stream
 
 
 @lru_cache(maxsize=32)
