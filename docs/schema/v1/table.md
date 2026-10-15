@@ -68,7 +68,7 @@ sample_data {
   "sample_token":     <str> -- Foreign key to the `Sample` (frame) this observation belongs to.
   "ego_pose_token":   <str> -- Foreign key to the `EgoPose` table.
   "sensor_token":     <str> -- Foreign key to the `Sensor` table. Replaces `calibrated_sensor_token`.
-  "filename":         <option[str]> -- Path to the channel file (video or point cloud container), or to a per-frame file for datasets that keep 0.x files.
+  "filename":         <str> -- Path to the channel file (video or point cloud container), or to a per-frame file for datasets that keep 0.x files.
   "frame_index":      <option[int]> -- Index of the frame inside the channel file, starting at 0. `null` for per-frame files.
   "fileformat":       <enum["jpg", "png", "pcd", "bin", "pcd.bin", "av1_mp4", "parquet"]> -- Format of the file.
   "num_points":       <option[int]> -- Number of points in the frame. LiDAR only.

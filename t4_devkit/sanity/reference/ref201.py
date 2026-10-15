@@ -36,6 +36,6 @@ class REF201(FileReferenceChecker):
             Reason(f"File not found: {record['filename']}")
             for record in records
             if record.get("is_valid", True)
-            and record["filename"] is not None  # 1.0: no file
+            and record["filename"] is not None  # invalid (reported by FMT022), not a missing file
             and not data_root.joinpath(record["filename"]).exists()
         ] or None
