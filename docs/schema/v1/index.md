@@ -147,6 +147,15 @@ Provenance {
 
 `save` lists every table and every file under `data/`, `map/` and `input_bag/` in `manifest.json`, with its hash. It computes `capabilities` from the tables, and adds t4-devkit to `generators`. `manifest_info` gives the other manifest fields (identity, provenance, migration notes).
 
+## Migrating 0.x Datasets
+
+[`t4migrate`](../../cli/t4migrate.md) writes a 0.x dataset as a new 1.0 dataset: the tables as loaded below, and one Parquet file or AV1 video per channel. In Python, `V0Migrator` does the same:
+
+```python
+>>> from t4_devkit.schema.v1 import V0Migrator
+>>> manifest = V0Migrator("<0.x dataset>", "out/<DATASET_ID>/<DATASET_VERSION>").migrate("<DATASET_ID>", <DATASET_VERSION>)
+```
+
 ## Loading 0.x Datasets
 
 `load_dataset()` reads a 0.x dataset (no `manifest.json`) by converting its tables to 1.0 records when loading, on a best-effort basis. Sensor data files stay as they are: one file per frame, and `sample_data.frame_index` is `null`.
@@ -155,7 +164,7 @@ Every 0.x frame becomes a `sample`: the files of all channels with the same fram
 
 Each 0.x `calibrated_sensor` row becomes a `sensor` row, keeping its token. The camera block takes its intrinsics and distortion from it, its size from `sample_data`, and the distortion model from the number of coefficients (0: `none`, 5: `plumb_bob`, 8: `rational_polynomial`). The LiDAR block is described from the first frame. The map is the dataset's own `map/` folder: `sha256` and `projector` are read from `map/lanelet2_map.osm` and `map/map_projector_info.yaml`, and map element ids (e.g. lamp ways) refer to it. An empty `log.data_captured` becomes the log's first sample time (ISO 8601, UTC).
 
-Labels are `manual` unless 0.x marks them as autolabel (`provenance` = model names). Categories without `index` get their position in `category.json`, as the 0.x devkit reads them (all set or none). `surface_ann` rows become `object_ann` rows without an instance, with `bbox` computed from the mask. 0.x visibility `unavailable` (or any unknown level) becomes `visibility_token: null`, and the aliases `v0-40`, `v40-60`, `v60-80`, `v80-100` map to `none`, `partial`, `most`, `full`.
+Labels are `manual` unless 0.x marks them as autolabel (`provenance` = model names). `instance.nbr_annotations` and its first / last annotation are computed over its 3D boxes and 2D labels; 0.x tools count them differently (some write 0 for 2D labels). Categories without `index` get their position in `category.json`, as the 0.x devkit reads them (all set or none). `surface_ann` rows become `object_ann` rows without an instance, with `bbox` computed from the mask. 0.x visibility `unavailable` (or any unknown level) becomes `visibility_token: null`, and the aliases `v0-40`, `v40-60`, `v60-80`, `v80-100` map to `none`, `partial`, `most`, `full`.
 
 `vehicle_state` rows get `source: vehicle_interface` (where the 0.x converter reads them) and shift `FORWARD`/`HIGH` becomes `DRIVE`; `additional_info.speed` is dropped and the velocities are `null`. The 0.x `traffic_light` table (`primitive_id`) and `traffic_light_instance_map` table (`traffic_light_linestring_id`, which wins if both list a lamp) link a lamp instance to its lanelet2 way (`type=traffic_light`) and have no states: the way becomes that instance's `map_element` (`type: way`), and the 1.0 `traffic_light` table stays empty. Source LiDARs of a concatenation have no frames of their own in 0.x: they take the concatenated channel's format and `fields`, and `frame_count` is the number of concatenated frames whose `.info` file lists points from them.
 
