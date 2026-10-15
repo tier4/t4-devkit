@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 from typing import TYPE_CHECKING
 
+from t4_devkit.common.io import file_sha256
 from t4_devkit.schema.v1 import AssetEntry
 
 from ..checker import ManifestChecker, RuleID, RuleName, Severity
@@ -10,8 +10,6 @@ from ..registry import CHECKERS
 from ..result import Reason, make_report
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from ..context import SanityContext
     from ..result import Report
 
@@ -54,14 +52,6 @@ class STR012(ManifestChecker):
                 failures.append(
                     Reason(f"{entry.path}: {filepath.stat().st_size} bytes, listed {entry.bytes}")
                 )
-            elif _sha256(filepath) != entry.sha256:
+            elif file_sha256(filepath) != entry.sha256:
                 failures.append(Reason(f"{entry.path}: SHA-256 differs from 'manifest.json'"))
         return failures or None
-
-
-def _sha256(filepath: Path) -> str:
-    digest = hashlib.sha256()
-    with filepath.open("rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            digest.update(chunk)
-    return digest.hexdigest()

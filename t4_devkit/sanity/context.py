@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 from functools import cached_property
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from returns.result import safe
 from typing_extensions import TYPE_CHECKING, Self
 
 from t4_devkit import DBMetadata
+from t4_devkit.common.io import file_sha256
 from t4_devkit.lanelet import LaneletParser
 from t4_devkit.schema import SchemaName
 from t4_devkit.schema.v1 import MANIFEST_FILENAME, SCHEMAS, Manifest
@@ -161,9 +161,7 @@ class SanityContext:
         if filepath is None or not is_successful(save_json_safe(records, filepath)):
             return False
         manifest = self.raw_manifest.unwrap()
-        manifest["tables"][table.value]["sha256"] = hashlib.sha256(
-            filepath.read_bytes()
-        ).hexdigest()
+        manifest["tables"][table.value]["sha256"] = file_sha256(filepath)
         saved = is_successful(save_json_safe(manifest, self.manifest_json.unwrap()))
         # read again on next use
         self._tables.pop(table, None)

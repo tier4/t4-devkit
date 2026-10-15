@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import hashlib
 import importlib.metadata
 import json
-import os
 import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence
 
-from t4_devkit.common.io import save_pointcloud, save_video
+from t4_devkit.common.io import file_sha256, save_pointcloud, save_video
 from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
 
 from .manifest import MANIFEST_FILENAME, Capabilities, Manifest
@@ -35,9 +33,6 @@ class DatasetWriter:
         >>> writer.copy("in/map/lanelet2_map.osm", "map/lanelet2_map.osm")
         >>> manifest = writer.save(tables, manifest_info)
     """
-
-    # Folders whose files are listed in `manifest.json` as assets.
-    ASSET_DIRS: tuple[str, ...] = ("data", "map", "input_bag")
 
     def __init__(self, output_root: PathLike) -> None:
         """
@@ -181,7 +176,7 @@ class DatasetWriter:
         """Every file under the asset folders, relative to the dataset root, sorted."""
         return sorted(
             filepath.relative_to(self.output_root).as_posix()
-            for directory in self.ASSET_DIRS
+            for directory in Manifest.ASSET_DIRS
             for filepath in (self.output_root / directory).rglob("*")
             if filepath.is_file()
         )
@@ -192,8 +187,4 @@ class DatasetWriter:
         filepath.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
     def _sha256(self, path: str) -> str:
-        digest = hashlib.sha256()
-        with open(os.fspath(self.output_root / path), "rb") as f:
-            for chunk in iter(lambda: f.read(1 << 20), b""):
-                digest.update(chunk)
-        return digest.hexdigest()
+        return file_sha256(self.output_root / path)

@@ -15,9 +15,10 @@ import yaml
 from PIL import Image
 from pycocotools import mask as cocomask
 
-from t4_devkit.common.io import V0_BIN_FIELDS, load_json
+from t4_devkit.common.io import V0_BIN_FIELDS, file_sha256, load_json
 from t4_devkit.schema.tables.visibility import VisibilityLevel as V0VisibilityLevel
 
+from .instance import Instance
 from .name import SchemaName
 from .sensor import DistortionModel
 
@@ -153,8 +154,7 @@ class V0Converter:
         filepath = osp.join(self.data_root, filename)
         if not osp.exists(filepath):
             return None
-        with open(filepath, "rb") as f:
-            sha256 = hashlib.sha256(f.read()).hexdigest()
+        sha256 = file_sha256(filepath)
         fallbacks = self.FALLBACKS["map"]
         return {
             "token": record["token"],
@@ -575,31 +575,24 @@ class V0Converter:
     def _instance_annotations(
         self, tables: dict[SchemaName, list[Record]]
     ) -> dict[str, tuple[int, str, str]]:
-        """Return the number of labels and the first / last label token in time of each instance.
-
-        A `SampleAnnotation` is at its sample's time, an `ObjectAnn` at its frame's time (as
-        sanity `REC013` checks).
-        """
+        """Return the number of labels and the first / last label token in time of each instance
+        (`Instance.annotation_spans`)."""
         sample_times = {
             sample["token"]: sample["timestamp"] for sample in tables[SchemaName.SAMPLE]
         }
         frame_times = {
             frame["token"]: frame["timestamp"] for frame in tables[SchemaName.SAMPLE_DATA]
         }
-        times: dict[str, list[tuple[int, str]]] = {}
-        for ann in tables[SchemaName.SAMPLE_ANNOTATION]:
-            times.setdefault(ann["instance_token"], []).append(
-                (sample_times[ann["sample_token"]], ann["token"])
-            )
-        for ann in tables[SchemaName.OBJECT_ANN]:
-            if ann["instance_token"] is not None:
-                times.setdefault(ann["instance_token"], []).append(
-                    (frame_times[ann["sample_data_token"]], ann["token"])
-                )
-        return {
-            token: (len(entries), min(entries)[1], max(entries)[1])
-            for token, entries in times.items()
-        }
+        boxes = [
+            (ann["instance_token"], sample_times[ann["sample_token"]], ann["token"])
+            for ann in tables[SchemaName.SAMPLE_ANNOTATION]
+        ]
+        labels_2d = [
+            (ann["instance_token"], frame_times[ann["sample_data_token"]], ann["token"])
+            for ann in tables[SchemaName.OBJECT_ANN]
+            if ann["instance_token"] is not None
+        ]
+        return Instance.annotation_spans(boxes + labels_2d)
 
     def _read_projector(self) -> Record:
         """Read Autoware's `map_projector_info.yaml`, if any."""
