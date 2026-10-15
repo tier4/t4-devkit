@@ -124,8 +124,8 @@
     },
     {
       "path": "data/LIDAR_TOP/LIDAR_TOP.parquet",
-      "sha256": "97e2fba08820460afe7487971c4321787ba2630473e8abdfd32a5b2739497cd5",
-      "bytes": 3117
+      "sha256": "ea286e166f6a4e5266e2765ff60e84f27eef1d32517621ea7bf4f56ee2a2b2f8",
+      "bytes": 3045
     },
     {
       "path": "map/lanelet2_map.osm",
