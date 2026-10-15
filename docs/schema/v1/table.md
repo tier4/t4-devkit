@@ -288,7 +288,7 @@ category {
   "token":            <str> -- Unique record identifier.
   "name":             <str> -- Category name.
   "description":      <option[str]> -- Description.
-  "index":            <option[int]> -- Value of the LiDAR `label` field for this category. Required when point-wise labels are present.
+  "index":            <option[int]> -- Value of the LiDAR `label` field for this category. Required when point-wise labels are present. `0` is reserved for the `unpainted` category.
   "has_orientation":  <bool> -- Whether annotations of this category may have `orientation`.
   "has_number":       <bool> -- Whether annotations of this category may have `number`.
 }
@@ -333,7 +333,7 @@ instance {
   "token":                  <str> -- Unique record identifier.
   "category_token":         <str> -- Foreign key to the `Category` table.
   "instance_name":          <str> -- `<DATASET_ID>::<INSTANCE_ID>`.
-  "instance_index":         <option[int]> -- Value of the LiDAR `instance` field for this object. Unique within the dataset. Required when point-wise labels are present.
+  "instance_index":         <option[int]> -- Value of the LiDAR `instance` field for this object, from `1` (`0` means no object). Unique within the dataset. Required when point-wise labels are present.
   "nbr_annotations":        <int> -- Number of annotations of this instance.
   "first_annotation_token": <option[str]> -- Foreign key to the first `SampleAnnotation` or `ObjectAnn`.
   "last_annotation_token":  <option[str]> -- Foreign key to the last `SampleAnnotation` or `ObjectAnn`.

@@ -45,12 +45,17 @@ data/
 
 When `manifest.json` lists `segmentation3d` in `capabilities.tasks`, the LiDAR file has two extra columns for panoptic labels, listed in `sensor.lidar.fields` like any other field:
 
-| Column     | Type     | Value                                                                                                    |
-| ---------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category                                          |
-| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `null` for points with no object |
+| Column     | Type     | Value                                                                                                 |
+| ---------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category; `0` for unpainted points             |
+| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `0` for points with no object |
 
-Frames without labels have `null` in both columns.
+Index `0` is reserved in both columns:
+
+- `label` `0` is the `unpainted` category: points the annotator did not label. When point-wise labels are present, `category.json` has a category named `unpainted` with `index` `0`.
+- `instance` `0` means no object: points of categories without `is_thing` (road, vegetation) and unpainted points. `instance_index` starts at `1`.
+
+Labeled frames have a value for every point. Frames without labels (for example, non-key frames) have `null` in both columns for every point, because a Parquet file has the same columns in every frame. Readers leave out a column that is `null` for the whole frame.
 
 This replaces the `lidarseg` table and the `lidarseg/` folder of 0.x.
 
