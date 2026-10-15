@@ -81,6 +81,20 @@ def lidar_column_values(path: Path, column: str) -> set | None:
     return set(values.to_pylist())
 
 
+def lidar_partly_null_frames(path: Path, column: str) -> list[int] | None:
+    """Return the frames of a LiDAR Parquet file where a column is null on some points but not
+    all, or None if it has no such column."""
+    parquet = pq.ParquetFile(path)
+    if column not in parquet.schema_arrow.names:
+        return None
+    frames = []
+    for i in range(parquet.num_row_groups):
+        nulls = parquet.read_row_group(i, columns=[column]).column(column).null_count
+        if 0 < nulls < parquet.metadata.row_group(i).num_rows:
+            frames.append(i)
+    return frames
+
+
 def _numpy_dtype(arrow_type: pa.DataType) -> str:
     """Return the NumPy name of an Arrow type, as `sensor.lidar.fields` writes it (e.g. "float32")."""
     return pa.array([], type=arrow_type).to_numpy(zero_copy_only=False).dtype.name

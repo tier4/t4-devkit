@@ -24,8 +24,8 @@ class REF306(RecordsChecker):
     name = RuleName("lidar-point-labels")
     severity = Severity.ERROR
     description = (
-        "In a LiDAR file, 'label' values are 'Category.index' values, and 'instance' values "
-        "'Instance.index' values."
+        "In a LiDAR file, 'label' values are 'Category.index' values, and 'instance' values are "
+        "'Instance.index' values or 0 (no object)."
     )
     tables = (
         SchemaName.SENSOR,
@@ -37,7 +37,7 @@ class REF306(RecordsChecker):
         data_root = context.data_root.unwrap()
         indices = {
             "label": {c.index for c in context.load_records(SchemaName.CATEGORY).unwrap()},
-            "instance": {i.index for i in context.load_records(SchemaName.INSTANCE).unwrap()},
+            "instance": {0} | {i.index for i in context.load_records(SchemaName.INSTANCE).unwrap()},
         }
         failures = []
         for sensor in context.load_records(SchemaName.SENSOR).unwrap():
