@@ -2,7 +2,6 @@ from .annotation_type import *  # noqa
 from .attribute import *  # noqa
 from .caption import *  # noqa
 from .category import *  # noqa
-from .convert_v0 import *  # noqa
 from .ego_pose import *  # noqa
 from .instance import *  # noqa
 from .keypoint import *  # noqa
@@ -25,3 +24,5 @@ from .vehicle import *  # noqa
 from .vehicle_state import *  # noqa
 from .visibility import *  # noqa
 from .writer import *  # noqa
+from .convert_v0 import *  # noqa
+from .migrate_v0 import *  # noqa
