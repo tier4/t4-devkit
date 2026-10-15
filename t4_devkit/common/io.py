@@ -124,7 +124,8 @@ def save_pointcloud(
     Args:
         filepath (PathLike): `.parquet` file to write.
         frames (Iterable[Mapping[str, np.ndarray]]): Arrays of shape (N,) keyed by field name,
-            one mapping per frame. A frame may have no points.
+            one mapping per frame. A frame may have no points. A field that is missing or None
+            is null on every point of the frame, e.g. point labels of a frame without labels.
         fields (Sequence[tuple[str, str]]): (name, dtype) of each column, e.g. from
             `sensor.lidar.fields`.
         compression (str, optional): Parquet compression codec.
@@ -143,11 +144,18 @@ def save_pointcloud(
         column_encoding={name: "BYTE_STREAM_SPLIT" for name in floats},
     ) as writer:
         for frame in frames:
-            columns = [np.asarray(frame[name], dtype=dtype) for name, dtype in fields]
+            values = [frame.get(name) for name, _ in fields]
+            num_points = next((len(v) for v in values if v is not None), None)
+            if num_points is None:
+                raise ValueError(f"Frame {num_frames} has no field with values")
+            columns = [
+                pa.nulls(num_points, field.type)
+                if value is None
+                else pa.array(np.asarray(value, dtype=dtype), field.type)
+                for field, (_, dtype), value in zip(schema, fields, values)
+            ]
             # one row group per frame, also for a frame without points
-            writer.write_table(
-                pa.table(columns, schema=schema), row_group_size=max(len(columns[0]), 1)
-            )
+            writer.write_table(pa.table(columns, schema=schema), row_group_size=max(num_points, 1))
             num_frames += 1
     return num_frames
 

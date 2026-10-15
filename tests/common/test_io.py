@@ -156,3 +156,22 @@ def test_save_video(tmp_path: Path, dtype, bit_depth: int, max_value: int) -> No
         # lossy, but the green level of each frame is kept
         green = image[..., 1].mean() / max_value
         assert abs(green - 0.25 * frame_index) < 0.03
+
+
+def test_save_pointcloud_null_column(tmp_path: Path) -> None:
+    """A field that is None in a frame is written null and left out when read."""
+    fields = [("x", "float32"), ("label", "uint8")]
+    frames = [
+        {"x": np.array([1.0, 2.0], dtype=np.float32), "label": np.array([0, 3], dtype=np.uint8)},
+        {"x": np.array([4.0], dtype=np.float32), "label": None},
+    ]
+    path = tmp_path / "LIDAR_TOP.parquet"
+
+    assert save_pointcloud(path, frames, fields) == 2
+    assert load_pointcloud(path, frame_index=0)["label"].tolist() == [0, 3]
+    assert list(load_pointcloud(path, frame_index=1)) == ["x"]
+
+    # what the reader returns can be written back as it is
+    again = tmp_path / "again.parquet"
+    save_pointcloud(again, [load_pointcloud(path, frame_index=i) for i in range(2)], fields)
+    assert list(load_pointcloud(again, frame_index=1)) == ["x"]
