@@ -143,8 +143,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                     "timestamp": timestamps[i],
                     "is_key_frame": i < NUM_FRAMES,
                     "is_valid": True,
-                    **link(tokens, i),
                 }
+                | link(tokens, i)
             )
             ego_pose.append(
                 {
@@ -169,8 +169,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "timestamp": timestamps[i],
                 "scene_token": "scene",
                 "has_key_frame": i < NUM_FRAMES,
-                **link(samples, i),
             }
+            | link(samples, i)
             for i, s in enumerate(samples)
         ],
         "sample_data": sample_data,
@@ -350,13 +350,9 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "acceleration": None,
                 "num_lidar_pts": 0,
                 "num_radar_pts": None,
-                **link(sample_annotations, i),
-                **(
-                    label()
-                    if i == 0
-                    else label("interpolated", provenance="t4-devkit interpolation")
-                ),
             }
+            | link(sample_annotations, i)
+            | (label() if i == 0 else label("interpolated", provenance="t4-devkit interpolation"))
             for i, token in enumerate(sample_annotations)
         ],
         "object_ann": [
@@ -370,8 +366,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "mask": None,
                 "orientation": None,
                 "number": None,
-                **label(),
-            },
+            }
+            | label(),
             {
                 "token": "object_ann1",
                 "sample_data_token": "cam0",
@@ -382,8 +378,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "mask": road_mask(),
                 "orientation": None,
                 "number": None,
-                **label(),
-            },
+            }
+            | label(),
         ],
         "keypoint": [
             {
@@ -393,8 +389,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "category_tokens": ["category_car"],
                 "keypoints": [[12.0, 18.0]],
                 "num_keypoints": 1,
-                **label(),
             }
+            | label()
         ],
         "traffic_light": [
             {
@@ -406,8 +402,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 ],
                 "object_ann_token": None,
                 "instance_token": None,
-                **label("auto", provenance="sample recognizer", confidence=0.9),
             }
+            | label("auto", provenance="sample recognizer", confidence=0.9)
         ],
         "route": [
             {
@@ -440,9 +436,9 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "dynamic_entities": None,
                 "justification": None,
                 "taxonomy": {"id": "cod-scene", "version": "0.1.1"},
-                **label("auto", provenance="sample classifier", confidence=0.9),
                 "raw": None,
             }
+            | label("auto", provenance="sample classifier", confidence=0.9)
         ],
         "caption": [
             {
@@ -456,8 +452,8 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                 "caption_type": "description",
                 "text": "The ego vehicle follows a car.",
                 "language": "en",
-                **label(),
             }
+            | label()
         ],
     }
 

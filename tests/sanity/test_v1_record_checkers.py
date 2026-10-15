@@ -35,7 +35,7 @@ def _reports(data_root: Path, **kwargs) -> dict:
 
 
 def _second_instance(records: list[dict]) -> list[dict]:
-    return [*_set(records, 0, index=5), {**records[0], "token": "instance_other"}]
+    return [*_set(records, 0, index=5), dict(records[0], token="instance_other")]
 
 
 def _add_label_column(records: list[dict]) -> list[dict]:

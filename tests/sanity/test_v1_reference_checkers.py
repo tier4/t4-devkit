@@ -77,7 +77,7 @@ CASES = [
     (
         "REF206",
         "sample_data",
-        lambda r: [{**x, "num_points": 99} if x["num_points"] else x for x in r],
+        lambda r: [dict(x, num_points=99) if x["num_points"] else x for x in r],
     ),
     ("REF207", "map", lambda r: _set(r, 0, sha256="0" * 64)),
     ("REF302", "instance", lambda r: _set(r, 0, map_element={"id": 99999, "type": "way"})),
