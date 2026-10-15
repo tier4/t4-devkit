@@ -50,6 +50,15 @@ def test_load_v0_labels() -> None:
     assert len(tables[SchemaName.SAMPLE_ANNOTATION]) == 4
     assert all(r.annotation_type == "manual" for r in tables[SchemaName.SAMPLE_ANNOTATION])
     assert tables[SchemaName.INSTANCE][0].name == "car_001"
+    # 1.0 counts 3D boxes and 2D labels (0.x counts 3D boxes only)
+    for instance in tables[SchemaName.INSTANCE]:
+        labels = [
+            r
+            for table in (SchemaName.SAMPLE_ANNOTATION, SchemaName.OBJECT_ANN)
+            for r in tables[table]
+            if r.instance_token == instance.token
+        ]
+        assert instance.nbr_annotations == len(labels)
 
     surfaces = [r for r in tables[SchemaName.OBJECT_ANN] if r.instance_token is None]
     assert len(surfaces) == 2

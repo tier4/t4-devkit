@@ -121,7 +121,6 @@ class V0Converter:
             self.convert_attribute(record) for record in v0["attribute"]
         ]
         tables[SchemaName.VISIBILITY] = visibilities
-        tables[SchemaName.INSTANCE] = [self.convert_instance(record) for record in v0["instance"]]
         tables[SchemaName.SAMPLE_ANNOTATION] = [
             self.convert_sample_annotation(record, known_visibility)
             for record in v0["sample_annotation"]
@@ -130,6 +129,11 @@ class V0Converter:
             self.convert_object_ann(record) for record in v0["object_ann"]
         ] + [self.convert_surface_ann(record) for record in v0["surface_ann"]]
         tables[SchemaName.KEYPOINT] = [self.convert_keypoint(record) for record in v0["keypoint"]]
+        # after the labels: an instance's count and first / last label are over all its labels
+        annotations = self._instance_annotations(tables)
+        tables[SchemaName.INSTANCE] = [
+            self.convert_instance(record, annotations) for record in v0["instance"]
+        ]
         return tables
 
     # --- core tables ---
@@ -341,15 +345,20 @@ class V0Converter:
                 )
         return rows
 
-    def convert_instance(self, record: Record) -> Record:
+    def convert_instance(
+        self, record: Record, annotations: dict[str, tuple[int, str, str]]
+    ) -> Record:
+        """`nbr_annotations` and the first / last annotation come from `annotations`: 0.x counts
+        only 3D boxes, 1.0 counts 3D boxes and 2D labels."""
+        count, first, last = annotations.get(record["token"], (0, None, None))
         return {
             "token": record["token"],
             "name": record["instance_name"],
             "index": None,
             "category_token": record["category_token"],
-            "nbr_annotations": record["nbr_annotations"],
-            "first_annotation_token": self._none_if_empty(record["first_annotation_token"]),
-            "last_annotation_token": self._none_if_empty(record["last_annotation_token"]),
+            "nbr_annotations": count,
+            "first_annotation_token": first,
+            "last_annotation_token": last,
             "map_element": {"id": None, "type": None},
         }
 
@@ -513,6 +522,35 @@ class V0Converter:
 
     def _is_key_frame(self, record: Record) -> bool:
         return record["is_key_frame"] or record["token"] in self.labeled_frames
+
+    def _instance_annotations(
+        self, tables: dict[SchemaName, list[Record]]
+    ) -> dict[str, tuple[int, str, str]]:
+        """Return the number of labels and the first / last label token in time of each instance.
+
+        A `SampleAnnotation` is at its sample's time, an `ObjectAnn` at its frame's time (as
+        sanity `REC013` checks).
+        """
+        sample_times = {
+            sample["token"]: sample["timestamp"] for sample in tables[SchemaName.SAMPLE]
+        }
+        frame_times = {
+            frame["token"]: frame["timestamp"] for frame in tables[SchemaName.SAMPLE_DATA]
+        }
+        times: dict[str, list[tuple[int, str]]] = {}
+        for ann in tables[SchemaName.SAMPLE_ANNOTATION]:
+            times.setdefault(ann["instance_token"], []).append(
+                (sample_times[ann["sample_token"]], ann["token"])
+            )
+        for ann in tables[SchemaName.OBJECT_ANN]:
+            if ann["instance_token"] is not None:
+                times.setdefault(ann["instance_token"], []).append(
+                    (frame_times[ann["sample_data_token"]], ann["token"])
+                )
+        return {
+            token: (len(entries), min(entries)[1], max(entries)[1])
+            for token, entries in times.items()
+        }
 
     def _read_projector(self) -> Record:
         """Read Autoware's `map_projector_info.yaml`, if any."""
