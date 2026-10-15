@@ -77,7 +77,7 @@ class V0Migrator:
         """Write the frames of a LiDAR channel to one Parquet file and point its records to it.
 
         Point fields get their 1.0 dtypes; `source_index` / `source_timestamp` come from the
-        0.x `.info` files, and `label` / `instance` from 0.x lidarseg (`instance` is 0: 0.x
+        0.x `.info` files, and `label` / `instance` from 0.x lidarseg (`instance` is -1: 0.x
         labels are semantic only; frames without labels are null).
 
         Args:
@@ -96,7 +96,7 @@ class V0Migrator:
         if any(record.token in self._labels for record in records):
             self._check_unpainted()
             self._index_instances()
-            fields += [("label", "uint8"), ("instance", "uint32")]
+            fields += [("label", "uint8"), ("instance", "int16")]
 
         frames = (self._lidar_frame(record, source_fields, fields) for record in records)
         path, frame_count = self.writer.write_lidar(sensor.channel, frames, fields)
@@ -372,7 +372,7 @@ class V0Migrator:
                 if len(label) != num_points:
                     raise ValueError(f"{labels}: {len(label)} labels for {num_points} points")
                 frame["label"] = label
-                frame["instance"] = np.zeros(num_points, dtype=np.uint32)
+                frame["instance"] = np.full(num_points, -1, dtype=np.int16)
         return frame
 
     def _sources(self, info: dict, num_points: int) -> dict[str, np.ndarray]:
@@ -408,17 +408,17 @@ class V0Migrator:
         return load_pointcloud(filepath, fields=source_fields)
 
     def _index_instances(self) -> None:
-        """Give instances without `index` one from 1, as point labels require.
+        """Give instances without `index` one from 0, as point labels require.
 
-        0.x labels points by category only, so the `instance` column is 0 (no object), but
+        0.x labels points by category only, so the `instance` column is -1 (no object), but
         `REC011` still asks every instance of an `is_thing` category for an index.
         """
         instances = self.tables(SchemaName.INSTANCE)
         if all(instance.index is not None for instance in instances):
             return
-        for index, instance in enumerate(instances, start=1):
+        for index, instance in enumerate(instances):
             instance.index = index
-        self.notes.append(f"instance.index set from 1 on {len(instances)} instances (0.x has none)")
+        self.notes.append(f"instance.index set from 0 on {len(instances)} instances (0.x has none)")
 
     def _check_unpainted(self) -> None:
         if not any(

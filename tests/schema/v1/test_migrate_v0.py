@@ -120,13 +120,13 @@ def test_migrate_lidar_labels(tmp_path: Path) -> None:
         ("z", "float32"),
         ("intensity", "uint8"),
         ("label", "uint8"),
-        ("instance", "uint32"),
+        ("instance", "int16"),
     ]
     assert "'channel' dropped" in migrator.notes[0]
     path = tmp_path / "sample" / lidar.lidar.container.path
     labeled = load_pointcloud(path, frame_index=0)
     assert labeled["label"].tolist() == [0, 1, 2, 3, 4, 0, 1, 2]
-    assert labeled["instance"].tolist() == [0] * 8
+    assert labeled["instance"].tolist() == [-1] * 8
     assert "label" not in load_pointcloud(path, frame_index=1)
 
 
@@ -194,14 +194,14 @@ def test_relink_half_linked_frame(tmp_path: Path) -> None:
 
 
 def test_migrate_lidarseg_passes_sanity(tmp_path: Path) -> None:
-    """A migrated lidarseg dataset passes the 1.0 rules; its instances get indices from 1."""
+    """A migrated lidarseg dataset passes the 1.0 rules; its instances get indices from 0."""
     data_root = _semseg_copy(tmp_path)
     _add_unpainted(data_root)
     output_root = tmp_path / "sample" / "1"
     V0Migrator(data_root, output_root).migrate("sample", 1)
 
     instances = json.loads((output_root / "annotation/instance.json").read_text())
-    assert [instance["index"] for instance in instances] == [1, 2, 3]
+    assert [instance["index"] for instance in instances] == [0, 1, 2]
     reports = sanity_check(output_root.parent.as_posix(), revision="1").reports
     assert not [report.id for report in reports if report.is_failed()]
 
