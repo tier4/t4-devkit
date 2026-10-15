@@ -1,13 +1,20 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 from pyquaternion import Quaternion
 
 from t4_devkit.dataclass import LidarPointCloud
-from t4_devkit.schema import CalibratedSensor, EgoPose, Sensor
+from t4_devkit.schema import EgoPose
+from t4_devkit.schema.v1 import Sensor
 from t4_devkit.viewer import EntityPath, format_entity
 from t4_devkit.viewer import viewer as viewer_module
+
+SAMPLE_V1_SENSOR = (
+    Path(__file__).parents[1] / "sample" / "t4dataset_v1" / "annotation" / "sensor.json"
+)
 
 
 def test_format_entity() -> None:
@@ -153,17 +160,10 @@ def test_render_calibration(dummy_viewer, dummy_camera_calibration) -> None:
         camera_intrinsic=camera_intrinsic,
     )
 
-    # with `Sensor` and `CalibratedSensor`
-    sensor = Sensor(token="sensor", channel="camera", modality="camera")
-    calibration = CalibratedSensor(
-        token="sensor_calibration",
-        sensor_token="sensor",
-        translation=translation,
-        rotation=rotation,
-        camera_intrinsic=camera_intrinsic,
-        camera_distortion=[0, 0, 0, 0, 0],
-    )
-    dummy_viewer.render_calibration(sensor, calibration)
+    # with a `Sensor` record (camera of the 1.0 sample)
+    sensor = Sensor.from_json(SAMPLE_V1_SENSOR)[0]
+    assert sensor.camera is not None
+    dummy_viewer.render_calibration(sensor)
 
 
 def test_render_map(dummy_viewer, dummy_lanelet_path) -> None:
