@@ -200,9 +200,7 @@ class Hardware:
 
 @define(slots=False)
 class Sensor(SchemaBase):
-    """A dataclass to represent schema table of `sensor.json` in T4Dataset 1.0.
-
-    Merges `sensor` and `calibrated_sensor` of 0.x. Exactly the block matching `modality` is set.
+    """`sensor.json` dataclass.
 
     Attributes:
         token (str): Unique record identifier.
