@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from t4_devkit.common.io import load_image, load_pointcloud
@@ -79,3 +80,12 @@ def test_write_data(tmp_path: Path) -> None:
 def test_existing_folder(tmp_path: Path) -> None:
     with pytest.raises(FileExistsError):
         DatasetWriter(tmp_path)
+
+
+def test_channel_written_once(tmp_path: Path) -> None:
+    """A channel has one file: writing it again is refused, not overwritten."""
+    writer = DatasetWriter(tmp_path / "sample")
+    fields = [("x", "float32")]
+    writer.write_lidar("LIDAR_TOP", [{"x": np.zeros(2, dtype=np.float32)}], fields)
+    with pytest.raises(FileExistsError, match="LIDAR_TOP"):
+        writer.write_lidar("LIDAR_TOP", [{"x": np.ones(2, dtype=np.float32)}], fields)
