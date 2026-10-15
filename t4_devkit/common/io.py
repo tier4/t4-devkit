@@ -61,7 +61,8 @@ def load_pointcloud(
         columns (Sequence[str] | None, optional): Fields to return; all fields if None.
 
     Returns:
-        Arrays of shape (N,) keyed by field name, in file order.
+        Arrays of shape (N,) keyed by field name, in file order. A `.parquet` column that is
+        null on every point of the frame is left out.
     """
     filepath = os.fspath(filepath)
     if filepath.endswith(".parquet"):
@@ -71,7 +72,12 @@ def load_pointcloud(
         frame = _open_parquet(filepath, mtime, os.getpid()).read_row_group(
             frame_index, columns=columns
         )
-        return {name: frame[name].to_numpy() for name in frame.column_names}
+        # a column null on every point (e.g. point labels of a frame without labels) is left out
+        return {
+            name: frame[name].to_numpy()
+            for name in frame.column_names
+            if frame.num_rows == 0 or frame[name].null_count < frame.num_rows
+        }
 
     if filepath.endswith(".pcd"):
         data = pypcd4.PointCloud.from_path(filepath).pc_data
