@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from t4_devkit.common.io import V0_BIN_FIELDS, load_json, load_pointcloud
+from t4_devkit.common.io import V0_BIN_FIELDS, load_image, load_json, load_pointcloud
 
 from .loader import load_dataset
 from .name import SchemaName
@@ -33,6 +33,8 @@ class V0Migrator:
         >>> migrator = V0Migrator("<0.x dataset>", "out/<DATASET_ID>/<VERSION>")
         >>> for sensor in migrator.lidars():
         ...     migrator.migrate_lidar(sensor)
+        >>> for sensor in migrator.cameras():
+        ...     migrator.migrate_camera(sensor)  # or copy_images(sensor) to keep the files
     """
 
     def __init__(self, data_root: PathLike, output_root: PathLike) -> None:
@@ -79,14 +81,7 @@ class V0Migrator:
             ValueError: If the points of a frame are not covered by its `.info` sources, or
                 lidarseg is present but category 0 is not `unpainted`.
         """
-        records = sorted(
-            (
-                frame
-                for frame in self.tables(SchemaName.SAMPLE_DATA)
-                if frame.sensor_token == sensor.token
-            ),
-            key=lambda frame: frame.timestamp,
-        )
+        records = self._channel_frames(sensor)
         source_fields = self._source_fields(records[0])
         fields = self._point_fields(sensor.channel, records, source_fields)
         if self._v0_frames[records[0].token].get("info_filename"):
@@ -107,9 +102,78 @@ class V0Migrator:
             record.frame_index = frame_index
             record.fileformat = "parquet"
 
+    def cameras(self) -> list[Sensor]:
+        """Return the camera sensors with frames."""
+        with_frames = {frame.sensor_token for frame in self.tables(SchemaName.SAMPLE_DATA)}
+        return [
+            sensor
+            for sensor in self.tables(SchemaName.SENSOR)
+            if sensor.camera is not None and sensor.token in with_frames
+        ]
+
+    def migrate_camera(self, sensor: Sensor) -> None:
+        """Encode the image frames of a camera channel as one AV1 video and point its records to it.
+
+        Frames go in timestamp order, so `frame_index` is the position. Frames marked
+        `is_valid: false` (blank images) are encoded like the others. The frame rate is the
+        median interval between frames.
+
+        Args:
+            sensor (Sensor): Camera sensor with frames.
+
+        Raises:
+            ValueError: If an image does not have the sensor's width and height.
+        """
+        records = self._channel_frames(sensor)
+        images = (self._image(record, sensor) for record in records)
+        video = self.writer.write_camera(sensor.channel, images, self._frame_rate(records))
+
+        sensor.camera.video = video
+        for frame_index, record in enumerate(records):
+            record.filename = video["path"]
+            record.frame_index = frame_index
+            record.fileformat = "av1_mp4"
+
+    def copy_images(self, sensor: Sensor) -> None:
+        """Copy the image files of a camera channel as they are, instead of encoding a video.
+
+        Args:
+            sensor (Sensor): Camera sensor with frames.
+        """
+        for record in self._channel_frames(sensor):
+            self.writer.copy(osp.join(self.data_root, record.filename), record.filename)
+
     def tables(self, table: SchemaName) -> list[Any]:
         """Return the 1.0 records of a table."""
         return self.dataset.tables[table]
+
+    def _channel_frames(self, sensor: Sensor) -> list[SampleData]:
+        """Return the frames of a sensor in timestamp order."""
+        return sorted(
+            (
+                frame
+                for frame in self.tables(SchemaName.SAMPLE_DATA)
+                if frame.sensor_token == sensor.token
+            ),
+            key=lambda frame: frame.timestamp,
+        )
+
+    @staticmethod
+    def _frame_rate(records: list[SampleData]) -> int:
+        """Return the frame rate of a channel: the median interval between frames, in Hz."""
+        if len(records) < 2:
+            return 10  # one frame: any rate plays it
+        interval = np.median(np.diff([record.timestamp for record in records]))
+        return max(1, round(1_000_000 / interval))
+
+    def _image(self, record: SampleData, sensor: Sensor) -> np.ndarray:
+        image = load_image(osp.join(self.data_root, record.filename))
+        if image.shape[:2] != (sensor.camera.height, sensor.camera.width):
+            raise ValueError(
+                f"{record.filename}: {image.shape[1]}x{image.shape[0]}, but {sensor.channel} is "
+                f"{sensor.camera.width}x{sensor.camera.height}"
+            )
+        return image
 
     def _point_fields(
         self, channel: str, records: list[SampleData], source_fields: list[tuple[str, str]]

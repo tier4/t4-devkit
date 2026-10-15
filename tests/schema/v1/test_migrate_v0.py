@@ -6,8 +6,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from PIL import Image
 
-from t4_devkit.common.io import load_pointcloud
+from t4_devkit.common.io import load_image, load_pointcloud
 from t4_devkit.schema.v1 import SchemaName, V0Migrator
 
 SAMPLE_V0 = Path(__file__).parents[2] / "sample" / "t4dataset"
@@ -120,3 +121,43 @@ def test_migrate_lidar_labels(tmp_path: Path) -> None:
     assert labeled["label"].tolist() == list(range(8))
     assert labeled["instance"].tolist() == [0] * 8
     assert "label" not in load_pointcloud(path, frame_index=1)
+
+
+def test_migrate_camera(tmp_path: Path) -> None:
+    """A camera channel becomes one video; each frame is its own image, in timestamp order."""
+    data_root = tmp_path / "v0"
+    shutil.copytree(SAMPLE_V0, data_root)
+    migrator = V0Migrator(data_root, tmp_path / "sample")
+    sensor = migrator.cameras()[0]
+    frames = migrator._channel_frames(sensor)
+    sources = []
+    for i, frame in enumerate(frames):  # distinct images: gray levels 50, 100, 150
+        image = np.full((600, 800, 3), 50 * (i + 1), dtype=np.uint8)
+        Image.fromarray(image).save(data_root / frame.filename)
+        sources.append(image.astype(int))
+    migrator.migrate_camera(sensor)
+
+    video = sensor.camera.video
+    assert (video.path, video.frame_count, video.timescale) == (
+        "data/CAM_FRONT/CAM_FRONT.mp4",
+        3,
+        1,
+    )
+    for i, frame in enumerate(frames):
+        assert (frame.filename, frame.frame_index) == (video.path, i)
+        image = load_image(tmp_path / "sample" / video.path, frame_index=i).astype(int)
+        errors = [np.abs(image - source).mean() for source in sources]
+        assert errors[i] < 2 and np.argmin(errors) == i
+
+
+def test_copy_images(tmp_path: Path) -> None:
+    """Kept images are copied with their paths; their records do not change."""
+    migrator = V0Migrator(SAMPLE_V0, tmp_path / "sample")
+    sensor = migrator.cameras()[0]
+    migrator.copy_images(sensor)
+
+    for frame in migrator._channel_frames(sensor):
+        assert frame.frame_index is None
+        assert (tmp_path / "sample" / frame.filename).read_bytes() == (
+            SAMPLE_V0 / frame.filename
+        ).read_bytes()
