@@ -311,7 +311,7 @@ def _add_video_stream(
     preset: int,
     crf: int,
 ) -> av.video.stream.VideoStream:
-    """The AV1 stream of a camera video, sized by its first image."""
+    """Return the AV1 stream of a camera video, sized by its first image."""
     stream = container.add_stream("libsvtav1", rate=frame_rate)
     stream.height, stream.width = image.shape[:2]
     stream.pix_fmt = pixel_format

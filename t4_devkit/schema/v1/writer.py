@@ -173,7 +173,7 @@ class DatasetWriter:
         return path
 
     def _asset_paths(self) -> list[str]:
-        """Every file under the asset folders, relative to the dataset root, sorted."""
+        """Return every file under the asset folders, relative to the dataset root, sorted."""
         return sorted(
             filepath.relative_to(self.output_root).as_posix()
             for directory in Manifest.ASSET_DIRS

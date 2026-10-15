@@ -92,7 +92,7 @@ class V0Converter:
         self.traffic_light_ways = self._traffic_light_ways()
 
     def convert(self) -> dict[SchemaName, list[Record]]:
-        """Convert every table.
+        """Return every table converted to 1.0 records.
 
         Returns:
             Raw 1.0 records per table; empty for tables not converted.
@@ -145,7 +145,16 @@ class V0Converter:
     # --- core tables ---
 
     def convert_map(self, record: Record) -> Record | None:
-        """`sha256` from the map file, `projector` from its yaml; None if the map file is missing."""
+        """Return the 1.0 `map` row of a 0.x map, or None if the map file is missing.
+
+        `sha256` comes from the map file, `projector` from its yaml.
+
+        Args:
+            record (Record): 0.x `map` row.
+
+        Returns:
+            The 1.0 row, or None.
+        """
         filename = record["filename"] or self.FALLBACKS["map_filename"]
         filepath = osp.join(self.data_root, filename)
         if not osp.exists(filepath):
@@ -166,7 +175,17 @@ class V0Converter:
         }
 
     def convert_vehicle(self, log: Record) -> Record:
-        """One vehicle per log, named after the 0.x `log.vehicle`, with placeholder dimensions."""
+        """Return the vehicle of a log: named after the 0.x `log.vehicle`, with placeholder
+        dimensions.
+
+        0.x has no vehicle table, so there is one vehicle per log.
+
+        Args:
+            log (Record): 0.x `log` row.
+
+        Returns:
+            The 1.0 `vehicle` row.
+        """
         fallbacks = self.FALLBACKS["vehicle"]
         return {
             "token": self._vehicle_token(log),
@@ -181,6 +200,15 @@ class V0Converter:
         }
 
     def convert_log(self, record: Record, log2map: dict[str, str]) -> Record:
+        """Return the 1.0 `log` row of a 0.x log.
+
+        Args:
+            record (Record): 0.x `log` row.
+            log2map (dict[str, str]): Map token of each log token.
+
+        Returns:
+            The 1.0 row.
+        """
         return {
             "token": record["token"],
             "logfile": self._none_if_empty(record["logfile"]),
@@ -191,7 +219,14 @@ class V0Converter:
         }
 
     def convert_scene(self, record: Record) -> Record:
-        """Counts and first / last sample over the 1.0 samples (every frame)."""
+        """Return the 1.0 `scene` row, with counts and first / last sample over the 1.0 samples.
+
+        Args:
+            record (Record): 0.x `scene` row.
+
+        Returns:
+            The 1.0 row.
+        """
         samples = [sample for sample in self.samples if sample["scene_token"] == record["token"]]
         return {
             "token": record["token"],
@@ -204,6 +239,14 @@ class V0Converter:
         }
 
     def convert_ego_pose(self, record: Record) -> Record:
+        """Return the 1.0 `ego_pose` row of a 0.x ego pose.
+
+        Args:
+            record (Record): 0.x `ego_pose` row.
+
+        Returns:
+            The 1.0 row.
+        """
         fallbacks = self.FALLBACKS["ego_pose"]
         return {
             "token": record["token"],
@@ -219,9 +262,16 @@ class V0Converter:
         }
 
     def convert_sensor(self, index: int, calibration: Record) -> Record:
-        """Merge 0.x `sensor` (per channel) and `calibrated_sensor` (per calibration).
+        """Return the 1.0 `sensor` row of a 0.x calibration, merged with its 0.x `sensor` row.
 
         One row per calibration, keeping the `calibrated_sensor` token, indexed in file order.
+
+        Args:
+            index (int): Sensor index, the position of the calibration in the file.
+            calibration (Record): 0.x `calibrated_sensor` row.
+
+        Returns:
+            The 1.0 row.
         """
         sensor = self.sensors[calibration["sensor_token"]]
         modality = sensor["modality"]
@@ -239,7 +289,15 @@ class V0Converter:
         }
 
     def convert_camera(self, calibration: Record) -> Record:
-        """Size from `sample_data`, or from the first image if 0.x stored none."""
+        """Return the camera block of a calibration: size from `sample_data`, or from the first
+        image if 0.x stored none.
+
+        Args:
+            calibration (Record): 0.x `calibrated_sensor` row of a camera.
+
+        Returns:
+            The camera block.
+        """
         distortion = calibration["camera_distortion"]
         distortion_model = DistortionModel.from_num_coefficients(len(distortion))
         frames = self.frames[calibration["token"]]
@@ -260,7 +318,15 @@ class V0Converter:
         }
 
     def convert_lidar(self, calibration: Record) -> Record:
-        """From the first frame: its format, its `.info` file (if any) and its header."""
+        """Return the LiDAR block of a calibration, from its first frame: its format, its `.info`
+        file (if any) and its header.
+
+        Args:
+            calibration (Record): 0.x `calibrated_sensor` row of a LiDAR.
+
+        Returns:
+            The LiDAR block.
+        """
         frames = self.frames[calibration["token"]]
         if not frames:
             return self._convert_source_lidar(calibration)
@@ -293,6 +359,14 @@ class V0Converter:
         }
 
     def convert_sample_data(self, record: Record) -> Record:
+        """Return the 1.0 `sample_data` row of a 0.x frame, in the 1.0 sample of its frame.
+
+        Args:
+            record (Record): 0.x `sample_data` row.
+
+        Returns:
+            The 1.0 row.
+        """
         return {
             "token": record["token"],
             "sample_token": self.sample_of_frame[record["token"]],
@@ -313,7 +387,11 @@ class V0Converter:
     # --- label tables ---
 
     def convert_categories(self) -> list[Record]:
-        """Categories without `index` get their list position, as the 0.x devkit reads them.
+        """Return the 1.0 `category` rows. Categories without `index` get their list position, as
+        the 0.x devkit reads them.
+
+        Returns:
+            The 1.0 rows.
 
         Raises:
             ValueError: If some categories have an `index` and others do not.
@@ -327,7 +405,16 @@ class V0Converter:
         return [self.convert_category(record, index) for record, index in zip(records, indices)]
 
     def convert_category(self, record: Record, index: int) -> Record:
-        """`is_thing` is false only for categories used by `surface_ann` (road, sky) and nothing else."""
+        """Return the 1.0 `category` row. `is_thing` is false only for categories used by
+        `surface_ann` (road, sky) and nothing else.
+
+        Args:
+            record (Record): 0.x `category` row.
+            index (int): Category index.
+
+        Returns:
+            The 1.0 row.
+        """
         token = record["token"]
         return {
             "token": token,
@@ -340,6 +427,14 @@ class V0Converter:
         }
 
     def convert_attribute(self, record: Record) -> Record:
+        """Return the 1.0 `attribute` row of a 0.x attribute.
+
+        Args:
+            record (Record): 0.x `attribute` row.
+
+        Returns:
+            The 1.0 row.
+        """
         return {
             "token": record["token"],
             "name": record["name"],
@@ -347,7 +442,12 @@ class V0Converter:
         }
 
     def convert_visibilities(self) -> list[Record]:
-        """Levels as read by 0.x (aliases mapped); `unavailable` rows are dropped (visibility unknown)."""
+        """Return the 1.0 `visibility` rows: levels as read by 0.x (aliases mapped); `unavailable`
+        rows are dropped (visibility unknown).
+
+        Returns:
+            The 1.0 rows.
+        """
         rows = []
         for record in self.v0["visibility"]:
             level = V0VisibilityLevel.from_value(record["level"])
@@ -364,10 +464,19 @@ class V0Converter:
     def convert_instance(
         self, record: Record, annotations: dict[str, tuple[int, str, str]]
     ) -> Record:
-        """A lamp listed in 0.x traffic_light points to its lanelet2 way in `map_element`.
+        """Return the 1.0 `instance` row. A lamp listed in 0.x traffic_light points to its lanelet2
+        way in `map_element`.
 
-        `nbr_annotations` and the first / last annotation come from `annotations`: 1.0 counts
-        3D boxes and 2D labels, and 0.x tools count them differently (some write 0 for 2D).
+        `nbr_annotations` and the first / last annotation come from `annotations`: 1.0 counts 3D
+        boxes and 2D labels, and 0.x tools count them differently (some write 0 for 2D).
+
+        Args:
+            record (Record): 0.x `instance` row.
+            annotations (dict[str, tuple[int, str, str]]): Label count and first / last label token
+                of each instance (`Instance.annotation_spans`).
+
+        Returns:
+            The 1.0 row.
         """
         way_id = self.traffic_light_ways.get(record["token"])
         count, first, last = annotations.get(record["token"], (0, None, None))
@@ -383,7 +492,16 @@ class V0Converter:
         }
 
     def convert_sample_annotation(self, record: Record, known_visibility: set[str]) -> Record:
-        """Visibility levels dropped by `convert_visibilities` become a null `visibility_token`."""
+        """Return the 1.0 `sample_annotation` row. Visibility levels dropped by
+        `convert_visibilities` become a null `visibility_token`.
+
+        Args:
+            record (Record): 0.x `sample_annotation` row.
+            known_visibility (set[str]): Tokens of the visibility levels kept.
+
+        Returns:
+            The 1.0 row.
+        """
         visibility_token = record["visibility_token"]
         annotation_type, provenance, confidence = self._label_origin(record)
         return {
@@ -407,6 +525,14 @@ class V0Converter:
         }
 
     def convert_object_ann(self, record: Record) -> Record:
+        """Return the 1.0 `object_ann` row of a 0.x 2D label.
+
+        Args:
+            record (Record): 0.x `object_ann` row.
+
+        Returns:
+            The 1.0 row.
+        """
         annotation_type, provenance, confidence = self._label_origin(record)
         return {
             "token": record["token"],
@@ -425,7 +551,15 @@ class V0Converter:
         }
 
     def convert_surface_ann(self, record: Record) -> Record:
-        """A 0.x semantic mask becomes an `object_ann` without instance; its box is the mask's."""
+        """Return a 0.x semantic mask as an `object_ann` row without instance; its box is the
+        mask's.
+
+        Args:
+            record (Record): 0.x `surface_ann` row.
+
+        Returns:
+            The 1.0 `object_ann` row.
+        """
         mask = record["mask"]
         annotation_type, provenance, confidence = self._label_origin(record)
         return {
@@ -444,6 +578,14 @@ class V0Converter:
         }
 
     def convert_keypoint(self, record: Record) -> Record:
+        """Return the 1.0 `keypoint` row of a 0.x keypoint label.
+
+        Args:
+            record (Record): 0.x `keypoint` row.
+
+        Returns:
+            The 1.0 row.
+        """
         annotation_type, provenance, confidence = self._label_origin(record)
         return {
             "token": record["token"],
@@ -460,10 +602,17 @@ class V0Converter:
     # --- planning tables ---
 
     def convert_vehicle_state(self, record: Record) -> Record:
-        """0.x vehicle states come from the Autoware vehicle interface (`/vehicle/status/*`).
+        """Return the 1.0 `vehicle_state` row. 0.x vehicle states come from the Autoware vehicle
+        interface (`/vehicle/status/*`).
 
         `additional_info.speed` (norm of the longitudinal and lateral velocity) is dropped: it can't
         be split back into the 1.0 velocities.
+
+        Args:
+            record (Record): 0.x `vehicle_state` row.
+
+        Returns:
+            The 1.0 row.
         """
         shift_state = record.get("shift_state")
         # The 0.x devkit names forward gears FORWARD or HIGH; the 0.x converter writes DRIVE.
@@ -488,7 +637,8 @@ class V0Converter:
     # --- helpers ---
 
     def _frame_samples(self) -> tuple[list[Record], dict[str, str], dict[str, str]]:
-        """One 1.0 sample per 0.x frame: the frames of all channels with the same frame number.
+        """Return one 1.0 sample per 0.x frame: the frames of all channels with the same frame
+        number.
 
         A frame with 0.x key samples keeps the earliest one's token; camera-only 0.x datasets have
         one sample per camera image, merged here. Other frames get a new deterministic token.
@@ -551,8 +701,9 @@ class V0Converter:
         return [row for chain in by_scene.values() for row in chain], sample_of_frame, remap
 
     def _frame_groups(self) -> dict[int, list[Record]]:
-        """0.x `sample_data` grouped by frame number (the digits starting the file name), or by
-        position in each channel's frames in time if a file name has no number."""
+        """Return 0.x `sample_data` grouped by frame number (the digits starting the file name), or
+        by position in each channel's frames in time if a file name has no number.
+        """
         # The 0.x converter names the files of one frame by its frame number, e.g. `00042.jpg`
         # and `00042.pcd.bin`: it groups the channels of a frame (their timestamps differ by up
         # to ~90 ms).
@@ -570,6 +721,9 @@ class V0Converter:
         return groups
 
     def _is_key_frame(self, record: Record) -> bool:
+        """Return whether a 0.x frame is a key frame: marked as one, or carrying a 2D label or
+        keypoint.
+        """
         return record["is_key_frame"] or record["token"] in self.labeled_frames
 
     def _instance_annotations(
@@ -595,7 +749,9 @@ class V0Converter:
         return Instance.annotation_spans(boxes + labels_2d)
 
     def _read_projector(self) -> Record:
-        """Read Autoware's `map_projector_info.yaml`, if any."""
+        """Return the `projector` block from Autoware's `map_projector_info.yaml` (empty values
+        without it).
+        """
         filepath = osp.join(self.data_root, self.FALLBACKS["map_projector_filename"])
         info = {}
         if osp.exists(filepath):
@@ -613,7 +769,8 @@ class V0Converter:
         }
 
     def _convert_source_lidar(self, calibration: Record) -> Record:
-        """A LiDAR without frames of its own: a source of a concatenated channel.
+        """Return the LiDAR block of a LiDAR without frames of its own: a source of a concatenated
+        channel.
 
         Its points are stored in the concatenated files, so it has their format and fields; it
         counts a frame wherever the `.info` file of a concatenated frame lists points from it.
@@ -651,7 +808,7 @@ class V0Converter:
         }
 
     def _capture_time(self, log_token: str) -> str:
-        """The log's first sample time, ISO 8601 UTC, for logs without `data_captured`."""
+        """Return the log's first sample time, ISO 8601 UTC, for logs without `data_captured`."""
         scenes = {
             record["token"] for record in self.v0["scene"] if record["log_token"] == log_token
         }
@@ -661,12 +818,13 @@ class V0Converter:
         return datetime.fromtimestamp(timestamp / 1e6, tz=timezone.utc).isoformat()
 
     def _traffic_light_ways(self) -> dict[str, int]:
-        """The lanelet2 way (`type=traffic_light`) each lamp instance shows, by instance token.
+        """Return the lanelet2 way (`type=traffic_light`) each lamp instance shows, by instance
+        token.
 
         Two 0.x tables hold this link: `traffic_light` (`primitive_id`, #288) and
         `traffic_light_instance_map` (`traffic_light_linestring_id`, from the unmerged
-        `feat/traffic-light-instance-map` branch), which wins when both list a lamp.
-        `traffic_light` rows without `primitive_id` are skipped, as no 0.x devkit reads them.
+        `feat/traffic-light-instance-map` branch), which wins when both list a lamp. `traffic_light`
+        rows without `primitive_id` are skipped, as no 0.x devkit reads them.
         """
         ways = {}
         skipped = 0
@@ -682,7 +840,9 @@ class V0Converter:
         return ways
 
     def _frame_infos(self, calibration_token: str) -> list[Record]:
-        """The 0.x `.info` file of each frame of a channel ({} where there is none), read once."""
+        """Return the 0.x `.info` file of each frame of a channel ({} where there is none), read
+        once.
+        """
         if calibration_token not in self.infos:
             self.infos[calibration_token] = [
                 load_json(osp.join(self.data_root, frame["info_filename"]))
@@ -695,10 +855,10 @@ class V0Converter:
 
     @staticmethod
     def _non_empty_mask(mask: Record | None) -> Record | None:
-        """None for a mask without pixels.
+        """Return the mask, or None for a mask without pixels.
 
-        Some 0.x tools give box-only labels a placeholder: an empty RLE whose `size` is
-        (width, height) instead of the (height, width) of real masks.
+        Some 0.x tools give box-only labels a placeholder: an empty RLE whose `size` is (width,
+        height) instead of the (height, width) of real masks.
         """
         if mask is None or "counts" not in mask:
             return None
@@ -707,10 +867,10 @@ class V0Converter:
 
     @staticmethod
     def _mask_bbox(mask: Record) -> list[float]:
-        """Box around a 0.x RLE mask, as (xmin, ymin, xmax, ymax) on pixel edges.
+        """Return the box around a 0.x RLE mask, as (xmin, ymin, xmax, ymax) on pixel edges.
 
-        Same convention as 0.x boxes, which the 0.x converter writes as (x, y, x + w, y + h)
-        clipped to the image size. Mask `size` is (height, width), as in COCO.
+        Same convention as 0.x boxes, which the 0.x converter writes as (x, y, x + w, y + h) clipped
+        to the image size. Mask `size` is (height, width), as in COCO.
         """
         rle = {"counts": base64.b64decode(mask["counts"]), "size": mask["size"]}
         x, y, w, h = (float(v) for v in cocomask.toBbox(rle))
@@ -718,17 +878,17 @@ class V0Converter:
 
     @staticmethod
     def _vehicle_token(log: Record) -> str:
-        """Deterministic token: 0.x has no vehicle table."""
+        """Return a deterministic vehicle token for a log: 0.x has no vehicle table."""
         return hashlib.md5(f"{log['token']}/vehicle".encode()).hexdigest()
 
     @staticmethod
     def _none_if_empty(value: Any) -> Any:
-        """0.x writes "" for missing values; 1.0 uses None."""
+        """Return None for "", which 0.x writes for missing values; other values unchanged."""
         return None if value == "" else value
 
     @staticmethod
     def _label_origin(record: Record) -> tuple[str, str | None, float | None]:
-        """`annotation_type`, `provenance` and `confidence` from the 0.x autolabel fields.
+        """Return `annotation_type`, `provenance` and `confidence` from the 0.x autolabel fields.
 
         Manual unless 0.x marks the label as automatic. `provenance` lists the autolabel models;
         `confidence` is the model score when there is exactly one model.
