@@ -69,6 +69,9 @@ class DatasetWriter:
 
         Returns:
             The path relative to the dataset root and the number of frames.
+
+        Raises:
+            FileExistsError: If the channel's file is already written.
         """
         path = self._data_path(channel, "parquet")
         frame_count = save_pointcloud(self.output_root / path, frames, fields, **kwargs)
@@ -91,6 +94,9 @@ class DatasetWriter:
 
         Returns:
             The values of `sensor.camera.video`, `path` included.
+
+        Raises:
+            FileExistsError: If the channel's file is already written.
         """
         path = self._data_path(channel, "mp4")
         video = save_video(self.output_root / path, frames, frame_rate, **kwargs)
@@ -166,6 +172,8 @@ class DatasetWriter:
 
     def _data_path(self, channel: str, extension: str) -> str:
         path = f"data/{channel}/{channel}.{extension}"
+        if (self.output_root / path).exists():
+            raise FileExistsError(f"{path} is already written: a channel has one file")
         (self.output_root / path).parent.mkdir(parents=True, exist_ok=True)
         return path
 

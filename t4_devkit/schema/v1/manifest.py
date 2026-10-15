@@ -127,8 +127,8 @@ class Capabilities:
     def from_tables(cls, tables: Mapping[SchemaName, Sequence[Any]]) -> Capabilities:
         """Return what the tables contain: channels with frames, filled tables, tasks with labels.
 
-        `prediction` needs every sample to have a key frame (all frames annotated); 
-        `planning`needs scenarios.
+        `prediction` needs every sample to have a key frame (all frames annotated); `planning`
+        needs scenarios.
 
         Args:
             tables (Mapping[SchemaName, Sequence[Any]]): 1.0 records per table; a missing table
