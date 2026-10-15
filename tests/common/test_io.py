@@ -2,6 +2,8 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pypcd4
 import pytest
 
@@ -33,6 +35,20 @@ def test_load_pointcloud_parquet() -> None:
 
     with pytest.raises(ValueError, match="frame_index"):
         load_pointcloud(SAMPLE_PARQUET)
+
+
+def test_load_pointcloud_parquet_null_column(tmp_path: Path) -> None:
+    """A column null on every point of a frame (a frame without labels) is left out."""
+    schema = pa.schema([("x", pa.float32()), ("label", pa.uint8())])
+    path = tmp_path / "LIDAR_TOP.parquet"
+    with pq.ParquetWriter(path, schema) as writer:
+        writer.write_table(pa.table([pa.array([1.0, 2.0]), pa.array([0, 3])], schema=schema))
+        writer.write_table(pa.table([pa.array([1.0, 2.0]), pa.nulls(2, pa.uint8())], schema=schema))
+
+    labeled = load_pointcloud(path, frame_index=0)
+    assert labeled["label"].tolist() == [0, 3]
+    assert labeled["label"].dtype == np.uint8
+    assert list(load_pointcloud(path, frame_index=1)) == ["x"]
 
 
 def test_load_pointcloud_bin(tmp_path: Path) -> None:
