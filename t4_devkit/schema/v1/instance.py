@@ -17,7 +17,8 @@ class Instance(SchemaBase):
         token (str): Unique record identifier.
         category_token (str): Foreign key pointing to the category.
         instance_name (str): `<DATASET_ID>::<INSTANCE_ID>`.
-        instance_index (int | None): Value of the LiDAR `instance` field for this object.
+        instance_index (int | None): Value of the LiDAR `instance` field (int16) for this object,
+            0 to 32767.
         nbr_annotations (int): Number of annotations of this instance.
         first_annotation_token (str | None): Foreign key pointing to the first sample annotation
             or object annotation.
@@ -30,7 +31,7 @@ class Instance(SchemaBase):
     instance_name: str = field(validator=validators.instance_of(str))
     instance_index: int | None = field(
         validator=validators.optional(
-            validators.and_(validators.instance_of(int), validators.ge(0), validators.le(2**32 - 1))
+            validators.and_(validators.instance_of(int), validators.ge(0), validators.le(2**15 - 1))
         )
     )
     nbr_annotations: int = field(validator=(validators.instance_of(int), validators.ge(0)))
