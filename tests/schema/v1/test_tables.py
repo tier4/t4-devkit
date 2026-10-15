@@ -29,6 +29,7 @@ def _other_lidar_block(record: dict, records: list[dict]) -> None:
 # test_loader.py::test_load_dataset.
 CASES = {
     "empty-string-link": ("sample", 0, _set(("prev",), ""), ValueError),
+    "frame-without-file": ("sample_data", 0, _set(("filename",), None), TypeError),
     "frame-without-sample": ("sample_data", -1, _set(("sample_token",), None), TypeError),
     "covariance-length": ("ego_pose", 0, _set(("covariance",), [0.0] * 35), ValueError),
     "annotation-type": ("sample_annotation", 0, _set(("annotation_type",), "human"), ValueError),
