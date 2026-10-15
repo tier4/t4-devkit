@@ -535,7 +535,14 @@ def main() -> None:
         "created_at": "2024-01-01T00:00:00Z",
         "generators": [{"name": "t4-devkit", "version": "sample"}],
         "capabilities": {
-            "tasks": ["detection3d", "detection2d", "segmentation2d", "keypoint", "traffic_light"],
+            "tasks": [
+                "detection3d",
+                "detection2d",
+                "segmentation2d",
+                "keypoint",
+                "traffic_light",
+                "planning",
+            ],
             "modalities": {"camera": ["CAM_FRONT"], "lidar": ["LIDAR_TOP"], "radar": []},
             "map": True,
             "route": True,
