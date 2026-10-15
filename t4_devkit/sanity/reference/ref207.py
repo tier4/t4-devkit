@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import hashlib
-
+from t4_devkit.common.io import file_sha256
 from t4_devkit.schema.v1 import SchemaName
 
 from ..checker import RecordsChecker, RuleID, RuleName, Severity
@@ -34,6 +33,6 @@ class REF207(RecordsChecker):
             path = data_root.joinpath(map_.filename)
             if not path.exists():
                 failures.append(Reason(f"Map {map_.token}: '{map_.filename}' not found"))
-            elif hashlib.sha256(path.read_bytes()).hexdigest() != map_.sha256:
+            elif file_sha256(path) != map_.sha256:
                 failures.append(Reason(f"Map {map_.token}: SHA-256 of '{map_.filename}' differs"))
         return failures or None
