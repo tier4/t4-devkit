@@ -33,6 +33,7 @@ CASES = {
     "covariance-length": ("ego_pose", 0, _set(("covariance",), [0.0] * 35), ValueError),
     "annotation-type": ("sample_annotation", 0, _set(("annotation_type",), "human"), ValueError),
     "confidence-range": ("sample_annotation", 0, _set(("confidence",), 1.5), ValueError),
+    "instance-index-range": ("instance", 0, _set(("index",), 2**15), ValueError),
     "keypoints-shape": ("keypoint", 0, _set(("keypoints",), [1.0, 2.0]), ValueError),
     "scenario-end-before-start": ("scenario", 0, _set(("end_timestamp",), 0), ValueError),
     "traffic-light-color": (
