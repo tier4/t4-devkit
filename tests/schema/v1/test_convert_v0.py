@@ -50,7 +50,7 @@ def test_load_v0_labels() -> None:
     assert len(tables[SchemaName.SAMPLE_ANNOTATION]) == 4
     assert all(r.annotation_type == "manual" for r in tables[SchemaName.SAMPLE_ANNOTATION])
     assert tables[SchemaName.INSTANCE][0].name == "car_001"
-    # 1.0 counts 3D boxes and 2D labels (0.x counts 3D boxes only)
+    # 1.0 counts 3D boxes and 2D labels (0.x tools count them differently)
     for instance in tables[SchemaName.INSTANCE]:
         labels = [
             r
