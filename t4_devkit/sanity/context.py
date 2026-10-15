@@ -104,8 +104,7 @@ class SanityContext:
         """Return `manifest.json` as read, or Nothing if it cannot be read."""
         match self.manifest_json:
             case Some(x) if x.exists():
-                result = load_json_safe(x)
-                return Some(result.unwrap()) if is_successful(result) else Nothing
+                return result_to_maybe(load_json_safe(x))
         return Nothing
 
     @cached_property

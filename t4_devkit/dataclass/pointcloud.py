@@ -28,9 +28,6 @@ __all__ = [
     "Stamp",
 ]
 
-# Point fields of `LidarPointCloud.points`, in row order.
-XYZI = ("x", "y", "z", "intensity")
-
 
 @define
 class PointCloudSourceInfo:
@@ -274,9 +271,10 @@ class LidarPointCloud(PointCloud):
                 raise ValueError(f"Unknown 0.x point layout with {num_pts_feats} fields")
             fields = [(name, "float32") for name in V0_BIN_FIELDS[:num_pts_feats]]
 
-        columns = load_pointcloud(filepath, frame_index=frame_index, fields=fields, columns=XYZI)
-        points = np.empty((len(XYZI), len(columns["x"])), dtype=np.float32)
-        for i, name in enumerate(XYZI):
+        xyzi = ("x", "y", "z", "intensity")  # rows of `points`
+        columns = load_pointcloud(filepath, frame_index=frame_index, fields=fields, columns=xyzi)
+        points = np.empty((len(xyzi), len(columns["x"])), dtype=np.float32)
+        for i, name in enumerate(xyzi):
             points[i] = columns[name]
         return cls(points, metainfo=metainfo)
 

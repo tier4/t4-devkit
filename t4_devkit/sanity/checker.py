@@ -5,6 +5,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, NewType
 
 from returns.maybe import Maybe, Nothing, Some
+from returns.pipeline import is_successful
 
 from t4_devkit.schema.v1 import SCHEMAS as V1_SCHEMAS
 
@@ -141,10 +142,12 @@ class RecordsChecker(ManifestChecker):
     tables: tuple[V1SchemaName, ...]
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
-        skip = super().can_skip(context)
-        if skip != Nothing:
-            return skip
-        invalid = [table.value for table in self.tables if context.load_records(table) == Nothing]
+        match super().can_skip(context):
+            case Some(reason):
+                return Some(reason)
+        invalid = [
+            table.value for table in self.tables if not is_successful(context.load_records(table))
+        ]
         if invalid:
             return Maybe.from_value(Reason(f"Tables not listed or not valid: {', '.join(invalid)}"))
         return Nothing
