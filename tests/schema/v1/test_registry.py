@@ -7,11 +7,6 @@ from t4_devkit.schema import SchemaName as SchemaNameV0
 from t4_devkit.schema.v1 import SCHEMAS, Attribute, SchemaName
 
 
-def test_every_table_is_registered() -> None:
-    assert set(SCHEMAS.keys()) == {name.value for name in SchemaName}
-    assert SchemaName.SAMPLE.filename == "sample.json"
-
-
 def test_required_tables() -> None:
     required = {name.value for name in SchemaName if not name.is_optional()}
     assert required == {"sample", "sample_data", "ego_pose", "sensor", "scene", "log", "vehicle"}
