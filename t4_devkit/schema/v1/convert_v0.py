@@ -500,7 +500,6 @@ class V0Converter:
             `sample_data` token, and the token kept for each merged 0.x sample.
         """
         v0_samples = {record["token"]: record for record in self.v0["sample"]}
-        annotated = {record["sample_token"] for record in self.v0["sample_annotation"]}
         lidars = {
             calibration["token"]
             for calibration in self.v0["calibrated_sensor"]
@@ -538,8 +537,7 @@ class V0Converter:
                     "token": token,
                     "timestamp": min(frame["timestamp"] for frame in lidar_frames or frames),
                     "scene_token": scene_token,
-                    "has_key_frame": any(self._is_key_frame(frame) for frame in frames)
-                    or bool(annotated & set(key_samples)),
+                    "has_key_frame": any(self._is_key_frame(frame) for frame in frames),
                     "next": None,
                     "prev": None,
                 }

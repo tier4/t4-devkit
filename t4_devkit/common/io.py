@@ -29,7 +29,7 @@ __all__ = (
 )
 
 # 0.x `.bin` layout: this list cut to `num_pts_feats`, all float32 (as written by the converter).
-# `.bin` stores no names; these are the 1.0 names (0.x calls `channel` "ring"), all float32.
+# `.bin` stores no names; these are the 1.0 names (0.x calls `channel` "ring").
 V0_BIN_FIELDS = ("x", "y", "z", "intensity", "channel", "return_type", "time_stamp")
 
 
