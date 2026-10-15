@@ -316,7 +316,7 @@ attribute {
 
 - Filename: `visibility.json`
 
-Unchanged from 0.x.
+Unknown visibility is `sample_annotation.visibility_token: null`; the 0.x level `unavailable` is dropped.
 
 ```json
 visibility {
@@ -360,7 +360,7 @@ sample_annotation {
   "sample_token":     <str> -- Foreign key to the `Sample` table.
   "instance_token":   <str> -- Foreign key to the `Instance` table.
   "attribute_tokens": <[str;N]> -- Foreign keys to the `Attribute` table.
-  "visibility_token": <str> -- Foreign key to the `Visibility` table.
+  "visibility_token": <option[str]> -- Foreign key to the `Visibility` table. `null` if unknown.
   "translation":      <[float;3]> -- Box center in meters.
   "size":             <[float;3]> -- (width, length, height) in meters.
   "rotation":         <[float;4]> -- Quaternion (w, x, y, z).

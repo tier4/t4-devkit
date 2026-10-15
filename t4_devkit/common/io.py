@@ -16,7 +16,11 @@ from typing_extensions import TYPE_CHECKING
 if TYPE_CHECKING:
     from t4_devkit.typing import PathLike
 
-__all__ = ("load_json", "save_json", "load_pointcloud", "load_image")
+__all__ = ("load_json", "save_json", "load_pointcloud", "load_image", "V0_BIN_FIELDS")
+
+# 0.x `.bin` layout: this list cut to `num_pts_feats`, all float32 (as written by the converter).
+# `.bin` stores no names; these are the 1.0 names (0.x calls `channel` "ring"), all float32.
+V0_BIN_FIELDS = ("x", "y", "z", "intensity", "channel", "return_type", "time_stamp")
 
 
 def load_json(filename: PathLike) -> Any:
