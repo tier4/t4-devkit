@@ -514,6 +514,7 @@ scenario {
   }
   "annotation_type":        <AnnotationType>
   "provenance":             <option[str]> -- e.g. "cod-scene-classifier 1.0.2".
+  "confidence":             <option[float]> -- Confidence in [0, 1]. `null` for manual labels.
   "raw":                    <option[object]> -- Original record.
 }
 ```

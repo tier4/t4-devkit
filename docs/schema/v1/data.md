@@ -59,7 +59,7 @@ Labeled frames have a value for every point. Frames without labels (for example,
 
 This replaces the `lidarseg` table and the `lidarseg/` folder of 0.x.
 
-Datasets migrated from 0.x without conversion keep one `.pcd.bin` or `.pcd` file per frame, as described in [Sensor Data](../data.md). In that case `lidar.container.format` is `bin` or `pcd` and `sample_data.frame_index` is `null`.
+0.x datasets loaded without migration keep one `.pcd.bin` or `.pcd` file per frame, as described in [Sensor Data](../data.md). In that case `lidar.container.format` is `bin` or `pcd` and `sample_data.frame_index` is `null`.
 
 ## Radar
 
