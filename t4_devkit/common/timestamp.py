@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from attrs import define
 from typing_extensions import deprecated
 
 if TYPE_CHECKING:
     from t4_devkit.typing import ScalarLike
 
 
-__all__ = ["microseconds2seconds", "seconds2microseconds"]
+__all__ = ["microseconds2seconds", "seconds2microseconds", "Stamp"]
 
 
 @deprecated("Please use `microseconds2seconds(...)` instead.")
@@ -65,3 +66,25 @@ def seconds2microseconds(timestamp: ScalarLike) -> float:
         Timestamp in [us].
     """
     return 1e6 * timestamp
+
+
+@define
+class Stamp:
+    """A dataclass to represent timestamp.
+
+    Attributes:
+        sec (int): Seconds.
+        nanosec (int): Nanoseconds.
+    """
+
+    sec: int
+    nanosec: int
+
+    @property
+    def in_seconds(self) -> float:
+        """Convert timestamp to seconds as a float.
+
+        Returns:
+            float: Timestamp in seconds.
+        """
+        return self.sec + self.nanosec * 1e-9
