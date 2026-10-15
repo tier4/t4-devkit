@@ -4,10 +4,14 @@ from attrs import define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["Scene"]
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.SCENE)
 class Scene(SchemaBase):
     """`scene.json` dataclass.
 

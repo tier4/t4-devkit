@@ -7,6 +7,8 @@ from attrs import define, field, validators
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
 from .annotation_type import AnnotationType
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = ["CaptionType", "Caption"]
 
@@ -29,6 +31,7 @@ class CaptionType(str, Enum):
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.CAPTION)
 class Caption(SchemaBase):
     """`caption.json` dataclass.
 

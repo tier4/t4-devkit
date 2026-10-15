@@ -6,11 +6,14 @@ from attrs import define, field, validators
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
 from .annotation_type import AnnotationType
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = ["Keypoint"]
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.KEYPOINT)
 class Keypoint(SchemaBase):
     """`keypoint.json` dataclass.
 

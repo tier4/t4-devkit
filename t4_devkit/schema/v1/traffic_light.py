@@ -7,6 +7,8 @@ from attrs import define, field, validators
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
 from .annotation_type import AnnotationType
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = [
     "TrafficLightColor",
@@ -79,6 +81,7 @@ class TrafficLightElement:
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.TRAFFIC_LIGHT)
 class TrafficLight(SchemaBase):
     """`traffic_light.json` dataclass.
 

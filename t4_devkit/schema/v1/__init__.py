@@ -8,7 +8,9 @@ from .keypoint import *  # noqa
 from .log import *  # noqa
 from .manifest import *  # noqa
 from .map import *  # noqa
+from .name import *  # noqa
 from .object_ann import *  # noqa
+from .registry import *  # noqa
 from .route import *  # noqa
 from .sample import *  # noqa
 from .sample_annotation import *  # noqa
