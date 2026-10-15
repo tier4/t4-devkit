@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os.path as osp
 import warnings
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -16,6 +17,7 @@ from .writer import DatasetWriter
 if TYPE_CHECKING:
     from t4_devkit.typing import PathLike
 
+    from .manifest import Manifest
     from .sample_data import SampleData
     from .sensor import Sensor
 
@@ -31,6 +33,10 @@ class V0Migrator:
 
     Examples:
         >>> migrator = V0Migrator("<0.x dataset>", "out/<DATASET_ID>/<VERSION>")
+        >>> manifest = migrator.migrate("<DATASET_ID>", <VERSION>)
+
+        Or channel by channel:
+
         >>> for sensor in migrator.lidars():
         ...     migrator.migrate_lidar(sensor)
         >>> for sensor in migrator.cameras():
@@ -82,6 +88,7 @@ class V0Migrator:
                 lidarseg is present but category 0 is not `unpainted`.
         """
         records = self._channel_frames(sensor)
+        self._relink(sensor, records)
         source_fields = self._source_fields(records[0])
         fields = self._point_fields(sensor.channel, records, source_fields)
         if self._v0_frames[records[0].token].get("info_filename"):
@@ -101,6 +108,19 @@ class V0Migrator:
             record.filename = path
             record.frame_index = frame_index
             record.fileformat = "parquet"
+
+        # Source LiDARs of a merged channel have no frames of their own: their points are in
+        # this file, so they get its format and fields.
+        with_frames = {lidar.token for lidar in self.lidars()}
+        for source in self.tables(SchemaName.SENSOR):
+            if source.channel in sensor.lidar.source_channels and source.token not in with_frames:
+                source.lidar.container = LidarContainer(
+                    format="parquet",
+                    path=None,
+                    frame_count=source.lidar.container.frame_count,
+                    compression="zstd",
+                )
+                source.lidar.fields = list(sensor.lidar.fields)
 
     def cameras(self) -> list[Sensor]:
         """Return the camera sensors with frames."""
@@ -125,6 +145,7 @@ class V0Migrator:
             ValueError: If an image does not have the sensor's width and height.
         """
         records = self._channel_frames(sensor)
+        self._relink(sensor, records)
         images = (self._image(record, sensor) for record in records)
         video = self.writer.write_camera(sensor.channel, images, self._frame_rate(records))
 
@@ -140,12 +161,78 @@ class V0Migrator:
         Args:
             sensor (Sensor): Camera sensor with frames.
         """
-        for record in self._channel_frames(sensor):
+        records = self._channel_frames(sensor)
+        self._relink(sensor, records)
+        for record in records:
             self.writer.copy(osp.join(self.data_root, record.filename), record.filename)
+
+    def migrate(self, dataset_id: str, version: int, *, keep_images: bool = False) -> Manifest:
+        """Migrate every channel, copy `map/` and `input_bag/`, then write the tables and
+        `manifest.json`.
+
+        Args:
+            dataset_id (str): Dataset ID, as in the output folder.
+            version (int): Dataset version, as in the output folder (given by Web.Auto).
+            keep_images (bool, optional): Copy camera images as they are instead of encoding
+                one video per channel.
+
+        Returns:
+            The manifest written.
+        """
+        for sensor in self.lidars():
+            self.migrate_lidar(sensor)
+        for sensor in self.cameras():
+            if keep_images:
+                self.copy_images(sensor)
+            else:
+                self.migrate_camera(sensor)
+        for directory in ("map", "input_bag"):
+            if osp.isdir(osp.join(self.data_root, directory)):
+                self.writer.copy(osp.join(self.data_root, directory), directory)
+        return self.writer.save(self.dataset.tables, self._manifest_info(dataset_id, version))
 
     def tables(self, table: SchemaName) -> list[Any]:
         """Return the 1.0 records of a table."""
         return self.dataset.tables[table]
+
+    def _manifest_info(self, dataset_id: str, version: int) -> dict[str, Any]:
+        """Return the manifest fields the writer does not compute. 0.x has no provenance, so
+        it is left empty for backfilling, except the recording time (from the samples)."""
+        timestamps = [sample.timestamp for sample in self.tables(SchemaName.SAMPLE)]
+        self.notes.append(
+            "provenance.rosbag.record_start / record_end are the first / last sample times"
+        )
+
+        def utc(timestamp: int) -> str:
+            return datetime.fromtimestamp(timestamp / 1e6, tz=timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+
+        return {
+            "schema_version": "1.0.0",
+            "dataset_id": dataset_id,
+            "version": version,
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "generators": [],
+            "annotation_specifications": {},
+            "provenance": {
+                "rosbag": {
+                    "log_file_ids": [],
+                    "storage": None,
+                    "record_start": utc(min(timestamps)),
+                    "record_end": utc(max(timestamps)),
+                },
+                "topics": {},
+                "process_config_id": None,
+                "process_config_version_id": None,
+            },
+            "project_id": None,
+            "source_project_id": None,
+            "is_synthetic": False,
+            "is_discontinuous": None,
+            "migrated_from_schema_version": "0.x",
+            "migration_notes": self.notes,
+        }
 
     def _channel_frames(self, sensor: Sensor) -> list[SampleData]:
         """Return the frames of a sensor in timestamp order."""
@@ -157,6 +244,24 @@ class V0Migrator:
             ),
             key=lambda frame: frame.timestamp,
         )
+
+    def _relink(self, sensor: Sensor, records: list[SampleData]) -> None:
+        """Set `next` / `prev` of a channel's frames from their timestamp order.
+
+        Some 0.x datasets leave a placeholder frame (`is_valid: false`) half linked: it points
+        to its neighbors, but they point to each other. Each change is noted.
+        """
+        relinked = 0
+        for i, record in enumerate(records):
+            prev = records[i - 1].token if i > 0 else None
+            next_ = records[i + 1].token if i + 1 < len(records) else None
+            if (record.prev, record.next) != (prev, next_):
+                record.prev, record.next = prev, next_
+                relinked += 1
+        if relinked:
+            self.notes.append(
+                f"{sensor.channel}: next / prev relinked in time order on {relinked} frames"
+            )
 
     @staticmethod
     def _frame_rate(records: list[SampleData]) -> int:

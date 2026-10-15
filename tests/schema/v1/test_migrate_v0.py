@@ -161,3 +161,26 @@ def test_copy_images(tmp_path: Path) -> None:
         assert (tmp_path / "sample" / frame.filename).read_bytes() == (
             SAMPLE_V0 / frame.filename
         ).read_bytes()
+
+
+def test_relink_half_linked_frame(tmp_path: Path) -> None:
+    """A frame its neighbors skip (as 0.x placeholders can be) is linked back in time order."""
+    data_root = tmp_path / "v0"
+    shutil.copytree(SAMPLE_V0, data_root)
+    path = data_root / "annotation/sample_data.json"
+    records = json.loads(path.read_text())
+    first, middle, last = sorted(
+        (r for r in records if r["filename"].startswith("data/CAM_FRONT/")),
+        key=lambda r: r["timestamp"],
+    )
+    first["next"], last["prev"] = last["token"], first["token"]  # both skip `middle`
+    path.write_text(json.dumps(records))
+
+    migrator = V0Migrator(data_root, tmp_path / "sample")
+    sensor = migrator.cameras()[0]
+    migrator.copy_images(sensor)
+
+    frames = migrator._channel_frames(sensor)
+    assert [frame.next for frame in frames] == [middle["token"], last["token"], None]
+    assert [frame.prev for frame in frames] == [None, first["token"], middle["token"]]
+    assert migrator.notes == ["CAM_FRONT: next / prev relinked in time order on 2 frames"]
