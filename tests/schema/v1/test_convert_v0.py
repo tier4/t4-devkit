@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import base64
 import json
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
+
+import numpy as np
+import pytest
+from pycocotools import mask as cocomask
 
 from t4_devkit.schema.v1 import SchemaName, V0Converter, load_dataset
 
@@ -65,8 +71,24 @@ def test_load_v0_labels() -> None:
     for record in surfaces:
         category = dataset.get(SchemaName.CATEGORY, record.category_token)
         assert not category.is_thing
-        xmin, ymin, xmax, ymax = record.bbox
-        assert 0 <= xmin < xmax <= record.mask.size[1] and 0 <= ymin < ymax <= record.mask.size[0]
+        # box on pixel edges around the decoded mask, which is (height, width)
+        rows, cols = np.nonzero(record.mask.decode())
+        assert tuple(record.bbox) == (cols.min(), rows.min(), cols.max() + 1, rows.max() + 1)
+
+
+def test_load_v0_category_index(tmp_path: Path) -> None:
+    """Categories without index get their list position; a partly set index is rejected."""
+    categories = load_dataset(SAMPLE_V0).tables[SchemaName.CATEGORY]
+    assert [category.index for category in categories] == list(range(len(categories)))
+
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    category_path = data_root / "annotation" / "category.json"
+    records = json.loads(category_path.read_text())
+    records[0]["index"] = 5
+    category_path.write_text(json.dumps(records))
+    with pytest.raises(ValueError, match="index"):
+        load_dataset(data_root)
 
 
 def test_load_v0_autolabel(tmp_path: Path) -> None:
@@ -174,3 +196,103 @@ def test_load_v0_labeled_frame_is_key(tmp_path: Path) -> None:
     )
     frame = load_dataset(data_root).get(SchemaName.SAMPLE_DATA, labeled["sample_data_token"])
     assert frame.is_key_frame
+
+
+def test_load_v0_vehicle_state() -> None:
+    """0.x vehicle states convert; the 0.x forward gear name becomes DRIVE."""
+    states = load_dataset(SAMPLE_V0).tables[SchemaName.VEHICLE_STATE]
+
+    assert len(states) == 3
+    assert all(state.shift_state == "DRIVE" for state in states)
+    assert all(state.source == "vehicle_interface" for state in states)
+
+
+def test_load_v0_capture_time(tmp_path: Path) -> None:
+    """An empty 0.x `data_captured` becomes the first sample time."""
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    log_path = data_root / "annotation" / "log.json"
+    logs = json.loads(log_path.read_text())
+    logs[0]["data_captured"] = ""
+    log_path.write_text(json.dumps(logs))
+
+    tables = load_dataset(data_root).tables
+    first = min(sample.timestamp for sample in tables[SchemaName.SAMPLE])
+    expected = datetime.fromtimestamp(first / 1e6, tz=timezone.utc).isoformat()
+    assert tables[SchemaName.LOG][0].data_captured == expected
+
+
+@pytest.mark.parametrize(
+    ("table", "way_key"),
+    [
+        ("traffic_light", "primitive_id"),
+        ("traffic_light_instance_map", "traffic_light_linestring_id"),
+    ],
+)
+def test_load_v0_traffic_light(tmp_path: Path, table: str, way_key: str) -> None:
+    """A 0.x lamp-to-way row sets the instance's lanelet2 way."""
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    instance_token = json.loads((data_root / "annotation" / "instance.json").read_text())[0][
+        "token"
+    ]
+    rows = [{"token": "tl0", "instance_token": instance_token, way_key: "1234"}]
+    (data_root / "annotation" / f"{table}.json").write_text(json.dumps(rows))
+
+    tables = load_dataset(data_root).tables
+    assert tables[SchemaName.TRAFFIC_LIGHT] == []
+    map_element = tables[SchemaName.INSTANCE][0].map_element
+    assert (map_element.id, map_element.type) == (1234, "way")
+
+
+def test_load_v0_source_lidar(tmp_path: Path) -> None:
+    """A source LiDAR takes the concatenated channel's fields and counts frames with its points."""
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    annotation = data_root / "annotation"
+
+    def edit(name: str, change) -> None:
+        path = annotation / f"{name}.json"
+        path.write_text(json.dumps(change(json.loads(path.read_text()))))
+
+    source = {"token": "src", "channel": "LIDAR_SOURCE", "modality": "lidar"}
+    calibration = {"token": "src_calib", "sensor_token": "src"}
+    calibration |= {"translation": [0.0, 0.0, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}
+    calibration |= {"camera_intrinsic": [], "camera_distortion": []}
+    edit("sensor", lambda records: [*records, source])
+    edit("calibrated_sensor", lambda records: [*records, calibration])
+
+    def add_info(records: list[dict]) -> list[dict]:
+        frames = [r for r in records if r["filename"].startswith("data/LIDAR_TOP")]
+        for i, record in enumerate(frames):
+            record["info_filename"] = f"data/LIDAR_TOP_INFO/{i}.json"
+            # points from the source in the first two frames only
+            sources = [{"sensor_token": "src", "idx_begin": 0, "length": 10 if i < 2 else 0}]
+            info = {"num_pts_feats": 7, "sources": sources}
+            (data_root / record["info_filename"]).parent.mkdir(exist_ok=True)
+            (data_root / record["info_filename"]).write_text(json.dumps(info))
+        return records
+
+    edit("sample_data", add_info)
+
+    sensors = {s.channel: s for s in load_dataset(data_root).tables[SchemaName.SENSOR]}
+    concat, source_lidar = sensors["LIDAR_TOP"].lidar, sensors["LIDAR_SOURCE"].lidar
+    assert concat.source_channels == ["LIDAR_SOURCE"]
+    assert source_lidar.fields == concat.fields and len(concat.fields) == 7
+    assert source_lidar.container.frame_count == 2
+
+
+def test_load_v0_empty_mask(tmp_path: Path) -> None:
+    """A box-only 0.x label with an empty placeholder mask has no mask in 1.0."""
+    data_root = tmp_path / "dataset"
+    shutil.copytree(SAMPLE_V0, data_root)
+    path = data_root / "annotation" / "object_ann.json"
+    records = json.loads(path.read_text())
+    empty = cocomask.encode(np.zeros((600, 800), dtype=np.uint8, order="F"))
+    # as written by some 0.x tools: (width, height)
+    records[0]["mask"] = {"size": [800, 600], "counts": base64.b64encode(empty["counts"]).decode()}
+    path.write_text(json.dumps(records))
+
+    annotation = load_dataset(data_root).tables[SchemaName.OBJECT_ANN][0]
+    assert annotation.mask is None
+    assert list(annotation.bbox) == records[0]["bbox"]
