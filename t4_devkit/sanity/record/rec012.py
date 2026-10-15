@@ -31,7 +31,7 @@ class REC012(RecordsChecker):
     )
 
     def check(self, context: SanityContext) -> list[Reason] | None:
-        counts = _sample_counts(context)
+        counts = self._sample_counts(context)
         return [
             Reason(
                 f"Scene {scene.token}: 'nbr_samples' {scene.nbr_samples}, has {counts[scene.token]}"
@@ -41,14 +41,15 @@ class REC012(RecordsChecker):
         ] or None
 
     def fix(self, context: SanityContext) -> bool:
-        counts = _sample_counts(context)
+        counts = self._sample_counts(context)
         records = context.load_table(SchemaName.SCENE).unwrap()
         for record in records:
             record["nbr_samples"] = counts[record["token"]]
         return context.save_table(SchemaName.SCENE, records)
 
-
-def _sample_counts(context: SanityContext) -> Counter[str]:
-    return Counter(
-        sample.scene_token for sample in context.load_records(SchemaName.SAMPLE).unwrap()
-    )
+    @staticmethod
+    def _sample_counts(context: SanityContext) -> Counter[str]:
+        """Return the number of samples of each scene."""
+        return Counter(
+            sample.scene_token for sample in context.load_records(SchemaName.SAMPLE).unwrap()
+        )

@@ -60,10 +60,6 @@ class V0Converter:
         "camera": {"is_rectified": True},
     }
 
-    # The 0.x converter names the files of one frame by its frame number, e.g. `00042.jpg` and
-    # `00042.pcd.bin`: it groups the channels of a frame (their timestamps differ by up to ~90 ms).
-    FRAME_NUMBER: ClassVar[re.Pattern] = re.compile(r"^(\d+)\.")
-
     def __init__(self, data_root: PathLike) -> None:
         """
         Args:
@@ -555,10 +551,14 @@ class V0Converter:
         return [row for chain in by_scene.values() for row in chain], sample_of_frame, remap
 
     def _frame_groups(self) -> dict[int, list[Record]]:
-        """0.x `sample_data` grouped by frame number (`FRAME_NUMBER` in the file name), or by
+        """0.x `sample_data` grouped by frame number (the digits starting the file name), or by
         position in each channel's frames in time if a file name has no number."""
+        # The 0.x converter names the files of one frame by its frame number, e.g. `00042.jpg`
+        # and `00042.pcd.bin`: it groups the channels of a frame (their timestamps differ by up
+        # to ~90 ms).
+        frame_number = re.compile(r"^(\d+)\.")
         records = self.v0["sample_data"]
-        numbers = [self.FRAME_NUMBER.match(osp.basename(record["filename"])) for record in records]
+        numbers = [frame_number.match(osp.basename(record["filename"])) for record in records]
         groups: dict[int, list[Record]] = defaultdict(list)
         if all(numbers):
             for record, number in zip(records, numbers):

@@ -42,11 +42,9 @@ class REC027(RecordsChecker):
             for route in context.load_records(SchemaName.ROUTE).unwrap()
             for pose in (route.start_pose, route.goal_pose)
         ]
+        tolerance = 1e-3
         return [
             Reason(f"{table} {token}: rotation norm {rotation.norm:.6f}")
             for table, token, rotation in rotations
-            if abs(rotation.norm - 1.0) > NORM_TOLERANCE
+            if abs(rotation.norm - 1.0) > tolerance
         ] or None
-
-
-NORM_TOLERANCE = 1e-3

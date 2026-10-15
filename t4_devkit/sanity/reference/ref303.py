@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from returns.maybe import Maybe, Nothing
+from returns.maybe import Maybe, Nothing, Some
 
 from t4_devkit.schema.v1 import SchemaName
 
@@ -34,12 +34,14 @@ class REF303(RecordsChecker):
     )
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
-        skip = super().can_skip(context)
-        if skip != Nothing:
-            return skip
-        if context.lanelet_map == Nothing:
-            return Maybe.from_value(Reason("No lanelet2 map to check against"))
-        return Nothing
+        match super().can_skip(context):
+            case Some(reason):
+                return Some(reason)
+        match context.lanelet_map:
+            case Some(_):
+                return Nothing
+            case _:
+                return Maybe.from_value(Reason("No lanelet2 map to check against"))
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         regulatory_elements = {
