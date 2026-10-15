@@ -333,7 +333,7 @@ instance {
   "token":                  <str> -- Unique record identifier.
   "category_token":         <str> -- Foreign key to the `Category` table.
   "instance_name":          <str> -- `<DATASET_ID>::<INSTANCE_ID>`.
-  "instance_index":         <option[int]> -- Value of the LiDAR `instance` field for this object, from `1` (`0` means no object). Unique within the dataset. Required when point-wise labels are present.
+  "instance_index":         <option[int]> -- Value of the LiDAR `instance` field for this object, `0` to `32767` (`-1` in the field means no object). Unique within the dataset. Required when point-wise labels are present.
   "nbr_annotations":        <int> -- Number of annotations of this instance.
   "first_annotation_token": <option[str]> -- Foreign key to the first `SampleAnnotation` or `ObjectAnn`.
   "last_annotation_token":  <option[str]> -- Foreign key to the last `SampleAnnotation` or `ObjectAnn`.

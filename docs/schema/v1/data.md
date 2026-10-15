@@ -45,15 +45,15 @@ data/
 
 When `manifest.json` lists `segmentation3d` in `capabilities.tasks`, the LiDAR file has two extra columns for panoptic labels, listed in `sensor.lidar.fields` like any other field:
 
-| Column     | Type     | Value                                                                                                 |
-| ---------- | -------- | ----------------------------------------------------------------------------------------------------- |
-| `label`    | `uint8`  | [`category.index`](./table.md#category) of the point's category; `0` for unpainted points             |
-| `instance` | `uint32` | [`instance.instance_index`](./table.md#instance) of the point's object; `0` for points with no object |
+| Column     | Type    | Value                                                                                                  |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| `label`    | `uint8` | [`category.index`](./table.md#category) of the point's category; `0` for unpainted points              |
+| `instance` | `int16` | [`instance.instance_index`](./table.md#instance) of the point's object; `-1` for points with no object |
 
-Index `0` is reserved in both columns:
+Each column reserves one value:
 
 - `label` `0` is the `unpainted` category: points the annotator did not label. When point-wise labels are present, `category.json` has a category named `unpainted` with `index` `0`.
-- `instance` `0` means no object: points of categories without `is_thing` (road, vegetation) and unpainted points. `instance_index` starts at `1`.
+- `instance` `-1` means no object: points of categories without `is_thing` (road, vegetation) and unpainted points. `instance_index` runs from `0` to `32767`.
 
 Labeled frames have a value for every point. Frames without labels (for example, non-key frames) have `null` in both columns for every point, because a Parquet file has the same columns in every frame. Readers leave out a column that is `null` for the whole frame.
 
