@@ -16,7 +16,7 @@ def test_t4migrate(tmp_path: Path) -> None:
     with pytest.warns(UserWarning, match="kept as float32"):
         result = CliRunner().invoke(cli, [SAMPLE_V0.as_posix(), tmp_path.as_posix(), "-d", "3"])
 
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 0, result.output  # t4migrate exits 1 if a sanity rule fails
     manifest = json.loads((tmp_path / "t4dataset" / "3" / "manifest.json").read_text())
     assert (manifest["dataset_id"], manifest["version"]) == ("t4dataset", 3)
     assert manifest["migrated_from_schema_version"] == "0.x"

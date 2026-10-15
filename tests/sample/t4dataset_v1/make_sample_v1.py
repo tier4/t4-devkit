@@ -489,23 +489,28 @@ MANIFEST_INFO = {
 }
 
 
-def main() -> None:
+def write(output_root: Path) -> None:
+    """Write the sample dataset to `output_root`, which must not exist."""
+    writer = DatasetWriter(output_root)
+    camera_video = writer.write_camera("CAM_FRONT", camera_frames(), FPS)
+    lidar_path, _ = writer.write_lidar("LIDAR_TOP", lidar_frames(), LIDAR_FIELDS)
     with tempfile.TemporaryDirectory() as tmp:
-        output_root = Path(tmp) / "sample"
-        writer = DatasetWriter(output_root)
-        camera_video = writer.write_camera("CAM_FRONT", camera_frames(), FPS)
-        lidar_path, _ = writer.write_lidar("LIDAR_TOP", lidar_frames(), LIDAR_FIELDS)
         map_file = Path(tmp) / "lanelet2_map.osm"
         write_map(map_file)
         writer.copy(map_file, MAP_PATH)
+    map_sha256 = hashlib.sha256((output_root / MAP_PATH).read_bytes()).hexdigest()
+    records = {
+        SchemaName(name): [SCHEMAS.get(SchemaName(name)).from_dict(data) for data in rows]
+        for name, rows in tables(camera_video, lidar_path, map_sha256).items()
+    }
+    writer.save(records, MANIFEST_INFO)
 
-        map_sha256 = hashlib.sha256(map_file.read_bytes()).hexdigest()
-        records = {
-            SchemaName(name): [SCHEMAS.get(SchemaName(name)).from_dict(data) for data in rows]
-            for name, rows in tables(camera_video, lidar_path, map_sha256).items()
-        }
-        writer.save(records, MANIFEST_INFO)
 
+def main() -> None:
+    """Write the sample dataset in place of this directory's."""
+    with tempfile.TemporaryDirectory() as tmp:
+        output_root = Path(tmp) / "sample"
+        write(output_root)
         for name in ("annotation", "data", "map", "manifest.json"):
             target = ROOT / name
             if target.is_dir():
