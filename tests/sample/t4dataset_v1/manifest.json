@@ -15,7 +15,8 @@
       "detection2d",
       "segmentation2d",
       "keypoint",
-      "traffic_light"
+      "traffic_light",
+      "planning"
     ],
     "modalities": {
       "camera": ["CAM_FRONT"],

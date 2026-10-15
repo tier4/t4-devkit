@@ -132,6 +132,21 @@ Provenance {
 }
 ```
 
+## Writing 1.0 Datasets
+
+`DatasetWriter` writes a 1.0 dataset folder. Data files go first, then the tables and `manifest.json`:
+
+```python
+>>> from t4_devkit.schema.v1 import DatasetWriter
+>>> writer = DatasetWriter("<DATASET_ID>/<DATASET_VERSION>")  # must not exist yet
+>>> path, frame_count = writer.write_lidar("LIDAR_TOP", frames, fields)  # one Parquet file
+>>> video = writer.write_camera("CAM_FRONT", images, frame_rate=10)  # one AV1 video
+>>> writer.copy("<OLD_DATASET>/map", "map")  # files kept as they are
+>>> manifest = writer.save(tables, manifest_info)  # tables, then manifest.json
+```
+
+`save` lists every table and every file under `data/`, `map/` and `input_bag/` in `manifest.json`, with its hash. It computes `capabilities` from the tables, and adds t4-devkit to `generators`. `manifest_info` gives the other manifest fields (identity, provenance, migration notes).
+
 ## Loading 0.x Datasets
 
 `load_dataset()` reads a 0.x dataset (no `manifest.json`) by converting its tables to 1.0 records when loading, on a best-effort basis. Sensor data files stay as they are: one file per frame, and `sample_data.frame_index` is `null`.

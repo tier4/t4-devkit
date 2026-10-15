@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
 
-from t4_devkit.schema import SchemaName, SensorModality
-from t4_devkit.schema.v1 import FileFormat, LidarContainerFormat, Task
+from t4_devkit.schema import SchemaName
+from t4_devkit.schema.v1 import Capabilities, FileFormat, LidarContainerFormat
 from t4_devkit.schema.v1 import SchemaName as V1SchemaName
 
 from ..checker import Checker
@@ -73,14 +73,6 @@ def channel_file(sensor: Sensor) -> tuple[str, int] | None:
     return None
 
 
-# `sample_data.fileformat` values for each LiDAR container format.
-LIDAR_FRAME_FORMATS = {
-    LidarContainerFormat.PARQUET: {FileFormat.PARQUET.value},
-    LidarContainerFormat.PCD: {FileFormat.PCD.value},
-    LidarContainerFormat.BIN: {FileFormat.BIN.value, FileFormat.PCDBIN.value},
-}
-
-
 def frame_formats(sensor: Sensor) -> set[str]:
     """Return the `sample_data.fileformat` values a sensor's storage allows (any for radar,
     undefined in 1.0)."""
@@ -89,25 +81,17 @@ def frame_formats(sensor: Sensor) -> set[str]:
             return {FileFormat.AV1_MP4.value}
         return {FileFormat.JPG.value, FileFormat.PNG.value}
     if sensor.lidar is not None:
-        return LIDAR_FRAME_FORMATS[sensor.lidar.container.format]
+        lidar_formats = {
+            LidarContainerFormat.PARQUET: {FileFormat.PARQUET.value},
+            LidarContainerFormat.PCD: {FileFormat.PCD.value},
+            LidarContainerFormat.BIN: {FileFormat.BIN.value, FileFormat.PCDBIN.value},
+        }
+        return lidar_formats[sensor.lidar.container.format]
     return {fileformat.value for fileformat in FileFormat}
 
 
-# Tasks whose labels are checked against `capabilities.tasks`.
-CHECKED_TASKS = (
-    Task.DETECTION3D,
-    Task.DETECTION2D,
-    Task.SEGMENTATION2D,
-    Task.SEGMENTATION3D,
-    Task.KEYPOINT,
-    Task.TRAFFIC_LIGHT,
-)
-
-
-def declared_capabilities(context: SanityContext) -> set[str]:
-    """Return what `manifest.json` `capabilities` declares, as items like "camera:CAM_FRONT", "map",
-    "task:detection3d"."""
-    capabilities = context.manifest.unwrap().capabilities
+def capability_items(capabilities: Capabilities) -> set[str]:
+    """Return capabilities as comparable items, e.g. "camera:CAM_FRONT", "map", "task:keypoint"."""
     items = {
         f"{modality}:{channel}"
         for modality in ("camera", "lidar", "radar")
@@ -118,48 +102,11 @@ def declared_capabilities(context: SanityContext) -> set[str]:
         for name in ("map", "route", "traffic_light", "vehicle_state", "scenario")
         if getattr(capabilities, name)
     }
-    items |= {f"task:{task.value}" for task in capabilities.tasks if task in CHECKED_TASKS}
+    items |= {f"task:{task.value}" for task in capabilities.tasks}
     return items
 
 
-def present_capabilities(context: SanityContext) -> set[str]:
-    """Return what the dataset contains, as the same items as `declared_capabilities`."""
-
-    def records(table: V1SchemaName) -> list:
-        return context.load_records(table).unwrap()
-
-    sensors = records(V1SchemaName.SENSOR)
-    with_frames = {frame.sensor_token for frame in records(V1SchemaName.SAMPLE_DATA)}
-    items = {
-        f"{sensor.modality.value}:{sensor.channel}"
-        for sensor in sensors
-        if sensor.token in with_frames
-    }
-    tables = {
-        "map": V1SchemaName.MAP,
-        "route": V1SchemaName.ROUTE,
-        "traffic_light": V1SchemaName.TRAFFIC_LIGHT,
-        "vehicle_state": V1SchemaName.VEHICLE_STATE,
-        "scenario": V1SchemaName.SCENARIO,
-    }
-    items |= {name for name, table in tables.items() if records(table)}
-
-    things = {category.token for category in records(V1SchemaName.CATEGORY) if category.is_thing}
-    object_anns = records(V1SchemaName.OBJECT_ANN)
-    lidar_columns = {
-        field.name
-        for sensor in sensors
-        if sensor.modality == SensorModality.LIDAR and sensor.lidar is not None
-        for field in sensor.lidar.fields
-    }
-    tasks = {
-        Task.DETECTION3D: bool(records(V1SchemaName.SAMPLE_ANNOTATION)),
-        Task.DETECTION2D: any(ann.category_token in things for ann in object_anns),
-        Task.SEGMENTATION2D: any(ann.mask is not None for ann in object_anns),
-        Task.SEGMENTATION3D: "label" in lidar_columns,
-        Task.KEYPOINT: bool(records(V1SchemaName.KEYPOINT)),
-        Task.TRAFFIC_LIGHT: bool(records(V1SchemaName.TRAFFIC_LIGHT))
-        or any(instance.map_element.id is not None for instance in records(V1SchemaName.INSTANCE)),
-    }
-    items |= {f"task:{task.value}" for task, present in tasks.items() if present}
-    return items
+def present_capabilities(context: SanityContext, tables: tuple[V1SchemaName, ...]) -> set[str]:
+    """Return what the dataset's tables contain, as `capability_items`."""
+    records = {table: context.load_records(table).unwrap() for table in tables}
+    return capability_items(Capabilities.from_tables(records))
