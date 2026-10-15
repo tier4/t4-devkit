@@ -5,7 +5,12 @@
     "instance_token": "instance_car",
     "category_token": "category_car",
     "attribute_tokens": [],
-    "bbox": [10.0, 10.0, 30.0, 20.0],
+    "bbox": [
+      10.0,
+      10.0,
+      30.0,
+      20.0
+    ],
     "mask": null,
     "orientation": null,
     "number": null,
@@ -19,9 +24,17 @@
     "instance_token": null,
     "category_token": "category_road",
     "attribute_tokens": [],
-    "bbox": [0.0, 24.0, 64.0, 48.0],
+    "bbox": [
+      0.0,
+      24.0,
+      64.0,
+      48.0
+    ],
     "mask": {
-      "size": [48, 64],
+      "size": [
+        48,
+        64
+      ],
       "counts": "aDBoMGgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
     },
     "orientation": null,

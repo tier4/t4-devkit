@@ -6,7 +6,7 @@
   "generators": [
     {
       "name": "t4-devkit",
-      "version": "sample"
+      "version": "0.8.0"
     }
   ],
   "capabilities": {
@@ -19,8 +19,12 @@
       "planning"
     ],
     "modalities": {
-      "camera": ["CAM_FRONT"],
-      "lidar": ["LIDAR_TOP"],
+      "camera": [
+        "CAM_FRONT"
+      ],
+      "lidar": [
+        "LIDAR_TOP"
+      ],
       "radar": []
     },
     "map": true,
@@ -41,11 +45,11 @@
     },
     "ego_pose": {
       "path": "annotation/ego_pose.json",
-      "sha256": "5743a2253f46acfec636b04375939ab9ec494ddc9643cf529e8ff1c5658939cc"
+      "sha256": "41c24c1c135773c2037e63f8aafe9080e2345eedd8a6ec71872d5ef7cabf6ce2"
     },
     "sensor": {
       "path": "annotation/sensor.json",
-      "sha256": "195694efc286e2d61d9e062d64e59a525becfacc54c5aac72bf877060e0481f6"
+      "sha256": "dd66fc0cadb8cb1e54831067a7f13c9f159de8d686f5f9ba85976706e3ecc80e"
     },
     "scene": {
       "path": "annotation/scene.json",
@@ -61,7 +65,7 @@
     },
     "map": {
       "path": "annotation/map.json",
-      "sha256": "d869de9d95d4ed8560ab8463c9e9aac442e2d07f03f8ce4d798cdd51828bd3b8"
+      "sha256": "5cd6ff58a1c1d942de187f2902239091e2f662d21d1d564975b300a7c9d4fbab"
     },
     "vehicle_state": {
       "path": "annotation/vehicle_state.json",
@@ -85,15 +89,15 @@
     },
     "sample_annotation": {
       "path": "annotation/sample_annotation.json",
-      "sha256": "30a0ed3f5ba5ced1cfd4e994859da8502ff44b7e6490059a09141c3a3a86f88c"
+      "sha256": "85afcc5f772d398bafc56b77df9c726d8c0a0e3e1e4421c666bf527cb4adedf8"
     },
     "object_ann": {
       "path": "annotation/object_ann.json",
-      "sha256": "d3a84be002e1b8db8ed98d4e547e8baf6a43b1aa101ba6fcd3773a70ddfc7c9e"
+      "sha256": "5434655b3ce0246de3418e79760c97b428ed5ad2c89964abcc67e9a52ec2873b"
     },
     "keypoint": {
       "path": "annotation/keypoint.json",
-      "sha256": "00b4271d8cf39b1b16fa86673a7b7246fbeaeca189ffe64fe6625a74c7adfdaa"
+      "sha256": "1aff568f5509d4b44a297c80b56aea77c6d6264d3e7992b8dff741a1b59ecac0"
     },
     "traffic_light": {
       "path": "annotation/traffic_light.json",
@@ -101,27 +105,27 @@
     },
     "route": {
       "path": "annotation/route.json",
-      "sha256": "6badf9c9fc00722b62763bc483f24e04a53df9cc5a717130008581b41693cecb"
+      "sha256": "80b6d0d982fc7d7a972a76e14f348421d7586ba84590f007836857eaa071abc7"
     },
     "scenario": {
       "path": "annotation/scenario.json",
-      "sha256": "7d751a7b093765efda5bdde70dbfc61d20bc58de00e7f17a7e6dc68e92a4d068"
+      "sha256": "8c5b20607c45a4e2cf92ff3b291a036550ed1c0b9d1534f4fa2f4c8dc978c8ad"
     },
     "caption": {
       "path": "annotation/caption.json",
-      "sha256": "6871b347a5f918a007ede1b3719512764c7ecda05eb8238959dcf5bd52279f03"
+      "sha256": "377049baba19c58c7dbb376d67dc6c122fc7aef262be7e81eb04e7c4b1e05e00"
     }
   },
   "assets": [
     {
       "path": "data/CAM_FRONT/CAM_FRONT.mp4",
-      "sha256": "a09be0d80dad958cd0a4eac632c3eb7af0fb57de48659b56a58acd6eefbb5682",
-      "bytes": 894
+      "sha256": "2c98ef16ed7269de658b46d5ece3698a9ba3f76449c6487e1c737c1e7fd00a93",
+      "bytes": 939
     },
     {
       "path": "data/LIDAR_TOP/LIDAR_TOP.parquet",
-      "sha256": "837f92226dabd8dbdcc27141dbae5e69ae0e487a55a2d1117fc2997e24e3fa8b",
-      "bytes": 3701
+      "sha256": "97e2fba08820460afe7487971c4321787ba2630473e8abdfd32a5b2739497cd5",
+      "bytes": 3117
     },
     {
       "path": "map/lanelet2_map.osm",

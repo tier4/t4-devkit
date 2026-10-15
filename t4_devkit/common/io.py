@@ -229,6 +229,7 @@ def save_video(
     Returns:
         The values of `sensor.camera.video`, except `path`.
     """
+    os.environ.setdefault("SVT_LOG", "1")
     container = av.open(
         os.fspath(filepath),
         mode="w",
