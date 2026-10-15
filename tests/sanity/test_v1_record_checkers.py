@@ -4,6 +4,8 @@ import json
 import shutil
 from pathlib import Path
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 from t4_devkit.sanity import sanity_check
@@ -104,3 +106,37 @@ def test_record_rule_fix(tmp_path: Path, rule: str, table: str, change) -> None:
     reports = _reports(data_root, checksum=True)
     assert reports[rule].is_passed(strict=True)
     assert reports["STR012"].is_passed(strict=True)
+
+
+def _write_labels(data_root: Path, frames: list[list[int | None] | None]) -> None:
+    """Add a `label` column to the LiDAR file and `sensor.json`; `None` = no labels."""
+    path = data_root / "data/LIDAR_TOP/LIDAR_TOP.parquet"
+    parquet = pq.ParquetFile(path)
+    schema = parquet.schema_arrow.append(pa.field("label", pa.uint8()))
+    with pq.ParquetWriter(path.with_suffix(".tmp"), schema) as writer:
+        for i, labels in enumerate(frames):
+            table = parquet.read_row_group(i)
+            column = (
+                pa.nulls(table.num_rows, pa.uint8())
+                if labels is None
+                else pa.array(labels, pa.uint8())
+            )
+            writer.write_table(table.append_column("label", column))
+    path.with_suffix(".tmp").replace(path)
+    _edit(data_root, "sensor", _add_label_column)
+
+
+def test_rec029_point_labels(tmp_path: Path) -> None:
+    """Category 0 must be `unpainted`, and a frame's labels are all null or none null."""
+    data_root = _copy_v1(tmp_path)
+    _write_labels(data_root, [[0] * 8, [1] * 7 + [None], None])
+    _edit(data_root, "category", lambda r: _set(_set(r, 0, index=1), 1, index=0))
+
+    reasons = _reports(data_root)["REC029"].reasons
+    assert "not 'unpainted'" in reasons[0]
+    assert "frames [1]" in reasons[1]
+
+    _write_labels(_copy_v1(tmp_path / "ok"), [[0] * 8, [1] * 8, None])
+    data_root = tmp_path / "ok" / "sample"
+    _edit(data_root, "category", lambda r: _set(_set(r, 0, index=1), 1, index=0, name="unpainted"))
+    assert _reports(data_root)["REC029"].is_passed(strict=True)
