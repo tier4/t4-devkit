@@ -95,6 +95,7 @@ class V0Migrator:
             fields += [("source_index", "uint8"), ("source_timestamp", "int64")]
         if any(record.token in self._labels for record in records):
             self._check_unpainted()
+            self._index_instances()
             fields += [("label", "uint8"), ("instance", "uint32")]
 
         frames = (self._lidar_frame(record, source_fields, fields) for record in records)
@@ -405,6 +406,19 @@ class V0Migrator:
         if filepath.endswith(".pcd"):
             return load_pointcloud(filepath)
         return load_pointcloud(filepath, fields=source_fields)
+
+    def _index_instances(self) -> None:
+        """Give instances without `index` one from 1, as point labels require.
+
+        0.x labels points by category only, so the `instance` column is 0 (no object), but
+        `REC011` still asks every instance of an `is_thing` category for an index.
+        """
+        instances = self.tables(SchemaName.INSTANCE)
+        if all(instance.index is not None for instance in instances):
+            return
+        for index, instance in enumerate(instances, start=1):
+            instance.index = index
+        self.notes.append(f"instance.index set from 1 on {len(instances)} instances (0.x has none)")
 
     def _check_unpainted(self) -> None:
         if not any(

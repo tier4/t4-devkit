@@ -7,7 +7,8 @@ $ t4migrate -h
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ *    data_root       <str>  0.x dataset: the <DATASET_ID>/<VERSION> directory with annotation/. [required]           │
-│ *    output_dir      <str>  Directory to write the 1.0 dataset to, as <DATASET_ID>/<DATASET_VERSION>. [required]     │
+│ *    output_dir      <str>  Parent directory: the dataset goes to <OUTPUT_DIR>/<DATASET_ID>/<DATASET_VERSION>.       │
+│                             [required]                                                                               │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │    --version             -v             Show the application version and exit.                                       │

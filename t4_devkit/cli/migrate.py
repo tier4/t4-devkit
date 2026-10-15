@@ -32,7 +32,8 @@ def main(
         ..., help="0.x dataset: the <DATASET_ID>/<VERSION> directory with annotation/."
     ),
     output_dir: str = typer.Argument(
-        ..., help="Directory to write the 1.0 dataset to, as <DATASET_ID>/<DATASET_VERSION>."
+        ...,
+        help="Parent directory: the dataset goes to <OUTPUT_DIR>/<DATASET_ID>/<DATASET_VERSION>.",
     ),
     dataset_version: int = typer.Option(
         ..., "-d", "--dataset-version", help="Version of the 1.0 dataset (given by Web.Auto)."
