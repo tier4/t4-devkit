@@ -409,8 +409,8 @@ class SegmentationPointCloud(PointCloud):
 
     Deprecated:
         Kept only for 0.x datasets, whose labels are a separate `.bin` file. In 1.0, labels are
-        columns of the LiDAR frame and come with `load_pointcloud()`. To be removed once
-        `T4Devkit` moves to 1.0.
+        columns of the LiDAR frame and come with `load_pointcloud()`; `T4Devkit` no longer
+        uses this class.
 
     Attributes:
         points (NDArrayFloat): Points matrix in the shape of (4, N).
