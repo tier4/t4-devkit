@@ -4,29 +4,25 @@ Three samples (frames): two key frames with one camera (CAM_FRONT, AV1) and one 
 (LIDAR_TOP, Parquet) frame each, then a non-key frame with a LiDAR frame only (a channel can be
 missing). One record in every optional table. All data is synthetic and deterministic.
 
-Requires an ffmpeg build with libsvtav1, and npx to format JSON with the same prettier version
-as pre-commit (so committing does not change the hashes in manifest.json):
+Written with `DatasetWriter`, like a real dataset (no FFmpeg needed):
 
-    FFMPEG=/path/to/ffmpeg python tests/sample/t4dataset_v1/make_sample_v1.py
+    python tests/sample/t4dataset_v1/make_sample_v1.py
 """
 
 from __future__ import annotations
 
 import base64
 import hashlib
-import json
-import os
-import subprocess
+import shutil
+import tempfile
 from pathlib import Path
 
 import numpy as np
-import pyarrow as pa
-import pyarrow.parquet as pq
 from pycocotools import mask as cocomask
 
+from t4_devkit.schema.v1 import SCHEMAS, DatasetWriter, SchemaName
+
 ROOT = Path(__file__).parent
-FFMPEG = os.environ.get("FFMPEG", "ffmpeg")
-PRETTIER = ["npx", "--yes", "prettier@4.0.0-alpha.8", "--write", "--log-level", "warn"]
 
 NUM_FRAMES = 2  # key frames, with a camera and a LiDAR frame each
 NUM_SAMPLES = NUM_FRAMES + 1  # the last sample is a non-key frame with a LiDAR frame only
@@ -36,19 +32,14 @@ NUM_POINTS = 8
 T0 = 1704067200000000  # 2024-01-01T00:00:00Z in microseconds
 DT = 1_000_000 // FPS
 
-CAMERA_PATH = "data/CAM_FRONT/CAM_FRONT.mp4"
-LIDAR_PATH = "data/LIDAR_TOP/LIDAR_TOP.parquet"
+LIDAR_FIELDS = [
+    ("x", "float32"),
+    ("y", "float32"),
+    ("z", "float32"),
+    ("intensity", "float32"),
+    ("ring", "uint16"),
+]
 MAP_PATH = "map/lanelet2_map.osm"
-
-
-def write_json(path: Path, data: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n")
-    subprocess.run([*PRETTIER, str(path)], check=True)
-
-
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def road_mask() -> dict[str, object]:
@@ -59,53 +50,27 @@ def road_mask() -> dict[str, object]:
     return {"size": [HEIGHT, WIDTH], "counts": base64.b64encode(rle["counts"]).decode()}
 
 
-def write_camera() -> None:
-    """Encode NUM_FRAMES synthetic RGB frames as intra-only AV1 with pts == frame_index."""
-    frames = np.zeros((NUM_FRAMES, HEIGHT, WIDTH, 3), dtype=np.uint8)
+def camera_frames() -> list[np.ndarray]:
+    """NUM_FRAMES synthetic RGB frames."""
+    frames = []
     for i in range(NUM_FRAMES):
-        frames[i, :, :, 0] = np.linspace(0, 255, WIDTH, dtype=np.uint8)
-        frames[i, :, :, 1] = 128 * i
-    path = ROOT / CAMERA_PATH
-    path.parent.mkdir(parents=True, exist_ok=True)
-    # fmt: off
-    cmd = [
-        FFMPEG, "-y", "-loglevel", "error",
-        "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{WIDTH}x{HEIGHT}", "-framerate", str(FPS),
-        "-i", "-",
-        "-c:v", "libsvtav1", "-preset", "6", "-crf", "26", "-g", "1",
-        "-svtav1-params", "pred-struct=0:scd=0:film-grain=0:fast-decode=2:lp=0:log-level=1",
-        "-pix_fmt", "yuv420p", "-color_range", "pc", "-colorspace", "bt470bg",
-        "-color_primaries", "bt709", "-color_trc", "iec61966-2-1",
-        "-video_track_timescale", str(FPS), "-movflags", "+faststart",
-        "-map_metadata", "-1", "-fflags", "+bitexact",
-        str(path),
-    ]
-    # fmt: on
-    subprocess.run(cmd, input=frames.tobytes(), check=True)
+        frame = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+        frame[:, :, 0] = np.linspace(0, 255, WIDTH, dtype=np.uint8)
+        frame[:, :, 1] = 128 * i
+        frames.append(frame)
+    return frames
 
 
-def write_lidar() -> None:
-    """Write NUM_SAMPLES frames of NUM_POINTS points, one row group per frame."""
+def lidar_frames() -> list[dict[str, np.ndarray]]:
+    """NUM_SAMPLES frames of NUM_POINTS points."""
     rng = np.random.default_rng(0)
-    path = ROOT / LIDAR_PATH
-    path.parent.mkdir(parents=True, exist_ok=True)
-    schema = pa.schema(
-        [
-            ("x", pa.float32()),
-            ("y", pa.float32()),
-            ("z", pa.float32()),
-            ("intensity", pa.float32()),
-            ("ring", pa.uint16()),
-        ]
-    )
-    with pq.ParquetWriter(path, schema, compression="zstd") as writer:
-        for _ in range(NUM_SAMPLES):
-            xyzi = rng.uniform(-10, 10, (NUM_POINTS, 4)).astype(np.float32)
-            ring = np.arange(NUM_POINTS, dtype=np.uint16)
-            table = pa.table(
-                [*(pa.array(xyzi[:, k]) for k in range(4)), pa.array(ring)], schema=schema
-            )
-            writer.write_table(table, row_group_size=NUM_POINTS)
+    frames = []
+    for _ in range(NUM_SAMPLES):
+        xyzi = rng.uniform(-10, 10, (NUM_POINTS, 4)).astype(np.float32)
+        frame = {name: xyzi[:, k] for k, (name, _) in enumerate(LIDAR_FIELDS[:4])}
+        frame["ring"] = np.arange(NUM_POINTS, dtype=np.uint16)
+        frames.append(frame)
+    return frames
 
 
 # Added to the 0.x sample's map: a traffic light (way) and its regulatory element, controlling
@@ -131,9 +96,8 @@ MAP_ADDITIONS = f"""
 """
 
 
-def write_map() -> None:
-    path = ROOT / MAP_PATH
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_map(path: Path) -> None:
+    """Write the 0.x sample's map with the traffic light added."""
     osm = (ROOT.parent / "t4dataset" / MAP_PATH).read_text()
     path.write_text(osm.replace("\n</osm>\n", MAP_ADDITIONS))
 
@@ -146,7 +110,7 @@ def label(
     return {"annotation_type": annotation_type, "provenance": provenance, "confidence": confidence}
 
 
-def tables() -> dict[str, list[dict]]:
+def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, list[dict]]:
     identity = [1.0, 0.0, 0.0, 0.0]
     zero = [0.0, 0.0, 0.0]
     samples = [f"sample{i}" for i in range(NUM_SAMPLES)]
@@ -161,8 +125,8 @@ def tables() -> dict[str, list[dict]]:
     sample_data = []
     ego_pose = []
     for channel, sensor, path, fileformat, num_points, num_frames in (
-        ("cam", "sensor_cam", CAMERA_PATH, "av1_mp4", None, NUM_FRAMES),
-        ("lidar", "sensor_lidar", LIDAR_PATH, "parquet", NUM_POINTS, NUM_SAMPLES),
+        ("cam", "sensor_cam", camera_video["path"], "av1_mp4", None, NUM_FRAMES),
+        ("lidar", "sensor_lidar", lidar_path, "parquet", NUM_POINTS, NUM_SAMPLES),
     ):
         tokens = [f"{channel}{i}" for i in range(num_frames)]
         for i, token in enumerate(tokens):
@@ -226,15 +190,7 @@ def tables() -> dict[str, list[dict]]:
                     "distortion": [0.0, 0.0, 0.0, 0.0, 0.0],
                     "distortion_model": "plumb_bob",
                     "is_rectified": False,
-                    "video": {
-                        "path": CAMERA_PATH,
-                        "format": "av1_mp4",
-                        "codec_profile": "svt-av1 preset6 crf26 intra",
-                        "pixel_format": "yuv420p full-range bt601",
-                        "bit_depth": 8,
-                        "frame_count": NUM_FRAMES,
-                        "timescale": FPS,
-                    },
+                    "video": camera_video,
                 },
                 "lidar": None,
                 "radar": None,
@@ -256,17 +212,11 @@ def tables() -> dict[str, list[dict]]:
                 "lidar": {
                     "container": {
                         "format": "parquet",
-                        "path": LIDAR_PATH,
+                        "path": lidar_path,
                         "frame_count": NUM_SAMPLES,
                         "compression": "zstd",
                     },
-                    "fields": [
-                        {"name": "x", "dtype": "float32"},
-                        {"name": "y", "dtype": "float32"},
-                        {"name": "z", "dtype": "float32"},
-                        {"name": "intensity", "dtype": "float32"},
-                        {"name": "ring", "dtype": "uint16"},
-                    ],
+                    "fields": [{"name": name, "dtype": dtype} for name, dtype in LIDAR_FIELDS],
                     "source_channels": [],
                     "frame_id": "base_link",
                     "is_undistorted": True,
@@ -321,7 +271,7 @@ def tables() -> dict[str, list[dict]]:
                 "log_tokens": ["log"],
                 "format": "lanelet2_osm",
                 "filename": MAP_PATH,
-                "sha256": sha256(ROOT / MAP_PATH),
+                "sha256": map_sha256,
                 "map_id": "sample_map",
                 "version_id": "sample_map_version",
                 "projector": {
@@ -512,69 +462,61 @@ def tables() -> dict[str, list[dict]]:
     }
 
 
+# Manifest fields the writer does not compute (it adds the files, capabilities and t4-devkit).
+MANIFEST_INFO = {
+    "schema_version": "1.0.0",
+    "dataset_id": "sample",
+    "version": 0,
+    "created_at": "2024-01-01T00:00:00Z",
+    "generators": [],
+    "annotation_specifications": {},
+    "provenance": {
+        "rosbag": {
+            "log_file_ids": [],
+            "storage": None,
+            "record_start": "2024-01-01T00:00:00Z",
+            "record_end": "2024-01-01T00:00:01Z",
+        },
+        "topics": {
+            "CAM_FRONT": "/sensing/camera/camera0/image_rect_color/compressed",
+            "LIDAR_TOP": "/sensing/lidar/concatenated/pointcloud",
+        },
+        "process_config_id": None,
+        "process_config_version_id": None,
+    },
+    "project_id": None,
+    "source_project_id": None,
+    "is_synthetic": True,
+    "is_discontinuous": None,
+    "migrated_from_schema_version": None,
+    "migration_notes": None,
+}
+
+
 def main() -> None:
-    write_camera()
-    write_lidar()
-    write_map()
+    with tempfile.TemporaryDirectory() as tmp:
+        output_root = Path(tmp) / "sample"
+        writer = DatasetWriter(output_root)
+        camera_video = writer.write_camera("CAM_FRONT", camera_frames(), FPS)
+        lidar_path, _ = writer.write_lidar("LIDAR_TOP", lidar_frames(), LIDAR_FIELDS)
+        map_file = Path(tmp) / "lanelet2_map.osm"
+        write_map(map_file)
+        writer.copy(map_file, MAP_PATH)
 
-    table_entries = {}
-    for name, records in tables().items():
-        path = ROOT / "annotation" / f"{name}.json"
-        write_json(path, records)
-        table_entries[name] = {"path": f"annotation/{name}.json", "sha256": sha256(path)}
+        map_sha256 = hashlib.sha256(map_file.read_bytes()).hexdigest()
+        records = {
+            SchemaName(name): [SCHEMAS.get(SchemaName(name)).from_dict(data) for data in rows]
+            for name, rows in tables(camera_video, lidar_path, map_sha256).items()
+        }
+        writer.save(records, MANIFEST_INFO)
 
-    assets = [
-        {"path": p, "sha256": sha256(ROOT / p), "bytes": (ROOT / p).stat().st_size}
-        for p in (CAMERA_PATH, LIDAR_PATH, MAP_PATH)
-    ]
-
-    manifest = {
-        "schema_version": "1.0.0",
-        "dataset_id": "sample",
-        "version": 0,
-        "created_at": "2024-01-01T00:00:00Z",
-        "generators": [{"name": "t4-devkit", "version": "sample"}],
-        "capabilities": {
-            "tasks": [
-                "detection3d",
-                "detection2d",
-                "segmentation2d",
-                "keypoint",
-                "traffic_light",
-                "planning",
-            ],
-            "modalities": {"camera": ["CAM_FRONT"], "lidar": ["LIDAR_TOP"], "radar": []},
-            "map": True,
-            "route": True,
-            "traffic_light": True,
-            "vehicle_state": True,
-            "scenario": True,
-        },
-        "annotation_specifications": {},
-        "tables": table_entries,
-        "assets": assets,
-        "provenance": {
-            "rosbag": {
-                "log_file_ids": [],
-                "storage": None,
-                "record_start": "2024-01-01T00:00:00Z",
-                "record_end": "2024-01-01T00:00:01Z",
-            },
-            "topics": {
-                "CAM_FRONT": "/sensing/camera/camera0/image_rect_color/compressed",
-                "LIDAR_TOP": "/sensing/lidar/concatenated/pointcloud",
-            },
-            "process_config_id": None,
-            "process_config_version_id": None,
-        },
-        "project_id": None,
-        "source_project_id": None,
-        "is_synthetic": True,
-        "is_discontinuous": None,
-        "migrated_from_schema_version": None,
-        "migration_notes": None,
-    }
-    write_json(ROOT / "manifest.json", manifest)
+        for name in ("annotation", "data", "map", "manifest.json"):
+            target = ROOT / name
+            if target.is_dir():
+                shutil.rmtree(target)
+            elif target.exists():
+                target.unlink()
+            shutil.move(output_root / name, target)
 
 
 if __name__ == "__main__":
