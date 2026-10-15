@@ -88,6 +88,7 @@ Each table file is a list of records that build into the 1.0 table class, with a
 | `REC026` | `route-validity`               | `ERROR`   | `N/A`   | 1.0        | `Route.valid_until` is after `valid_from` when set, and the routes of a log do not overlap in time.                                                                                                                                                   |
 | `REC027` | `unit-quaternions`             | `WARNING` | `N/A`   | 1.0        | Rotations (`Sensor`, `EgoPose`, `SampleAnnotation`, `Route` poses) are unit quaternions.                                                                                                                                                              |
 | `REC028` | `labels-on-key-frames`         | `ERROR`   | `N/A`   | 1.0        | Labels sit on key frames: a `SampleAnnotation` on a `Sample` with `has_key_frame`, an `ObjectAnn` or `Keypoint` on a `SampleData` with `is_key_frame`.                                                                                                |
+| `REC029` | `point-labels-reserved-zero`   | `ERROR`   | `N/A`   | 1.0        | When a LiDAR file has `label` / `instance` columns: the `Category` with `index` `0` is named `unpainted`, no `Instance.index` is `0`, and each frame's label columns are `null` on all points or on none.                                             |
 
 Tasks and the labels `REC023` / `REC024` expect:
 
@@ -162,7 +163,7 @@ Tasks and the labels `REC023` / `REC024` expect:
 | `REF303` | `traffic-light-to-lanelet` | `ERROR`  | `N/A`   | 1.0        | `TrafficLight.regulatory_element_id` is a traffic-light regulatory element of the lanelet2 map.                                          |
 | `REF304` | `route-to-lanelet`         | `ERROR`  | `N/A`   | 1.0        | `Route` segment ids are lanelets of the lanelet2 map.                                                                                    |
 | `REF305` | `lidar-source-index`       | `ERROR`  | `N/A`   | 1.0        | In a merged LiDAR file, `source_index` values are the `Sensor.index` of the channel's `source_channels`.                                 |
-| `REF306` | `lidar-point-labels`       | `ERROR`  | `N/A`   | 1.0        | In a LiDAR file, `label` values are `Category.index` values, and `instance` values `Instance.index` values.                              |
+| `REF306` | `lidar-point-labels`       | `ERROR`  | `N/A`   | 1.0        | In a LiDAR file, `label` values are `Category.index` values, and `instance` values are `Instance.index` values or `0` (no object).       |
 
 ## TIER IV Instance (`TIV`)
 
@@ -172,17 +173,17 @@ Tasks and the labels `REC023` / `REC024` expect:
 
 ## 0.x Rules Not Run on 1.0
 
-| 0.x rule                                      | Why                                                                                               | 1.0 rule           |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------ |
-| `STR006` `status-file-presence`               | `manifest.json` replaces `status.json`.                                                           | `STR010`–`STR013`  |
-| `STR007` `schema-files-presence`              | Required tables are listed in `manifest.json`.                                                    | `STR011`, `STR014` |
-| `FMT001`–`FMT019`                             | The 1.0 tables are different classes; `calibrated_sensor`, `surface_ann` and `lidarseg` are gone. | `FMT020`–`FMT040`  |
-| `REC005` `calibrated-sensor-non-empty`        | Merged into `sensor`.                                                                             | `REC008`           |
-| `REF007` `sample-data-to-calibrated-sensor`   | `SampleData` refers to `sensor` directly.                                                         | `REF015`           |
-| `REF008` `calibrated-sensor-to-sensor`        | Merged into `sensor`.                                                                             | `REF015`           |
-| `REF012` `lidarseg-to-sample-data`            | Point-wise labels are LiDAR columns.                                                              | `REC011`, `REF306` |
-| `REF203` `lidarseg-filename-presence`         | Point-wise labels are LiDAR columns.                                                              | `REF205`, `REF306` |
-| `REF013` `traffic-light-to-instance`          | The 0.x lamp-to-way link is `Instance.map_element`; the 1.0 `traffic_light` table holds states.   | `REF021`, `REF302` |
-| `REF014` `traffic-light-to-lanelet`           | Same as `REF013`.                                                                                 | `REF302`, `REF303` |
-| `REF202` `sample-data-info-filename-presence` | Merged LiDAR sources are LiDAR columns instead of `.info` files.                                  | `REF305`           |
-| `REF301` `pointcloud-metainfo-token-check`    | Same as `REF202`.                                                                                 | `REF025`, `REF305` |
+| 0.x rule                                      | Why                                                                                               | 1.0 rule                     |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `STR006` `status-file-presence`               | `manifest.json` replaces `status.json`.                                                           | `STR010`–`STR013`            |
+| `STR007` `schema-files-presence`              | Required tables are listed in `manifest.json`.                                                    | `STR011`, `STR014`           |
+| `FMT001`–`FMT019`                             | The 1.0 tables are different classes; `calibrated_sensor`, `surface_ann` and `lidarseg` are gone. | `FMT020`–`FMT040`            |
+| `REC005` `calibrated-sensor-non-empty`        | Merged into `sensor`.                                                                             | `REC008`                     |
+| `REF007` `sample-data-to-calibrated-sensor`   | `SampleData` refers to `sensor` directly.                                                         | `REF015`                     |
+| `REF008` `calibrated-sensor-to-sensor`        | Merged into `sensor`.                                                                             | `REF015`                     |
+| `REF012` `lidarseg-to-sample-data`            | Point-wise labels are LiDAR columns.                                                              | `REC011`, `REC029`, `REF306` |
+| `REF203` `lidarseg-filename-presence`         | Point-wise labels are LiDAR columns.                                                              | `REF205`, `REF306`           |
+| `REF013` `traffic-light-to-instance`          | The 0.x lamp-to-way link is `Instance.map_element`; the 1.0 `traffic_light` table holds states.   | `REF021`, `REF302`           |
+| `REF014` `traffic-light-to-lanelet`           | Same as `REF013`.                                                                                 | `REF302`, `REF303`           |
+| `REF202` `sample-data-info-filename-presence` | Merged LiDAR sources are LiDAR columns instead of `.info` files.                                  | `REF305`                     |
+| `REF301` `pointcloud-metainfo-token-check`    | Same as `REF202`.                                                                                 | `REF025`, `REF305`           |
