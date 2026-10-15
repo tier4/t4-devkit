@@ -100,8 +100,8 @@ Tasks and the labels `REC023` / `REC024` expect:
 | `segmentation3d` | `label` / `instance` columns in a LiDAR file                   |
 | `keypoint`       | `Keypoint` records                                             |
 | `traffic_light`  | `TrafficLight` records, or instances with a lamp `map_element` |
-| `prediction`     | Not checked                                                    |
-| `planning`       | Not checked                                                    |
+| `prediction`     | Every `Sample` has a key frame (all frames annotated)          |
+| `planning`       | `Scenario` records                                             |
 
 ## Reference (`REF`)
 

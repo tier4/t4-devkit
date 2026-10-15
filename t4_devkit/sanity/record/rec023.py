@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema.v1 import SchemaName
 
-from .base import declared_capabilities, present_capabilities
+from .base import capability_items, present_capabilities
 
 from ..checker import RecordsChecker, RuleID, RuleName, Severity
 from ..registry import CHECKERS
@@ -30,6 +30,7 @@ class REC023(RecordsChecker):
     )
     tables = (
         SchemaName.SENSOR,
+        SchemaName.SAMPLE,
         SchemaName.SAMPLE_DATA,
         SchemaName.MAP,
         SchemaName.ROUTE,
@@ -44,8 +45,8 @@ class REC023(RecordsChecker):
     )
 
     def check(self, context: SanityContext) -> list[Reason] | None:
-        present = present_capabilities(context)
+        present = present_capabilities(context, self.tables)
         return [
             Reason(f"Declared but not present: {item}")
-            for item in sorted(declared_capabilities(context) - present)
+            for item in sorted(capability_items(context.manifest.unwrap().capabilities) - present)
         ] or None
