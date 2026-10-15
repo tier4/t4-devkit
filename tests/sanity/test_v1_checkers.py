@@ -61,7 +61,7 @@ def test_v1_sample_passes(tmp_path: Path) -> None:
 def test_str010_unsupported_version(tmp_path: Path) -> None:
     """An unsupported schema version fails, and the other 1.0 rules are skipped."""
     data_root = _copy_v1(tmp_path)
-    _edit_json(data_root / "manifest.json", lambda m: {**m, "schema_version": "2.0.0"})
+    _edit_json(data_root / "manifest.json", lambda m: dict(m, schema_version="2.0.0"))
     reports = _reports(data_root)
     assert reports["STR010"].is_failed()
     assert reports["FMT020"].is_failed()
@@ -96,7 +96,7 @@ def test_str014_required_table(tmp_path: Path) -> None:
     data_root = _copy_v1(tmp_path)
     _edit_json(
         data_root / "manifest.json",
-        lambda m: {**m, "tables": {k: v for k, v in m["tables"].items() if k != "vehicle"}},
+        lambda m: dict(m, tables={k: v for k, v in m["tables"].items() if k != "vehicle"}),
     )
     reports = _reports(data_root)
     assert reports["STR014"].is_failed() and "vehicle" in reports["STR014"].reasons[0]
@@ -113,8 +113,8 @@ def test_str015_identity(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("table", "rule", "change"),
     [
-        ("sensor", "FMT024", lambda records: [{**records[0], "index": 300}, *records[1:]]),
-        ("sample", "FMT021", lambda records: [{**records[0], "prev": ""}, *records[1:]]),
+        ("sensor", "FMT024", lambda records: [dict(records[0], index=300), *records[1:]]),
+        ("sample", "FMT021", lambda records: [dict(records[0], prev=""), *records[1:]]),
     ],
 )
 def test_fmt_invalid_record(tmp_path: Path, table: str, rule: str, change) -> None:

@@ -166,13 +166,13 @@ def test_load_v0_per_camera_samples(tmp_path: Path) -> None:
     data_root = _copy_v0(tmp_path)
     samples = json.loads((data_root / "annotation" / "sample.json").read_text())
     first = samples[0]["token"]
-    extra = {**samples[0], "token": "f" * 32}  # sorts after `first`
+    extra = dict(samples[0], token="f" * 32)  # sorts after `first`
     _edit_v0(data_root, "sample", lambda records: [*records, extra])
     _edit_v0(
         data_root,
         "sample_data",
         lambda records: [
-            {**r, "sample_token": extra["token"]} if r["filename"] == "data/CAM_BACK/001.jpg" else r
+            dict(r, sample_token=extra["token"]) if r["filename"] == "data/CAM_BACK/001.jpg" else r
             for r in records
         ],
     )
@@ -190,7 +190,7 @@ def test_load_v0_labeled_frame_is_key(tmp_path: Path) -> None:
         data_root,
         "sample_data",
         lambda records: [
-            {**r, "is_key_frame": False} if r["token"] == labeled["sample_data_token"] else r
+            dict(r, is_key_frame=False) if r["token"] == labeled["sample_data_token"] else r
             for r in records
         ],
     )

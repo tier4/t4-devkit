@@ -43,7 +43,7 @@ def test_sample_data_needs_sample() -> None:
     non_key = next(record for record in records if not record["is_key_frame"])
     SampleData.from_dict(non_key)
     with pytest.raises(TypeError):
-        SampleData.from_dict({**non_key, "sample_token": None})
+        SampleData.from_dict(dict(non_key, sample_token=None))
 
 
 def test_invalid_covariance_length() -> None:
