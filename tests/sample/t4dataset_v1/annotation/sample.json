@@ -1,0 +1,26 @@
+[
+  {
+    "token": "sample0",
+    "timestamp": 1704067200000000,
+    "scene_token": "scene",
+    "has_key_frame": true,
+    "next": "sample1",
+    "prev": null
+  },
+  {
+    "token": "sample1",
+    "timestamp": 1704067200100000,
+    "scene_token": "scene",
+    "has_key_frame": true,
+    "next": "sample2",
+    "prev": "sample0"
+  },
+  {
+    "token": "sample2",
+    "timestamp": 1704067200200000,
+    "scene_token": "scene",
+    "has_key_frame": false,
+    "next": null,
+    "prev": "sample1"
+  }
+]

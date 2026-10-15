@@ -1,0 +1,10 @@
+[
+  {
+    "token": "log",
+    "logfile": null,
+    "vehicle_token": "vehicle",
+    "data_captured": "2024-01-01T00:00:00Z",
+    "location": null,
+    "map_token": "map"
+  }
+]
