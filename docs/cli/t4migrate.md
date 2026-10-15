@@ -37,7 +37,7 @@ The dataset version is given by the caller: Web.Auto assigns it when the new ver
   - fields get their 1.0 types (e.g. `intensity` uint8) when every value fits; otherwise they keep their 0.x type, with a warning and a migration note;
   - a ring (`channel`) of `-1` on every point (not recorded) is dropped, with a note;
   - `.info` files become the `source_index` / `source_timestamp` columns;
-  - lidarseg becomes the `label` / `instance` columns (`instance` is `0`: 0.x labels are semantic only). Category `0` must be `unpainted`.
+  - lidarseg becomes the `label` / `instance` columns (`instance` is `-1`: 0.x labels are semantic only). Category `0` must be `unpainted`.
 - Each camera channel becomes one AV1 video, frames in timestamp order (or the images are copied with `--keep-images`). Frames with `is_valid: false` are encoded as they are.
 - `map/` and `input_bag/` are copied as they are.
 - `manifest.json` has `migrated_from_schema_version: "0.x"` and the migration notes. Provenance that 0.x does not store (Web.Auto IDs, topics) is empty, for backfilling.
