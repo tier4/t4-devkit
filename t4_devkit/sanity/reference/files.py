@@ -16,7 +16,12 @@ if TYPE_CHECKING:
 
     from t4_devkit.schema.v1 import Sensor
 
-__all__ = ["describe_lidar_file", "describe_video_file", "lidar_column_values"]
+__all__ = [
+    "describe_lidar_file",
+    "describe_video_file",
+    "lidar_column_values",
+    "lidar_partly_null_frames",
+]
 
 
 def describe_lidar_file(sensor: Sensor, path: Path) -> list[Reason]:

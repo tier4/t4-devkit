@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os.path as osp
 from enum import Enum, unique
-from typing import TYPE_CHECKING, Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, ClassVar, Mapping, Sequence
 
 from attrs import converters, define, field, validators
 
@@ -303,6 +303,9 @@ class Manifest:
         migrated_from_schema_version (str | None): Source version if the dataset was migrated.
         migration_notes (list[str] | None): Notes on anything lost or changed during migration.
     """
+
+    # Folders whose files are listed in `assets` (the tables, under `annotation/`, in `tables`).
+    ASSET_DIRS: ClassVar[tuple[str, ...]] = ("data", "map", "input_bag")
 
     schema_version: str = field(validator=validators.instance_of(str))
     dataset_id: str = field(validator=validators.instance_of(str))

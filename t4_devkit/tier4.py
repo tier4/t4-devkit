@@ -695,8 +695,9 @@ class T4Devkit:
         )
 
     def _key_sample(self, sample_token: str | None, *, forward: bool) -> Sample | None:
-        """The first sample with a key frame from a sample (included), following `next` or
-        `prev`, or None."""
+        """Return the first sample with a key frame from a sample (included), following `next` or
+        `prev`, or None.
+        """
         while sample_token is not None:
             sample: Sample = self.get("sample", sample_token)
             if sample.has_key_frame:
@@ -705,7 +706,9 @@ class T4Devkit:
         return None
 
     def _box_visibility(self, ann: SampleAnnotation) -> VisibilityLevel:
-        """Visibility of a 3D box; `UNAVAILABLE` when the annotation's visibility is unknown."""
+        """Return the visibility of a 3D box; `UNAVAILABLE` when the annotation's visibility is
+        unknown.
+        """
         if ann.visibility_token is None:
             return VisibilityLevel.UNAVAILABLE
         visibility: Visibility = self.get("visibility", ann.visibility_token)
@@ -713,7 +716,7 @@ class T4Devkit:
 
     @staticmethod
     def _box_confidence(ann: SampleAnnotation | ObjectAnn) -> float:
-        """Confidence of a box: the label's, or 1.0 for labels without one (manual)."""
+        """Return the confidence of a box: the label's, or 1.0 for labels without one (manual)."""
         return 1.0 if ann.confidence is None else ann.confidence
 
 

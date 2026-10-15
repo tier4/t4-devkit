@@ -69,9 +69,9 @@ class TableFieldChecker(ManifestChecker):
     table: V1SchemaName
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
-        skip = super().can_skip(context)
-        if skip != Nothing:
-            return skip
+        match super().can_skip(context):
+            case Some(reason):
+                return Some(reason)
         if (
             not self.table.is_optional()
             and self.table.value not in context.manifest.unwrap().tables

@@ -65,7 +65,7 @@ class RenderingHelper:
         self._executor = concurrent.futures.ThreadPoolExecutor()
 
     def _first_sample_data_tokens(self, modality: SensorModality) -> list[str]:
-        """The first frame of each channel of a modality, in sensor order.
+        """Return the first frame of each channel of a modality, in sensor order.
 
         A recalibration adds a `sensor` row with the same channel, and source LiDARs of a merged
         channel have no frames, so channels are taken once and sensors without frames skipped.
@@ -581,7 +581,7 @@ class RenderingHelper:
             current_sample_token = sample.next
 
     def _annotation_sample(self, annotation_token: str | None) -> Sample | None:
-        """The sample of an instance's first or last annotation, or None if there is none.
+        """Return the sample of an instance's first or last annotation, or None if there is none.
 
         The annotation is a `sample_annotation`, or an `object_ann` for instances labeled only in
         2D, whose sample is that of its frame.

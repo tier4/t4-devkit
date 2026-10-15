@@ -46,7 +46,7 @@ class SampleData(SchemaBase):
         sample_token (str): Foreign key pointing to the sample (frame) this observation belongs to.
         ego_pose_token (str): Foreign key pointing to the ego pose.
         sensor_token (str): Foreign key pointing to the sensor.
-        filename (str | None): Path to the channel file, or to a per-frame file.
+        filename (str): Path to the channel file, or to a per-frame file.
         frame_index (int | None): Index of the frame inside the channel file, or None for
             per-frame files.
         fileformat (FileFormat): Format of the file.
@@ -66,7 +66,7 @@ class SampleData(SchemaBase):
     sample_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     ego_pose_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     sensor_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
-    filename: str | None = field(validator=validators.optional(validators.instance_of(str)))
+    filename: str = field(validator=(validators.instance_of(str), impossible_empty()))
     frame_index: int | None = field(
         validator=validators.optional(
             validators.and_(validators.instance_of(int), validators.ge(0))

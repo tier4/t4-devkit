@@ -38,29 +38,25 @@ class REC022(RecordsChecker):
     )
 
     def check(self, context: SanityContext) -> list[Reason] | None:
+        # 2000-01-01 and 2100-01-01 in Unix microseconds
+        low, high = 946_684_800_000_000, 4_102_444_800_000_000
+        fields_of = {
+            SchemaName.SAMPLE: ("timestamp",),
+            SchemaName.SAMPLE_DATA: ("timestamp",),
+            SchemaName.EGO_POSE: ("timestamp",),
+            SchemaName.VEHICLE_STATE: ("timestamp",),
+            SchemaName.TRAFFIC_LIGHT: ("timestamp",),
+            SchemaName.ROUTE: ("valid_from", "valid_until"),
+            SchemaName.SCENARIO: ("start_timestamp", "end_timestamp", "key_timestamp"),
+            SchemaName.CAPTION: ("start_timestamp", "end_timestamp"),
+        }
         failures = []
-        for table, fields in TIMESTAMP_FIELDS.items():
+        for table in self.tables:
             for record in context.load_records(table).unwrap():
-                for name in fields:
+                for name in fields_of[table]:
                     value = getattr(record, name)
-                    if value is not None and not MIN_TIMESTAMP <= value < MAX_TIMESTAMP:
+                    if value is not None and not low <= value < high:
                         failures.append(
                             Reason(f"{record_name(table)} {record.token}: '{name}' {value}")
                         )
         return failures or None
-
-
-# 2000-01-01 and 2100-01-01 in Unix microseconds.
-MIN_TIMESTAMP = 946_684_800_000_000
-MAX_TIMESTAMP = 4_102_444_800_000_000
-
-TIMESTAMP_FIELDS = {
-    SchemaName.SAMPLE: ("timestamp",),
-    SchemaName.SAMPLE_DATA: ("timestamp",),
-    SchemaName.EGO_POSE: ("timestamp",),
-    SchemaName.VEHICLE_STATE: ("timestamp",),
-    SchemaName.TRAFFIC_LIGHT: ("timestamp",),
-    SchemaName.ROUTE: ("valid_from", "valid_until"),
-    SchemaName.SCENARIO: ("start_timestamp", "end_timestamp", "key_timestamp"),
-    SchemaName.CAPTION: ("start_timestamp", "end_timestamp"),
-}

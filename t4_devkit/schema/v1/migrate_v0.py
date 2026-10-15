@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from t4_devkit.common.io import V0_BIN_FIELDS, load_image, load_json, load_pointcloud
+from t4_devkit.common.io import load_image, load_json, load_pointcloud
 
 from .loader import load_dataset
 from .name import SchemaName
@@ -89,7 +89,8 @@ class V0Migrator:
         """
         records = self._channel_frames(sensor)
         self._relink(sensor, records)
-        source_fields = self._source_fields(records[0])
+        # the 0.x layout, as loading read it (`.info` field count, or the `.pcd` header)
+        source_fields = [(field.name, field.dtype) for field in sensor.lidar.fields]
         fields = self._point_fields(sensor.channel, records, source_fields)
         if self._v0_frames[records[0].token].get("info_filename"):
             fields += [("source_index", "uint8"), ("source_timestamp", "int64")]
@@ -389,15 +390,6 @@ class V0Migrator:
         if not covered.all():
             raise ValueError(f"{(~covered).sum()} points are outside the .info sources")
         return {"source_index": source_index, "source_timestamp": source_timestamp}
-
-    def _source_fields(self, record: SampleData) -> list[tuple[str, str]]:
-        """Return the 0.x point fields of a channel, from its first frame."""
-        if record.filename.endswith(".pcd"):
-            points = load_pointcloud(osp.join(self.data_root, record.filename))
-            return [(name, values.dtype.name) for name, values in points.items()]
-        info_filename = self._v0_frames[record.token].get("info_filename")
-        info = load_json(osp.join(self.data_root, info_filename)) if info_filename else {}
-        return [(name, "float32") for name in V0_BIN_FIELDS[: info.get("num_pts_feats", 5)]]
 
     def _read_points(
         self, record: SampleData, source_fields: list[tuple[str, str]]

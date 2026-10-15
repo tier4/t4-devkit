@@ -1,35 +1,34 @@
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import pytest
 
+from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
 from t4_devkit.schema.v1 import SCHEMAS, SchemaName, Sensor, load_dataset
-
-SAMPLE_ROOT = Path(__file__).parents[2] / "sample"
-SAMPLE_V1 = SAMPLE_ROOT / "t4dataset_v1"
+from tests.helpers import SAMPLE_V1, SampleCopy
 
 
 def _copy_without_table(tmp_path: Path, name: str) -> Path:
-    data_root = tmp_path / "dataset"
-    shutil.copytree(SAMPLE_V1, data_root)
-    manifest = json.loads((data_root / "manifest.json").read_text())
-    del manifest["tables"][name]
-    (data_root / "manifest.json").write_text(json.dumps(manifest))
-    return data_root
+    sample = SampleCopy(tmp_path)
+    sample.edit(
+        "manifest", lambda m: dict(m, tables={k: v for k, v in m["tables"].items() if k != name})
+    )
+    return sample.root
 
 
 def test_load_dataset() -> None:
-    """Every table is loaded with its 1.0 class, and lookups by token work."""
+    """Every table loads with its 1.0 class and every field round-trips, the manifest too;
+    lookups by token work."""
     dataset = load_dataset(SAMPLE_V1)
 
-    assert dataset.manifest.schema_version == "1.0.0"
+    manifest = json.loads((SAMPLE_V1 / "manifest.json").read_text())
+    assert serialize_dataclass(dataset.manifest) == manifest
     for name in SchemaName:
         records = json.loads((SAMPLE_V1 / "annotation" / name.filename).read_text())
-        assert len(dataset.tables[name]) == len(records)
         assert all(isinstance(r, SCHEMAS.get(name)) for r in dataset.tables[name])
+        assert serialize_dataclasses(dataset.tables[name]) == records, name
 
     assert isinstance(dataset.get("sensor", "sensor_cam"), Sensor)
 
