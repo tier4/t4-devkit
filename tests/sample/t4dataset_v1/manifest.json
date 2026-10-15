@@ -60,7 +60,7 @@
     },
     "map": {
       "path": "annotation/map.json",
-      "sha256": "a77271964d953ac5ddfce7aed69cb7d66937ac30017be38f341626ec0776e23c"
+      "sha256": "d869de9d95d4ed8560ab8463c9e9aac442e2d07f03f8ce4d798cdd51828bd3b8"
     },
     "vehicle_state": {
       "path": "annotation/vehicle_state.json",
@@ -96,11 +96,11 @@
     },
     "traffic_light": {
       "path": "annotation/traffic_light.json",
-      "sha256": "0d5284ca4ed203a941390215c6f2cd5f311c1ed04d1afb077dbbdbba0777b7c4"
+      "sha256": "989e24ff88fe14aaf6da6d524b6dbfea7e96fd36a67407cf8f16193674a9239d"
     },
     "route": {
       "path": "annotation/route.json",
-      "sha256": "09f0fe9f01049a3f331146068332417af5130db6258602585536ead14ae091ca"
+      "sha256": "6badf9c9fc00722b62763bc483f24e04a53df9cc5a717130008581b41693cecb"
     },
     "scenario": {
       "path": "annotation/scenario.json",
@@ -124,8 +124,8 @@
     },
     {
       "path": "map/lanelet2_map.osm",
-      "sha256": "fcb070e447b1d6b529b2b641b9a42bb2f628447a76e571566ec4b5beeba423c2",
-      "bytes": 5661
+      "sha256": "4b325cf23adf604023824cc4a3243a7aac56c690fa872b68ce58e42a4529f054",
+      "bytes": 6055
     }
   ],
   "provenance": {

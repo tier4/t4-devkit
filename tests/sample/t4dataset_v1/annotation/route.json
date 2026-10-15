@@ -16,8 +16,8 @@
     },
     "segments": [
       {
-        "preferred_primitive_id": 1,
-        "primitive_ids": [1]
+        "preferred_primitive_id": 1000,
+        "primitive_ids": [1000, 1001]
       }
     ],
     "allow_modification": false,

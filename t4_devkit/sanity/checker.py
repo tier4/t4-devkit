@@ -6,15 +6,31 @@ from typing import TYPE_CHECKING, NewType
 
 from returns.maybe import Maybe, Nothing, Some
 
-from .result import make_report, make_skipped
+from t4_devkit.schema.v1 import SCHEMAS as V1_SCHEMAS
+
+from .result import Reason, make_report, make_skipped
 
 if TYPE_CHECKING:
+    from t4_devkit.schema.v1 import SchemaName as V1SchemaName
+
     from .context import SanityContext
-    from .result import Reason, Report
+    from .result import Report
 
 
 RuleID = NewType("RuleID", str)
 RuleName = NewType("RuleName", str)
+
+
+def record_name(table: V1SchemaName) -> str:
+    """Return the class name of a 1.0 table's records (e.g. "SampleAnnotation"), for reasons."""
+    return V1_SCHEMAS.get(table).__name__
+
+
+class SchemaVersion(str, Enum):
+    """Dataset schema versions a rule can apply to."""
+
+    V0 = "0.x"
+    V1 = "1.0"
 
 
 class Severity(str, Enum):
@@ -33,12 +49,17 @@ class Severity(str, Enum):
 
 
 class Checker(ABC):
-    """Base class for sanity checkers."""
+    """Base class for sanity checkers.
+
+    Attributes:
+        versions (tuple[SchemaVersion, ...]): Schema versions the rule applies to; 0.x by default.
+    """
 
     id: RuleID
     name: RuleName
     description: str
     severity: Severity
+    versions: tuple[SchemaVersion, ...] = (SchemaVersion.V0,)
 
     def __call__(self, context: SanityContext, fix: bool = False) -> Report:
         """Run the checker and return a report.
@@ -94,3 +115,36 @@ class Checker(ABC):
             True if the issue was fixed, False otherwise.
         """
         return False
+
+
+class ManifestChecker(Checker):
+    """Base class for 1.0 rules that read `manifest.json`: skipped when it cannot be read or is
+    not valid (reported by STR010 and FMT020)."""
+
+    versions = (SchemaVersion.V1,)
+
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        match context.manifest:
+            case Some(_):
+                return Nothing
+        return Maybe.from_value(Reason("No valid 'manifest.json' (see STR010, FMT020)"))
+
+
+class RecordsChecker(ManifestChecker):
+    """Base class for 1.0 rules on records: skipped unless every table they read is listed (or
+    optional) and builds (reported by STR014 and the format rules).
+
+    Attributes:
+        tables (tuple[V1SchemaName, ...]): The tables the rule reads.
+    """
+
+    tables: tuple[V1SchemaName, ...]
+
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        skip = super().can_skip(context)
+        if skip != Nothing:
+            return skip
+        invalid = [table.value for table in self.tables if context.load_records(table) == Nothing]
+        if invalid:
+            return Maybe.from_value(Reason(f"Tables not listed or not valid: {', '.join(invalid)}"))
+        return Nothing
