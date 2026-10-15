@@ -115,11 +115,14 @@ def save_pointcloud(
     fields: Sequence[tuple[str, str]],
     *,
     compression: str = "zstd",
+    compression_level: int | None = 1,
 ) -> int:
     """Save the frames of a LiDAR channel as one Parquet file, one row group per frame.
 
-    Columns are `fields`, in order. Floats use BYTE_STREAM_SPLIT and no dictionary encoding, the
-    smallest in the 1.0 benchmark; readers do not depend on it.
+    Columns are `fields`, in order. Encodings are chosen by dtype, the smallest in the 1.0
+    benchmark that every tested reader (pyarrow, Polars, DuckDB) reads: floats BYTE_STREAM_SPLIT,
+    8-bit integers dictionary, wider integers (e.g. timestamps) DELTA_BINARY_PACKED. Readers do
+    not depend on them.
 
     Args:
         filepath (PathLike): `.parquet` file to write.
@@ -129,19 +132,27 @@ def save_pointcloud(
         fields (Sequence[tuple[str, str]]): (name, dtype) of each column, e.g. from
             `sensor.lidar.fields`.
         compression (str, optional): Parquet compression codec.
+        compression_level (int | None, optional): Codec level; None for codecs without levels
+            (e.g. "snappy", "none").
 
     Returns:
         The number of frames written.
     """
     schema = pa.schema([(name, pa.from_numpy_dtype(np.dtype(dtype))) for name, dtype in fields])
-    floats = [field.name for field in schema if pa.types.is_floating(field.type)]
+    encodings = {}
+    for field in schema:
+        if pa.types.is_floating(field.type):
+            encodings[field.name] = "BYTE_STREAM_SPLIT"
+        elif field.type.bit_width > 8:
+            encodings[field.name] = "DELTA_BINARY_PACKED"
     num_frames = 0
     with pq.ParquetWriter(
         os.fspath(filepath),
         schema,
         compression=compression,
-        use_dictionary=False,
-        column_encoding={name: "BYTE_STREAM_SPLIT" for name in floats},
+        compression_level=compression_level,
+        use_dictionary=[field.name for field in schema if field.name not in encodings],
+        column_encoding=encodings,
     ) as writer:
         for frame in frames:
             values = [frame.get(name) for name, _ in fields]

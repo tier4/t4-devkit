@@ -133,6 +133,13 @@ def test_save_pointcloud(tmp_path: Path) -> None:
             assert frame[name].dtype == np.dtype(dtype)
             assert np.array_equal(frame[name], expected[name])
 
+    columns = pq.ParquetFile(path).metadata.row_group(0).to_dict()["columns"]
+    encodings = {column["path_in_schema"]: column["encodings"] for column in columns}
+    assert "BYTE_STREAM_SPLIT" in encodings["x"]
+    assert "RLE_DICTIONARY" in encodings["intensity"]
+    assert "DELTA_BINARY_PACKED" in encodings["channel"]
+    assert "DELTA_BINARY_PACKED" in encodings["time_stamp"]
+
 
 @pytest.mark.parametrize(
     ("dtype", "bit_depth", "max_value"), [(np.uint8, 8, 255), (np.uint16, 10, 65535)]
