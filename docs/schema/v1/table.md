@@ -113,6 +113,7 @@ Exactly one modality block is present, matching `modality`. All fields inside a 
 sensor {
   "token":            <str> -- Unique record identifier.
   "channel":          <str> -- Channel name, e.g. "CAM_FRONT", "LIDAR_CONCAT".
+  "index":            <int> -- Sensor index, 0–255, unique within the dataset. Value of the LiDAR `source_index` field for points from this sensor.
   "modality":         <enum["camera", "lidar", "radar"]> -- Sensor modality.
   "translation":      <[float;3]> -- Sensor position relative to base_link, in meters.
   "rotation":         <[float;4]> -- Sensor orientation relative to base_link, as quaternion (w, x, y, z).
@@ -211,6 +212,7 @@ Vehicle identity and dimensions.
 ```json
 vehicle {
   "token":                <str> -- Unique record identifier.
+  "name":                 <option[str]> -- Vehicle name, e.g. "j6_gen2_04".
   "model":                <str> -- Vehicle model.
   "length":               <float> -- Length in meters.
   "width":                <float> -- Width in meters.
@@ -218,7 +220,6 @@ vehicle {
   "wheel_base":           <float> -- Wheel base in meters.
   "rear_axle_to_center":  <option[float]> -- Distance from the rear axle to the vehicle center, in meters.
   "sensor_rig_id":        <option[str]> -- Sensor rig ID.
-  "name":                 <option[str]> -- Vehicle name, e.g. "j6_gen2_04".
 }
 ```
 
@@ -235,6 +236,7 @@ Map identity. Lane data stays in the lanelet2 file.
 ```json
 map {
   "token":              <str> -- Unique record identifier.
+  "name":               <option[str]> -- Map name.
   "log_tokens":         <[str;N]> -- Foreign keys to the `Log` table.
   "format":             <enum["lanelet2_osm"]> -- Map format.
   "filename":           <str> -- Path to the map file.
@@ -251,7 +253,6 @@ map {
     }
   }
   "source":             <enum["webauto", "manual"]> -- Where the map came from.
-  "name":               <option[str]> -- Map name.
 }
 ```
 
@@ -289,9 +290,9 @@ vehicle_state {
 category {
   "token":            <str> -- Unique record identifier.
   "name":             <str> -- Category name.
+  "index":            <option[int]> -- Value of the LiDAR `label` field for this category. Required when point-wise labels are present. `0` is reserved for the `unpainted` category.
   "description":      <option[str]> -- Description.
   "is_thing":         <bool> -- Whether annotations of this category are individual objects with an instance (car, pedestrian) rather than regions without one (road, sky).
-  "index":            <option[int]> -- Value of the LiDAR `label` field for this category. Required when point-wise labels are present. `0` is reserved for the `unpainted` category.
   "has_orientation":  <bool> -- Whether annotations of this category may have `orientation`.
   "has_number":       <bool> -- Whether annotations of this category may have `number`.
 }
@@ -334,9 +335,9 @@ An object identity. How each label was made is recorded on the label rows, not h
 ```json
 instance {
   "token":                  <str> -- Unique record identifier.
+  "name":                   <str> -- `<DATASET_ID>::<INSTANCE_ID>`.
+  "index":                  <option[int]> -- Value of the LiDAR `instance` field for this object, `0` to `32767` (`-1` in the field means no object). Unique within the dataset. Required when point-wise labels are present.
   "category_token":         <str> -- Foreign key to the `Category` table.
-  "instance_name":          <str> -- `<DATASET_ID>::<INSTANCE_ID>`.
-  "instance_index":         <option[int]> -- Value of the LiDAR `instance` field for this object, `0` to `32767` (`-1` in the field means no object). Unique within the dataset. Required when point-wise labels are present.
   "nbr_annotations":        <int> -- Number of annotations of this instance.
   "first_annotation_token": <option[str]> -- Foreign key to the first `SampleAnnotation` or `ObjectAnn`.
   "last_annotation_token":  <option[str]> -- Foreign key to the last `SampleAnnotation` or `ObjectAnn`.
