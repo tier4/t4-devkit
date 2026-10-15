@@ -348,8 +348,8 @@ class V0Converter:
     def convert_instance(
         self, record: Record, annotations: dict[str, tuple[int, str, str]]
     ) -> Record:
-        """`nbr_annotations` and the first / last annotation come from `annotations`: 0.x counts
-        only 3D boxes, 1.0 counts 3D boxes and 2D labels."""
+        """`nbr_annotations` and the first / last annotation come from `annotations`: 1.0 counts
+        3D boxes and 2D labels, and 0.x tools count them differently (some write 0 for 2D)."""
         count, first, last = annotations.get(record["token"], (0, None, None))
         return {
             "token": record["token"],
