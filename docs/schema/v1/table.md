@@ -93,7 +93,7 @@ ego_pose {
   "rotation":         <[float;4]> -- Orientation as quaternion (w, x, y, z).
   "timestamp":        <int> -- Unix timestamp in microseconds.
   "twist":            <option[[float;6]]> -- (vx, vy, vz, yaw_rate, pitch_rate, roll_rate) in the vehicle frame.
-  "acceleration":     <option[[float;3]]> -- (ax, ay, az) in the vehicle frame.
+  "acceleration":     <option[[float;3]]> -- (ax, ay, az) in the vehicle frame, as an IMU measures it: gravity included (az ≈ +9.8 m/s² at rest).
   "geocoordinate":    <option[[float;3]]> -- (latitude, longitude, altitude).
   "source":           <enum["localization", "post_processed", "gnss_ins"]> -- Where the pose came from.
   "frame":            <str> -- Coordinate frame, e.g. "map".
