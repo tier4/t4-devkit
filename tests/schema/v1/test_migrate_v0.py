@@ -267,3 +267,42 @@ def test_migrate_recalibrated_channel(tmp_path: Path) -> None:
 
     with pytest.warns(UserWarning), pytest.raises(FileExistsError, match="LIDAR_TOP"):
         _migrate_lidar(sample.root, tmp_path / "sample")
+
+
+def test_migrate_with_backfilled_metadata(tmp_path: Path) -> None:
+    """Records changed through `tables` and caller-given manifest fields are written."""
+    output_root = tmp_path / "t4dataset" / "1"
+    migrator = V0Migrator(SAMPLE_V0, output_root)
+    vehicle = migrator.tables(SchemaName.VEHICLE)[0]
+    vehicle.model = "j6_gen2"
+    provenance = {
+        "rosbag": {
+            "log_file_ids": ["3145801d-4bdd-486f-b0e6-9253fca050de"],
+            "storage": "sqlite3",
+            "record_start": "2025-11-13T07:26:15Z",
+            "record_end": "2025-11-13T07:27:13Z",
+        },
+        "topics": {"LIDAR_TOP": "/sensing/lidar/concatenated/pointcloud"},
+        "process_config_id": None,
+        "process_config_version_id": None,
+    }
+    fields = {
+        "project_id": "x2_dev",
+        "provenance": provenance,
+        "generators": [{"name": "autoware", "version": "20250715-v4.2.1"}],
+        "migration_notes": ["route: dropped, lanelets not in the dataset's map"],
+    }
+    with pytest.warns(UserWarning):  # the sample's fractional intensity stays float32
+        migrator.migrate("t4dataset", 1, manifest_fields=fields)
+
+    manifest = json.loads((output_root / "manifest.json").read_text())
+    assert manifest["project_id"] == "x2_dev"
+    assert manifest["provenance"] == provenance
+    assert [g["name"] for g in manifest["generators"]] == ["autoware", "t4-devkit"]
+    # the caller's notes come after the migration's; no "first / last sample times" note
+    assert manifest["migration_notes"][-1].startswith("route: dropped")
+    assert not any("sample times" in note for note in manifest["migration_notes"])
+    vehicles = json.loads((output_root / "annotation" / "vehicle.json").read_text())
+    assert vehicles[0]["model"] == "j6_gen2"
+    reports = sanity_check(output_root.parent.as_posix(), revision="1").reports
+    assert not [report.id for report in reports if report.is_failed()]
