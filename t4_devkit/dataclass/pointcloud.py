@@ -10,6 +10,7 @@ import pypcd4
 from attrs import define, field
 
 from t4_devkit.common.io import load_json
+from t4_devkit.common.t4pack import PackReader, find_pack
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -26,6 +27,27 @@ __all__ = [
     "PointCloudSourceInfo",
     "Stamp",
 ]
+
+
+def _load_pcd_bin(filepath: str, num_pts_feats: int) -> NDArrayFloat:
+    """Load points from a `.pcd.bin` file.
+
+    If the file does not exist but the pack of its directory does, e.g. `data/LIDAR_CONCAT.pack`,
+    the frame is read from the pack instead.
+
+    Args:
+        filepath (str): Path to the `.pcd.bin` file.
+        num_pts_feats (int): Number of float32 fields in each point.
+
+    Returns:
+        NDArrayFloat: Points in the shape of (N, num_pts_feats).
+    """
+    if not osp.exists(filepath) and (pack_filepath := find_pack(filepath)) is not None:
+        with PackReader(pack_filepath) as reader:
+            return reader.read_frame_by_name(osp.basename(filepath))
+
+    scan = np.fromfile(filepath, dtype=np.float32)
+    return scan.reshape((-1, num_pts_feats))
 
 
 @define
@@ -272,8 +294,7 @@ class LidarPointCloud(PointCloud):
 
         if filepath.endswith(".bin"):
             num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-            scan = np.fromfile(filepath, dtype=np.float32)
-            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+            points = _load_pcd_bin(filepath, num_pts_feats)[:, : cls.num_dims()]
         else:
             pcd = pypcd4.PointCloud.from_path(filepath)
             points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)
@@ -424,8 +445,7 @@ class SegmentationPointCloud(PointCloud):
 
         if point_filepath.endswith(".bin"):
             num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-            scan = np.fromfile(point_filepath, dtype=np.float32)
-            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+            points = _load_pcd_bin(point_filepath, num_pts_feats)[:, : cls.num_dims()]
         else:
             pcd = pypcd4.PointCloud.from_path(point_filepath)
             points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)

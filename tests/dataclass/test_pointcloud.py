@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from t4_devkit.common.t4pack import pack_directory
 from t4_devkit.dataclass.pointcloud import (
     LidarPointCloud,
     PointCloudMetainfo,
@@ -418,3 +419,46 @@ def test_segmentation_pointcloud_from_file_reads_points_labels_and_metainfo_from
     assert np.array_equal(pointcloud.labels, labels)
     assert pointcloud.metainfo is not None
     assert pointcloud.metainfo.source_tokens == ["lidar_front"]
+
+
+def test_lidar_pointcloud_from_file_reads_points_from_pack(tmp_path: Path) -> None:
+    lidar_dir = tmp_path / "data" / "LIDAR_CONCAT"
+    lidar_dir.mkdir(parents=True)
+    scans = [np.full((3, 5), i, dtype=np.float32) for i in range(3)]
+    for i, scan in enumerate(scans):
+        scan.tofile(lidar_dir / f"{i:05d}.pcd.bin")
+    pack_directory(lidar_dir, level=1)
+
+    # remove a loose frame, then it is read from the pack
+    bin_filepath = lidar_dir / "00001.pcd.bin"
+    bin_filepath.unlink()
+
+    pointcloud = LidarPointCloud.from_file(str(bin_filepath))
+
+    assert np.array_equal(pointcloud.points, scans[1][:, :4].T)
+
+
+def test_lidar_pointcloud_from_file_raises_without_file_and_pack(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError):
+        LidarPointCloud.from_file(str(tmp_path / "LIDAR_CONCAT" / "00000.pcd.bin"))
+
+
+def test_segmentation_pointcloud_from_file_reads_points_from_pack(tmp_path: Path) -> None:
+    lidar_dir = tmp_path / "data" / "LIDAR_CONCAT"
+    lidar_dir.mkdir(parents=True)
+    scan = np.arange(10, dtype=np.float32).reshape(2, 5)
+    scan.tofile(lidar_dir / "00000.pcd.bin")
+    pack_directory(lidar_dir, level=1)
+    (lidar_dir / "00000.pcd.bin").unlink()
+
+    label_filepath = tmp_path / "labels.bin"
+    labels = np.array([1, 2], dtype=np.uint8)
+    labels.tofile(label_filepath)
+
+    pointcloud = SegmentationPointCloud.from_file(
+        point_filepath=str(lidar_dir / "00000.pcd.bin"),
+        label_filepath=str(label_filepath),
+    )
+
+    assert np.array_equal(pointcloud.points, scan[:, :4].T)
+    assert np.array_equal(pointcloud.labels, labels)
