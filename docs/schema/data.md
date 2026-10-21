@@ -90,6 +90,7 @@ data/
 ```
 
 When `<FRAME_ID>.pcd.bin` does not exist but `<CHANNEL>.pack` does, `LidarPointCloud.from_file()` and `SegmentationPointCloud.from_file()` read the frame from the pack by its file name, so `sample_data.filename` does not need to change.
+Therefore, the `.pcd.bin` files can be deleted after packing (`t4pack pack --delete-loose`), and the sanity check `REF201` accepts a `.pcd.bin` frame stored in its pack.
 
 The pack (t4pack v1) stores each frame as an independently compressed zstd blob, followed by a JSON index of the frames:
 

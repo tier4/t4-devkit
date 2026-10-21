@@ -62,7 +62,7 @@
 
 | ID       | Name                                 | Severity | Fixable | Description                                            |
 | -------- | ------------------------------------ | -------- | ------- | ------------------------------------------------------ |
-| `REF201` | `sample-data-filename-presence`      | `ERROR`  | `N/A`   | `SampleData.filename` exists.                          |
+| `REF201` | `sample-data-filename-presence`      | `ERROR`  | `N/A`   | `SampleData.filename` exists as a file or in its pack. |
 | `REF202` | `sample-data-info-filename-presence` | `ERROR`  | `N/A`   | `SampleData.info_filename` exists if it is not `None`. |
 | `REF203` | `lidarseg-filename-presence`         | `ERROR`  | `N/A`   | `LidarSeg.filename` exists if `lidarseg.json` exists.  |
 
