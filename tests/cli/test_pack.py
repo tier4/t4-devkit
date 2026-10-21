@@ -39,6 +39,47 @@ def test_pack_and_verify(tmp_path: Path) -> None:
     assert "VERIFIED" in result.output
 
 
+def test_pack_and_delete_loose(tmp_path: Path) -> None:
+    data_root = _create_dataset(tmp_path)
+    lidar_dir = data_root / "0" / "data" / "LIDAR_CONCAT"
+    runner = CliRunner()
+
+    result = runner.invoke(cli, ["pack", str(data_root), "--level", "1", "--delete-loose"])
+    assert result.exit_code == 0, result.output
+    assert "DELETED" in result.output
+    assert not lidar_dir.exists()
+
+    result = runner.invoke(cli, ["verify", str(data_root)])
+    assert result.exit_code == 0, result.output
+    assert "VERIFIED" in result.output
+
+
+def test_delete_loose_on_already_packed(tmp_path: Path) -> None:
+    data_root = _create_dataset(tmp_path)
+    lidar_dir = data_root / "0" / "data" / "LIDAR_CONCAT"
+    runner = CliRunner()
+    runner.invoke(cli, ["pack", str(data_root), "--level", "1"])
+    assert lidar_dir.exists()
+
+    result = runner.invoke(cli, ["pack", str(data_root), "--delete-loose"])
+    assert result.exit_code == 0, result.output
+    assert "SKIP" in result.output
+    assert "DELETED" in result.output
+    assert not lidar_dir.exists()
+
+
+def test_delete_loose_refuses_changed_frame(tmp_path: Path) -> None:
+    data_root = _create_dataset(tmp_path)
+    lidar_dir = data_root / "0" / "data" / "LIDAR_CONCAT"
+    runner = CliRunner()
+    runner.invoke(cli, ["pack", str(data_root), "--level", "1"])
+    np.ones((10, 5), dtype=np.float32).tofile(lidar_dir / "00001.pcd.bin")
+
+    result = runner.invoke(cli, ["pack", str(data_root), "--delete-loose"])
+    assert result.exit_code != 0
+    assert len(list(lidar_dir.glob("*.pcd.bin"))) == 3
+
+
 def test_verify_fails_on_changed_frame(tmp_path: Path) -> None:
     data_root = _create_dataset(tmp_path)
     runner = CliRunner()

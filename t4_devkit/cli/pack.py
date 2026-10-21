@@ -9,7 +9,13 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from t4_devkit.common.t4pack import FRAME_SUFFIX, pack_directory, verify_pack
+from t4_devkit.common.t4pack import (
+    FRAME_SUFFIX,
+    PACK_SUFFIX,
+    delete_loose_frames,
+    pack_directory,
+    verify_pack,
+)
 from t4_devkit.dataclass.pointcloud import PointCloudMetainfo
 from t4_devkit.tier4 import load_metadata
 
@@ -54,13 +60,22 @@ def pack(
     overwrite: Annotated[
         bool, typer.Option(..., "--overwrite", help="Overwrite existing packs.")
     ] = False,
+    delete_loose: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "--delete-loose",
+            help="Delete .pcd.bin frames after verifying them against the pack.",
+        ),
+    ] = False,
 ) -> None:
     channel_dirs = _find_channel_dirs(data_root, revision)
 
     for channel_dir in channel_dirs:
+        num_pts_feats = _num_pts_feats(channel_dir)
         stats = pack_directory(
             channel_dir,
-            num_pts_feats=_num_pts_feats(channel_dir),
+            num_pts_feats=num_pts_feats,
             level=level,
             overwrite=overwrite,
         )
@@ -72,8 +87,14 @@ def pack(
                 f"{stats.raw_bytes} -> {stats.packed_bytes} bytes ({stats.ratio:.2f}x)"
             )
 
+        if delete_loose:
+            num_deleted = delete_loose_frames(channel_dir, num_pts_feats=num_pts_feats)
+            console.print(f"[green]DELETED[/green] {channel_dir}: {num_deleted} frames")
 
-@cli.command("verify", help="Verify that each '<CHANNEL>.pack' matches its .pcd.bin frames.")
+
+@cli.command(
+    "verify", help="Verify that each '<CHANNEL>.pack' matches its .pcd.bin frames if they exist."
+)
 def verify(
     data_root: Annotated[str, typer.Argument(help="Root directory path to the dataset.")],
     revision: Annotated[
@@ -83,11 +104,7 @@ def verify(
         ),
     ] = None,
 ) -> None:
-    channel_dirs = [
-        channel_dir
-        for channel_dir in _find_channel_dirs(data_root, revision)
-        if osp.exists(channel_dir + ".pack")
-    ]
+    channel_dirs = _find_packed_channel_dirs(data_root, revision)
     if not channel_dirs:
         console.print("[red]No packs to verify[/red]")
         sys.exit(1)
@@ -107,17 +124,32 @@ def verify(
     sys.exit(0 if is_passed else 1)
 
 
-def _find_channel_dirs(data_root: str, revision: str | None) -> list[str]:
-    """Return directories under `data/` that contain .pcd.bin frames."""
+def _find_data_dir(data_root: str, revision: str | None) -> str:
+    """Return the path to `data/` of the dataset."""
     data_dir = osp.join(load_metadata(data_root, revision).data_root, "data")
     if not osp.isdir(data_dir):
         raise FileNotFoundError(f"Data directory is not found: {data_dir}")
+    return data_dir
 
+
+def _find_channel_dirs(data_root: str, revision: str | None) -> list[str]:
+    """Return directories under `data/` that contain .pcd.bin frames."""
+    data_dir = _find_data_dir(data_root, revision)
     return sorted(
         osp.join(data_dir, name)
         for name in os.listdir(data_dir)
         if osp.isdir(osp.join(data_dir, name))
         and glob(osp.join(data_dir, name, f"*{FRAME_SUFFIX}"))
+    )
+
+
+def _find_packed_channel_dirs(data_root: str, revision: str | None) -> list[str]:
+    """Return channel directories under `data/` that have a pack, even if they are deleted."""
+    data_dir = _find_data_dir(data_root, revision)
+    return sorted(
+        osp.join(data_dir, name.removesuffix(PACK_SUFFIX))
+        for name in os.listdir(data_dir)
+        if name.endswith(PACK_SUFFIX)
     )
 
 

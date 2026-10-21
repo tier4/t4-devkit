@@ -14,7 +14,7 @@ $ t4pack -h
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ pack     Pack .pcd.bin frames of each channel into '<CHANNEL>.pack'.                                             │
-│ verify   Verify that each '<CHANNEL>.pack' matches its .pcd.bin frames.                                          │
+│ verify   Verify that each '<CHANNEL>.pack' matches its .pcd.bin frames if they exist.                            │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -41,10 +41,11 @@ $ t4pack pack -h
 │ *    data_root      TEXT  Root directory path to the dataset. [required]                                         │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --revision   -rv      TEXT     Specify if you want to pack the specific version.                                 │
-│ --level      -l       INTEGER  zstd compression level. [default: 19]                                             │
-│ --overwrite                    Overwrite existing packs.                                                         │
-│ --help       -h                Show this message and exit.                                                       │
+│ --revision      -rv      TEXT     Specify if you want to pack the specific version.                              │
+│ --level         -l       INTEGER  zstd compression level. [default: 19]                                          │
+│ --overwrite                       Overwrite existing packs.                                                      │
+│ --delete-loose                    Delete .pcd.bin frames after verifying them against the pack.                  │
+│ --help          -h                Show this message and exit.                                                    │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -55,8 +56,16 @@ t4pack pack <DATA_ROOT>
 ```
 
 Every frame is verified bit-exact against its source before the pack is put in place, so an existing pack is always complete.
-The source `.pcd.bin` files are kept.
+If the source values do not fit the compact `uint8`/`int8` columns, e.g. non-integer intensity, every column is stored as `float32` instead.
 A channel that is already packed is skipped unless `--overwrite` is specified.
+
+The source `.pcd.bin` files are kept by default. With `--delete-loose`, they are deleted after every frame is verified against the pack again, which also applies to a channel that is already packed:
+
+```shell
+t4pack pack <DATA_ROOT> --delete-loose
+```
+
+Nothing is deleted from a channel if any of its frames is missing from the pack or differs from it, and files other than `.pcd.bin` are kept.
 
 ### Verify Packs
 
@@ -65,7 +74,7 @@ $ t4pack verify -h
 
  Usage: t4pack verify [OPTIONS] DATA_ROOT
 
- Verify that each '<CHANNEL>.pack' matches its .pcd.bin frames.
+ Verify that each '<CHANNEL>.pack' matches its .pcd.bin frames if they exist.
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ *    data_root      TEXT  Root directory path to the dataset. [required]                                         │
@@ -76,4 +85,5 @@ $ t4pack verify -h
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-The command exits with `1` if any frame is missing from the pack or differs from its source.
+Each frame whose `.pcd.bin` still exists is compared bit-exact with the pack, and each frame whose `.pcd.bin` has been deleted is checked to be decodable.
+The command exits with `1` if any frame is missing from the pack, differs from its source or is broken.
