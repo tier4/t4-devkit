@@ -77,6 +77,42 @@ Example pointcloud metainfo JSON:
 }
 ```
 
+### Packed Pointcloud
+
+The `.pcd.bin` frames of a channel can be packed into a single file next to the directory, `data/<CHANNEL>.pack`, with [`t4pack`](../cli/t4pack.md):
+
+```shell
+data/
+├── LIDAR_CONCAT
+│   ├── <FRAME_ID>.pcd.bin
+│   ...
+└── LIDAR_CONCAT.pack
+```
+
+When `<FRAME_ID>.pcd.bin` does not exist but `<CHANNEL>.pack` does, `LidarPointCloud.from_file()` and `SegmentationPointCloud.from_file()` read the frame from the pack by its file name, so `sample_data.filename` does not need to change.
+
+The pack (t4pack v1) stores each frame as an independently compressed zstd blob, followed by a JSON index of the frames:
+
+```shell
+magic b'T4PACK\x00\x01'
+blob_0 .. blob_{N-1}            zstd(column_0 bytes | column_1 bytes | ...)
+zstd(JSON index)                name, offset, size, n_points, dtypes per frame
+<QQ index_offset index_size>    little-endian
+magic
+```
+
+Points are stored column-major. `x, y, z` (and other float features) are byte-shuffled `float32`, so they round-trip bit-exact, while `intensity` and `ring` are stored as `uint8` and `int8`.
+The column layout is chosen by `num_pts_feats` in the pointcloud metainfo JSON.
+
+Each frame can also be loaded directly as follows:
+
+```python
+from t4_devkit.common.t4pack import PackReader
+
+with PackReader("data/LIDAR_CONCAT.pack") as reader:
+    points = reader.read_frame_by_name("00000.pcd.bin")  # (N, num_pts_feats) float32
+```
+
 ## Camera Image
 
 Camera directory contains raw images as the name of `<CAM_XXX>`:
