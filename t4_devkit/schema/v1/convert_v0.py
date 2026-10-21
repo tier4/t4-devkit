@@ -83,7 +83,9 @@ class V0Converter:
         self.surface_categories = {record["category_token"] for record in self.v0["surface_ann"]}
         # A labeled frame is a key frame (0.x has a few labels on non-key frames).
         self.labeled_frames = {
-            record["sample_data_token"] for record in self.v0["object_ann"] + self.v0["keypoint"]
+            record["sample_data_token"]
+            for table in ("object_ann", "surface_ann", "keypoint")
+            for record in self.v0[table]
         }
         # 0.x samples are annotated frames only; 1.0 has one sample per frame.
         self.samples, self.sample_of_frame, self.sample_remap = self._frame_samples()

@@ -160,6 +160,27 @@ def test_load_v0_per_camera_samples(tmp_path: Path) -> None:
     assert set(dataset.get(SchemaName.SAMPLE, first).data) == {"LIDAR_TOP", "CAM_FRONT", "CAM_BACK"}
 
 
+def test_load_v0_mask_only_frame_is_key(tmp_path: Path) -> None:
+    """A non-key 0.x frame whose only label is a semantic mask (`surface_ann`) is a key frame."""
+    data_root = _copy_v0(tmp_path)
+    token = json.loads((data_root / "annotation" / "surface_ann.json").read_text())[0][
+        "sample_data_token"
+    ]
+    _edit_v0(
+        data_root,
+        "sample_data",
+        lambda records: [
+            dict(r, is_key_frame=False) if r["token"] == token else r for r in records
+        ],
+    )
+    _edit_v0(
+        data_root,
+        "object_ann",
+        lambda records: [r for r in records if r["sample_data_token"] != token],
+    )
+    assert load_dataset(data_root).get(SchemaName.SAMPLE_DATA, token).is_key_frame
+
+
 def test_load_v0_labeled_frame_is_key(tmp_path: Path) -> None:
     """A 0.x 2D label on a non-key frame makes it a key frame."""
     data_root = _copy_v0(tmp_path)
