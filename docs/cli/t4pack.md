@@ -67,6 +67,9 @@ t4pack pack <DATA_ROOT> --delete-loose
 
 Nothing is deleted from a channel if any of its frames is missing from the pack or differs from it, and files other than `.pcd.bin` are kept.
 
+`t4pack pack` can be run by multiple workers at the same time, even on the same dataset: each worker writes and verifies its own temporary file, and a verified pack is put in place atomically.
+`--overwrite` is refused if the existing pack contains frames whose `.pcd.bin` has already been deleted, so those frames are never lost.
+
 ### Verify Packs
 
 ```shell

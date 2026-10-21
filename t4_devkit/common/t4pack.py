@@ -24,6 +24,7 @@ import json
 import os
 import os.path as osp
 import struct
+import uuid
 from typing import TYPE_CHECKING, Iterable, Sequence
 
 import numpy as np
@@ -207,8 +208,9 @@ def write_pack(
 ) -> int:
     """Write frames into a single pack file.
 
-    The pack is written to `<filepath>.tmp` first and renamed,
-    so an interrupted write never leaves a partial pack in place.
+    The pack is written to a unique temporary file in the same directory first and renamed,
+    so an interrupted write never leaves a partial pack in place,
+    and concurrent writers never share a temporary file.
 
     Args:
         filepath (PathLike): Path to the output pack file.
@@ -222,7 +224,7 @@ def write_pack(
         int: Number of written frames.
     """
     filepath = os.fspath(filepath)
-    tmp_filepath = f"{filepath}.tmp"
+    tmp_filepath = _make_tmp_file(filepath)
     compressor = zstd.ZstdCompressor(level=level)
     entries = []
     try:
@@ -379,6 +381,18 @@ class PackReader:
         return self.read_frame(self._name_to_index[name])
 
 
+def _make_tmp_file(filepath: str) -> str:
+    """Create a unique temporary file next to the specified path and return its path.
+
+    Unlike `tempfile.mkstemp`, the file is created with the default permissions under umask,
+    so the pack renamed from it is readable by other users as the source frames are.
+    """
+    tmp_filepath = f"{filepath}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp"
+    with open(tmp_filepath, "xb"):
+        pass
+    return tmp_filepath
+
+
 def _load_frame(filepath: str, num_pts_feats: int) -> NDArrayF32:
     scan = np.fromfile(filepath, dtype=np.float32)
     if scan.size % num_pts_feats != 0:
@@ -400,8 +414,11 @@ def pack_directory(
 
     Every frame is verified bit-exact against its source before the pack is put in place,
     so a pack that exists is always complete. If the 1-byte columns of the layout cannot hold
-    the source values, e.g. non-integer intensity, every column is stored as float32 instead. Source frames are not deleted here,
-    use `delete_loose_frames` to delete them.
+    the source values, e.g. non-integer intensity, every column is stored as float32 instead.
+    Source frames are not deleted here, use `delete_loose_frames` to delete them.
+
+    It is safe to run concurrently on the same directory: each call writes and verifies
+    its own temporary file, and the last verified pack is put in place atomically.
 
     Args:
         directory (PathLike): Path to the directory of `.pcd.bin` frames, e.g. `data/LIDAR_CONCAT`.
@@ -415,14 +432,25 @@ def pack_directory(
     directory = os.fspath(directory).rstrip(os.sep)
     pack_filepath = directory + PACK_SUFFIX
 
-    if osp.exists(pack_filepath) and not overwrite:
-        try:
-            with PackReader(pack_filepath):
-                return None
-        except Exception:
-            pass  # broken pack, rewrite it
+    names = _list_frames(directory) if osp.isdir(directory) else []
 
-    names = _list_frames(directory)
+    if osp.exists(pack_filepath):
+        try:
+            with PackReader(pack_filepath) as reader:
+                packed_names = reader.names
+        except Exception:
+            packed_names = None  # broken pack, rewrite it
+
+        if packed_names is not None:
+            if not overwrite:
+                return None
+            # frames whose source has been deleted would be lost by rewriting the pack
+            if dropped := sorted(set(packed_names) - set(names)):
+                raise ValueError(
+                    f"Cannot overwrite {pack_filepath}, {len(dropped)} frames have no source, "
+                    f"e.g. {dropped[:3]}"
+                )
+
     if not names:
         raise FileNotFoundError(f"No {FRAME_SUFFIX} frames in {directory}")
 
@@ -430,7 +458,7 @@ def pack_directory(
     layout = PackLayout.from_num_pts_feats(num_pts_feats)
 
     # write to a temporary file, verify it, and then rename it to the final path
-    tmp_filepath = pack_filepath + ".unverified"
+    tmp_filepath = _make_tmp_file(pack_filepath)
     try:
         for candidate in dict.fromkeys((layout, layout.to_lossless())):
             num_frames = write_pack(
@@ -502,7 +530,11 @@ def _compare_frames(
             except KeyError:
                 mismatches.append(name)
                 continue
-            if not np.array_equal(packed, _load_frame(osp.join(directory, name), num_pts_feats)):
+            try:
+                source = _load_frame(osp.join(directory, name), num_pts_feats)
+            except FileNotFoundError:
+                continue  # deleted by another process after listing, the frame is decodable
+            if not np.array_equal(packed, source):
                 mismatches.append(name)
     return mismatches
 
@@ -510,8 +542,10 @@ def _compare_frames(
 def delete_loose_frames(directory: PathLike, num_pts_feats: int = 5) -> int:
     """Delete the `.pcd.bin` frames in a directory after verifying `<directory>.pack`.
 
-    Nothing is deleted unless every frame in the directory equals its frame in the pack.
+    Nothing is deleted unless every frame in the directory equals its frame in the pack,
+    and only the frames that have been verified are deleted.
     The directory itself is removed if it becomes empty.
+    It is safe to run concurrently on the same directory.
 
     Args:
         directory (PathLike): Path to the directory of `.pcd.bin` frames, e.g. `data/LIDAR_CONCAT`.
@@ -524,20 +558,27 @@ def delete_loose_frames(directory: PathLike, num_pts_feats: int = 5) -> int:
     if not osp.exists(directory + PACK_SUFFIX):
         raise FileNotFoundError(f"Pack is not found: {directory + PACK_SUFFIX}")
 
-    mismatches = verify_pack(directory, num_pts_feats=num_pts_feats)
+    names = _list_frames(directory) if osp.isdir(directory) else []
+    mismatches = _compare_frames(directory + PACK_SUFFIX, directory, names, num_pts_feats)
     if mismatches:
         raise ValueError(
             f"{len(mismatches)} frames differ from the pack of {directory}, e.g. {mismatches[:3]}"
         )
 
-    names = _list_frames(directory) if osp.isdir(directory) else []
+    num_deleted = 0
     for name in names:
-        os.remove(osp.join(directory, name))
+        try:
+            os.remove(osp.join(directory, name))
+            num_deleted += 1
+        except FileNotFoundError:
+            pass  # deleted by another process
 
-    if osp.isdir(directory) and not os.listdir(directory):
+    try:
         os.rmdir(directory)
+    except OSError:
+        pass  # not empty, or removed by another process
 
-    return len(names)
+    return num_deleted
 
 
 def find_pack(filepath: PathLike) -> str | None:

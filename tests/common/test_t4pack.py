@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import multiprocessing
+import os
 from pathlib import Path
 
 import numpy as np
@@ -258,6 +260,60 @@ def test_delete_loose_frames_requires_pack(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         delete_loose_frames(directory)
     assert (directory / "00000.pcd.bin").exists()
+
+
+def _pack_concurrently(directory: str) -> None:
+    pack_directory(directory, level=1, overwrite=True)
+
+
+def _delete_concurrently(directory: str) -> int:
+    return delete_loose_frames(directory)
+
+
+def test_pack_directory_concurrently(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    names = [f"{i:05d}.pcd.bin" for i in range(20)]
+    _write_frames(directory, [_frame(5000, seed=i) for i in range(len(names))], names)
+
+    with multiprocessing.get_context("spawn").Pool(4) as pool:
+        pool.map(_pack_concurrently, [str(directory)] * 4)
+
+    assert verify_pack(directory) == []
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["LIDAR_CONCAT", "LIDAR_CONCAT.pack"]
+
+    with multiprocessing.get_context("spawn").Pool(4) as pool:
+        num_deleted = pool.map(_delete_concurrently, [str(directory)] * 4)
+
+    assert sum(num_deleted) == len(names)
+    assert not directory.exists()
+    assert verify_pack(directory) == []
+
+
+def test_pack_directory_keeps_default_permissions(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    _write_frames(directory, [_frame(10)], ["00000.pcd.bin"])
+
+    pack_directory(directory, level=1)
+
+    umask = os.umask(0)
+    os.umask(umask)
+    assert (tmp_path / "LIDAR_CONCAT.pack").stat().st_mode & 0o777 == 0o666 & ~umask
+
+
+def test_pack_directory_refuses_to_drop_deleted_frames(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    names = ["00000.pcd.bin", "00001.pcd.bin"]
+    frames = [_frame(100, seed=i) for i in range(len(names))]
+    _write_frames(directory, frames, names)
+    pack_directory(directory, level=1)
+
+    # partially deleted, e.g. interrupted deletion
+    (directory / names[0]).unlink()
+
+    with pytest.raises(ValueError):
+        pack_directory(directory, level=1, overwrite=True)
+    with PackReader(tmp_path / "LIDAR_CONCAT.pack") as reader:
+        assert np.array_equal(reader.read_frame_by_name(names[0]), frames[0])
 
 
 def test_find_pack(tmp_path: Path) -> None:
