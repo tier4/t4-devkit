@@ -9,6 +9,7 @@ from t4_devkit.common.t4pack import (
     PackLayout,
     PackReader,
     decode_frame,
+    delete_loose_frames,
     encode_frame,
     find_pack,
     pack_directory,
@@ -158,15 +159,26 @@ def test_pack_directory_supports_wide_points(tmp_path: Path) -> None:
     assert verify_pack(directory, num_pts_feats=7) == []
 
 
-def test_pack_directory_refuses_lossy_pack(tmp_path: Path) -> None:
+def test_pack_directory_falls_back_to_lossless_layout(tmp_path: Path) -> None:
     directory = tmp_path / "LIDAR_CONCAT"
     frame = _frame(100)
     frame[0, 3] = 0.5  # intensity is not an integer
     _write_frames(directory, [frame], ["00000.pcd.bin"])
 
-    with pytest.raises(ValueError):
-        pack_directory(directory, level=1)
-    assert list(tmp_path.glob("*.pack*")) == []
+    pack_directory(directory, level=1)
+
+    assert sorted(p.name for p in tmp_path.glob("*.pack*")) == ["LIDAR_CONCAT.pack"]
+    with PackReader(tmp_path / "LIDAR_CONCAT.pack") as reader:
+        assert reader.frames[0]["dtypes"] == ["f4s"] * 5
+        assert np.array_equal(reader.read_frame(0), frame)
+    assert verify_pack(directory) == []
+
+
+def test_pack_layout_to_lossless() -> None:
+    layout = PackLayout.from_num_pts_feats(5).to_lossless()
+
+    assert layout.dtypes == ("f4s",) * 5
+    assert layout.fields == ("x", "y", "z", "intensity", "ring")
 
 
 def test_pack_directory_requires_frames(tmp_path: Path) -> None:
@@ -175,6 +187,77 @@ def test_pack_directory_requires_frames(tmp_path: Path) -> None:
 
     with pytest.raises(FileNotFoundError):
         pack_directory(directory)
+
+
+def test_verify_pack_after_deleting_loose_frames(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    names = ["00000.pcd.bin", "00001.pcd.bin"]
+    _write_frames(directory, [_frame(100, seed=i) for i in range(len(names))], names)
+    pack_directory(directory, level=1)
+
+    # partially deleted
+    (directory / names[0]).unlink()
+    assert verify_pack(directory) == []
+
+    # fully deleted
+    (directory / names[1]).unlink()
+    directory.rmdir()
+    assert verify_pack(directory) == []
+
+
+def test_delete_loose_frames(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    names = ["00000.pcd.bin", "00001.pcd.bin"]
+    frames = [_frame(100, seed=i) for i in range(len(names))]
+    _write_frames(directory, frames, names)
+    pack_directory(directory, level=1)
+
+    assert delete_loose_frames(directory) == 2
+    assert not directory.exists()
+    with PackReader(tmp_path / "LIDAR_CONCAT.pack") as reader:
+        assert np.array_equal(reader.read_frame_by_name(names[1]), frames[1])
+
+    # nothing left to delete
+    assert delete_loose_frames(directory) == 0
+
+
+def test_delete_loose_frames_keeps_other_files(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    _write_frames(directory, [_frame(100)], ["00000.pcd.bin"])
+    (directory / "README.txt").write_text("keep me")
+    pack_directory(directory, level=1)
+
+    assert delete_loose_frames(directory) == 1
+    assert sorted(p.name for p in directory.iterdir()) == ["README.txt"]
+
+
+def test_delete_loose_frames_refuses_mismatched_pack(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    names = ["00000.pcd.bin", "00001.pcd.bin"]
+    _write_frames(directory, [_frame(100, seed=i) for i in range(len(names))], names)
+    pack_directory(directory, level=1)
+
+    # changed frame
+    _frame(100, seed=99).tofile(directory / names[1])
+    with pytest.raises(ValueError):
+        delete_loose_frames(directory)
+
+    # frame that is not in the pack
+    pack_directory(directory, level=1, overwrite=True)
+    _frame(100, seed=2).tofile(directory / "00002.pcd.bin")
+    with pytest.raises(ValueError):
+        delete_loose_frames(directory)
+
+    assert sorted(p.name for p in directory.iterdir()) == [*names, "00002.pcd.bin"]
+
+
+def test_delete_loose_frames_requires_pack(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    _write_frames(directory, [_frame(100)], ["00000.pcd.bin"])
+
+    with pytest.raises(FileNotFoundError):
+        delete_loose_frames(directory)
+    assert (directory / "00000.pcd.bin").exists()
 
 
 def test_find_pack(tmp_path: Path) -> None:

@@ -45,6 +45,7 @@ __all__ = (
     "write_pack",
     "pack_directory",
     "verify_pack",
+    "delete_loose_frames",
     "find_pack",
 )
 
@@ -102,6 +103,14 @@ class PackLayout:
             )
         else:
             raise ValueError(f"Expected num_pts_feats >= 4, but got {num_pts_feats}")
+
+    def to_lossless(self) -> Self:
+        """Return the layout that stores every column as byte-shuffled float32.
+
+        Returns:
+            Self: Lossless layout with the same fields.
+        """
+        return self.__class__(dtypes=("f4s",) * len(self.dtypes), fields=self.fields)
 
 
 @define
@@ -390,7 +399,9 @@ def pack_directory(
     """Pack all `.pcd.bin` frames in a directory into `<directory>.pack`.
 
     Every frame is verified bit-exact against its source before the pack is put in place,
-    so a pack that exists is always complete. Source frames are not deleted.
+    so a pack that exists is always complete. If the 1-byte columns of the layout cannot hold
+    the source values, e.g. non-integer intensity, every column is stored as float32 instead. Source frames are not deleted here,
+    use `delete_loose_frames` to delete them.
 
     Args:
         directory (PathLike): Path to the directory of `.pcd.bin` frames, e.g. `data/LIDAR_CONCAT`.
@@ -421,15 +432,18 @@ def pack_directory(
     # write to a temporary file, verify it, and then rename it to the final path
     tmp_filepath = pack_filepath + ".unverified"
     try:
-        num_frames = write_pack(
-            tmp_filepath,
-            (_load_frame(filepath, num_pts_feats) for filepath in filepaths),
-            layout=layout,
-            names=names,
-            level=level,
-        )
-        mismatches = _compare_frames(tmp_filepath, directory, names, num_pts_feats)
-        if mismatches:
+        for candidate in dict.fromkeys((layout, layout.to_lossless())):
+            num_frames = write_pack(
+                tmp_filepath,
+                (_load_frame(filepath, num_pts_feats) for filepath in filepaths),
+                layout=candidate,
+                names=names,
+                level=level,
+            )
+            mismatches = _compare_frames(tmp_filepath, directory, names, num_pts_feats)
+            if not mismatches:
+                break
+        else:
             raise ValueError(
                 f"{len(mismatches)} frames differ after packing {directory}, e.g. {mismatches[:3]}"
             )
@@ -446,19 +460,22 @@ def pack_directory(
 
 
 def verify_pack(directory: PathLike, num_pts_feats: int = 5) -> list[str]:
-    """Verify that every frame in `<directory>.pack` equals its source `.pcd.bin` frame.
+    """Verify `<directory>.pack` against the `.pcd.bin` frames in the directory.
+
+    A frame whose source exists must equal it bit-exact, a source frame must be in the pack,
+    and a frame whose source has been deleted must be decodable.
 
     Args:
         directory (PathLike): Path to the directory of `.pcd.bin` frames, e.g. `data/LIDAR_CONCAT`.
         num_pts_feats (int, optional): Number of float32 fields in each point.
 
     Returns:
-        list[str]: Names of the frames that are missing or differ. Empty if the pack is valid.
+        list[str]: Names of the frames that are missing, differ or are broken.
+            Empty if the pack is valid.
     """
     directory = os.fspath(directory).rstrip(os.sep)
-    return _compare_frames(
-        directory + PACK_SUFFIX, directory, _list_frames(directory), num_pts_feats
-    )
+    names = _list_frames(directory) if osp.isdir(directory) else []
+    return _compare_frames(directory + PACK_SUFFIX, directory, names, num_pts_feats)
 
 
 def _compare_frames(
@@ -470,7 +487,15 @@ def _compare_frames(
     mismatches = []
     with PackReader(pack_filepath) as reader:
         source_names = set(names)
-        mismatches.extend(name for name in reader.names if name not in source_names)
+        for index, name in enumerate(reader.names):
+            if name in source_names:
+                continue
+            # the source frame has been deleted, so only check that the frame can be decoded
+            try:
+                reader.read_frame(index)
+            except Exception:
+                mismatches.append(name)
+
         for name in names:
             try:
                 packed = reader.read_frame_by_name(name)
@@ -480,6 +505,39 @@ def _compare_frames(
             if not np.array_equal(packed, _load_frame(osp.join(directory, name), num_pts_feats)):
                 mismatches.append(name)
     return mismatches
+
+
+def delete_loose_frames(directory: PathLike, num_pts_feats: int = 5) -> int:
+    """Delete the `.pcd.bin` frames in a directory after verifying `<directory>.pack`.
+
+    Nothing is deleted unless every frame in the directory equals its frame in the pack.
+    The directory itself is removed if it becomes empty.
+
+    Args:
+        directory (PathLike): Path to the directory of `.pcd.bin` frames, e.g. `data/LIDAR_CONCAT`.
+        num_pts_feats (int, optional): Number of float32 fields in each point.
+
+    Returns:
+        int: Number of deleted frames.
+    """
+    directory = os.fspath(directory).rstrip(os.sep)
+    if not osp.exists(directory + PACK_SUFFIX):
+        raise FileNotFoundError(f"Pack is not found: {directory + PACK_SUFFIX}")
+
+    mismatches = verify_pack(directory, num_pts_feats=num_pts_feats)
+    if mismatches:
+        raise ValueError(
+            f"{len(mismatches)} frames differ from the pack of {directory}, e.g. {mismatches[:3]}"
+        )
+
+    names = _list_frames(directory) if osp.isdir(directory) else []
+    for name in names:
+        os.remove(osp.join(directory, name))
+
+    if osp.isdir(directory) and not os.listdir(directory):
+        os.rmdir(directory)
+
+    return len(names)
 
 
 def find_pack(filepath: PathLike) -> str | None:
