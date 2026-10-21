@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from attrs import define, field, validators
 
-from t4_devkit.schema.tables.base import SchemaBase
+from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
 __all__ = ["Category"]
 
@@ -22,7 +22,7 @@ class Category(SchemaBase):
         has_number (bool): Whether annotations of this category may have `number`.
     """
 
-    name: str = field(validator=validators.instance_of(str))
+    name: str = field(validator=(validators.instance_of(str), impossible_empty()))
     description: str | None = field(validator=validators.optional(validators.instance_of(str)))
     is_thing: bool = field(validator=validators.instance_of(bool))
     index: int | None = field(
