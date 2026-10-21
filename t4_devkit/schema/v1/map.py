@@ -91,10 +91,10 @@ class Map(SchemaBase):
         )
     )
     format: MapFormat = field(converter=MapFormat)
-    filename: str = field(validator=validators.instance_of(str))
+    filename: str = field(validator=(validators.instance_of(str), impossible_empty()))
     sha256: str = field(validator=validators.matches_re(r"^[0-9a-f]{64}$"))
-    map_id: str = field(validator=validators.instance_of(str))
-    version_id: str = field(validator=validators.instance_of(str))
+    map_id: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    version_id: str = field(validator=(validators.instance_of(str), impossible_empty()))
     projector: Projector = field(
         converter=lambda x: Projector(**x) if isinstance(x, dict) else x,
         validator=validators.instance_of(Projector),

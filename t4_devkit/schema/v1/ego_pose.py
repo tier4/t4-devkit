@@ -5,7 +5,7 @@ from enum import Enum, unique
 from attrs import converters, define, field, validators
 
 from t4_devkit.common.converter import to_quaternion
-from t4_devkit.schema.tables.base import SchemaBase
+from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 from t4_devkit.typing import Quaternion, Vector3, Vector6
 
 __all__ = ["EgoPoseSource", "EgoPose"]
@@ -44,7 +44,7 @@ class EgoPose(SchemaBase):
     acceleration: Vector3 | None = field(converter=converters.optional(Vector3))
     geocoordinate: Vector3 | None = field(converter=converters.optional(Vector3))
     source: EgoPoseSource = field(converter=EgoPoseSource)
-    frame: str = field(validator=validators.instance_of(str))
+    frame: str = field(validator=(validators.instance_of(str), impossible_empty()))
     covariance: list[float] | None = field(
         validator=validators.optional(
             validators.deep_iterable(
