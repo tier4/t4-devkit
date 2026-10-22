@@ -520,6 +520,13 @@ scenario {
 
 Natural-language text about a time window, for VLM/VLA training.
 
+| `caption_type`    | Meaning                                                |
+| ----------------- | ------------------------------------------------------ |
+| `description`     | Describes what happens in the window.                  |
+| `reasoning`       | Explains why the ego vehicle or others act as they do. |
+| `instruction`     | An instruction to the ego vehicle.                     |
+| `question_answer` | A question about the window and its answer.            |
+
 ```json
 caption {
   "token":              <str> -- Unique record identifier.

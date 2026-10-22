@@ -1,5 +1,6 @@
 from .annotation_type import *  # noqa
 from .attribute import *  # noqa
+from .caption import *  # noqa
 from .category import *  # noqa
 from .ego_pose import *  # noqa
 from .instance import *  # noqa
