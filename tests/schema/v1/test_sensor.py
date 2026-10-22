@@ -33,6 +33,14 @@ def test_block_must_match_modality(sensor_records) -> None:
         Sensor.from_dict(camera)
 
 
+@pytest.mark.parametrize("index", [-1, 256, None])
+def test_invalid_index(sensor_records, index) -> None:
+    camera = copy.deepcopy(sensor_records[0])
+    camera["index"] = index
+    with pytest.raises((TypeError, ValueError)):
+        Sensor(**camera)
+
+
 @pytest.mark.parametrize(
     ("block", "key", "value"),
     [

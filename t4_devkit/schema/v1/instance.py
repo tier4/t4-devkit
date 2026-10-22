@@ -18,10 +18,10 @@ class Instance(SchemaBase):
 
     Attributes:
         token (str): Unique record identifier.
-        category_token (str): Foreign key pointing to the category.
-        instance_name (str): `<DATASET_ID>::<INSTANCE_ID>`.
-        instance_index (int | None): Value of the LiDAR `instance` field (int16) for this object,
+        name (str): `<DATASET_ID>::<INSTANCE_ID>`.
+        index (int | None): Value of the LiDAR `instance` field (int16) for this object,
             0 to 32767.
+        category_token (str): Foreign key pointing to the category.
         nbr_annotations (int): Number of annotations of this instance.
         first_annotation_token (str | None): Foreign key pointing to the first sample annotation
             or object annotation.
@@ -30,13 +30,13 @@ class Instance(SchemaBase):
         map_element (MapElement): Link to a lanelet2 element.
     """
 
-    category_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
-    instance_name: str = field(validator=validators.instance_of(str))
-    instance_index: int | None = field(
+    name: str = field(validator=validators.instance_of(str))
+    index: int | None = field(
         validator=validators.optional(
             validators.and_(validators.instance_of(int), validators.ge(0), validators.le(2**15 - 1))
         )
     )
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
     nbr_annotations: int = field(validator=(validators.instance_of(int), validators.ge(0)))
     first_annotation_token: str | None = field(
         validator=validators.optional(
