@@ -156,6 +156,8 @@ Provenance {
 >>> manifest = V0Migrator("<0.x dataset>", "out/<DATASET_ID>/<DATASET_VERSION>").migrate("<DATASET_ID>", <DATASET_VERSION>)
 ```
 
+Metadata 0.x does not store (vehicle, map ids, provenance, routes, ...) can be added by the caller before writing: change records through `migrator.tables(...)`, and pass `manifest_fields` (e.g. `provenance`, `project_id`) to `migrate()`.
+
 ## Loading 0.x Datasets
 
 `load_dataset()` reads a 0.x dataset (no `manifest.json`) by converting its tables to 1.0 records when loading, on a best-effort basis. Sensor data files stay as they are: one file per frame, and `sample_data.frame_index` is `null`.

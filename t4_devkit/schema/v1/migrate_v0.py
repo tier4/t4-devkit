@@ -3,7 +3,7 @@ from __future__ import annotations
 import os.path as osp
 import warnings
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Mapping
 
 import numpy as np
 
@@ -168,15 +168,28 @@ class V0Migrator:
         for record in records:
             self.writer.copy(osp.join(self.data_root, record.filename), record.filename)
 
-    def migrate(self, dataset_id: str, version: int, *, keep_images: bool = False) -> Manifest:
+    def migrate(
+        self,
+        dataset_id: str,
+        version: int,
+        *,
+        keep_images: bool = False,
+        manifest_fields: Mapping[str, Any] | None = None,
+    ) -> Manifest:
         """Migrate every channel, copy `map/` and `input_bag/`, then write the tables and
         `manifest.json`.
+
+        What 0.x does not store can be given by the caller: records through `tables`, and
+        manifest fields (e.g. `provenance`, `project_id`, `generators`) through
+        `manifest_fields`.
 
         Args:
             dataset_id (str): Dataset ID, as in the output folder.
             version (int): Dataset version, as in the output folder (given by Web.Auto).
             keep_images (bool, optional): Copy camera images as they are instead of encoding
                 one video per channel.
+            manifest_fields (Mapping[str, Any] | None, optional): Manifest fields that replace
+                the defaults; `migration_notes` are added after the migration's own.
 
         Returns:
             The manifest written.
@@ -191,19 +204,25 @@ class V0Migrator:
         for directory in ("map", "input_bag"):
             if osp.isdir(osp.join(self.data_root, directory)):
                 self.writer.copy(osp.join(self.data_root, directory), directory)
-        return self.writer.save(self.dataset.tables, self._manifest_info(dataset_id, version))
+        fields = dict(manifest_fields or {})
+        if "provenance" not in fields:
+            self.notes.append(
+                "provenance.rosbag.record_start / record_end are the first / last sample times"
+            )
+        manifest_info = self._manifest_info(dataset_id, version)
+        manifest_info.update(fields)
+        manifest_info["migration_notes"] = self.notes + list(fields.get("migration_notes", []))
+        return self.writer.save(self.dataset.tables, manifest_info)
 
     def tables(self, table: SchemaName) -> list[Any]:
         """Return the 1.0 records of a table."""
         return self.dataset.tables[table]
 
     def _manifest_info(self, dataset_id: str, version: int) -> dict[str, Any]:
-        """Return the manifest fields the writer does not compute. 0.x has no provenance, so
-        it is left empty for backfilling, except the recording time (from the samples)."""
+        """Return the default manifest fields the writer does not compute. 0.x has no
+        provenance, so it is left empty for backfilling, except the recording time (from the
+        samples)."""
         timestamps = [sample.timestamp for sample in self.tables(SchemaName.SAMPLE)]
-        self.notes.append(
-            "provenance.rosbag.record_start / record_end are the first / last sample times"
-        )
 
         def utc(timestamp: int) -> str:
             return datetime.fromtimestamp(timestamp / 1e6, tz=timezone.utc).strftime(
@@ -233,7 +252,6 @@ class V0Migrator:
             "is_synthetic": False,
             "is_discontinuous": None,
             "migrated_from_schema_version": "0.x",
-            "migration_notes": self.notes,
         }
 
     def _channel_frames(self, sensor: Sensor) -> list[SampleData]:
