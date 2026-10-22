@@ -7,6 +7,7 @@ from attrs import define, field
 
 from t4_devkit.common.io import load_json
 
+from .convert_v0 import V0Converter
 from .manifest import Manifest, load_manifest
 from .name import SchemaName
 from .registry import SCHEMAS
@@ -24,12 +25,12 @@ class T4Tables:
 
     Attributes:
         data_root (str): Dataset root.
-        manifest (Manifest): The dataset manifest.
+        manifest (Manifest | None): The dataset manifest, or None for a 0.x dataset.
         tables (dict[SchemaName, list[SchemaTable]]): Records per table; empty for an absent optional table.
     """
 
     data_root: str
-    manifest: Manifest
+    manifest: Manifest | None
     tables: dict[SchemaName, list[SchemaTable]]
     _token2idx: dict[SchemaName, dict[str, int]] = field(init=False)
 
@@ -86,7 +87,8 @@ class T4Tables:
 def load_dataset(data_root: PathLike) -> T4Tables:
     """Load a dataset as 1.x records.
 
-    Read the raw table dicts -> build and validate the records once.
+    Read the raw table dicts (0.x: converted to 1.0 dicts, best effort) -> build and validate
+    the records once.
 
     Args:
         data_root (PathLike): Dataset root, i.e. the `<DATASET_ID>/<DATASET_VERSION>` directory.
@@ -95,15 +97,12 @@ def load_dataset(data_root: PathLike) -> T4Tables:
         The loaded tables.
 
     Raises:
-        NotImplementedError: If the dataset is 0.x (no `manifest.json`).
         FileNotFoundError: If `manifest.json` does not list a required table.
     """
     manifest = load_manifest(data_root)
-    if manifest is None:
-        # 0.x: converted to 1.x dicts here in a later step.
-        raise NotImplementedError("Loading 0.x datasets is not supported yet.")
-
-    raw_tables = _read_tables(data_root, manifest)
+    raw_tables = (
+        V0Converter(data_root).convert() if manifest is None else _read_tables(data_root, manifest)
+    )
     tables = {
         name: [SCHEMAS.get(name).from_dict(data) for data in records]
         for name, records in raw_tables.items()
