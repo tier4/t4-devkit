@@ -6,11 +6,14 @@ from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 from t4_devkit.schema.tables.object_ann import RLEMask
 
 from .annotation_type import AnnotationType
+from .name import SchemaName
+from .registry import SCHEMAS
 
 __all__ = ["ObjectAnn"]
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.OBJECT_ANN)
 class ObjectAnn(SchemaBase):
     """`object_ann.json` dataclass.
 

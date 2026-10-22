@@ -8,6 +8,9 @@ from t4_devkit.common.converter import to_quaternion
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 from t4_devkit.typing import Quaternion, Vector3, Vector6
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = ["EgoPoseSource", "EgoPose"]
 
 
@@ -21,6 +24,7 @@ class EgoPoseSource(str, Enum):
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.EGO_POSE)
 class EgoPose(SchemaBase):
     """`ego_pose.json` dataclass.
 

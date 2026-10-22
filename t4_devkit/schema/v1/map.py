@@ -6,6 +6,9 @@ from attrs import converters, define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
+from .name import SchemaName
+from .registry import SCHEMAS
+
 __all__ = [
     "MapFormat",
     "ProjectorType",
@@ -98,6 +101,7 @@ class MapElement:
 
 
 @define(slots=False)
+@SCHEMAS.register(SchemaName.MAP)
 class Map(SchemaBase):
     """`map.json` dataclass.
 
