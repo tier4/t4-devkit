@@ -38,6 +38,10 @@ class SampleAnnotation(SchemaBase):
         annotation_type (AnnotationType): How the label was made.
         provenance (str | None): Vendor, model name and version, or tool.
         confidence (float | None): Confidence in [0, 1], or None for manual labels.
+
+    Shortcuts (filled by `T4Tables`):
+    ---------
+        category_name (str | None): Name of the category.
     """
 
     sample_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
@@ -83,3 +87,6 @@ class SampleAnnotation(SchemaBase):
             )
         )
     )
+
+    # shortcuts
+    category_name: str | None = field(init=False, default=None)
