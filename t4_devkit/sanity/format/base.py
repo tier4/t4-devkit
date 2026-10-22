@@ -6,8 +6,10 @@ from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
 
 from t4_devkit.schema import SCHEMAS, SchemaName
+from t4_devkit.schema.v1 import SCHEMAS as V1_SCHEMAS
+from t4_devkit.schema.v1 import SchemaName as V1SchemaName
 
-from ..checker import Checker
+from ..checker import Checker, ManifestChecker
 from ..result import Reason
 from ..safety import load_json_safe, load_schema_safe
 
@@ -54,4 +56,44 @@ def _build_records(schema: SchemaName, records: list[dict]) -> list[Reason] | No
         conversion = load_schema_safe(module, record)
         if not is_successful(conversion):
             failures.append(Reason(f"[{schema.name}] {record['token']}: {conversion.failure()}"))
+    return failures if failures else None
+
+
+class TableFieldChecker(ManifestChecker):
+    """Base class for 1.0 format checkers: every record of a table builds into its 1.0 class.
+
+    Attributes:
+        table (V1SchemaName): The 1.0 table to check.
+    """
+
+    table: V1SchemaName
+
+    def can_skip(self, context: SanityContext) -> Maybe[Reason]:
+        match super().can_skip(context):
+            case Some(reason):
+                return Some(reason)
+        if (
+            not self.table.is_optional()
+            and self.table.value not in context.manifest.unwrap().tables
+        ):
+            return Maybe.from_value(Reason(f"'{self.table.value}' not listed (see STR014)"))
+        return Nothing
+
+    def check(self, context: SanityContext) -> list[Reason] | None:
+        if self.table.value not in context.manifest.unwrap().tables:
+            return None  # optional table not present
+        match context.load_table(self.table):
+            case Some(records):
+                return _build_v1_records(self.table, records)
+        return [Reason(f"'{context.to_table_file(self.table).unwrap()}' cannot be read")]
+
+
+def _build_v1_records(table: V1SchemaName, records: list[dict]) -> list[Reason] | None:
+    module = V1_SCHEMAS.get(table)
+    failures = []
+    for record in records:
+        conversion = load_schema_safe(module, record)
+        if not is_successful(conversion):
+            token = record.get("token") if isinstance(record, dict) else None
+            failures.append(Reason(f"[{table.name}] {token}: {conversion.failure()}"))
     return failures if failures else None

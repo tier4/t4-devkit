@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName, Severity
+from ..checker import RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from .base import RecordCountChecker
@@ -17,6 +17,7 @@ class REC004(RecordCountChecker):
     id = RuleID("REC004")
     name = RuleName("ego-pose-not-empty")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = "'EgoPose' record is not empty."
     schema = SchemaName.EGO_POSE
 

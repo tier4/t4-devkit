@@ -32,6 +32,8 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
+        # written by DatasetWriter: manifest.json holds the hashes of these files
+        exclude: ^tests/sample/t4dataset_v1/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.8

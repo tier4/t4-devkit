@@ -47,29 +47,32 @@ You can initialize a `T4Devkit` instance as follows:
 
 >>> t4 = T4Devkit("data/tier4/", verbose=True)
 ======
-Loading T4 tables in `annotation`...
-Reverse indexing...
-Done reverse indexing in 0.007 seconds.
-======
-13 attribute
-7 calibrated_sensor
-8 category
-2524 ego_pose
-106 instance
-1 log
-1 map
+Loading T4 tables...
 72 sample
-2390 sample_annotation
 2524 sample_data
-4 visibility
+2524 ego_pose
 7 sensor
 1 scene
+1 log
+1 vehicle
+1 map
+0 vehicle_state
+8 category
+13 attribute
+4 visibility
+106 instance
+2390 sample_annotation
 1326 object_ann
-0 surface_ann
 0 keypoint
+0 traffic_light
+0 route
+0 scenario
+0 caption
 Done loading in 0.061 seconds.
 ======
 ```
+
+Both T4Dataset 1.0 datasets (with `manifest.json`) and 0.x datasets load, as 1.0 records: 0.x tables are converted when loading (see [Loading 0.x Datasets](../schema/v1/index.md#loading-0x-datasets)).
 
 Note that if you doesn't specify `revision` parameter in construction, it searches the latest version of the dataset.
 By specifying `revision=<VERSION>`, you can load the specific version of the dataset.
@@ -90,7 +93,7 @@ By specifying `revision=<VERSION>`, you can load the specific version of the dat
 
 ### `sample`
 
-`sample` is an annotated keyframe of a scene at a given timestamp.
+`sample` is one frame of a scene: the observations of all channels at that moment. Every frame is a sample; `sample.has_key_frame` marks the annotated ones (key frames), which carry the labels.
 
 ```python
 >>> first_sample_token = my_scene.first_sample_token
@@ -184,21 +187,11 @@ An `attribute` is a property of an instance that may change throughout different
 ### `sensor`
 
 T4 dataset consists of several type of sensors.
-The supported sensor modalities and channels are defined in `t4_devkit/schema/tables/sensor.py`.
+Each `sensor` row is one sensor with its calibration: `translation` and `rotation` with respect to the ego vehicle body frame, and a block for its modality (`camera` with intrinsics and image size, or `lidar` with its point fields).
 
 ```python
 >>> t4.sensor
 ```
-
-### `calibrated_sensor`
-
-`calibrated_sensor` consists of the definition of a calibration of a particular sensor based on a vehicle.
-
-```python
->>> t4.calibrated_sensor
-```
-
-Note that the `translation` and `rotation` parameters are given with respect to the ego vehicle body frame.
 
 ### `ego_pose`
 

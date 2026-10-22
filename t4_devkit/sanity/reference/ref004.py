@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName, Severity
+from ..checker import RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
@@ -16,6 +16,7 @@ class REF004(RecordReferenceChecker):
     id = RuleID("REF004")
     name = RuleName("sample-to-scene")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = "'Sample.scene_token' refers to 'Scene' record."
     source = SchemaName.SAMPLE
     target = SchemaName.SCENE

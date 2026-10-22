@@ -9,3 +9,9 @@ from .str006 import *  # noqa
 from .str007 import *  # noqa
 from .str008 import *  # noqa
 from .str009 import *  # noqa
+from .str010 import *  # noqa
+from .str011 import *  # noqa
+from .str012 import *  # noqa
+from .str013 import *  # noqa
+from .str014 import *  # noqa
+from .str015 import *  # noqa

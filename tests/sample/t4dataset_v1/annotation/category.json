@@ -1,0 +1,20 @@
+[
+  {
+    "token": "category_car",
+    "name": "car",
+    "index": null,
+    "description": null,
+    "is_thing": true,
+    "has_orientation": false,
+    "has_number": false
+  },
+  {
+    "token": "category_road",
+    "name": "road",
+    "index": null,
+    "description": null,
+    "is_thing": false,
+    "has_orientation": false,
+    "has_number": false
+  }
+]
