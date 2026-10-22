@@ -43,6 +43,7 @@ dev = [
 [project.scripts]
 t4viz = "t4_devkit.cli.visualize:cli"
 t4sanity = "t4_devkit.cli.sanity:cli"
+t4migrate = "t4_devkit.cli.migrate:cli"
 
 [tool.ruff]
 line-length = 100
