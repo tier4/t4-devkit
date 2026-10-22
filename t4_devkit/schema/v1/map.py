@@ -6,7 +6,16 @@ from attrs import converters, define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
 
-__all__ = ["MapFormat", "ProjectorType", "MapSource", "ProjectorOrigin", "Projector", "Map"]
+__all__ = [
+    "MapFormat",
+    "ProjectorType",
+    "MapSource",
+    "ProjectorOrigin",
+    "Projector",
+    "Map",
+    "MapElementType",
+    "MapElement",
+]
 
 
 @unique
@@ -64,6 +73,28 @@ class Projector:
         converter=lambda x: ProjectorOrigin(**x) if isinstance(x, dict) else x,
         validator=validators.instance_of(ProjectorOrigin),
     )
+
+
+@unique
+class MapElementType(str, Enum):
+    """lanelet2 element type. Element IDs are only unique within a type."""
+
+    NODE = "node"
+    WAY = "way"
+    RELATION = "relation"
+
+
+@define
+class MapElement:
+    """A reference to a lanelet2 element, e.g. from an instance.
+
+    Attributes:
+        id (int | None): lanelet2 element ID: traffic-light lamp, sign, crosswalk, stop line, lane.
+        type (MapElementType | None): lanelet2 element type.
+    """
+
+    id: int | None = field(validator=validators.optional(validators.instance_of(int)))
+    type: MapElementType | None = field(converter=converters.optional(MapElementType))
 
 
 @define(slots=False)

@@ -14,7 +14,18 @@ Types follow the notation in [Schema Tables](../table.md#type-definition). In ad
 
 How a label was made: `enum["manual", "auto", "pseudo", "corrected", "interpolated", "synthetic"]`.
 
-Every label table (`sample_annotation`, `object_ann`, `surface_ann`, `keypoint`, `traffic_light`, `scenario`, `caption`) has these three fields:
+| Value          | Meaning                                                                                                  | Example `provenance`              |
+| -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `manual`       | Made by a human annotator.                                                                               | `"kognic"`, `"fastlabel"`         |
+| `auto`         | Made by an auto-labeling model or pipeline, not reviewed by a human.                                     | `"autolabel v2.3"`                |
+| `pseudo`       | Taken from another system's output and used as a weak label, e.g. onboard perception or tracker results. | `"autoware multi_object_tracker"` |
+| `corrected`    | Made automatically (`auto`, `pseudo` or `interpolated`), then reviewed and corrected by a human.         | `"autolabel v2.3 + kognic"`       |
+| `interpolated` | Computed between labeled frames, e.g. a box between two manual keyframes, not reviewed frame by frame.   | `"t4-devkit interpolation"`       |
+| `synthetic`    | Known by construction, from simulation or generated data (VLM, copy-paste).                              | `"carla 0.9.15"`                  |
+
+`confidence` is the producer's score for `auto` and `pseudo` labels, and `null` for `manual` labels. For other values it is optional.
+
+Every label table (`sample_annotation`, `object_ann`, `keypoint`, `traffic_light`, `scenario`, `caption`) has these three fields:
 
 ```json
 "annotation_type":    <AnnotationType> -- How the label was made.
@@ -288,6 +299,7 @@ category {
   "token":            <str> -- Unique record identifier.
   "name":             <str> -- Category name.
   "description":      <option[str]> -- Description.
+  "is_thing":         <bool> -- Whether annotations of this category are individual objects with an instance (car, pedestrian) rather than regions without one (road, sky).
   "index":            <option[int]> -- Value of the LiDAR `label` field for this category. Required when point-wise labels are present. `0` is reserved for the `unpainted` category.
   "has_orientation":  <bool> -- Whether annotations of this category may have `orientation`.
   "has_number":       <bool> -- Whether annotations of this category may have `number`.
@@ -362,8 +374,8 @@ sample_annotation {
   "rotation":         <[float;4]> -- Quaternion (w, x, y, z).
   "velocity":         <option[[float;3]]> -- (vx, vy, vz) in m/s.
   "acceleration":     <option[[float;3]]> -- (ax, ay, az) in m/s².
-  "num_lidar_pts":    <int> -- Number of LiDAR points in the box.
-  "num_radar_pts":    <int> -- Number of radar points in the box.
+  "num_lidar_pts":    <option[int]> -- Number of LiDAR points in the box. `null` if not counted, e.g. no LiDAR data.
+  "num_radar_pts":    <option[int]> -- Number of radar points in the box. `null` if not counted, e.g. no radar data.
   "next":             <option[str]> -- Foreign key to the next `SampleAnnotation` of the instance.
   "prev":             <option[str]> -- Foreign key to the previous `SampleAnnotation` of the instance.
   "annotation_type":  <AnnotationType> -- See [AnnotationType](#annotationtype).
@@ -376,17 +388,22 @@ sample_annotation {
 
 - Filename: `object_ann.json`
 
-A 2D box with an optional instance mask, linked to an instance.
+A 2D semantic/panoptic annotation in an image: a box with an optional mask.
+
+- For categories with `is_thing` (car, pedestrian), the mask is an instance mask and `instance_token` is set.
+- For other categories (road, sidewalk, sky), the mask is a semantic mask of the region and `instance_token` is `null`.
+
+It replaces the 0.x `surface_ann` table.
 
 ```json
 object_ann {
   "token":              <str> -- Unique record identifier.
   "sample_data_token":  <str> -- Foreign key to the `SampleData` table.
-  "instance_token":     <str> -- Foreign key to the `Instance` table.
+  "instance_token":     <option[str]> -- Foreign key to the `Instance` table. `null` for categories without `is_thing`.
   "category_token":     <str> -- Foreign key to the `Category` table.
   "attribute_tokens":   <[str;N]> -- Foreign keys to the `Attribute` table.
   "bbox":               <[float;4]> -- (xmin, ymin, xmax, ymax) in pixels.
-  "mask":               <option[RLE]> -- Instance mask.
+  "mask":               <option[RLE]> -- Instance mask, or semantic mask for categories without `is_thing`.
   "orientation":        <option[float]> -- Arrow orientation in radians, for categories with `has_orientation`.
   "number":             <option[int]> -- Displayed digit, for categories with `has_number`.
   "annotation_type":    <AnnotationType>
@@ -396,24 +413,6 @@ object_ann {
 ```
 
 `RLE` is defined in [Schema Tables](../table.md#rle).
-
-### SurfaceAnn
-
-- Filename: `surface_ann.json`
-
-A 2D semantic mask of a region without object identity (road, sidewalk, sky).
-
-```json
-surface_ann {
-  "token":              <str> -- Unique record identifier.
-  "sample_data_token":  <str> -- Foreign key to the `SampleData` table.
-  "category_token":     <str> -- Foreign key to the `Category` table.
-  "mask":               <option[RLE]> -- Semantic mask.
-  "annotation_type":    <AnnotationType>
-  "provenance":         <option[str]>
-  "confidence":         <option[float]>
-}
-```
 
 ### Keypoint
 
