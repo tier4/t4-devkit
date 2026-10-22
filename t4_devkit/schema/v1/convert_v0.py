@@ -254,7 +254,10 @@ class V0Converter:
             "rotation": record["rotation"],
             "timestamp": record["timestamp"],
             "twist": record.get("twist"),
-            "acceleration": record.get("acceleration"),
+            # 0.x acceleration is a raw IMU reading whose frame and gravity sign vary by
+            # vehicle; 1.0 acceleration is gravity-free. Both come from the backfill.
+            "acceleration": None,
+            "imu": None,
             "geocoordinate": record.get("geocoordinate"),
             "covariance": None,
             "source": fallbacks["source"],
