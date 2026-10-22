@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections import defaultdict
+from typing import Iterable
+
 from attrs import define, field, validators
 
 from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
@@ -52,3 +55,27 @@ class Instance(SchemaBase):
         converter=lambda x: MapElement(**x) if isinstance(x, dict) else x,
         validator=validators.instance_of(MapElement),
     )
+
+    @staticmethod
+    def annotation_spans(
+        labels: Iterable[tuple[str, int, str]],
+    ) -> dict[str, tuple[int, str, str]]:
+        """Return the number of labels and the first / last label in time of each instance.
+
+        This is what `nbr_annotations` and `first_annotation_token` / `last_annotation_token`
+        hold.
+
+        Args:
+            labels (Iterable[tuple[str, int, str]]): (instance token, time, label token) of each
+                3D box (at its sample's time) and 2D label (at its frame's time).
+
+        Returns:
+            Count, first and last label token, keyed by instance token.
+        """
+        times: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        for instance_token, timestamp, token in labels:
+            times[instance_token].append((timestamp, token))
+        return {
+            token: (len(entries), min(entries)[1], max(entries)[1])
+            for token, entries in times.items()
+        }

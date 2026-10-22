@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import json
 import os
-import shutil
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +11,7 @@ from t4_devkit.dataclass import Box2D, Box3D, SemanticLabel
 from t4_devkit.schema import VisibilityLevel
 from t4_devkit.tier4 import DBMetadata, T4Devkit, load_metadata
 from t4_devkit.typing import Quaternion
+from tests.helpers import SAMPLE_V0, SampleCopy
 
 
 @pytest.fixture(scope="session")
@@ -70,32 +69,41 @@ class TestLoadMetadata:
 
 
 def test_unknown_visibility(tmp_path):
-    """A box whose visibility is unknown (0.x `unavailable`) gets `UNAVAILABLE`."""
-    data_root = tmp_path / "t4dataset"
-    shutil.copytree(Path(__file__).parent / "sample/t4dataset", data_root)
-    visibility_path = data_root / "annotation" / "visibility.json"
-    visibilities = json.loads(visibility_path.read_text())
-    visibilities[0]["level"] = "unavailable"  # the level of the first annotation
-    visibility_path.write_text(json.dumps(visibilities))
+    """0.x level aliases are mapped; `unavailable` is dropped, and a box with it gets
+    `UNAVAILABLE`."""
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="t4dataset")
+    sample.edit(
+        "visibility",
+        lambda records: SampleCopy.set_field(
+            SampleCopy.set_field(records, 0, level="unavailable"),  # the first annotation's
+            1,
+            level="v60-80",
+        ),
+    )
 
-    t4 = T4Devkit(data_root.as_posix(), verbose=False)
+    t4 = T4Devkit(sample.root.as_posix(), verbose=False)
+    assert [visibility.level for visibility in t4.visibility] == ["most", "partial", "none"]
     annotation = t4.sample_annotation[0]
     assert annotation.visibility_token is None
     assert t4.get_box3d(annotation.token).visibility == VisibilityLevel.UNAVAILABLE
 
 
 def test_autolabel_confidence(tmp_path):
-    """A box takes the confidence of its label; manual labels keep 1.0."""
-    data_root = tmp_path / "t4dataset"
-    shutil.copytree(Path(__file__).parent / "sample/t4dataset", data_root)
-    annotation_path = data_root / "annotation" / "sample_annotation.json"
-    annotations = json.loads(annotation_path.read_text())
-    annotations[0]["automatic_annotation"] = True
-    annotations[0]["autolabel_metadata"] = [{"name": "centerpoint-v2", "score": 0.8}]
-    annotation_path.write_text(json.dumps(annotations))
+    """A 0.x autolabel becomes `auto` with the model as provenance; a box takes the confidence
+    of its label, and manual labels keep 1.0."""
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="t4dataset")
+    metadata = [{"name": "centerpoint-v2", "score": 0.8}]
+    sample.edit(
+        "sample_annotation",
+        lambda r: SampleCopy.set_field(
+            r, 0, automatic_annotation=True, autolabel_metadata=metadata
+        ),
+    )
 
-    t4 = T4Devkit(data_root.as_posix(), verbose=False)
-    assert t4.get_box3d(t4.sample_annotation[0].token).confidence == 0.8
+    t4 = T4Devkit(sample.root.as_posix(), verbose=False)
+    annotation = t4.sample_annotation[0]
+    assert (annotation.annotation_type, annotation.provenance) == ("auto", "centerpoint-v2")
+    assert t4.get_box3d(annotation.token).confidence == 0.8
     assert t4.get_box3d(t4.sample_annotation[1].token).confidence == 1.0
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import threading
@@ -25,11 +26,12 @@ __all__ = (
     "save_pointcloud",
     "load_image",
     "save_video",
+    "file_sha256",
     "V0_BIN_FIELDS",
 )
 
 # 0.x `.bin` layout: this list cut to `num_pts_feats`, all float32 (as written by the converter).
-# `.bin` stores no names; these are the 1.0 names (0.x calls `channel` "ring"), all float32.
+# `.bin` stores no names; these are the 1.0 names (0.x calls `channel` "ring").
 V0_BIN_FIELDS = ("x", "y", "z", "intensity", "channel", "return_type", "time_stamp")
 
 
@@ -56,6 +58,22 @@ def save_json(data: Any, filename: PathLike) -> None:
     """
     with open(filename, "w") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+def file_sha256(filepath: PathLike) -> str:
+    """Return the SHA-256 of a file, read in 1 MiB chunks (videos and rosbags can be large).
+
+    Args:
+        filepath (PathLike): File to hash.
+
+    Returns:
+        The hex digest.
+    """
+    digest = hashlib.sha256()
+    with open(os.fspath(filepath), "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def load_pointcloud(
@@ -293,7 +311,7 @@ def _add_video_stream(
     preset: int,
     crf: int,
 ) -> av.video.stream.VideoStream:
-    """The AV1 stream of a camera video, sized by its first image."""
+    """Return the AV1 stream of a camera video, sized by its first image."""
     stream = container.add_stream("libsvtav1", rate=frame_rate)
     stream.height, stream.width = image.shape[:2]
     stream.pix_fmt = pixel_format

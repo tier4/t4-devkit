@@ -37,20 +37,14 @@ class REC019(RecordsChecker):
 
     def check(self, context: SanityContext) -> list[Reason] | None:
         sensors = context.load_records(SchemaName.SENSOR).unwrap()
-        # source LiDARs of a merged channel have no frames of their own
-        sources = {
-            channel
-            for sensor in sensors
-            if sensor.lidar is not None
-            for channel in sensor.lidar.source_channels
-        }
         indices: dict[str, list[int | None]] = defaultdict(list)
         for frame in context.load_records(SchemaName.SAMPLE_DATA).unwrap():
             indices[frame.sensor_token].append(frame.frame_index)
         failures = []
         for sensor in sensors:
             stored = channel_file(sensor)
-            if stored is None or sensor.channel in sources:
+            # per-frame files, and source LiDARs of a merged channel (no file of their own)
+            if stored is None:
                 continue
             _, frame_count = stored
             if sorted(indices[sensor.token], key=lambda i: -1 if i is None else i) != list(

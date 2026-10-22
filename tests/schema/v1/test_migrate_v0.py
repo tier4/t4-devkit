@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import numpy as np
@@ -11,8 +10,7 @@ from PIL import Image
 from t4_devkit.common.io import load_image, load_pointcloud
 from t4_devkit.sanity import sanity_check
 from t4_devkit.schema.v1 import SchemaName, V0Migrator
-
-SAMPLE_V0 = Path(__file__).parents[2] / "sample" / "t4dataset"
+from tests.helpers import SAMPLE_V0, SampleCopy
 
 
 def _migrate_lidar(data_root: Path, output_root: Path) -> V0Migrator:
@@ -62,15 +60,10 @@ def test_migrate_lidar(tmp_path: Path) -> None:
 
 def _semseg_copy(tmp_path: Path) -> Path:
     """The 0.x sample with integer intensity, ring -1 (not recorded) and labels on frame 0."""
-    data_root = tmp_path / "v0"
-    shutil.copytree(SAMPLE_V0, data_root)
-    annotation = data_root / "annotation"
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="v0")
+    data_root = sample.root
     frames = sorted(
-        (
-            r
-            for r in json.loads((annotation / "sample_data.json").read_text())
-            if "LIDAR" in r["filename"]
-        ),
+        (r for r in sample.read("sample_data") if "LIDAR" in r["filename"]),
         key=lambda r: r["timestamp"],
     )
     for record in frames:
@@ -90,7 +83,7 @@ def _semseg_copy(tmp_path: Path) -> Path:
             "sample_data_token": frames[0]["token"],
         }
     ]
-    (annotation / "lidarseg.json").write_text(json.dumps(lidarseg))
+    (data_root / "annotation/lidarseg.json").write_text(json.dumps(lidarseg))
     return data_root
 
 
@@ -132,8 +125,7 @@ def test_migrate_lidar_labels(tmp_path: Path) -> None:
 
 def test_migrate_camera(tmp_path: Path) -> None:
     """A camera channel becomes one video; each frame is its own image, in timestamp order."""
-    data_root = tmp_path / "v0"
-    shutil.copytree(SAMPLE_V0, data_root)
+    data_root = SampleCopy(tmp_path, SAMPLE_V0, name="v0").root
     migrator = V0Migrator(data_root, tmp_path / "sample")
     sensor = migrator.cameras()[0]
     frames = migrator._channel_frames(sensor)
@@ -172,18 +164,23 @@ def test_copy_images(tmp_path: Path) -> None:
 
 def test_relink_half_linked_frame(tmp_path: Path) -> None:
     """A frame its neighbors skip (as 0.x placeholders can be) is linked back in time order."""
-    data_root = tmp_path / "v0"
-    shutil.copytree(SAMPLE_V0, data_root)
-    path = data_root / "annotation/sample_data.json"
-    records = json.loads(path.read_text())
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="v0")
     first, middle, last = sorted(
-        (r for r in records if r["filename"].startswith("data/CAM_FRONT/")),
+        (r for r in sample.read("sample_data") if r["filename"].startswith("data/CAM_FRONT/")),
         key=lambda r: r["timestamp"],
     )
-    first["next"], last["prev"] = last["token"], first["token"]  # both skip `middle`
-    path.write_text(json.dumps(records))
 
-    migrator = V0Migrator(data_root, tmp_path / "sample")
+    def skip_middle(records: list[dict]) -> list[dict]:
+        for record in records:
+            if record["token"] == first["token"]:
+                record["next"] = last["token"]
+            if record["token"] == last["token"]:
+                record["prev"] = first["token"]
+        return records
+
+    sample.edit("sample_data", skip_middle)
+
+    migrator = V0Migrator(sample.root, tmp_path / "sample")
     sensor = migrator.cameras()[0]
     migrator.copy_images(sensor)
 
@@ -208,19 +205,17 @@ def test_migrate_lidarseg_passes_sanity(tmp_path: Path) -> None:
 
 def test_migrate_lidar_sources(tmp_path: Path) -> None:
     """`.info` sources become `source_index` (the source's `sensor.index`) and µs timestamps."""
-    data_root = tmp_path / "v0"
-    shutil.copytree(SAMPLE_V0, data_root)
-    annotation = data_root / "annotation"
-    sensors = json.loads((annotation / "sensor.json").read_text())
-    top = next(sensor for sensor in sensors if sensor["channel"] == "LIDAR_TOP")
-    sensors.append(dict(top, token="rear", channel="LIDAR_REAR"))
-    (annotation / "sensor.json").write_text(json.dumps(sensors))
-    calibrations = json.loads((annotation / "calibrated_sensor.json").read_text())
-    top_calibration = next(c for c in calibrations if c["sensor_token"] == top["token"])
-    calibrations.append(dict(top_calibration, token="rear_calibration", sensor_token="rear"))
-    (annotation / "calibrated_sensor.json").write_text(json.dumps(calibrations))
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="v0")
+    top = next(s for s in sample.read("sensor") if s["channel"] == "LIDAR_TOP")
+    top_calibration = next(
+        c for c in sample.read("calibrated_sensor") if c["sensor_token"] == top["token"]
+    )
+    rear_calibration = dict(top_calibration, token="rear_calibration", sensor_token="rear")
+    sample.edit("sensor", lambda r: [*r, dict(top, token="rear", channel="LIDAR_REAR")])
+    sample.edit("calibrated_sensor", lambda r: [*r, rear_calibration])
 
-    records = json.loads((annotation / "sample_data.json").read_text())
+    data_root = sample.root
+    records = sample.read("sample_data")
     (data_root / "data/LIDAR_TOP_INFO").mkdir()
     for i, record in enumerate(r for r in records if "LIDAR" in r["filename"]):
         record["info_filename"] = f"data/LIDAR_TOP_INFO/{i}.json"
@@ -241,7 +236,7 @@ def test_migrate_lidar_sources(tmp_path: Path) -> None:
             ]
         }
         (data_root / record["info_filename"]).write_text(json.dumps(info))
-    (annotation / "sample_data.json").write_text(json.dumps(records))
+    sample.edit("sample_data", lambda _: records)
 
     with pytest.warns(UserWarning):
         migrator = _migrate_lidar(data_root, tmp_path / "sample")
@@ -257,16 +252,18 @@ def test_migrate_lidar_sources(tmp_path: Path) -> None:
 
 def test_migrate_recalibrated_channel(tmp_path: Path) -> None:
     """Two calibrations of one channel would share its file: migration stops instead."""
-    data_root = tmp_path / "v0"
-    shutil.copytree(SAMPLE_V0, data_root)
-    annotation = data_root / "annotation"
-    calibrations = json.loads((annotation / "calibrated_sensor.json").read_text())
-    calibrations.append(dict(calibrations[0], token="recalibrated"))  # LIDAR_TOP again
-    (annotation / "calibrated_sensor.json").write_text(json.dumps(calibrations))
-    records = json.loads((annotation / "sample_data.json").read_text())
-    last = max((r for r in records if "LIDAR" in r["filename"]), key=lambda r: r["timestamp"])
-    last["calibrated_sensor_token"] = "recalibrated"
-    (annotation / "sample_data.json").write_text(json.dumps(records))
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="v0")
+    # LIDAR_TOP again, used by its last frame
+    sample.edit("calibrated_sensor", lambda r: [*r, dict(r[0], token="recalibrated")])
+    lidar = [r for r in sample.read("sample_data") if "LIDAR" in r["filename"]]
+    last = max(lidar, key=lambda r: r["timestamp"])["token"]
+    sample.edit(
+        "sample_data",
+        lambda records: [
+            dict(r, calibrated_sensor_token="recalibrated") if r["token"] == last else r
+            for r in records
+        ],
+    )
 
     with pytest.warns(UserWarning), pytest.raises(FileExistsError, match="LIDAR_TOP"):
-        _migrate_lidar(data_root, tmp_path / "sample")
+        _migrate_lidar(sample.root, tmp_path / "sample")

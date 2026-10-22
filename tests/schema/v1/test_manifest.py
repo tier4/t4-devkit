@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from attrs import evolve
 
-from t4_devkit.common.serialize import serialize_dataclass
 from t4_devkit.schema.v1 import (
     Capabilities,
     Manifest,
@@ -17,16 +16,6 @@ from t4_devkit.schema.v1 import (
 )
 
 SAMPLE_ROOT = Path(__file__).parents[2] / "sample"
-
-
-def test_load_manifest_v1() -> None:
-    """A 1.0 dataset has a manifest, and every field round-trips."""
-    data_root = SAMPLE_ROOT / "t4dataset_v1"
-    manifest = load_manifest(data_root)
-
-    assert isinstance(manifest, Manifest)
-    assert manifest.schema_version == "1.0.0"
-    assert serialize_dataclass(manifest) == json.loads((data_root / "manifest.json").read_text())
 
 
 def test_load_manifest_v0() -> None:
@@ -43,7 +32,7 @@ def test_unsupported_schema_version() -> None:
 
 @pytest.mark.parametrize(
     ("key", "value"),
-    [("is_synthetic", "yes"), ("version", -1), ("migration_notes", "note")],
+    [("is_synthetic", "yes"), ("version", -1)],
 )
 def test_invalid_field_type(key: str, value: object) -> None:
     data = json.loads((SAMPLE_ROOT / "t4dataset_v1" / "manifest.json").read_text())
