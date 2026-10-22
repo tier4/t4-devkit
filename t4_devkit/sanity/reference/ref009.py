@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName, Severity
+from ..checker import RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from .base import RecordReferenceChecker
 
@@ -16,6 +16,7 @@ class REF009(RecordReferenceChecker):
     id = RuleID("REF009")
     name = RuleName("instance-to-category")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = "'Instance.category_token' refers to 'Category' record."
     source = SchemaName.INSTANCE
     target = SchemaName.CATEGORY
