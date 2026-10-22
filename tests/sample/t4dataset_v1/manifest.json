@@ -45,7 +45,7 @@
     },
     "ego_pose": {
       "path": "annotation/ego_pose.json",
-      "sha256": "41c24c1c135773c2037e63f8aafe9080e2345eedd8a6ec71872d5ef7cabf6ce2"
+      "sha256": "c797549026aa60e7e5aa5578511754d62de75c52fc9f079fd7c914796a1f6c79"
     },
     "sensor": {
       "path": "annotation/sensor.json",

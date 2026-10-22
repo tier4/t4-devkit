@@ -306,3 +306,20 @@ def test_migrate_with_backfilled_metadata(tmp_path: Path) -> None:
     assert vehicles[0]["model"] == "j6_gen2"
     reports = sanity_check(output_root.parent.as_posix(), revision="1").reports
     assert not [report.id for report in reports if report.is_failed()]
+
+
+def test_migrate_drops_v0_acceleration(tmp_path: Path) -> None:
+    """0.x `ego_pose.acceleration` (a raw IMU reading) is dropped, with a note."""
+    sample = SampleCopy(tmp_path, SAMPLE_V0, name="v0")
+    sample.edit(
+        "ego_pose", lambda records: [dict(r, acceleration=[0.0, 0.0, -9.8]) for r in records]
+    )
+    output_root = tmp_path / "t4dataset" / "1"
+    with pytest.warns(UserWarning):  # the sample's fractional intensity stays float32
+        manifest = V0Migrator(sample.root, output_root).migrate("t4dataset", 1, keep_images=True)
+
+    poses = json.loads((output_root / "annotation" / "ego_pose.json").read_text())
+    assert all(pose["acceleration"] is None and pose["imu"] is None for pose in poses)
+    assert any(
+        note.startswith("ego_pose.acceleration dropped") for note in manifest.migration_notes
+    )
