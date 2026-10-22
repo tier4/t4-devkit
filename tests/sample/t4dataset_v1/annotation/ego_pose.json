@@ -1,8 +1,17 @@
 [
   {
     "token": "ego_cam0",
-    "translation": [0.0, 0.0, 0.0],
-    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "translation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "timestamp": 1704067200000000,
     "twist": null,
     "acceleration": null,
@@ -13,8 +22,17 @@
   },
   {
     "token": "ego_cam1",
-    "translation": [1.0, 0.0, 0.0],
-    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "translation": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "timestamp": 1704067200100000,
     "twist": null,
     "acceleration": null,
@@ -25,8 +43,17 @@
   },
   {
     "token": "ego_lidar0",
-    "translation": [0.0, 0.0, 0.0],
-    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "translation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "timestamp": 1704067200000000,
     "twist": null,
     "acceleration": null,
@@ -37,8 +64,17 @@
   },
   {
     "token": "ego_lidar1",
-    "translation": [1.0, 0.0, 0.0],
-    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "translation": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "timestamp": 1704067200100000,
     "twist": null,
     "acceleration": null,
@@ -49,8 +85,17 @@
   },
   {
     "token": "ego_lidar2",
-    "translation": [2.0, 0.0, 0.0],
-    "rotation": [1.0, 0.0, 0.0, 0.0],
+    "translation": [
+      2.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "timestamp": 1704067200200000,
     "twist": null,
     "acceleration": null,

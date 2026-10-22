@@ -8,7 +8,9 @@
     "status": null,
     "lateral_decision": null,
     "longitudinal_decision": null,
-    "events": ["following"],
+    "events": [
+      "following"
+    ],
     "scenery": null,
     "dynamic_entities": null,
     "justification": null,

@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import os.path as osp
 from enum import Enum, unique
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 from attrs import converters, define, field, validators
 
 from t4_devkit.common.io import load_json
+from t4_devkit.schema.tables.sensor import SensorModality
+
+from .name import SchemaName
 
 if TYPE_CHECKING:
     from t4_devkit.typing import PathLike
@@ -119,6 +122,73 @@ class Capabilities:
     traffic_light: bool = field(validator=validators.instance_of(bool))
     vehicle_state: bool = field(validator=validators.instance_of(bool))
     scenario: bool = field(validator=validators.instance_of(bool))
+
+    @classmethod
+    def from_tables(cls, tables: Mapping[SchemaName, Sequence[Any]]) -> Capabilities:
+        """Return what the tables contain: channels with frames, filled tables, tasks with labels.
+
+        `prediction` needs every sample to have a key frame (all frames annotated); `planning`
+        needs scenarios.
+
+        Args:
+            tables (Mapping[SchemaName, Sequence[Any]]): 1.0 records per table; a missing table
+                is empty.
+
+        Returns:
+            The capabilities.
+        """
+
+        def records(table: SchemaName) -> Sequence[Any]:
+            return tables.get(table, [])
+
+        sensors = records(SchemaName.SENSOR)
+        with_frames = {frame.sensor_token for frame in records(SchemaName.SAMPLE_DATA)}
+        channels = {
+            modality: list(
+                dict.fromkeys(
+                    sensor.channel
+                    for sensor in sensors
+                    if sensor.modality == modality and sensor.token in with_frames
+                )
+            )
+            for modality in SensorModality
+        }
+        lidar_columns = {
+            field.name
+            for sensor in sensors
+            if sensor.lidar is not None
+            for field in sensor.lidar.fields
+        }
+        samples = records(SchemaName.SAMPLE)
+        things = {category.token for category in records(SchemaName.CATEGORY) if category.is_thing}
+        object_anns = records(SchemaName.OBJECT_ANN)
+        has_task = {
+            Task.DETECTION3D: bool(records(SchemaName.SAMPLE_ANNOTATION)),
+            Task.DETECTION2D: any(ann.category_token in things for ann in object_anns),
+            Task.SEGMENTATION2D: any(ann.mask is not None for ann in object_anns),
+            Task.SEGMENTATION3D: "label" in lidar_columns,
+            Task.KEYPOINT: bool(records(SchemaName.KEYPOINT)),
+            # states, or lamp instances linked to the map
+            Task.TRAFFIC_LIGHT: bool(records(SchemaName.TRAFFIC_LIGHT))
+            or any(
+                instance.map_element.id is not None for instance in records(SchemaName.INSTANCE)
+            ),
+            Task.PREDICTION: bool(samples) and all(sample.has_key_frame for sample in samples),
+            Task.PLANNING: bool(records(SchemaName.SCENARIO)),
+        }
+        return cls(
+            tasks=[task for task in Task if has_task[task]],
+            modalities=Modalities(
+                camera=channels[SensorModality.CAMERA],
+                lidar=channels[SensorModality.LIDAR],
+                radar=channels[SensorModality.RADAR],
+            ),
+            map=bool(records(SchemaName.MAP)),
+            route=bool(records(SchemaName.ROUTE)),
+            traffic_light=bool(records(SchemaName.TRAFFIC_LIGHT)),
+            vehicle_state=bool(records(SchemaName.VEHICLE_STATE)),
+            scenario=bool(records(SchemaName.SCENARIO)),
+        )
 
 
 @define

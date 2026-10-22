@@ -8,7 +8,14 @@ import pypcd4
 import pytest
 from PIL import Image
 
-from t4_devkit.common.io import load_image, load_json, load_pointcloud, save_json
+from t4_devkit.common.io import (
+    load_image,
+    load_json,
+    load_pointcloud,
+    save_json,
+    save_pointcloud,
+    save_video,
+)
 
 SAMPLE_PARQUET = Path(__file__).parents[1] / "sample/t4dataset_v1/data/LIDAR_TOP/LIDAR_TOP.parquet"
 SAMPLE_VIDEO = Path(__file__).parents[1] / "sample/t4dataset_v1/data/CAM_FRONT/CAM_FRONT.mp4"
@@ -96,3 +103,82 @@ def test_load_image_file(tmp_path: Path) -> None:
     Image.fromarray(pixels).save(path)
 
     assert np.array_equal(load_image(path), pixels)
+
+
+def test_save_pointcloud(tmp_path: Path) -> None:
+    """Frames come back bit-exact in their dtypes, one row group each, empty frames included."""
+    fields = [
+        ("x", "float32"),
+        ("intensity", "uint8"),
+        ("channel", "uint16"),
+        ("time_stamp", "uint32"),
+    ]
+    rng = np.random.default_rng(0)
+    frames = [
+        {
+            "x": rng.normal(size=n).astype(np.float32),
+            "intensity": rng.integers(0, 256, n).astype(np.uint8),
+            "channel": rng.integers(0, 128, n).astype(np.uint16),
+            "time_stamp": rng.integers(0, 100_000_000, n).astype(np.uint32),
+        }
+        for n in (5, 0, 3)
+    ]
+    path = tmp_path / "LIDAR_TOP.parquet"
+
+    assert save_pointcloud(path, frames, fields) == 3
+    for frame_index, expected in enumerate(frames):
+        frame = load_pointcloud(path, frame_index=frame_index)
+        assert list(frame) == [name for name, _ in fields]
+        for name, dtype in fields:
+            assert frame[name].dtype == np.dtype(dtype)
+            assert np.array_equal(frame[name], expected[name])
+
+    columns = pq.ParquetFile(path).metadata.row_group(0).to_dict()["columns"]
+    encodings = {column["path_in_schema"]: column["encodings"] for column in columns}
+    assert "BYTE_STREAM_SPLIT" in encodings["x"]
+    assert "RLE_DICTIONARY" in encodings["intensity"]
+    assert "DELTA_BINARY_PACKED" in encodings["channel"]
+    assert "DELTA_BINARY_PACKED" in encodings["time_stamp"]
+
+
+@pytest.mark.parametrize(
+    ("dtype", "bit_depth", "max_value"), [(np.uint8, 8, 255), (np.uint16, 10, 65535)]
+)
+def test_save_video(tmp_path: Path, dtype, bit_depth: int, max_value: int) -> None:
+    """Frames read back by index, in any order, close to what was written."""
+    images = []
+    for i in range(3):
+        image = np.zeros((48, 64, 3), dtype=dtype)
+        image[..., 0] = np.linspace(0, max_value, 64).astype(dtype)
+        image[..., 1] = max_value // 4 * i
+        images.append(image)
+    path = tmp_path / "CAM_FRONT.mp4"
+
+    video = save_video(path, iter(images), frame_rate=10)
+    assert video["frame_count"] == 3 and video["timescale"] == 10
+    assert video["bit_depth"] == bit_depth
+    for frame_index in (2, 0, 1):
+        image = load_image(path, frame_index=frame_index)
+        assert image.dtype == dtype and image.shape == (48, 64, 3)
+        # lossy, but the green level of each frame is kept
+        green = image[..., 1].mean() / max_value
+        assert abs(green - 0.25 * frame_index) < 0.03
+
+
+def test_save_pointcloud_null_column(tmp_path: Path) -> None:
+    """A field that is None in a frame is written null and left out when read."""
+    fields = [("x", "float32"), ("label", "uint8")]
+    frames = [
+        {"x": np.array([1.0, 2.0], dtype=np.float32), "label": np.array([0, 3], dtype=np.uint8)},
+        {"x": np.array([4.0], dtype=np.float32), "label": None},
+    ]
+    path = tmp_path / "LIDAR_TOP.parquet"
+
+    assert save_pointcloud(path, frames, fields) == 2
+    assert load_pointcloud(path, frame_index=0)["label"].tolist() == [0, 3]
+    assert list(load_pointcloud(path, frame_index=1)) == ["x"]
+
+    # what the reader returns can be written back as it is
+    again = tmp_path / "again.parquet"
+    save_pointcloud(again, [load_pointcloud(path, frame_index=i) for i in range(2)], fields)
+    assert list(load_pointcloud(again, frame_index=1)) == ["x"]
