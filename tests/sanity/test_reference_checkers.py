@@ -320,7 +320,6 @@ def test_ref201_fail_missing_filename(tmp_path: Path) -> None:
     assert any("does_not_exist.jpg" in r for r in report.reasons)
 
 
-
 def test_ref201_pass_packed_frames(tmp_path: Path) -> None:
     """REF201 passes if loose .pcd.bin frames are deleted but stored in their pack."""
     root = _copy_dataset(tmp_path / "dataset_ref201_packed")
