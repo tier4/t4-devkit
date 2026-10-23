@@ -6,6 +6,7 @@ import pytest
 from typer import Typer
 from typer.testing import CliRunner
 
+from t4_devkit.cli.pack import cli as pack_cli
 from t4_devkit.cli.sanity import cli as sanity_cli
 from t4_devkit.cli.visualize import cli as visualize_cli
 
@@ -14,6 +15,7 @@ from t4_devkit.cli.visualize import cli as visualize_cli
     ("cli", "name"),
     [
         (sanity_cli, "t4sanity"),
+        (pack_cli, "t4pack"),
         (visualize_cli, "t4viz"),
     ],
 )

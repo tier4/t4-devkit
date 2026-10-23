@@ -22,6 +22,7 @@ dependencies = [
     "returns>=0.26.0",
     "pyarrow<24.0.0", # NOTE: pyarrow==24.0.0 is only supported on macOS
     "pypcd4>=1.4.3,<2",
+    "zstandard>=0.23.0",
 ]
 
 [dependency-groups]
@@ -42,6 +43,7 @@ dev = [
 [project.scripts]
 t4viz = "t4_devkit.cli.visualize:cli"
 t4sanity = "t4_devkit.cli.sanity:cli"
+t4pack = "t4_devkit.cli.pack:cli"
 
 [tool.ruff]
 line-length = 100
