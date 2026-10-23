@@ -10,6 +10,7 @@ import typer
 from rich.console import Console
 
 from t4_devkit.common.t4pack import (
+    DEFAULT_NUM_PTS_FEATS,
     FRAME_SUFFIX,
     PACK_SUFFIX,
     delete_loose_frames,
@@ -161,8 +162,8 @@ def _find_packed_channel_dirs(data_root: str, revision: str | None) -> list[str]
 
 
 def _num_pts_feats(channel_dir: str) -> int:
-    """Return `num_pts_feats` from the metainfo in `<CHANNEL>_INFO/`, or 5 if there is none."""
+    """Return `num_pts_feats` from the metainfo in `<CHANNEL>_INFO/`, or the default if none."""
     info_filepaths = sorted(glob(osp.join(f"{channel_dir}_INFO", "*.json")))
     if not info_filepaths:
-        return 5
+        return DEFAULT_NUM_PTS_FEATS
     return PointCloudMetainfo.from_file(info_filepaths[0]).num_pts_feats

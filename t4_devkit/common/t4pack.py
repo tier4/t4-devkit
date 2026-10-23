@@ -36,6 +36,8 @@ if TYPE_CHECKING:
 
 __all__ = (
     "PACK_SUFFIX",
+    "FRAME_SUFFIX",
+    "DEFAULT_NUM_PTS_FEATS",
     "PackLayout",
     "PackReader",
     "PackStats",
@@ -55,6 +57,8 @@ TRAILER = struct.Struct("<QQ")
 PACK_SUFFIX = ".pack"
 #: Suffix of a loose pointcloud frame.
 FRAME_SUFFIX = ".pcd.bin"
+#: Default number of float32 fields in each point of a frame: (x, y, z, intensity, ring).
+DEFAULT_NUM_PTS_FEATS = 5
 
 
 @define(frozen=True)
@@ -407,7 +411,7 @@ def _list_frames(directory: str) -> list[str]:
 
 def pack_directory(
     directory: PathLike,
-    num_pts_feats: int = 5,
+    num_pts_feats: int = DEFAULT_NUM_PTS_FEATS,
     level: int = 19,
     overwrite: bool = False,
 ) -> PackStats | None:
@@ -492,7 +496,7 @@ def pack_directory(
     )
 
 
-def verify_pack(directory: PathLike, num_pts_feats: int = 5) -> list[str]:
+def verify_pack(directory: PathLike, num_pts_feats: int = DEFAULT_NUM_PTS_FEATS) -> list[str]:
     """Verify `<directory>.pack` against the `.pcd.bin` frames in the directory.
 
     A frame whose source exists must equal it bit-exact, a source frame must be in the pack,
@@ -552,7 +556,7 @@ def _is_bit_exact(lhs: NDArrayF32, rhs: NDArrayF32) -> bool:
     return lhs.shape == rhs.shape and lhs.tobytes() == rhs.tobytes()
 
 
-def delete_loose_frames(directory: PathLike, num_pts_feats: int = 5) -> int:
+def delete_loose_frames(directory: PathLike, num_pts_feats: int = DEFAULT_NUM_PTS_FEATS) -> int:
     """Delete the `.pcd.bin` frames in a directory after verifying `<directory>.pack`.
 
     Nothing is deleted unless every frame in the directory equals its frame in the pack,
