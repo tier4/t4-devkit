@@ -324,6 +324,9 @@ class PackReader:
     def __len__(self) -> int:
         return len(self.frames)
 
+    def __contains__(self, name: str) -> bool:
+        return name in self._name_to_index
+
     def __enter__(self) -> Self:
         return self
 
@@ -376,7 +379,7 @@ class PackReader:
         Returns:
             NDArrayF32: Points in the shape of (N, num_columns).
         """
-        if name not in self._name_to_index:
+        if name not in self:
             raise KeyError(f"Frame '{name}' is not found in {self.filepath}")
         return self.read_frame(self._name_to_index[name])
 
@@ -456,11 +459,14 @@ def pack_directory(
 
     filepaths = [osp.join(directory, name) for name in names]
     layout = PackLayout.from_num_pts_feats(num_pts_feats)
+    lossless_layout = layout.to_lossless()
+    # try the compact layout first, and fall back to the lossless one if it does not round-trip
+    candidates = [layout] if layout == lossless_layout else [layout, lossless_layout]
 
     # write to a temporary file, verify it, and then rename it to the final path
     tmp_filepath = _make_tmp_file(pack_filepath)
     try:
-        for candidate in dict.fromkeys((layout, layout.to_lossless())):
+        for candidate in candidates:
             num_frames = write_pack(
                 tmp_filepath,
                 (_load_frame(filepath, num_pts_feats) for filepath in filepaths),
@@ -471,7 +477,8 @@ def pack_directory(
             mismatches = _compare_frames(tmp_filepath, directory, names, num_pts_feats)
             if not mismatches:
                 break
-        else:
+
+        if mismatches:
             raise ValueError(
                 f"{len(mismatches)} frames differ after packing {directory}, e.g. {mismatches[:3]}"
             )
@@ -534,9 +541,17 @@ def _compare_frames(
                 source = _load_frame(osp.join(directory, name), num_pts_feats)
             except FileNotFoundError:
                 continue  # deleted by another process after listing, the frame is decodable
-            if not np.array_equal(packed, source):
+            if not _is_bit_exact(packed, source):
                 mismatches.append(name)
     return mismatches
+
+
+def _is_bit_exact(lhs: NDArrayF32, rhs: NDArrayF32) -> bool:
+    """Return whether two arrays are identical bit by bit.
+
+    Unlike `np.array_equal`, NaN equals NaN and -0.0 differs from 0.0.
+    """
+    return lhs.shape == rhs.shape and lhs.tobytes() == rhs.tobytes()
 
 
 def delete_loose_frames(directory: PathLike, num_pts_feats: int = 5) -> int:

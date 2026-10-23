@@ -76,8 +76,23 @@ def test_delete_loose_refuses_changed_frame(tmp_path: Path) -> None:
     np.ones((10, 5), dtype=np.float32).tofile(lidar_dir / "00001.pcd.bin")
 
     result = runner.invoke(cli, ["pack", str(data_root), "--delete-loose"])
-    assert result.exit_code != 0
+    assert result.exit_code == 1
+    assert "FAILED" in result.output
     assert len(list(lidar_dir.glob("*.pcd.bin"))) == 3
+
+
+def test_pack_continues_after_failed_channel(tmp_path: Path) -> None:
+    data_root = _create_dataset(tmp_path)
+    data_dir = data_root / "0" / "data"
+    # a broken channel sorted before LIDAR_CONCAT
+    (data_dir / "LIDAR_BROKEN").mkdir()
+    np.zeros(7, dtype=np.float32).tofile(data_dir / "LIDAR_BROKEN" / "00000.pcd.bin")
+
+    result = CliRunner().invoke(cli, ["pack", str(data_root), "--level", "1"])
+
+    assert result.exit_code == 1
+    assert "FAILED" in result.output
+    assert (data_dir / "LIDAR_CONCAT.pack").exists()
 
 
 def test_verify_fails_on_changed_frame(tmp_path: Path) -> None:

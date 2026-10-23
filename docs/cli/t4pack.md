@@ -58,6 +58,7 @@ t4pack pack <DATA_ROOT>
 Every frame is verified bit-exact against its source before the pack is put in place, so an existing pack is always complete.
 If the source values do not fit the compact `uint8`/`int8` columns, e.g. non-integer intensity, every column is stored as `float32` instead.
 A channel that is already packed is skipped unless `--overwrite` is specified.
+If a channel fails, it is reported as `FAILED` and the other channels are still processed, then the command exits with `1`.
 
 The source `.pcd.bin` files are kept by default. With `--delete-loose`, they are deleted after every frame is verified against the pack again, which also applies to a channel that is already packed:
 

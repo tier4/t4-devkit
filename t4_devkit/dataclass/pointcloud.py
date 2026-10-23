@@ -43,9 +43,12 @@ def _load_pcd_bin(filepath: str, num_pts_feats: int) -> NDArrayFloat:
         NDArrayFloat: Points in the shape of (N, num_pts_feats).
     """
     if not osp.exists(filepath) and (pack_filepath := find_pack(filepath)) is not None:
+        name = osp.basename(filepath)
         with PackReader(pack_filepath) as reader:
-            return reader.read_frame_by_name(osp.basename(filepath))
+            if name in reader:
+                return reader.read_frame_by_name(name)
 
+    # raise FileNotFoundError if the frame is neither a file nor in the pack
     scan = np.fromfile(filepath, dtype=np.float32)
     return scan.reshape((-1, num_pts_feats))
 

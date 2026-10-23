@@ -443,6 +443,16 @@ def test_lidar_pointcloud_from_file_raises_without_file_and_pack(tmp_path: Path)
         LidarPointCloud.from_file(str(tmp_path / "LIDAR_CONCAT" / "00000.pcd.bin"))
 
 
+def test_lidar_pointcloud_from_file_raises_if_frame_is_not_in_pack(tmp_path: Path) -> None:
+    lidar_dir = tmp_path / "data" / "LIDAR_CONCAT"
+    lidar_dir.mkdir(parents=True)
+    np.zeros((3, 5), dtype=np.float32).tofile(lidar_dir / "00000.pcd.bin")
+    pack_directory(lidar_dir, level=1)
+
+    with pytest.raises(FileNotFoundError):
+        LidarPointCloud.from_file(str(lidar_dir / "00001.pcd.bin"))
+
+
 def test_segmentation_pointcloud_from_file_reads_points_from_pack(tmp_path: Path) -> None:
     lidar_dir = tmp_path / "data" / "LIDAR_CONCAT"
     lidar_dir.mkdir(parents=True)

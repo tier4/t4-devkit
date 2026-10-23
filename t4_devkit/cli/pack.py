@@ -71,25 +71,32 @@ def pack(
 ) -> None:
     channel_dirs = _find_channel_dirs(data_root, revision)
 
+    is_passed = True
     for channel_dir in channel_dirs:
         num_pts_feats = _num_pts_feats(channel_dir)
-        stats = pack_directory(
-            channel_dir,
-            num_pts_feats=num_pts_feats,
-            level=level,
-            overwrite=overwrite,
-        )
-        if stats is None:
-            console.print(f"[yellow]SKIP[/yellow] {channel_dir}: already packed")
-        else:
-            console.print(
-                f"[green]PACKED[/green] {channel_dir}: {stats.num_frames} frames, "
-                f"{stats.raw_bytes} -> {stats.packed_bytes} bytes ({stats.ratio:.2f}x)"
+        try:
+            stats = pack_directory(
+                channel_dir,
+                num_pts_feats=num_pts_feats,
+                level=level,
+                overwrite=overwrite,
             )
+            if stats is None:
+                console.print(f"[yellow]SKIP[/yellow] {channel_dir}: already packed")
+            else:
+                console.print(
+                    f"[green]PACKED[/green] {channel_dir}: {stats.num_frames} frames, "
+                    f"{stats.raw_bytes} -> {stats.packed_bytes} bytes ({stats.ratio:.2f}x)"
+                )
 
-        if delete_loose:
-            num_deleted = delete_loose_frames(channel_dir, num_pts_feats=num_pts_feats)
-            console.print(f"[green]DELETED[/green] {channel_dir}: {num_deleted} frames")
+            if delete_loose:
+                num_deleted = delete_loose_frames(channel_dir, num_pts_feats=num_pts_feats)
+                console.print(f"[green]DELETED[/green] {channel_dir}: {num_deleted} frames")
+        except (OSError, ValueError) as e:
+            is_passed = False
+            console.print(f"[red]FAILED[/red] {channel_dir}: {e}")
+
+    sys.exit(0 if is_passed else 1)
 
 
 @cli.command(

@@ -91,6 +91,8 @@ def test_write_and_read_pack(tmp_path: Path) -> None:
             reader.read_frame(3)
         with pytest.raises(KeyError):
             reader.read_frame_by_name("2.pcd.bin")
+        assert "10.pcd.bin" in reader
+        assert "2.pcd.bin" not in reader
 
 
 def test_write_pack_names_frames_by_index_by_default(tmp_path: Path) -> None:
@@ -174,6 +176,32 @@ def test_pack_directory_falls_back_to_lossless_layout(tmp_path: Path) -> None:
         assert reader.frames[0]["dtypes"] == ["f4s"] * 5
         assert np.array_equal(reader.read_frame(0), frame)
     assert verify_pack(directory) == []
+
+
+def test_pack_directory_keeps_nan_points(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    frame = _frame(100)
+    frame[0, :3] = np.nan
+    _write_frames(directory, [frame], ["00000.pcd.bin"])
+
+    pack_directory(directory, level=1)
+
+    assert verify_pack(directory) == []
+    with PackReader(tmp_path / "LIDAR_CONCAT.pack") as reader:
+        assert reader.read_frame(0).tobytes() == frame.tobytes()
+
+
+def test_pack_directory_is_bit_exact_for_negative_zero(tmp_path: Path) -> None:
+    directory = tmp_path / "LIDAR_CONCAT"
+    frame = _frame(100)
+    frame[0, 3] = -0.0  # equals 0.0, but is lost by uint8
+    _write_frames(directory, [frame], ["00000.pcd.bin"])
+
+    pack_directory(directory, level=1)
+
+    with PackReader(tmp_path / "LIDAR_CONCAT.pack") as reader:
+        assert reader.frames[0]["dtypes"] == ["f4s"] * 5
+        assert reader.read_frame(0).tobytes() == frame.tobytes()
 
 
 def test_pack_layout_to_lossless() -> None:
