@@ -14,8 +14,6 @@ Points are stored column-major, one contiguous plane per column. Float32 columns
 byte-shuffled (dtype code `f4s`): the four bytes of every float are split into four planes,
 so the near-constant sign/exponent bytes are grouped together and zstd can match them.
 Each frame is compressed independently, so reading one frame decodes only that frame.
-
-The format is compatible with the e2e-devkit `lidar_pack.py` reader.
 """
 
 from __future__ import annotations
