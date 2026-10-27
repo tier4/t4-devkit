@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Check if relevant files have been changed
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@9d7afb8d214ad99e78fbd4247752c4caed2b6e4c # v4
         id: is-changed
         with:
           filters: |
@@ -32,7 +32,7 @@ jobs:
 
       - name: Define a cache dependency glob
         if: ${{ steps.is-changed.outputs.changes == 'true'}}
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v10
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
@@ -56,7 +56,7 @@ jobs:
 
       - name: Get test coverage
         if: ${{ steps.is-changed.outputs.changes == 'true'}} && ${{ matrix.python-version == '3.10' }}
-        uses: orgoro/coverage@v3.1
+        uses: orgoro/coverage@71cf993a407154ad9d8dd027c88a374b0ed002a9 # v3.3
         continue-on-error: true
         with:
           coverageFile: ./coverage.xml
