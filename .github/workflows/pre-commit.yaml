@@ -13,6 +13,6 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Run pre-commit
-        uses: autowarefoundation/autoware-github-actions/pre-commit@3e1247bc10813cf9f6b9deb4bebb3eff6bb46ed6 # v1.69.0
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         with:
-          pre-commit-config: .pre-commit-config.yaml
+          extra_args: --config .pre-commit-config.yaml --all-files
