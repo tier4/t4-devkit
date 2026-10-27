@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from t4_devkit.common.t4pack import delete_loose_frames, pack_directory
 from t4_devkit.sanity.context import SanityContext
 from t4_devkit.sanity.reference.ref001 import REF001
 from t4_devkit.sanity.reference.ref002 import REF002
@@ -317,6 +318,33 @@ def test_ref201_fail_missing_filename(tmp_path: Path) -> None:
     assert not report.is_passed(strict=True)
     assert report.reasons
     assert any("does_not_exist.jpg" in r for r in report.reasons)
+
+
+def test_ref201_pass_packed_frames(tmp_path: Path) -> None:
+    """REF201 passes if loose .pcd.bin frames are deleted but stored in their pack."""
+    root = _copy_dataset(tmp_path / "dataset_ref201_packed")
+    lidar_dir = root / "data" / "LIDAR_TOP"
+    pack_directory(lidar_dir, level=1)
+    delete_loose_frames(lidar_dir)
+    assert not lidar_dir.exists()
+
+    checker = REF201()
+    report = checker(_context(root))
+    assert report.is_passed(strict=True)
+
+
+def test_ref201_fail_frame_missing_in_pack(tmp_path: Path) -> None:
+    """REF201 fails if a deleted .pcd.bin frame is not stored in its pack."""
+    root = _copy_dataset(tmp_path / "dataset_ref201_packed_fail")
+    lidar_dir = root / "data" / "LIDAR_TOP"
+    (lidar_dir / "003.pcd.bin").rename(tmp_path / "003.pcd.bin")
+    pack_directory(lidar_dir, level=1)
+    delete_loose_frames(lidar_dir)
+
+    checker = REF201()
+    report = checker(_context(root))
+    assert not report.is_passed(strict=True)
+    assert list(report.reasons) == ["File not found: data/LIDAR_TOP/003.pcd.bin"]
 
 
 def test_ref202_fail_missing_info_filename(tmp_path: Path) -> None:

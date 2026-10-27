@@ -10,6 +10,7 @@ import pypcd4
 from attrs import define, field
 
 from t4_devkit.common.io import load_json
+from t4_devkit.common.t4pack import DEFAULT_NUM_PTS_FEATS, PackReader, find_pack
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -26,6 +27,30 @@ __all__ = [
     "PointCloudSourceInfo",
     "Stamp",
 ]
+
+
+def _load_pcd_bin(filepath: str, num_pts_feats: int) -> NDArrayFloat:
+    """Load points from a `.pcd.bin` file.
+
+    If the file does not exist but the pack of its directory does, e.g. `data/LIDAR_CONCAT.pack`,
+    the frame is read from the pack instead.
+
+    Args:
+        filepath (str): Path to the `.pcd.bin` file.
+        num_pts_feats (int): Number of float32 fields in each point.
+
+    Returns:
+        NDArrayFloat: Points in the shape of (N, num_pts_feats).
+    """
+    if not osp.exists(filepath) and (pack_filepath := find_pack(filepath)) is not None:
+        name = osp.basename(filepath)
+        with PackReader(pack_filepath) as reader:
+            if name in reader:
+                return reader.read_frame_by_name(name)
+
+    # raise FileNotFoundError if the frame is neither a file nor in the pack
+    scan = np.fromfile(filepath, dtype=np.float32)
+    return scan.reshape((-1, num_pts_feats))
 
 
 @define
@@ -79,7 +104,7 @@ class PointCloudMetainfo:
 
     stamp: Stamp = field(converter=lambda x: Stamp(**x) if isinstance(x, dict) else x)
     sources: list[PointCloudSourceInfo] = field(factory=list)
-    num_pts_feats: int = 5
+    num_pts_feats: int = DEFAULT_NUM_PTS_FEATS
 
     @classmethod
     def from_file(cls, filepath: str) -> Self:
@@ -96,7 +121,11 @@ class PointCloudMetainfo:
         sources = []
         for source_data in data.get("sources", []):
             sources.append(PointCloudSourceInfo(**source_data))
-        return cls(stamp=stamp, sources=sources, num_pts_feats=data.get("num_pts_feats", 5))
+        return cls(
+            stamp=stamp,
+            sources=sources,
+            num_pts_feats=data.get("num_pts_feats", DEFAULT_NUM_PTS_FEATS),
+        )
 
     @property
     def source_tokens(self) -> list[str]:
@@ -271,9 +300,8 @@ class LidarPointCloud(PointCloud):
         )
 
         if filepath.endswith(".bin"):
-            num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-            scan = np.fromfile(filepath, dtype=np.float32)
-            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+            num_pts_feats = getattr(metainfo, "num_pts_feats", DEFAULT_NUM_PTS_FEATS)
+            points = _load_pcd_bin(filepath, num_pts_feats)[:, : cls.num_dims()]
         else:
             pcd = pypcd4.PointCloud.from_path(filepath)
             points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)
@@ -423,9 +451,8 @@ class SegmentationPointCloud(PointCloud):
         )
 
         if point_filepath.endswith(".bin"):
-            num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-            scan = np.fromfile(point_filepath, dtype=np.float32)
-            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
+            num_pts_feats = getattr(metainfo, "num_pts_feats", DEFAULT_NUM_PTS_FEATS)
+            points = _load_pcd_bin(point_filepath, num_pts_feats)[:, : cls.num_dims()]
         else:
             pcd = pypcd4.PointCloud.from_path(point_filepath)
             points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)
