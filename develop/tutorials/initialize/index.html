@@ -1880,7 +1880,7 @@
 <p>You can initialize a <code>T4Devkit</code> instance as follows:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span><span class="w"> </span><span class="nn">t4_devkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">T4Devkit</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span> <span class="o">=</span> <span class="n">T4Devkit</span><span class="p">(</span><span class="s2">&quot;data/tier4/&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span> <span class="o">=</span> <span class="n">T4Devkit</span><span class="p">(</span><span class="s2">"data/tier4/"</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="o">======</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">Loading</span> <span class="n">T4</span> <span class="n">tables</span> <span class="ow">in</span> <span class="err">`</span><span class="n">annotation</span><span class="err">`</span><span class="o">...</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">Reverse</span> <span class="n">indexing</span><span class="o">...</span>
@@ -1907,7 +1907,7 @@
 </span></code></pre></div>
 <p>Note that if you doesn't specify <code>revision</code> parameter in construction, it searches the latest version of the dataset.
 By specifying <code>revision=&lt;VERSION&gt;</code>, you can load the specific version of the dataset.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span> <span class="o">=</span> <span class="n">T4Devkit</span><span class="p">(</span><span class="s2">&quot;data/tier4/&quot;</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span> <span class="o">=</span> <span class="n">T4Devkit</span><span class="p">(</span><span class="s2">"data/tier4/"</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="s2">"2"</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="access-to-schema-fields">Access to Schema Fields</h2>
 <hr />
@@ -1917,7 +1917,7 @@ By specifying <code>revision=&lt;VERSION&gt;</code>, you can load the specific v
 <h3 id="sample"><code>sample</code></h3>
 <p><code>sample</code> is an annotated keyframe of a scene at a given timestamp.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">first_sample_token</span> <span class="o">=</span> <span class="n">my_scene</span><span class="o">.</span><span class="n">first_sample_token</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">my_sample</span> <span class="o">=</span> <span class="n">t4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sample&quot;</span><span class="p">,</span> <span class="n">first_sample_token</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">my_sample</span> <span class="o">=</span> <span class="n">t4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sample"</span><span class="p">,</span> <span class="n">first_sample_token</span><span class="p">)</span>
 </span></code></pre></div>
 <p>You can access the <code>sample_data</code> associated with this <code>sample</code>.
 <code>sample.data</code> returns a <code>dict</code> object consists of <code>{str: &lt;SAMPLE_DATA_TOKEN (str)&gt;}</code>.</p>
@@ -1925,15 +1925,15 @@ By specifying <code>revision=&lt;VERSION&gt;</code>, you can load the specific v
 </span></code></pre></div>
 <h3 id="sample_data"><code>sample_data</code></h3>
 <p><code>sample_data</code> is references to a family of data that is collected from specific sensors.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">sensor</span> <span class="o">=</span> <span class="s2">&quot;CAM_FRONT&quot;</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sample_data&quot;</span><span class="p">,</span> <span class="n">my_sample</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">sensor</span><span class="p">])</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">sensor</span> <span class="o">=</span> <span class="s2">"CAM_FRONT"</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sample_data"</span><span class="p">,</span> <span class="n">my_sample</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">sensor</span><span class="p">])</span>
 </span></code></pre></div>
 <h3 id="sample_annotation"><code>sample_annotation</code></h3>
 <p><code>sample_annotation</code> refers to any 3D bounding box in a corresponding <code>sample</code>.
 All location data is given with respect to the global coordinate system.
 You can access the list of <code>sample_annotation</code> tokens with <code>sample.ann_3ds: list[str]</code>.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">my_annotation_token</span> <span class="o">=</span> <span class="n">my_sample</span><span class="o">.</span><span class="n">ann_3ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sample_annotation&quot;</span><span class="p">,</span> <span class="n">my_annotation_token</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sample_annotation"</span><span class="p">,</span> <span class="n">my_annotation_token</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="instance"><code>instance</code></h3>
 <p>Each annotated object is instanced to be tracked.</p>
