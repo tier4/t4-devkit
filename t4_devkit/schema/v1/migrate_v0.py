@@ -209,6 +209,11 @@ class V0Migrator:
             self.notes.append(
                 "provenance.rosbag.record_start / record_end are the first / last sample times"
             )
+        if any(record.get("acceleration") for record in self._load_v0("ego_pose")):
+            self.notes.append(
+                "ego_pose.acceleration dropped: 0.x stored raw IMU readings, whose frame and "
+                "gravity sign vary by vehicle; the backfill restores acceleration and imu"
+            )
         manifest_info = self._manifest_info(dataset_id, version)
         manifest_info.update(fields)
         manifest_info["migration_notes"] = self.notes + list(fields.get("migration_notes", []))

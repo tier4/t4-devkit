@@ -93,13 +93,16 @@ ego_pose {
   "rotation":         <[float;4]> -- Orientation as quaternion (w, x, y, z).
   "timestamp":        <int> -- Unix timestamp in microseconds.
   "twist":            <option[[float;6]]> -- (vx, vy, vz, yaw_rate, pitch_rate, roll_rate) in the vehicle frame.
-  "acceleration":     <option[[float;3]]> -- (ax, ay, az) in the vehicle frame, as an IMU measures it: gravity included (az ≈ +9.8 m/s² at rest).
+  "acceleration":     <option[[float;3]]> -- (ax, ay, az) in the vehicle frame [m/s²], without gravity: the localization estimate, what Autoware feeds the planner.
+  "imu":              <option[[float;6]]> -- (ax, ay, az, wx, wy, wz): the raw IMU in the vehicle frame, specific force with gravity (az ≈ +9.8 m/s² at rest) and angular velocity [rad/s].
   "geocoordinate":    <option[[float;3]]> -- (latitude, longitude, altitude).
   "source":           <enum["localization", "post_processed", "gnss_ins"]> -- Where the pose came from.
   "frame":            <str> -- Coordinate frame, e.g. "map".
   "covariance":       <option[[float;36]]> -- 6×6 pose covariance, row-major.
 }
 ```
+
+An `ego_pose` sits at a sample time. `twist`, `acceleration`, `imu`, `geocoordinate` and `covariance` hold the latest message at or before `timestamp`, best effort; the pose itself is interpolated at `timestamp`.
 
 ### Sensor
 

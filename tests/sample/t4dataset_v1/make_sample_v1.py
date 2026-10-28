@@ -154,6 +154,7 @@ def tables(camera_video: dict, lidar_path: str, map_sha256: str) -> dict[str, li
                     "timestamp": timestamps[i],
                     "twist": None,
                     "acceleration": None,
+                    "imu": None,
                     "geocoordinate": None,
                     "source": "localization",
                     "frame": "map",
