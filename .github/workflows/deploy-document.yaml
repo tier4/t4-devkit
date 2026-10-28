@@ -8,10 +8,12 @@ on:
   workflow_dispatch:
     inputs:
       version:
+        type: string
         description: "Version to deploy (e.g., v1.0.0, latest, develop)"
         required: true
         default: "develop"
       alias:
+        type: string
         description: "Version alias (e.g., latest, stable)"
         required: false
         default: ""
@@ -23,7 +25,7 @@ jobs:
   deploy-document:
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -33,7 +35,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Define a cache dependency glob
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v10
         with:
           python-version: "3.10"
           cache-dependency-glob: "**/pyproject.toml"
