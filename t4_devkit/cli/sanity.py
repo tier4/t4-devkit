@@ -45,8 +45,17 @@ def main(
     fix: bool = typer.Option(
         False, "-f", "--fix", help="Attempt to fix the issues reported by the sanity check."
     ),
+    checksum: bool = typer.Option(
+        False,
+        "-c",
+        "--checksum",
+        help="Verify the SHA-256 of every file listed in manifest.json (1.0 datasets). "
+        "Reads every file, including videos and rosbags.",
+    ),
 ) -> None:
-    result = sanity_check(data_root=data_root, revision=revision, excludes=excludes, fix=fix)
+    result = sanity_check(
+        data_root=data_root, revision=revision, excludes=excludes, fix=fix, checksum=checksum
+    )
 
     print_sanity_result(result, strict=strict)
 

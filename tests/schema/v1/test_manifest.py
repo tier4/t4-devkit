@@ -1,0 +1,62 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+from attrs import evolve
+
+from t4_devkit.schema.v1 import (
+    Capabilities,
+    Manifest,
+    SchemaName,
+    Task,
+    load_dataset,
+    load_manifest,
+)
+
+SAMPLE_ROOT = Path(__file__).parents[2] / "sample"
+
+
+def test_load_manifest_v0() -> None:
+    """A 0.x dataset has no manifest."""
+    assert load_manifest(SAMPLE_ROOT / "t4dataset") is None
+
+
+def test_unsupported_schema_version() -> None:
+    data = json.loads((SAMPLE_ROOT / "t4dataset_v1" / "manifest.json").read_text())
+    data["schema_version"] = "2.0.0"
+    with pytest.raises(ValueError, match="Unsupported schema_version"):
+        Manifest(**data)
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [("is_synthetic", "yes"), ("version", -1)],
+)
+def test_invalid_field_type(key: str, value: object) -> None:
+    data = json.loads((SAMPLE_ROOT / "t4dataset_v1" / "manifest.json").read_text())
+    data[key] = value
+    with pytest.raises((TypeError, ValueError)):
+        Manifest(**data)
+
+
+def test_invalid_sha256() -> None:
+    data = json.loads((SAMPLE_ROOT / "t4dataset_v1" / "manifest.json").read_text())
+    data["assets"][0]["sha256"] = "not-a-hash"
+    with pytest.raises(ValueError):
+        Manifest(**data)
+
+
+def test_capabilities_prediction_and_planning() -> None:
+    """Prediction needs every sample to have a key frame; planning needs scenarios."""
+    tables = dict(load_dataset(SAMPLE_ROOT / "t4dataset_v1").tables)
+    tasks = Capabilities.from_tables(tables).tasks
+    assert Task.PLANNING in tasks
+    assert Task.PREDICTION not in tasks  # sample2 has no key frame
+
+    tables[SchemaName.SAMPLE] = [evolve(s, has_key_frame=True) for s in tables[SchemaName.SAMPLE]]
+    tables[SchemaName.SCENARIO] = []
+    tasks = Capabilities.from_tables(tables).tasks
+    assert Task.PREDICTION in tasks
+    assert Task.PLANNING not in tasks

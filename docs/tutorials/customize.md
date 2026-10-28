@@ -57,8 +57,8 @@ from __future__ import annotations
 
 from attrs import define, field
 
-from t4_devkit.schema import SCHEMAS, SchemaName, SchemaBase
-from t4_devkit.common import load_json
+from t4_devkit.schema import SchemaBase
+from t4_devkit.schema.v1 import SCHEMAS, SchemaName
 
 __all__ = ["CustomAttribute"]
 
@@ -76,6 +76,8 @@ class CustomAttribute(SchemaBase):
     name: str
     description: str | None = field(default=None)
 ```
+
+`T4Devkit` builds every table with the T4Dataset 1.0 registry (`t4_devkit.schema.v1.SCHEMAS`), for 1.0 datasets and for 0.x datasets (converted to 1.0 records when loading), so a custom class receives 1.0 records.
 
 Note that `CustomAttribute` should be imported before instantiating `T4Devkit` class.
 Then modify `__init__.py` in order to import it automatically:

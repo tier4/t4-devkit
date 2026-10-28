@@ -6,7 +6,7 @@ from t4_devkit.common.timestamp import microseconds2seconds
 
 if TYPE_CHECKING:
     from t4_devkit import T4Devkit
-    from t4_devkit.schema import ObjectAnn, Sample, SampleAnnotation, SampleData
+    from t4_devkit.schema.v1 import ObjectAnn, Sample, SampleAnnotation, SampleData
 
 
 __all__ = ["TimeseriesHelper"]
@@ -26,7 +26,7 @@ class TimeseriesHelper:
         self._sample_and_instance_to_ann3d: dict[tuple[str, str], str] = {
             (ann.sample_token, ann.instance_token): ann.token for ann in self._t4.sample_annotation
         }
-        self._sample_data_and_instance_to_ann2d: dict[tuple[str, str], str] = {
+        self._sample_data_and_instance_to_ann2d: dict[tuple[str, str | None], str] = {
             (ann.sample_data_token, ann.instance_token): ann.token for ann in self._t4.object_ann
         }
 
@@ -54,7 +54,7 @@ class TimeseriesHelper:
         anns: list[SampleAnnotation] = []
         is_successor = seconds >= 0
         current_sample_token = start_sample.next if is_successor else start_sample.prev
-        while current_sample_token != "":
+        while current_sample_token is not None:
             current_sample: Sample = self._t4.get("sample", current_sample_token)
 
             if abs(microseconds2seconds(current_sample.timestamp - start_sample.timestamp)) > abs(
@@ -99,7 +99,7 @@ class TimeseriesHelper:
         current_sample_data_token = (
             start_sample_data.next if is_successor else start_sample_data.prev
         )
-        while current_sample_data_token != "":
+        while current_sample_data_token is not None:
             current_sample_data: SampleData = self._t4.get("sample_data", current_sample_data_token)
 
             if abs(

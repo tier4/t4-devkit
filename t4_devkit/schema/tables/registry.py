@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from enum import Enum
 from typing import TYPE_CHECKING, Callable, KeysView
 
 from ..name import SchemaName
@@ -14,9 +15,14 @@ __all__ = ["SCHEMAS"]
 
 
 class SchemaRegistry:
-    """A manager class to register schema tables."""
+    """A manager class to register schema tables.
 
-    def __init__(self) -> None:
+    Args:
+        name_type (type[Enum], optional): Enum of the table names this registry accepts.
+    """
+
+    def __init__(self, name_type: type[Enum] = SchemaName) -> None:
+        self.__name_type = name_type
         self.__schemas: dict[str, SchemaTable] = {}
 
     @property
@@ -27,13 +33,13 @@ class SchemaRegistry:
         return len(self.__schemas)
 
     def __contains__(self, key: str | SchemaName) -> bool:
-        if isinstance(key, SchemaName):
+        if isinstance(key, self.__name_type):
             key = key.value
 
         return key in self.keys()
 
     def get(self, key: str | SchemaName) -> SchemaTable:
-        if isinstance(key, SchemaName):
+        if isinstance(key, self.__name_type):
             key = key.value
 
         if key not in self.__schemas:
@@ -44,8 +50,8 @@ class SchemaRegistry:
         return self.__schemas.keys()
 
     def register(self, name: SchemaName, *, force: bool = False) -> Callable:
-        if not isinstance(name, SchemaName):
-            raise TypeError(f"name must be SchemaName, but got {type(name)}.")
+        if not isinstance(name, self.__name_type):
+            raise TypeError(f"name must be {self.__name_type.__name__}, but got {type(name)}.")
 
         def _register_decorator(obj: object) -> object:
             self._add_module(obj, name=name, force=force)
@@ -72,7 +78,7 @@ class SchemaRegistry:
         Returns:
             Instantiated dataclass.
         """
-        if isinstance(key, SchemaName):
+        if isinstance(key, self.__name_type):
             key = key.value
 
         schema: SchemaTable = self.get(key)

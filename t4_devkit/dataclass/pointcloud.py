@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import os.path as osp
 import struct
+import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, ClassVar, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Sequence, TypeVar
 
 import numpy as np
-import pypcd4
 from attrs import define, field
 
-from t4_devkit.common.io import load_json
+from t4_devkit.common.io import V0_BIN_FIELDS, load_json, load_pointcloud
+from t4_devkit.common.timestamp import Stamp
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -26,28 +27,6 @@ __all__ = [
     "PointCloudSourceInfo",
     "Stamp",
 ]
-
-
-@define
-class Stamp:
-    """A dataclass to represent timestamp.
-
-    Attributes:
-        sec (int): Seconds.
-        nanosec (int): Nanoseconds.
-    """
-
-    sec: int
-    nanosec: int
-
-    @property
-    def in_seconds(self) -> float:
-        """Convert timestamp to seconds as a float.
-
-        Returns:
-            float: Timestamp in seconds.
-        """
-        return self.sec + self.nanosec * 1e-9
 
 
 @define
@@ -261,29 +240,52 @@ class LidarPointCloud(PointCloud):
         return 4
 
     @classmethod
-    def from_file(cls, filepath: str, metainfo_filepath: str | None = None) -> Self:
-        assert filepath.endswith((".bin", ".pcd")), f"Unexpected filetype: {filepath}"
+    def from_file(
+        cls,
+        filepath: str,
+        metainfo_filepath: str | None = None,
+        frame_index: int | None = None,
+        fields: Sequence[tuple[str, str]] | None = None,
+    ) -> Self:
+        """Create an object from a pointcloud file.
 
+        Args:
+            filepath (str): `.parquet` file of a channel, or `.pcd` / `.bin` file of one frame.
+            metainfo_filepath (str | None, optional): Metainfo file of a 0.x frame.
+            frame_index (int | None, optional): Frame to read from a `.parquet` file.
+            fields (Sequence[tuple[str, str]] | None, optional): (name, dtype) of each point field
+                of a `.bin` file, e.g. from `sensor.lidar.fields`.
+
+        Returns:
+            Self instance.
+        """
         metainfo = (
             PointCloudMetainfo.from_file(metainfo_filepath)
             if metainfo_filepath is not None and osp.exists(metainfo_filepath)
             else None
         )
 
-        if filepath.endswith(".bin"):
+        if fields is None and filepath.endswith(".bin"):
             num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-            scan = np.fromfile(filepath, dtype=np.float32)
-            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
-        else:
-            pcd = pypcd4.PointCloud.from_path(filepath)
-            points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)
+            if num_pts_feats > len(V0_BIN_FIELDS):
+                raise ValueError(f"Unknown 0.x point layout with {num_pts_feats} fields")
+            fields = [(name, "float32") for name in V0_BIN_FIELDS[:num_pts_feats]]
 
-        return cls(points.T, metainfo=metainfo)
+        xyzi = ("x", "y", "z", "intensity")  # rows of `points`
+        columns = load_pointcloud(filepath, frame_index=frame_index, fields=fields, columns=xyzi)
+        points = np.empty((len(xyzi), len(columns["x"])), dtype=np.float32)
+        for i, name in enumerate(xyzi):
+            points[i] = columns[name]
+        return cls(points, metainfo=metainfo)
 
 
 @define
 class RadarPointCloud(PointCloud):
     """A dataclass to represent radar pointcloud.
+
+    Placeholder carried over from nuScenes: `from_file` reads the nuScenes radar PCD layout
+    (18 fields). tier4_perception_dataset stores radar as `RadarTracks` JSON, which it does
+    not read, and radar is not part of 1.0 yet.
 
     Attributes:
         points (NDArrayFloat): Points matrix in the shape of (18, N).
@@ -307,6 +309,10 @@ class RadarPointCloud(PointCloud):
         ambig_states: list[int] | None = None,
         metainfo_filepath: str | None = None,
     ) -> Self:
+        warnings.warn(
+            "T4 radar is not implemented: RadarPointCloud reads the nuScenes radar PCD layout only.",
+            stacklevel=2,
+        )
         assert filepath.endswith(".pcd"), f"Unexpected filetype: {filepath}"
 
         metadata: list[str] = []
@@ -399,6 +405,11 @@ class RadarPointCloud(PointCloud):
 class SegmentationPointCloud(PointCloud):
     """A dataclass to represent segmentation pointcloud.
 
+    Deprecated:
+        Kept only for 0.x datasets, whose labels are a separate `.bin` file. In 1.0, labels are
+        columns of the LiDAR frame and come with `load_pointcloud()`; `T4Devkit` no longer
+        uses this class.
+
     Attributes:
         points (NDArrayFloat): Points matrix in the shape of (4, N).
         labels (NDArrayU8): Label matrix.
@@ -414,24 +425,9 @@ class SegmentationPointCloud(PointCloud):
     def from_file(
         cls, point_filepath: str, label_filepath: str, metainfo_filepath: str | None = None
     ) -> Self:
-        assert point_filepath.endswith((".bin", ".pcd")), f"Unexpected filetype: {point_filepath}"
-
-        metainfo = (
-            PointCloudMetainfo.from_file(metainfo_filepath)
-            if metainfo_filepath is not None and osp.exists(metainfo_filepath)
-            else None
-        )
-
-        if point_filepath.endswith(".bin"):
-            num_pts_feats = getattr(metainfo, "num_pts_feats", 5)
-            scan = np.fromfile(point_filepath, dtype=np.float32)
-            points = scan.reshape((-1, num_pts_feats))[:, : cls.num_dims()]
-        else:
-            pcd = pypcd4.PointCloud.from_path(point_filepath)
-            points = pcd.numpy(("x", "y", "z", "intensity")).astype(np.float32)
-
+        pointcloud = LidarPointCloud.from_file(point_filepath, metainfo_filepath)
         labels = np.fromfile(label_filepath, dtype=np.uint8)
-        return cls(points.T, labels=labels, metainfo=metainfo)
+        return cls(pointcloud.points, labels=labels, metainfo=pointcloud.metainfo)
 
     def split_by_sensor(self) -> dict[str, PointCloud]:
         if self.metainfo is None:

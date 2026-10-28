@@ -7,10 +7,16 @@ nav:
       - t4-devkit: index.md
       - Installation: install.md
   - Dataset Schema:
-      - Home: schema/index.md
-      - Schema Tables: schema/table.md
-      - Sensor Data: schema/data.md
-      - Requirements: schema/requirement.md
+      - Schema 0.x:
+          - Home: schema/index.md
+          - Schema Tables: schema/table.md
+          - Sensor Data: schema/data.md
+          - Requirements: schema/requirement.md
+      - Schema 1.0:
+          - Home: schema/v1/index.md
+          - Schema Tables: schema/v1/table.md
+          - Sensor Data: schema/v1/data.md
+          - Requirements: schema/v1/requirement.md
   - Tutorials:
       - Initialization: tutorials/initialize.md
       - Visualization: tutorials/render.md
@@ -20,6 +26,7 @@ nav:
       - Home: cli/index.md
       - t4viz: cli/t4viz.md
       - t4sanity: cli/t4sanity.md
+      - t4migrate: cli/t4migrate.md
   - API References:
       - t4_devkit.tier4: apis/tier4.md
       - t4_devkit.helper: apis/helper.md

@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Iterable
+
+from attrs import define, field, validators
+
+from t4_devkit.schema.tables.base import SchemaBase, impossible_empty
+
+from .map import MapElement
+from .name import SchemaName
+from .registry import SCHEMAS
+
+__all__ = ["Instance"]
+
+
+@define(slots=False)
+@SCHEMAS.register(SchemaName.INSTANCE)
+class Instance(SchemaBase):
+    """`instance.json` dataclass.
+
+    Attributes:
+        token (str): Unique record identifier.
+        name (str): `<DATASET_ID>::<INSTANCE_ID>`.
+        index (int | None): Value of the LiDAR `instance` field (int16) for this object,
+            0 to 32767.
+        category_token (str): Foreign key pointing to the category.
+        nbr_annotations (int): Number of annotations of this instance.
+        first_annotation_token (str | None): Foreign key pointing to the first sample annotation
+            or object annotation.
+        last_annotation_token (str | None): Foreign key pointing to the last sample annotation
+            or object annotation.
+        map_element (MapElement): Link to a lanelet2 element.
+    """
+
+    name: str = field(validator=validators.instance_of(str))
+    index: int | None = field(
+        validator=validators.optional(
+            validators.and_(validators.instance_of(int), validators.ge(0), validators.le(2**15 - 1))
+        )
+    )
+    category_token: str = field(validator=(validators.instance_of(str), impossible_empty()))
+    nbr_annotations: int = field(validator=(validators.instance_of(int), validators.ge(0)))
+    first_annotation_token: str | None = field(
+        validator=validators.optional(
+            validators.and_(validators.instance_of(str), impossible_empty())
+        )
+    )
+    last_annotation_token: str | None = field(
+        validator=validators.optional(
+            validators.and_(validators.instance_of(str), impossible_empty())
+        )
+    )
+    map_element: MapElement = field(
+        converter=lambda x: MapElement(**x) if isinstance(x, dict) else x,
+        validator=validators.instance_of(MapElement),
+    )
+
+    @staticmethod
+    def annotation_spans(
+        labels: Iterable[tuple[str, int, str]],
+    ) -> dict[str, tuple[int, str, str]]:
+        """Return the number of labels and the first / last label in time of each instance.
+
+        This is what `nbr_annotations` and `first_annotation_token` / `last_annotation_token`
+        hold.
+
+        Args:
+            labels (Iterable[tuple[str, int, str]]): (instance token, time, label token) of each
+                3D box (at its sample's time) and 2D label (at its frame's time).
+
+        Returns:
+            Count, first and last label token, keyed by instance token.
+        """
+        times: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        for instance_token, timestamp, token in labels:
+            times[instance_token].append((timestamp, token))
+        return {
+            token: (len(entries), min(entries)[1], max(entries)[1])
+            for token, entries in times.items()
+        }

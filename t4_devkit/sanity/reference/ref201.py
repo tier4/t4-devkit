@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from t4_devkit.schema import SchemaName
 
-from ..checker import RuleID, RuleName, Severity
+from ..checker import RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_json_safe
@@ -24,6 +24,7 @@ class REF201(FileReferenceChecker):
     id = RuleID("REF201")
     name = RuleName("sample-data-filename-presence")
     severity = Severity.ERROR
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
     description = "'SampleData.filename' exists."
     schema = SchemaName.SAMPLE_DATA
 
@@ -34,5 +35,7 @@ class REF201(FileReferenceChecker):
         return [
             Reason(f"File not found: {record['filename']}")
             for record in records
-            if record.get("is_valid", True) and not data_root.joinpath(record["filename"]).exists()
+            if record.get("is_valid", True)
+            and record["filename"] is not None  # invalid (reported by FMT022), not a missing file
+            and not data_root.joinpath(record["filename"]).exists()
         ] or None

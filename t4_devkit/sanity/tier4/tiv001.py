@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import is_successful
 
-from ..checker import Checker, RuleID, RuleName, Severity
+from ..checker import Checker, RuleID, RuleName, SchemaVersion, Severity
 from ..registry import CHECKERS
 from ..result import Reason
 from ..safety import load_tier4_safe
@@ -24,6 +24,7 @@ class TIV001(Checker):
     name = RuleName("load-tier4")
     severity = Severity.ERROR
     description = "Ensure 'T4Devkit' instance is loaded successfully."
+    versions = (SchemaVersion.V0, SchemaVersion.V1)
 
     def can_skip(self, context: SanityContext) -> Maybe[Reason]:
         match context.data_root:
