@@ -487,6 +487,7 @@ MANIFEST_INFO = {
     "is_discontinuous": None,
     "migrated_from_schema_version": None,
     "migration_notes": None,
+    "history": None,
 }
 
 
