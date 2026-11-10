@@ -38,7 +38,7 @@ class V0Migrator:
         Or channel by channel:
 
         >>> for sensor in migrator.lidars():
-        ...     migrator.migrate_lidar(sensor)
+        ...     migrator.migrate_lidar(sensor)  # or copy_pointclouds(sensor) to keep the files
         >>> for sensor in migrator.cameras():
         ...     migrator.migrate_camera(sensor)  # or copy_images(sensor) to keep the files
     """
@@ -124,6 +124,34 @@ class V0Migrator:
                 )
                 source.lidar.fields = list(sensor.lidar.fields)
 
+    def copy_pointclouds(self, sensor: Sensor) -> None:
+        """Copy the point files of a LiDAR channel as they are, instead of writing one Parquet
+        file.
+
+        The records keep their per-frame `filename` and `fileformat`, the sensor its 0.x layout
+        (`container.format` "bin" or "pcd", `path` null, `fields` as loaded). What only Parquet
+        stores is not kept: the `.info` sources of a merged channel are left out with a note, and
+        point labels are refused.
+
+        Args:
+            sensor (Sensor): LiDAR sensor with frames.
+
+        Raises:
+            ValueError: If the channel has lidarseg labels: 1.0 point labels are Parquet columns.
+        """
+        records = self._channel_frames(sensor)
+        self._relink(sensor, records)
+        if any(record.token in self._labels for record in records):
+            raise ValueError(
+                f"{sensor.channel}: point labels need Parquet, the 0.x files cannot be kept"
+            )
+        for record in records:
+            self.writer.copy(osp.join(self.data_root, record.filename), record.filename)
+        if any(self._v0_frames[record.token].get("info_filename") for record in records):
+            self.notes.append(
+                f"{sensor.channel}: .info sources not kept (per-frame files have no source columns)"
+            )
+
     def cameras(self) -> list[Sensor]:
         """Return the camera sensors with frames."""
         with_frames = {frame.sensor_token for frame in self.tables(SchemaName.SAMPLE_DATA)}
@@ -173,6 +201,7 @@ class V0Migrator:
         dataset_id: str,
         version: int,
         *,
+        keep_pointclouds: bool = False,
         keep_images: bool = False,
         manifest_fields: Mapping[str, Any] | None = None,
     ) -> Manifest:
@@ -186,6 +215,8 @@ class V0Migrator:
         Args:
             dataset_id (str): Dataset ID, as in the output folder.
             version (int): Dataset version, as in the output folder (given by Web.Auto).
+            keep_pointclouds (bool, optional): Copy LiDAR point files as they are instead of
+                writing one Parquet file per channel (not possible with point labels).
             keep_images (bool, optional): Copy camera images as they are instead of encoding
                 one video per channel.
             manifest_fields (Mapping[str, Any] | None, optional): Manifest fields that replace
@@ -195,7 +226,10 @@ class V0Migrator:
             The manifest written.
         """
         for sensor in self.lidars():
-            self.migrate_lidar(sensor)
+            if keep_pointclouds:
+                self.copy_pointclouds(sensor)
+            else:
+                self.migrate_lidar(sensor)
         for sensor in self.cameras():
             if keep_images:
                 self.copy_images(sensor)
@@ -257,6 +291,7 @@ class V0Migrator:
             "is_synthetic": False,
             "is_discontinuous": None,
             "migrated_from_schema_version": "0.x",
+            "history": None,
         }
 
     def _channel_frames(self, sensor: Sensor) -> list[SampleData]:

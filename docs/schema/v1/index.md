@@ -58,6 +58,7 @@ manifest {
   "is_discontinuous":               <option[bool]> -- Whether the recording has gaps (= Web.Auto).
   "migrated_from_schema_version":   <option[str]> -- Source version if the dataset was migrated, e.g. "0.x". `null` for datasets produced as 1.0.
   "migration_notes":                <option[[str;N]]> -- Notes on anything lost or changed during migration.
+  "history":                        <option[[HistoryEntry;N]]> -- How this version derives from earlier ones, oldest first. `null` for a version produced from the rosbag.
 }
 ```
 
@@ -132,6 +133,19 @@ Provenance {
 }
 ```
 
+### `HistoryEntry`
+
+```json
+HistoryEntry {
+  "version":        <int> -- Version created by this step.
+  "from_version":   <int> -- Version it was derived from.
+  "created_at":     <str> -- When, ISO 8601.
+  "changes":        <str> -- What changed, e.g. "kognic_to_t4: detection3d labels replaced".
+}
+```
+
+A new version keeps `created_at` (the dataset's creation time from the rosbag) and appends one entry.
+
 ## Writing 1.0 Datasets
 
 `DatasetWriter` writes a 1.0 dataset folder. Data files go first, then the tables and `manifest.json`:
@@ -141,15 +155,30 @@ Provenance {
 >>> writer = DatasetWriter("<DATASET_ID>/<DATASET_VERSION>")  # must not exist yet
 >>> path, frame_count = writer.write_lidar("LIDAR_TOP", frames, fields)  # one Parquet file
 >>> video = writer.write_camera("CAM_FRONT", images, frame_rate=10)  # one AV1 video
+>>> path = writer.write_lidar_frame("LIDAR_TOP", 0, points, fields)  # or one .bin / .pcd per frame
+>>> path = writer.write_image("CAM_FRONT", 0, jpeg_bytes)  # or one .jpg / .png per frame
 >>> writer.copy("<OLD_DATASET>/map", "map")  # files kept as they are
 >>> manifest = writer.save(tables, manifest_info)  # tables, then manifest.json
 ```
 
+One file per channel is the default storage. The per-frame methods are the opt-in alternative for workflows that read files directly; point labels need Parquet.
+
 `save` lists every table and every file under `data/`, `map/` and `input_bag/` in `manifest.json`, with its hash. It computes `capabilities` from the tables, and adds t4-devkit to `generators`. `manifest_info` gives the other manifest fields (identity, provenance, migration notes).
+
+## New Versions
+
+A dataset is never changed in place: a change (labels imported, metadata fixed) is a new version, `<DATASET_ID>/<N+1>`. `NewVersion` starts it from `<N>`: the files under `data/`, `map/` and `input_bag/` are hard-linked (copied where a link is not possible, or with `link=False`), the tables are loaded for editing, and the manifest is carried over with a `history` entry:
+
+```python
+>>> from t4_devkit.schema.v1 import NewVersion, SchemaName
+>>> new = NewVersion("<DATASET_ID>/3", "out/<DATASET_ID>/4", changes="kognic_to_t4: detection3d labels replaced")
+>>> new.tables[SchemaName.SAMPLE_ANNOTATION] = annotations
+>>> manifest = new.save()
+```
 
 ## Migrating 0.x Datasets
 
-[`t4migrate`](../../cli/t4migrate.md) writes a 0.x dataset as a new 1.0 dataset: the tables as loaded below, and one Parquet file or AV1 video per channel. In Python, `V0Migrator` does the same:
+[`t4migrate`](../../cli/t4migrate.md) writes a 0.x dataset as a new 1.0 dataset: the tables as loaded below, and one Parquet file or AV1 video per channel (or the 0.x files as they are, with `--keep-pointclouds` / `--keep-images`). In Python, `V0Migrator` does the same:
 
 ```python
 >>> from t4_devkit.schema.v1 import V0Migrator

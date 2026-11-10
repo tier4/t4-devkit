@@ -14,6 +14,8 @@ $ t4migrate -h
 │    --version             -v             Show the application version and exit.                                       │
 │ *  --dataset-version     -d      <int>  Version of the 1.0 dataset (given by Web.Auto). [required]                   │
 │    --dataset-id                  <str>  Dataset ID, if not the 0.x dataset's.                                        │
+│    --keep-pointclouds                   Copy LiDAR point files as they are instead of writing one Parquet file per   │
+│                                         channel (not possible with point labels).                                    │
 │    --keep-images                        Copy camera images as they are instead of encoding one AV1 video per         │
 │                                         channel.                                                                     │
 │    --help                -h             Show this message and exit.                                                  │
@@ -33,7 +35,7 @@ The dataset version is given by the caller: Web.Auto assigns it when the new ver
 ## What Changes
 
 - Tables are converted as described in [Loading 0.x Datasets](../schema/v1/index.md#loading-0x-datasets).
-- Each LiDAR channel becomes one Parquet file, one row group per frame:
+- Each LiDAR channel becomes one Parquet file, one row group per frame (or the point files are copied with `--keep-pointclouds`, which point labels do not allow):
   - fields get their 1.0 types (e.g. `intensity` uint8) when every value fits; otherwise they keep their 0.x type, with a warning and a migration note;
   - a ring (`channel`) of `-1` on every point (not recorded) is dropped, with a note;
   - `.info` files become the `source_index` / `source_timestamp` columns;

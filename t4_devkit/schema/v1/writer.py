@@ -6,6 +6,10 @@ import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence
 
+import numpy as np
+import pypcd4
+from PIL import Image
+
 from t4_devkit.common.io import file_sha256, save_pointcloud, save_video
 from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
 
@@ -13,8 +17,6 @@ from .manifest import MANIFEST_FILENAME, Capabilities, Manifest
 from .name import SchemaName
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from t4_devkit.typing import PathLike
 
 __all__ = ["DatasetWriter"]
@@ -23,9 +25,13 @@ __all__ = ["DatasetWriter"]
 class DatasetWriter:
     """Write a T4Dataset 1.0 dataset folder: sensor data, then tables and `manifest.json`.
 
-    The writer writes files; the caller decides their content. Data files go first
-    (`write_lidar`, `write_camera`, `copy`), then `save` writes the tables and the manifest, with
-    the hash of every file in the folder.
+    The writer writes files; the caller decides their content. Data files go first, then
+    `save` writes the tables and the manifest, with the hash of every file in the folder.
+
+    A channel is stored as one file (`write_lidar`: Parquet, `write_camera`: AV1 video), the
+    default, or as one file per frame (`write_lidar_frame`: BIN or PCD, `write_image`: JPEG or
+    PNG), the opt-in for workflows that read files directly. Point labels need Parquet. `copy`
+    keeps a file or folder as it is.
 
     Examples:
         >>> writer = DatasetWriter("out/<DATASET_ID>/<DATASET_VERSION>")
@@ -96,6 +102,83 @@ class DatasetWriter:
         path = self._data_path(channel, "mp4")
         video = save_video(self.output_root / path, frames, frame_rate, **kwargs)
         return {"path": path} | video
+
+    def write_lidar_frame(
+        self,
+        channel: str,
+        frame_index: int,
+        points: Mapping[str, np.ndarray],
+        fields: Sequence[tuple[str, str]],
+        fileformat: str = "bin",
+    ) -> str:
+        """Write one LiDAR frame as its own file, `data/<CHANNEL>/<FRAME_INDEX>.bin` or `.pcd`.
+
+        The sensor row of such a channel has `lidar.container.format` "bin" or "pcd" and
+        `path` null; its records have `frame_index` null and the file as `filename`.
+
+        Args:
+            channel (str): Channel name.
+            frame_index (int): Position of the frame in the channel; the file is named after it.
+            points (Mapping[str, np.ndarray]): Arrays of shape (N,) keyed by field name.
+            fields (Sequence[tuple[str, str]]): (name, dtype) of each field, in file order, e.g.
+                from `sensor.lidar.fields`.
+            fileformat (str, optional): "bin" (raw records without header, read with `fields`)
+                or "pcd" (binary PCD, self-described).
+
+        Returns:
+            The path relative to the dataset root.
+
+        Raises:
+            FileExistsError: If the frame's file is already written.
+        """
+        if fileformat not in ("bin", "pcd"):
+            raise ValueError(f"fileformat must be 'bin' or 'pcd', got {fileformat!r}")
+        path = self._frame_path(channel, frame_index, fileformat)
+        columns = [np.asarray(points[name], dtype=dtype) for name, dtype in fields]
+        if fileformat == "bin":
+            frame = np.empty(len(columns[0]), dtype=np.dtype([tuple(field) for field in fields]))
+            for (name, _), column in zip(fields, columns):
+                frame[name] = column
+            frame.tofile(self.output_root / path)
+        else:
+            names, dtypes = zip(*fields)
+            pypcd4.PointCloud.from_points(columns, names, dtypes).save(self.output_root / path)
+        return path
+
+    def write_image(
+        self,
+        channel: str,
+        frame_index: int,
+        image: bytes | np.ndarray,
+        fileformat: str = "jpg",
+    ) -> str:
+        """Write one camera frame as its own file, `data/<CHANNEL>/<FRAME_INDEX>.jpg` or `.png`.
+
+        Encoded bytes (e.g. a JPEG read from a rosbag) are written as they are, without
+        decoding; an RGB array is encoded with Pillow. The sensor row of such a channel has
+        `camera.video` null; its records have `frame_index` null and the file as `filename`.
+
+        Args:
+            channel (str): Channel name.
+            frame_index (int): Position of the frame in the channel; the file is named after it.
+            image (bytes | np.ndarray): Encoded image in the given format, or an RGB image of
+                shape (H, W, 3).
+            fileformat (str, optional): "jpg" or "png".
+
+        Returns:
+            The path relative to the dataset root.
+
+        Raises:
+            FileExistsError: If the frame's file is already written.
+        """
+        if fileformat not in ("jpg", "png"):
+            raise ValueError(f"fileformat must be 'jpg' or 'png', got {fileformat!r}")
+        path = self._frame_path(channel, frame_index, fileformat)
+        if isinstance(image, bytes):
+            (self.output_root / path).write_bytes(image)
+        else:
+            Image.fromarray(image).save(self.output_root / path)
+        return path
 
     def copy(self, source: PathLike, path: str) -> None:
         """Copy a file or folder as it is, e.g. the map, `input_bag/` or per-frame images.
@@ -169,6 +252,13 @@ class DatasetWriter:
         path = f"data/{channel}/{channel}.{extension}"
         if (self.output_root / path).exists():
             raise FileExistsError(f"{path} is already written: a channel has one file")
+        (self.output_root / path).parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _frame_path(self, channel: str, frame_index: int, extension: str) -> str:
+        path = f"data/{channel}/{frame_index:05d}.{extension}"
+        if (self.output_root / path).exists():
+            raise FileExistsError(f"{path} is already written")
         (self.output_root / path).parent.mkdir(parents=True, exist_ok=True)
         return path
 

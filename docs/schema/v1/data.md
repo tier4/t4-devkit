@@ -24,7 +24,7 @@ data/
 
 Because every frame is a keyframe, any frame can be decoded without decoding its neighbours. Readers seek by `frame_index`.
 
-Datasets migrated from 0.x without re-encoding keep one image file per frame (`.jpg` or `.png`). In that case `sensor.camera.video` is `null` and `sample_data.frame_index` is `null`.
+Datasets can instead store one image file per frame (`.jpg` or `.png`): 0.x datasets migrated with `--keep-images`, or datasets written with per-frame storage. In that case `sensor.camera.video` is `null` and `sample_data.frame_index` is `null`.
 
 ## LiDAR
 
@@ -72,7 +72,7 @@ Each source LiDAR has its own `sensor` row (with its calibration) and no `sample
 
 This replaces the per-frame `.info` metainfo files of 0.x.
 
-0.x datasets loaded without migration keep one `.pcd.bin` or `.pcd` file per frame, as described in [Sensor Data](../data.md). In that case `lidar.container.format` is `bin` or `pcd` and `sample_data.frame_index` is `null`.
+Datasets can instead store one `.bin`, `.pcd.bin` or `.pcd` file per frame: 0.x datasets loaded without migration or migrated with `--keep-pointclouds` (see [Sensor Data](../data.md)), or datasets written with per-frame storage. In that case `lidar.container.format` is `bin` or `pcd`, `lidar.container.path` is `null` and `sample_data.frame_index` is `null`. A `.bin` file has no header: its layout is `sensor.lidar.fields`. Point-wise labels and merged sources need Parquet.
 
 ## Radar
 

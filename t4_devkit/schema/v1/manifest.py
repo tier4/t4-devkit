@@ -27,6 +27,7 @@ __all__ = [
     "AssetEntry",
     "Rosbag",
     "Provenance",
+    "HistoryEntry",
     "Manifest",
     "load_manifest",
 ]
@@ -282,6 +283,23 @@ class Provenance:
 
 
 @define
+class HistoryEntry:
+    """One step in the version history of a dataset: a version derived from an earlier one.
+
+    Attributes:
+        version (int): Version created by this step.
+        from_version (int): Version it was derived from.
+        created_at (str): When, ISO 8601.
+        changes (str): What changed, e.g. "kognic_to_t4: detection3d labels replaced".
+    """
+
+    version: int = field(validator=(validators.instance_of(int), validators.ge(0)))
+    from_version: int = field(validator=(validators.instance_of(int), validators.ge(0)))
+    created_at: str = field(validator=validators.instance_of(str))
+    changes: str = field(validator=validators.instance_of(str))
+
+
+@define
 class Manifest:
     """`manifest.json` dataclass.
 
@@ -302,6 +320,8 @@ class Manifest:
         is_discontinuous (bool | None): Whether the recording has gaps.
         migrated_from_schema_version (str | None): Source version if the dataset was migrated.
         migration_notes (list[str] | None): Notes on anything lost or changed during migration.
+        history (list[HistoryEntry] | None): How this version derives from earlier ones, oldest
+            first; None for a version produced from the rosbag.
     """
 
     # Folders whose files are listed in `assets` (the tables, under `annotation/`, in `tables`).
@@ -366,6 +386,16 @@ class Manifest:
         validator=validators.optional(
             validators.deep_iterable(validators.instance_of(str), validators.instance_of(list))
         )
+    )
+    history: list[HistoryEntry] | None = field(
+        converter=lambda x: (
+            None if x is None else [HistoryEntry(**v) if isinstance(v, dict) else v for v in x]
+        ),
+        validator=validators.optional(
+            validators.deep_iterable(
+                validators.instance_of(HistoryEntry), validators.instance_of(list)
+            )
+        ),
     )
 
     def listed_paths(self) -> list[str]:

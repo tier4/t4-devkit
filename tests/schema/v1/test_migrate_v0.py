@@ -162,6 +162,33 @@ def test_copy_images(tmp_path: Path) -> None:
         ).read_bytes()
 
 
+def test_copy_pointclouds(tmp_path: Path) -> None:
+    """Kept point files are copied with their paths; the sensor and its records keep the 0.x
+    layout, and the dataset passes the 1.0 rules."""
+    output_root = tmp_path / "t4dataset" / "1"
+    migrator = V0Migrator(SAMPLE_V0, output_root)
+    migrator.migrate("t4dataset", 1, keep_pointclouds=True, keep_images=True)
+
+    (lidar,) = migrator.lidars()
+    assert (lidar.lidar.container.format.value, lidar.lidar.container.path) == ("bin", None)
+    for frame in migrator._channel_frames(lidar):
+        assert (frame.frame_index, frame.fileformat.value) == (None, "pcd.bin")
+        assert (output_root / frame.filename).read_bytes() == (
+            SAMPLE_V0 / frame.filename
+        ).read_bytes()
+    reports = sanity_check(output_root.parent.as_posix(), revision="1").reports
+    assert not [report.id for report in reports if report.is_failed()]
+
+
+def test_copy_pointclouds_refuses_labels(tmp_path: Path) -> None:
+    """Point labels are Parquet columns, so a lidarseg channel cannot keep its files."""
+    data_root = _semseg_copy(tmp_path)
+    _add_unpainted(data_root)
+    migrator = V0Migrator(data_root, tmp_path / "sample")
+    with pytest.raises(ValueError, match="point labels need Parquet"):
+        migrator.copy_pointclouds(migrator.lidars()[0])
+
+
 def test_relink_half_linked_frame(tmp_path: Path) -> None:
     """A frame its neighbors skip (as 0.x placeholders can be) is linked back in time order."""
     sample = SampleCopy(tmp_path, SAMPLE_V0, name="v0")

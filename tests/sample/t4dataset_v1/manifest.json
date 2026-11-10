@@ -152,5 +152,6 @@
   "is_synthetic": true,
   "is_discontinuous": null,
   "migrated_from_schema_version": null,
-  "migration_notes": null
+  "migration_notes": null,
+  "history": null
 }

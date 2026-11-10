@@ -9,6 +9,7 @@ from t4_devkit.common.io import load_image, load_pointcloud
 from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
 from t4_devkit.sanity import sanity_check
 from t4_devkit.schema.v1 import DatasetWriter, SchemaName, load_dataset
+from tests.helpers import SAMPLE_V0
 
 SAMPLE_V1 = Path(__file__).parents[2] / "sample" / "t4dataset_v1"
 
@@ -89,3 +90,31 @@ def test_channel_written_once(tmp_path: Path) -> None:
     writer.write_lidar("LIDAR_TOP", [{"x": np.zeros(2, dtype=np.float32)}], fields)
     with pytest.raises(FileExistsError, match="LIDAR_TOP"):
         writer.write_lidar("LIDAR_TOP", [{"x": np.ones(2, dtype=np.float32)}], fields)
+
+
+def test_write_frames(tmp_path: Path) -> None:
+    """Per-frame files: a .bin and a .pcd frame read back equal, image bytes are written as they
+    are, an array is encoded, and a frame is written once."""
+    writer = DatasetWriter(tmp_path / "sample")
+    fields = [("x", "float32"), ("y", "float32"), ("intensity", "uint8")]
+    points = {
+        "x": np.array([1.0, 2.0], dtype=np.float32),
+        "y": np.array([3.0, 4.0], dtype=np.float32),
+        "intensity": np.array([5, 6], dtype=np.uint8),
+    }
+    bin_path = writer.write_lidar_frame("LIDAR_TOP", 0, points, fields)
+    pcd_path = writer.write_lidar_frame("LIDAR_TOP", 1, points, fields, fileformat="pcd")
+    assert (bin_path, pcd_path) == ("data/LIDAR_TOP/00000.bin", "data/LIDAR_TOP/00001.pcd")
+    for path, kwargs in ((bin_path, {"fields": fields}), (pcd_path, {})):
+        read = load_pointcloud(tmp_path / "sample" / path, **kwargs)
+        assert all(np.array_equal(read[name], points[name]) for name, _ in fields)
+
+    jpeg = (SAMPLE_V0 / "data/CAM_FRONT/001.jpg").read_bytes()
+    path = writer.write_image("CAM_FRONT", 0, jpeg)
+    assert path == "data/CAM_FRONT/00000.jpg"
+    assert (tmp_path / "sample" / path).read_bytes() == jpeg
+    image = np.full((4, 6, 3), 7, dtype=np.uint8)
+    path = writer.write_image("CAM_FRONT", 1, image, fileformat="png")
+    assert np.array_equal(load_image(tmp_path / "sample" / path), image)
+    with pytest.raises(FileExistsError, match="00001.png"):
+        writer.write_image("CAM_FRONT", 1, image, fileformat="png")

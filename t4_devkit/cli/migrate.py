@@ -41,6 +41,12 @@ def main(
     dataset_id: str | None = typer.Option(
         None, "--dataset-id", help="Dataset ID, if not the 0.x dataset's."
     ),
+    keep_pointclouds: bool = typer.Option(
+        False,
+        "--keep-pointclouds",
+        help="Copy LiDAR point files as they are instead of writing one Parquet file per channel "
+        "(not possible with point labels).",
+    ),
     keep_images: bool = typer.Option(
         False,
         "--keep-images",
@@ -54,7 +60,9 @@ def main(
     output_root = Path(output_dir) / dataset_id / str(dataset_version)
 
     migrator = V0Migrator(source, output_root)
-    manifest = migrator.migrate(dataset_id, dataset_version, keep_images=keep_images)
+    manifest = migrator.migrate(
+        dataset_id, dataset_version, keep_pointclouds=keep_pointclouds, keep_images=keep_images
+    )
     typer.echo(f"Migrated {source} to {output_root}")
     for note in manifest.migration_notes or []:
         typer.echo(f"  - {note}")
