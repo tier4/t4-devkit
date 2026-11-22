@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence
 from t4_devkit.common.io import file_sha256, save_pointcloud, save_video
 from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
 
-from .manifest import MANIFEST_FILENAME, Capabilities, Manifest
+from .manifest import MANIFEST_FILENAME, SCHEMA_VERSION, Capabilities, Manifest
 from .name import SchemaName
 
 if TYPE_CHECKING:
@@ -98,7 +98,7 @@ class DatasetWriter:
         return {"path": path} | video
 
     def copy(self, source: PathLike, path: str) -> None:
-        """Copy a file or folder as it is, e.g. the map, `input_bag/` or per-frame images.
+        """Copy a file or folder as it is, e.g. the map, `input_bag/` or sensor data.
 
         Args:
             source (PathLike): File or folder to copy.
@@ -120,8 +120,8 @@ class DatasetWriter:
 
         Every required table is written, and every optional table with records. The manifest
         lists them and every file under `data/`, `map/` and `input_bag/` with its hash and size.
-        Its `capabilities` are computed from the tables unless given, and t4-devkit is added to
-        its `generators`.
+        Its `schema_version` is the one this t4-devkit writes and its `capabilities` are computed
+        from the tables, unless given; t4-devkit is added to its `generators`.
 
         Args:
             tables (Mapping[SchemaName, Sequence[Any]]): 1.0 records per table.
@@ -155,6 +155,7 @@ class DatasetWriter:
         capabilities = manifest_info.get("capabilities") or Capabilities.from_tables(tables)
 
         data = dict(manifest_info)
+        data.setdefault("schema_version", SCHEMA_VERSION)
         data.update(
             generators=generators,
             capabilities=capabilities,

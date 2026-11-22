@@ -8,7 +8,7 @@ import pytest
 from t4_devkit.common.io import load_image, load_pointcloud
 from t4_devkit.common.serialize import serialize_dataclass, serialize_dataclasses
 from t4_devkit.sanity import sanity_check
-from t4_devkit.schema.v1 import DatasetWriter, SchemaName, load_dataset
+from t4_devkit.schema.v1 import SCHEMA_VERSION, DatasetWriter, SchemaName, load_dataset
 
 SAMPLE_V1 = Path(__file__).parents[2] / "sample" / "t4dataset_v1"
 
@@ -16,7 +16,7 @@ SAMPLE_V1 = Path(__file__).parents[2] / "sample" / "t4dataset_v1"
 def _manifest_info(dataset) -> dict:
     """The manifest fields the caller gives: everything but the files and computed parts."""
     info = serialize_dataclass(dataset.manifest)
-    for name in ("tables", "assets", "capabilities"):
+    for name in ("schema_version", "tables", "assets", "capabilities"):
         del info[name]
     return info
 
@@ -34,6 +34,7 @@ def test_round_trip(tmp_path: Path) -> None:
         writer.copy(SAMPLE_V1 / directory, directory)
     manifest = writer.save(dataset.tables, _manifest_info(dataset))
 
+    assert manifest.schema_version == SCHEMA_VERSION
     assert manifest.capabilities == dataset.manifest.capabilities
     assert any(generator.name == "t4-devkit" for generator in manifest.generators)
     loaded = load_dataset(data_root)

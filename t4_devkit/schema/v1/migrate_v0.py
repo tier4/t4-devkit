@@ -235,7 +235,6 @@ class V0Migrator:
             )
 
         return {
-            "schema_version": "1.0.0",
             "dataset_id": dataset_id,
             "version": version,
             "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
