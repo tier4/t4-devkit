@@ -128,7 +128,7 @@ def test_migrate_camera(tmp_path: Path) -> None:
     data_root = SampleCopy(tmp_path, SAMPLE_V0, name="v0").root
     migrator = V0Migrator(data_root, tmp_path / "sample")
     sensor = migrator.cameras()[0]
-    frames = migrator._channel_frames(sensor)
+    frames = migrator.channel_frames(sensor)
     sources = []
     for i, frame in enumerate(frames):  # distinct images: gray levels 50, 100, 150
         image = np.full((600, 800, 3), 50 * (i + 1), dtype=np.uint8)
@@ -155,7 +155,7 @@ def test_copy_images(tmp_path: Path) -> None:
     sensor = migrator.cameras()[0]
     migrator.copy_images(sensor)
 
-    for frame in migrator._channel_frames(sensor):
+    for frame in migrator.channel_frames(sensor):
         assert frame.frame_index is None
         assert (tmp_path / "sample" / frame.filename).read_bytes() == (
             SAMPLE_V0 / frame.filename
@@ -184,7 +184,7 @@ def test_relink_half_linked_frame(tmp_path: Path) -> None:
     sensor = migrator.cameras()[0]
     migrator.copy_images(sensor)
 
-    frames = migrator._channel_frames(sensor)
+    frames = migrator.channel_frames(sensor)
     assert [frame.next for frame in frames] == [middle["token"], last["token"], None]
     assert [frame.prev for frame in frames] == [None, first["token"], middle["token"]]
     assert migrator.notes == ["CAM_FRONT: next / prev relinked in time order on 2 frames"]
@@ -323,3 +323,56 @@ def test_migrate_drops_v0_acceleration(tmp_path: Path) -> None:
     assert any(
         note.startswith("ego_pose.acceleration dropped") for note in manifest.migration_notes
     )
+
+
+def test_migrate_lidar_given_frames(tmp_path: Path) -> None:
+    """Frames given by the caller are written with their fields; labels still apply to them;
+    `migrate` then leaves the channel alone."""
+    data_root = _semseg_copy(tmp_path)
+    _add_unpainted(data_root)
+    migrator = V0Migrator(data_root, tmp_path / "sample")
+    (lidar,) = migrator.lidars()
+    records = migrator.channel_frames(lidar)
+    frames = [
+        {
+            "x": np.arange(8, dtype=np.float32) + i,
+            "return_type": np.ones(8, dtype=np.uint8),
+        }
+        for i in range(len(records))
+    ]
+    migrator.migrate_lidar(lidar, frames, [("x", "float32"), ("return_type", "uint8")])
+    assert migrator.migrated == {"LIDAR_TOP"}
+    assert [f.name for f in lidar.lidar.fields] == ["x", "return_type", "label", "instance"]
+    for i, frame in enumerate(_lidar_frames(migrator)):
+        points = load_pointcloud(tmp_path / "sample" / frame.filename, frame_index=i)
+        assert np.array_equal(points["x"], np.arange(8) + i) and frame.num_points == 8
+    assert np.array_equal(
+        load_pointcloud(tmp_path / "sample" / lidar.lidar.container.path, frame_index=0)["label"],
+        [0, 1, 2, 3, 4, 0, 1, 2],
+    )
+    migrator.migrate("sample", 1)  # does not write the channel again
+    assert lidar.lidar.container.frame_count == 3
+
+    migrator = V0Migrator(data_root, tmp_path / "short")
+    (lidar,) = migrator.lidars()
+    short = [{"x": np.zeros(7, dtype=np.float32)}] * 3
+    with pytest.raises(ValueError, match="8 points, the frame given has 7"):
+        migrator.migrate_lidar(lidar, short, [("x", "float32")])
+
+
+def test_migrate_camera_given_images(tmp_path: Path) -> None:
+    """Images given by the caller are encoded instead of the 0.x files, at the sensor's size."""
+    migrator = V0Migrator(SAMPLE_V0, tmp_path / "sample")
+    sensor = migrator.cameras()[0]
+    frames = migrator.channel_frames(sensor)
+    images = [np.full((600, 800, 3), 50 * (i + 1), dtype=np.uint8) for i in range(len(frames))]
+    migrator.migrate_camera(sensor, iter(images))
+    assert sensor.camera.video.frame_count == 3 and sensor.channel in migrator.migrated
+    for i, frame in enumerate(frames):
+        image = load_image(tmp_path / "sample" / frame.filename, frame_index=i).astype(int)
+        assert np.abs(image - images[i]).mean() < 2
+
+    migrator = V0Migrator(SAMPLE_V0, tmp_path / "wrong")
+    sensor = migrator.cameras()[0]
+    with pytest.raises(ValueError, match="640x480, but CAM_FRONT is 800x600"):
+        migrator.migrate_camera(sensor, [np.zeros((480, 640, 3), dtype=np.uint8)] * 3)

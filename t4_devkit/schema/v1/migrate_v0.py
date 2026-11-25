@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os.path as osp
 import warnings
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -41,6 +42,10 @@ class V0Migrator:
         ...     migrator.migrate_lidar(sensor)
         >>> for sensor in migrator.cameras():
         ...     migrator.migrate_camera(sensor)  # or copy_images(sensor) to keep the files
+
+        A channel's frames can come from elsewhere than the 0.x files, e.g. the rosbag: the
+        caller gives them in the order of `channel_frames` to `migrate_lidar` / `migrate_camera`.
+        `migrate` then writes the other channels (`migrated` holds those done).
     """
 
     def __init__(self, data_root: PathLike, output_root: PathLike) -> None:
@@ -63,6 +68,7 @@ class V0Migrator:
         self._labels = {
             record["sample_data_token"]: record["filename"] for record in self._load_v0("lidarseg")
         }
+        self.migrated: set[str] = set()  # channels whose files are written; `migrate` skips them
 
     def lidars(self) -> list[Sensor]:
         """Return the LiDAR sensors with frames of their own."""
@@ -73,25 +79,43 @@ class V0Migrator:
             if sensor.lidar is not None and sensor.token in with_frames
         ]
 
-    def migrate_lidar(self, sensor: Sensor) -> None:
+    def migrate_lidar(
+        self,
+        sensor: Sensor,
+        frames: Iterable[Mapping[str, np.ndarray]] | None = None,
+        fields: Sequence[tuple[str, str]] | None = None,
+    ) -> None:
         """Write the frames of a LiDAR channel to one Parquet file and point its records to it.
 
-        Point fields get their 1.0 dtypes; `source_index` / `source_timestamp` come from the
-        0.x `.info` files, and `label` / `instance` from 0.x lidarseg (`instance` is -1: 0.x
-        labels are semantic only; frames without labels are null).
+        The points are those of the 0.x files, with their fields at the 1.0 dtypes, or `frames`
+        when given (one per frame of `channel_frames`, in that order, with the `fields` to
+        write): each must then have as many points as the frame's 0.x file, so that the labels
+        of the points still apply. `source_index` / `source_timestamp` come from the 0.x
+        `.info` files, and `label` / `instance` from 0.x lidarseg (`instance` is -1: 0.x labels
+        are semantic only; frames without labels are null).
 
         Args:
             sensor (Sensor): LiDAR sensor with frames.
+            frames (Iterable[Mapping[str, np.ndarray]] | None, optional): The points of each
+                frame by field, instead of the 0.x files'.
+            fields (Sequence[tuple[str, str]] | None, optional): (name, dtype) of the columns
+                of `frames`.
 
         Raises:
-            ValueError: If the points of a frame are not covered by its `.info` sources, or
-                lidarseg is present but category 0 is not `unpainted`.
+            ValueError: If the points of a frame are not covered by its `.info` sources, if
+                lidarseg is present but category 0 is not `unpainted`, or if a given frame has
+                not the point count of the 0.x file.
         """
-        records = self._channel_frames(sensor)
+        records = self.channel_frames(sensor)
         self._relink(sensor, records)
         # the 0.x layout, as loading read it (`.info` field count, or the `.pcd` header)
         source_fields = [(field.name, field.dtype) for field in sensor.lidar.fields]
-        fields = self._point_fields(sensor.channel, records, source_fields)
+        if frames is None:
+            fields = self._point_fields(sensor.channel, records, source_fields)
+        elif fields is None:
+            raise ValueError("frames given without their fields")
+        else:
+            fields = list(fields)
         if self._v0_frames[records[0].token].get("info_filename"):
             fields += [("source_index", "uint8"), ("source_timestamp", "int64")]
         if any(record.token in self._labels for record in records):
@@ -99,7 +123,13 @@ class V0Migrator:
             self._index_instances()
             fields += [("label", "uint8"), ("instance", "int16")]
 
-        frames = (self._lidar_frame(record, source_fields, fields) for record in records)
+        if frames is None:
+            frames = (self._lidar_frame(record, source_fields, fields) for record in records)
+        else:
+            frames = (
+                self._lidar_frame(record, source_fields, fields, points)
+                for record, points in zip(records, frames, strict=True)
+            )
         path, frame_count = self.writer.write_lidar(sensor.channel, frames, fields)
 
         sensor.lidar.container = LidarContainer(
@@ -123,6 +153,7 @@ class V0Migrator:
                     compression="zstd",
                 )
                 source.lidar.fields = list(sensor.lidar.fields)
+        self.migrated.add(sensor.channel)
 
     def cameras(self) -> list[Sensor]:
         """Return the camera sensors with frames."""
@@ -133,22 +164,31 @@ class V0Migrator:
             if sensor.camera is not None and sensor.token in with_frames
         ]
 
-    def migrate_camera(self, sensor: Sensor) -> None:
+    def migrate_camera(self, sensor: Sensor, images: Iterable[np.ndarray] | None = None) -> None:
         """Encode the image frames of a camera channel as one AV1 video and point its records to it.
 
         Frames go in timestamp order, so `frame_index` is the position. Frames marked
         `is_valid: false` (blank images) are encoded like the others. The frame rate is the
-        median interval between frames.
+        median interval between frames. The images are the 0.x files, or `images` when given
+        (one RGB array per frame of `channel_frames`, in that order).
 
         Args:
             sensor (Sensor): Camera sensor with frames.
+            images (Iterable[np.ndarray] | None, optional): The image of each frame, instead
+                of the 0.x files'.
 
         Raises:
             ValueError: If an image does not have the sensor's width and height.
         """
-        records = self._channel_frames(sensor)
+        records = self.channel_frames(sensor)
         self._relink(sensor, records)
-        images = (self._image(record, sensor) for record in records)
+        if images is None:
+            images = (self._image(record, sensor) for record in records)
+        else:
+            images = (
+                self._sized(image, sensor, f"frame {record.frame_index}")
+                for record, image in zip(records, images, strict=True)
+            )
         video = self.writer.write_camera(sensor.channel, images, self._frame_rate(records))
 
         sensor.camera.video = video
@@ -156,6 +196,7 @@ class V0Migrator:
             record.filename = video["path"]
             record.frame_index = frame_index
             record.fileformat = "av1_mp4"
+        self.migrated.add(sensor.channel)
 
     def copy_images(self, sensor: Sensor) -> None:
         """Copy the image files of a camera channel as they are, instead of encoding a video.
@@ -163,10 +204,11 @@ class V0Migrator:
         Args:
             sensor (Sensor): Camera sensor with frames.
         """
-        records = self._channel_frames(sensor)
+        records = self.channel_frames(sensor)
         self._relink(sensor, records)
         for record in records:
             self.writer.copy(osp.join(self.data_root, record.filename), record.filename)
+        self.migrated.add(sensor.channel)
 
     def migrate(
         self,
@@ -176,8 +218,8 @@ class V0Migrator:
         keep_images: bool = False,
         manifest_fields: Mapping[str, Any] | None = None,
     ) -> Manifest:
-        """Migrate every channel, copy `map/` and `input_bag/`, then write the tables and
-        `manifest.json`.
+        """Migrate every channel not in `migrated`, copy `map/` and `input_bag/`, then write
+        the tables and `manifest.json`.
 
         What 0.x does not store can be given by the caller: records through `tables`, and
         manifest fields (e.g. `provenance`, `project_id`, `generators`) through
@@ -195,8 +237,11 @@ class V0Migrator:
             The manifest written.
         """
         for sensor in self.lidars():
-            self.migrate_lidar(sensor)
+            if sensor.channel not in self.migrated:
+                self.migrate_lidar(sensor)
         for sensor in self.cameras():
+            if sensor.channel in self.migrated:
+                continue
             if keep_images:
                 self.copy_images(sensor)
             else:
@@ -258,8 +303,8 @@ class V0Migrator:
             "migrated_from_schema_version": "0.x",
         }
 
-    def _channel_frames(self, sensor: Sensor) -> list[SampleData]:
-        """Return the frames of a sensor in timestamp order."""
+    def channel_frames(self, sensor: Sensor) -> list[SampleData]:
+        """Return the frames of a sensor in timestamp order, the order of the channel's file."""
         return sorted(
             (
                 frame
@@ -297,9 +342,14 @@ class V0Migrator:
 
     def _image(self, record: SampleData, sensor: Sensor) -> np.ndarray:
         image = load_image(osp.join(self.data_root, record.filename))
+        return self._sized(image, sensor, record.filename)
+
+    @staticmethod
+    def _sized(image: np.ndarray, sensor: Sensor, name: str) -> np.ndarray:
+        """Return the image, which must have the sensor's width and height."""
         if image.shape[:2] != (sensor.camera.height, sensor.camera.width):
             raise ValueError(
-                f"{record.filename}: {image.shape[1]}x{image.shape[0]}, but {sensor.channel} is "
+                f"{name}: {image.shape[1]}x{image.shape[0]}, but {sensor.channel} is "
                 f"{sensor.camera.width}x{sensor.camera.height}"
             )
         return image
@@ -376,11 +426,21 @@ class V0Migrator:
         record: SampleData,
         source_fields: list[tuple[str, str]],
         fields: list[tuple[str, str]],
+        points: Mapping[str, np.ndarray] | None = None,
     ) -> dict[str, np.ndarray | None]:
-        """Return one frame in the 1.0 layout, and set its `num_points`."""
-        points = self._read_points(record, source_fields)
+        """Return one frame in the 1.0 layout, and set its `num_points`: the points of its 0.x
+        file, or `points` given, as many as the file has.
+        """
+        stored = self._read_points(record, source_fields)
+        num_points = len(stored[source_fields[0][0]])
+        if points is None:
+            points = stored
+        elif len(next(iter(points.values()))) != num_points:
+            raise ValueError(
+                f"{record.filename}: {num_points} points, the frame given has "
+                f"{len(next(iter(points.values())))}"
+            )
         frame = {name: points[name].astype(dtype) for name, dtype in fields if name in points}
-        num_points = len(points[source_fields[0][0]])
         record.num_points = num_points
 
         info_filename = self._v0_frames[record.token].get("info_filename")
