@@ -158,6 +158,8 @@ Provenance {
 
 Metadata 0.x does not store (vehicle, map ids, provenance, routes, ...) can be added by the caller before writing: change records through `migrator.tables(...)`, and pass `manifest_fields` (e.g. `provenance`, `project_id`) to `migrate()`.
 
+A channel's frames can come from elsewhere than the 0.x files, e.g. read from the rosbag again: give them to `migrate_lidar(sensor, frames, fields)` or `migrate_camera(sensor, images)` in the order of `channel_frames(sensor)` before `migrate()`, which writes the other channels. A LiDAR frame given must have the point count of its 0.x file, so that the point labels still apply.
+
 ## Loading 0.x Datasets
 
 `load_dataset()` reads a 0.x dataset (no `manifest.json`) by converting its tables to 1.0 records when loading, on a best-effort basis. Sensor data files stay as they are: one file per frame, and `sample_data.frame_index` is `null`.

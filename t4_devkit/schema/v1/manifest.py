@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 __all__ = [
     "MANIFEST_FILENAME",
     "SUPPORTED_SCHEMA_MAJOR_VERSION",
+    "SCHEMA_VERSION",
     "Task",
     "RosbagStorage",
     "Generator",
@@ -33,6 +34,7 @@ __all__ = [
 
 MANIFEST_FILENAME = "manifest.json"
 SUPPORTED_SCHEMA_MAJOR_VERSION = 1
+SCHEMA_VERSION = "1.0.0"  # the version of the specification this t4-devkit writes
 
 
 @unique
