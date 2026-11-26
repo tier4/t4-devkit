@@ -338,7 +338,7 @@ def object_ann_dict() -> dict:
         "category_token": "7864884179fb37bf9e973016b13a332c",
         "attribute_tokens": [],
         "bbox": [0, 408.0529355733727, 1920, 728.1832152454293],
-        "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
+        "mask": {"size": [1280, 1920], "counts": "UFBQWzI='"},
         "automatic_annotation": True,
         "autolabel_metadata": [
             {"name": "yolo_v8_segmentation", "score": 0.87, "uncertainty": 0.15},
@@ -365,7 +365,7 @@ def surface_ann_dict() -> dict:
         "token": "4230e00708fb3f404d246ea97716f848",
         "sample_data_token": "a1d3257e11ec9d4a587ea7053b33f1c1",
         "category_token": "7864884179fb37bf9e973016b13a332c",
-        "mask": {"size": [1920, 1280], "counts": "UFBQWzI='"},
+        "mask": {"size": [1280, 1920], "counts": "UFBQWzI='"},
         "automatic_annotation": False,
         "autolabel_metadata": None,
     }

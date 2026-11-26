@@ -24,8 +24,8 @@ class RLEMask:
     """A dataclass to represent segmentation mask compressed by RLE.
 
     Attributes:
-        size (tuple[int, int]): Size of image ordering (width, height).
-        counts (str): RLE compressed mask data.
+        size (tuple[int, int]): Size of the image as (height, width), the COCO order.
+        counts (str): COCO compressed RLE of the mask, base64-encoded.
     """
 
     size: tuple[int, int] = field(
@@ -35,11 +35,11 @@ class RLEMask:
 
     @property
     def width(self) -> int:
-        return self.size[0]
+        return self.size[1]
 
     @property
     def height(self) -> int:
-        return self.size[1]
+        return self.size[0]
 
     def decode(self) -> NDArrayU8:
         """Decode segmentation mask.
