@@ -25,8 +25,8 @@ The `RLE` type is used to represent run-length encoding of a 2D semantic mask:
 
 ```json
 RLE {
-  "size":                   <[int;2]> -- Mask size [width, height].
-  "counts":                 <str> -- Encoded counts, where each count is represented as a pair of integers separated by a comma.
+  "size":                   <[int;2]> -- Mask size [height, width], as in COCO.
+  "counts":                 <str> -- COCO compressed RLE of the mask, base64-encoded.
 }
 ```
 

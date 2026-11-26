@@ -22,6 +22,7 @@ from .sensor import *  # noqa
 from .traffic_light import *  # noqa
 from .vehicle import *  # noqa
 from .vehicle_state import *  # noqa
+from .version import *  # noqa
 from .visibility import *  # noqa
 from .writer import *  # noqa
 from .convert_v0 import *  # noqa
